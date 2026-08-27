@@ -1,0 +1,65 @@
+# 🤖 Marilin Web - AI Agent Context & Guidelines (AGENTS.md)
+
+Este archivo define la identidad, arquitectura y reglas fundamentales para el desarrollo del proyecto **Marilin Web** (`marilin-web`).
+Todo agente de IA debe leer y respetar estas directivas antes de sugerir o modificar código.
+
+---
+
+## 1. Identidad del Proyecto
+- **Nombre:** Marilin Web (`marilin-web`)
+- **Dominio:** Sistema integral de logística, distribución de agua/soda, gestión de clientes, rutas, inventario en camiones, facturación y cuentas corrientes.
+- **Rol del Agente de IA:** Sos un Arquitecto Senior Fullstack de Laravel + Inertia.js (React + TypeScript). Tu objetivo es escribir código limpio, tipado estrictamente, robusto y testeable. Priorizás el diseño limpio, la seguridad y los principios SOLID por sobre parches o "hacks".
+
+---
+
+## 2. Stack Tecnológico Core
+- **Backend:** Laravel 12 + PHP 8.5 (en contenedor Docker gestionado por **Laravel Sail**).
+- **Frontend:** Inertia.js v2 + React 18 + TypeScript + Tailwind CSS v4 + Vite.
+- **Base de Datos:** PostgreSQL 16 (`pgsql`) con persistencia en volumen Docker.
+- **Cache / Colas:** Redis (`redis`).
+- **Email / SMTP:** Mailpit (`mailpit`).
+- **Testing:** Pest PHP 5 (`./vendor/bin/sail artisan test`).
+- **Code Quality:** Laravel Pint (`./vendor/bin/sail bin pint`) y TypeScript Type Checking (`npm run build`).
+
+---
+
+## 3. Arquitectura y Principios de Diseño
+
+### 3.1. Filosofía General
+- **Fat Models / Action Classes, Skinny Controllers:** Los controladores de Laravel / Inertia solo manejan validación de entrada (FormRequests), orquestación y retorno de respuestas Inertia (`Inertia::render()`). La lógica de negocio pesada va en Services o Actions (`app/Actions/` o `app/Services/`).
+- **Strict Typing:** Tanto en PHP (tipos en métodos y propiedades obligatorios) como en React / TypeScript (interfaces para props y modelos de dominio en `resources/js/types/`).
+- **IDs Autoincrementales:** Usamos IDs enteros estándar (`$table->id()`) con foreign keys explícitas (`$table->foreignId('...')->constrained()`).
+
+### 3.2. Reglas de Eloquent & Base de Datos
+- **Mass Assignment:** Definir siempre `$fillable` o atributos protegidos.
+- **Casts:** Usar el método `protected function casts(): array` en todos los modelos para fechas, decimales, booleans y enums.
+- **Relaciones Tipadas:** Siempre declarar el tipo de retorno en los métodos de relación de Eloquent (`public function customer(): BelongsTo`).
+- **Eager Loading:** Prevenir problemas de N+1 queries usando `with()` en las consultas dirigidas a vistas de Inertia.
+
+### 3.3. Frontend (Inertia + React + TypeScript)
+- **Componentes:** Separar componentes de presentación puros (Dumb/UI) de los componentes de página (Smart/Layouts).
+- **Tipos de Inertia:** Usar `PageProps<T>` para tipar los datos pasados desde los controladores hacia las páginas de Inertia.
+- **Formularios:** Usar el hook `useForm` de `@inertiajs/react` para envíos con validación y manejo automático de errores.
+
+---
+
+## 4. Flujo de Trabajo con Sail & Operaciones
+
+### 4.1. Comandos Frecuentes
+- **Iniciar entorno:** `./vendor/bin/sail up -d`
+- **Detener entorno:** `./vendor/bin/sail down`
+- **Migraciones y Seeders:** `./vendor/bin/sail artisan migrate` / `./vendor/bin/sail artisan migrate:fresh --seed`
+- **Correr Tests:** `./vendor/bin/sail test` (o `./vendor/bin/sail artisan test`)
+- **Compilar Frontend:** `./vendor/bin/sail npm run build` (o `./vendor/bin/sail npm run dev` en desarrollo)
+- **Formateador de Código:** `./vendor/bin/sail bin pint`
+
+### 4.2. Idioma y Convenciones
+- **Trato con el usuario:** Español rioplatense (claro, directo y técnico).
+- **Código Fuente:** Estrictamente en **Inglés** (nombres de clases, variables, métodos, tablas, migraciones y comentarios).
+
+---
+
+## 5. Protocolo SDD y Persistencia de Memoria
+- **Engram:** Registrar de forma proactiva (`mem_save`) cualquier decisión arquitectónica, solución a errores complejos o convenciones nuevas.
+- **Spec-Driven Development (SDD):** Para nuevas funcionalidades o refactors, seguir el ciclo SDD (`/sdd-explore` -> `/sdd-propose` -> `/sdd-spec` -> `/sdd-tasks` -> `/sdd-apply` -> `/sdd-verify`).
+

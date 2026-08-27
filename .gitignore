@@ -1,0 +1,54 @@
+# Laravel & PHP
+/node_modules
+/public/build
+/public/hot
+/public/storage
+/storage/*.key
+/storage/app/public/*
+!/storage/app/public/.gitignore
+/storage/framework/cache/data/*
+!/storage/framework/cache/data/.gitignore
+/storage/framework/sessions/*
+!/storage/framework/sessions/.gitignore
+/storage/framework/testing/*
+!/storage/framework/testing/.gitignore
+/storage/framework/views/*
+!/storage/framework/views/.gitignore
+/storage/logs/*
+!/storage/logs/.gitignore
+/storage/pail
+/vendor
+.phpunit.result.cache
+/.phpunit.cache
+_ide_helper.php
+.phpactor.json
+auth.json
+
+# Environment variables
+.env
+.env.backup
+.env.production
+.env.*.local
+
+# OS & IDEs
+.DS_Store
+Thumbs.db
+/.idea
+/.vscode
+/.cursor/
+/.zed
+/.nova
+/.codex
+Homestead.json
+Homestead.yaml
+
+# NPM & Vite
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+/public/fonts-manifest.dev.json
+
+# SDD & Agent local cache
+.atl/
+.engram/
