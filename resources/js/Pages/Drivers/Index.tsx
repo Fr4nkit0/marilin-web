@@ -62,15 +62,15 @@ export default function RepartidoresIndex({ repartidores, filters }: Props) {
             header={
                 <div className="flex items-center gap-2">
                     <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                        Flota & Repartidores
+                        Flota & Choferes
                     </span>
                 </div>
             }
         >
-            <Head title="Repartidores - Marilin" />
+            <Head title="Choferes - Marilin" />
 
             <PageHeader
-                title="Gestión de Repartidores y Flota"
+                title="Gestión de Choferes"
                 description="Supervisión en tiempo real de choferes, rutas asignadas y avance de entregas."
             />
 
@@ -131,7 +131,7 @@ export default function RepartidoresIndex({ repartidores, filters }: Props) {
                             {repartidores.length === 0 ? (
                                 <tr>
                                     <td colSpan={6} className="px-6 py-8 text-center text-slate-400">
-                                        No se encontraron repartidores registrados.
+                                        No se encontraron choferes registrados.
                                     </td>
                                 </tr>
                             ) : (
