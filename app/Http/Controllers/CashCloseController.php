@@ -69,12 +69,12 @@ class CashCloseController extends Controller
                 // Containers movement in route
                 $containersDelivered = (int) ContainerMovement::whereHas('visit', fn ($q) => $q->where('repartidor_id', $selectedRepartidor->id))
                     ->whereDate('created_at', $date)
-                    ->where('type', 'DELIVERED')
+                    ->where('movement_type', 'DELIVERED')
                     ->sum('quantity');
 
                 $containersReturned = (int) ContainerMovement::whereHas('visit', fn ($q) => $q->where('repartidor_id', $selectedRepartidor->id))
                     ->whereDate('created_at', $date)
-                    ->where('type', 'RETURNED')
+                    ->where('movement_type', 'RETURNED')
                     ->sum('quantity');
 
                 $settlement = [

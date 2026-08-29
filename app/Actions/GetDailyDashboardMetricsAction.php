@@ -20,8 +20,8 @@ class GetDailyDashboardMetricsAction
         $targetDate = $date ? Carbon::parse($date)->toDateString() : Carbon::today()->toDateString();
 
         // 1. Total Daily Sales
-        $totalSales = (float) Sale::whereDate('sale_date', $targetDate)->sum('total_amount');
-        $yesterdaySales = (float) Sale::whereDate('sale_date', Carbon::parse($targetDate)->subDay()->toDateString())->sum('total_amount');
+        $totalSales = (float) Sale::whereDate('date', $targetDate)->sum('total');
+        $yesterdaySales = (float) Sale::whereDate('date', Carbon::parse($targetDate)->subDay()->toDateString())->sum('total');
         $salesDelta = $yesterdaySales > 0
             ? round((($totalSales - $yesterdaySales) / $yesterdaySales) * 100, 1)
             : 0;
@@ -69,11 +69,11 @@ class GetDailyDashboardMetricsAction
 
         // 4. Containers delivered vs returned
         $containersDelivered = (int) ContainerMovement::whereDate('created_at', $targetDate)
-            ->where('type', 'DELIVERED')
+            ->where('movement_type', 'DELIVERED')
             ->sum('quantity');
 
         $containersReturned = (int) ContainerMovement::whereDate('created_at', $targetDate)
-            ->where('type', 'RETURNED')
+            ->where('movement_type', 'RETURNED')
             ->sum('quantity');
 
         return [
