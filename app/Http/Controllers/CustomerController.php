@@ -32,7 +32,7 @@ class CustomerController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'ilike', "%{$search}%")
                     ->orWhere('phone_number', 'like', "%{$search}%")
-                    ->orWhereHas('primaryAddress', fn ($sq) => $sq->where('address_line', 'ilike', "%{$search}%"));
+                    ->orWhereHas('primaryAddress', fn ($sq) => $sq->where('street', 'ilike', "%{$search}%"));
             });
         }
 

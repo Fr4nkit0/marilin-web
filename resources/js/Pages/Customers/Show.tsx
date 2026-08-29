@@ -23,12 +23,12 @@ interface Props {
         name: string;
         phone_number?: string;
         primary_address?: {
-            address_line: string;
-            neighborhood?: string;
-            city?: string;
+            street: string;
+            apartment?: string;
+            floor?: number;
+            visual_reference?: string;
             latitude?: number;
             longitude?: number;
-            notes?: string;
         };
         repartidor?: {
             id: number;
@@ -134,8 +134,9 @@ export default function CustomerShow({ customer, accountEntries, containerMoveme
                                     <div className="flex items-center gap-1">
                                         <MapPin className="w-3.5 h-3.5 text-slate-400" />
                                         <span>
-                                            {customer.primary_address.address_line}
-                                            {customer.primary_address.neighborhood && ` (${customer.primary_address.neighborhood})`}
+                                            {customer.primary_address.street}
+                                            {customer.primary_address.apartment && ` (Depto ${customer.primary_address.apartment})`}
+                                            {customer.primary_address.visual_reference && ` - ${customer.primary_address.visual_reference}`}
                                         </span>
                                     </div>
                                 )}

@@ -18,9 +18,10 @@ import {
 
 interface CustomerAddress {
     id: number;
-    address_line: string;
-    neighborhood?: string;
-    city?: string;
+    street: string;
+    apartment?: string;
+    floor?: number;
+    visual_reference?: string;
     is_primary: boolean;
 }
 
@@ -228,10 +229,10 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                                     <div className="flex items-start gap-1.5 max-w-xs">
                                                         <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
                                                         <span className="truncate">
-                                                            {c.primary_address.address_line}
-                                                            {c.primary_address.neighborhood && (
+                                                            {c.primary_address.street}
+                                                            {c.primary_address.apartment && (
                                                                 <span className="text-slate-400">
-                                                                    , {c.primary_address.neighborhood}
+                                                                    , Depto {c.primary_address.apartment}
                                                                 </span>
                                                             )}
                                                         </span>
