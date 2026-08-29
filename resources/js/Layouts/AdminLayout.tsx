@@ -100,35 +100,36 @@ export default function AdminLayout({
                     sidebarOpen ? 'translate-x-0' : '-translate-x-full'
                 }`}
             >
-                {/* Brand Logo & Header - Modern Clean Uppercase Branding */}
+                {/* Brand Logo & Header - Pure Organic Water Drop with Uppercase Branding */}
                 <div className="h-16 flex items-center justify-between px-5 border-b border-slate-100">
-                    <Link href={route('dashboard')} className="flex items-center gap-3 group">
-                        <div className="relative w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-700 via-blue-600 to-sky-400 p-0.5 shadow-sm shadow-blue-500/25 group-hover:shadow-blue-500/40 group-hover:scale-105 transition-all duration-200 flex items-center justify-center">
+                    <Link href={route('dashboard')} className="flex items-center gap-2.5 group">
+                        <div className="flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
                             <svg
-                                className="w-5 h-5 text-white drop-shadow-xs"
+                                className="w-7 h-7 drop-shadow-xs"
                                 viewBox="0 0 24 24"
                                 fill="none"
                                 xmlns="http://www.w3.org/2000/svg"
                             >
                                 <defs>
-                                    <linearGradient id="dropGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" stopColor="#ffffff" stopOpacity="0.95" />
-                                        <stop offset="100%" stopColor="#93c5fd" stopOpacity="0.8" />
+                                    <linearGradient id="pureWaterDrop" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stopColor="#38bdf8" />
+                                        <stop offset="60%" stopColor="#2563eb" />
+                                        <stop offset="100%" stopColor="#1d4ed8" />
                                     </linearGradient>
                                 </defs>
-                                {/* Natural Hydro Drop Curve */}
+                                {/* Organic pure water drop without box/frame */}
                                 <path
-                                    d="M12 3C12 3 6.5 10.2 6.5 14.8C6.5 17.8268 8.96319 20.28 12 20.28C15.0368 20.28 17.5 17.8268 17.5 14.8C17.5 10.2 12 3 12 3Z"
-                                    fill="url(#dropGrad)"
+                                    d="M12 2.5C12 2.5 5.5 10.2 5.5 15C5.5 18.5899 8.41015 21.5 12 21.5C15.5899 21.5 18.5 18.5899 18.5 15C18.5 10.2 12 2.5 12 2.5Z"
+                                    fill="url(#pureWaterDrop)"
                                 />
-                                {/* Water Spark / Gloss Highlight */}
+                                {/* Water light reflection curve */}
                                 <path
-                                    d="M9.5 13C9.5 11.5 11 9.5 12 8.5"
+                                    d="M9 13.5C9 11.2 10.8 8.8 12 7.8"
                                     stroke="white"
-                                    strokeWidth="1.6"
+                                    strokeWidth="1.8"
                                     strokeLinecap="round"
+                                    strokeOpacity="0.8"
                                 />
-                                <circle cx="10" cy="16" r="1" fill="white" />
                             </svg>
                         </div>
                         <div className="flex flex-col">
