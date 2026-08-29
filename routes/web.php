@@ -30,6 +30,15 @@ Route::middleware('auth')->group(function () {
     // Repartidores
     Route::get('/repartidores', [\App\Http\Controllers\RepartidorController::class, 'index'])->name('repartidores.index');
     Route::get('/repartidores/{repartidor}', [\App\Http\Controllers\RepartidorController::class, 'show'])->name('repartidores.show');
+
+    // Ventas
+    Route::get('/sales', [\App\Http\Controllers\SaleController::class, 'index'])->name('sales.index');
+
+    // Cobros
+    Route::get('/payments', [\App\Http\Controllers\PaymentController::class, 'index'])->name('payments.index');
+
+    // Cierre de Caja / Arqueo
+    Route::get('/cash-close', [\App\Http\Controllers\CashCloseController::class, 'index'])->name('cash-close.index');
 });
 
 require __DIR__.'/auth.php';

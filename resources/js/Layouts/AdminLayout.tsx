@@ -60,21 +60,21 @@ export default function AdminLayout({
         },
         {
             name: 'Ventas',
-            href: '#',
+            href: route('sales.index'),
             icon: Receipt,
             active: route().current('sales.*') || false,
         },
         {
             name: 'Cobros y Caja',
-            href: '#',
+            href: route('payments.index'),
             icon: CircleDollarSign,
             active: route().current('payments.*') || false,
         },
         {
-            name: 'Inventario / Envases',
-            href: '#',
+            name: 'Cierre y Arqueo',
+            href: route('cash-close.index'),
             icon: Package,
-            active: route().current('inventory.*') || false,
+            active: route().current('cash-close.*') || false,
         },
     ];
 
