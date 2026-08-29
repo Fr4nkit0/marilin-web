@@ -11,10 +11,10 @@ use App\Models\CustomerBalance;
 use App\Models\CustomerContainerBalance;
 use App\Models\CustomerPreference;
 use App\Models\CustomerAccountEntry;
+use App\Models\Driver;
 use App\Models\Payment;
 use App\Models\PaymentMethod;
 use App\Models\Product;
-use App\Models\Repartidor;
 use App\Models\Route as DeliveryRoute;
 use App\Models\RouteInventory;
 use App\Models\RouteInventoryLoad;
@@ -43,7 +43,7 @@ class DatabaseSeeder extends Seeder
         $today = Carbon::today();
         $yesterday = Carbon::yesterday();
 
-        // 1. Core Users (Admin & Repartidores)
+        // 1. Core Users (Admin & Repartidores/Drivers)
         $admin = User::firstOrCreate(
             ['email' => 'admin@marilin.com'],
             [
@@ -83,7 +83,7 @@ class DatabaseSeeder extends Seeder
             ],
         ];
 
-        $repartidores = [];
+        $drivers = [];
         foreach ($driverUsers as $du) {
             $user = User::firstOrCreate(
                 ['email' => $du['email']],
@@ -97,18 +97,18 @@ class DatabaseSeeder extends Seeder
                 ]
             );
 
-            $rep = Repartidor::firstOrCreate(
+            $drv = Driver::firstOrCreate(
                 ['user_id' => $user->id],
                 ['enabled' => true]
             );
 
-            $repartidores[] = $rep;
+            $drivers[] = $drv;
         }
 
-        $repJuan = $repartidores[0];
-        $repCarlos = $repartidores[1];
-        $repMarcos = $repartidores[2];
-        $repEsteban = $repartidores[3];
+        $repJuan = $drivers[0];
+        $repCarlos = $drivers[1];
+        $repMarcos = $drivers[2];
+        $repEsteban = $drivers[3];
 
         // 2. Container Types
         $bidon20L = ContainerType::firstOrCreate(
@@ -430,7 +430,7 @@ class DatabaseSeeder extends Seeder
             $customer = Customer::firstOrCreate(
                 ['name' => $cfg['name']],
                 [
-                    'repartidor_id' => $cfg['rep']->id,
+                    'driver_id' => $cfg['rep']->id,
                     'phone_number' => $cfg['phone'],
                     'created_by' => $admin->id,
                     'enabled' => true,
@@ -546,7 +546,7 @@ class DatabaseSeeder extends Seeder
 
         // --- ROUTE 1: Juan Pérez (IN_PROGRESS - Centro & Nieva) ---
         $routeJuan = DeliveryRoute::firstOrCreate(
-            ['assigned_repartidor_id' => $repJuan->id, 'date' => $today->toDateString()],
+            ['assigned_driver_id' => $repJuan->id, 'date' => $today->toDateString()],
             [
                 'status' => 'IN_PROGRESS',
                 'started_at' => $today->copy()->setHour(8)->setMinute(15),
@@ -662,7 +662,7 @@ class DatabaseSeeder extends Seeder
                     ['route_stop_id' => $stop->id],
                     [
                         'customer_id' => $cust->id,
-                        'repartidor_id' => $repJuan->id,
+                        'driver_id' => $repJuan->id,
                         'outcome_id' => $outcomeDelivered->id,
                         'arrived_at' => $s['time'] ? $today->copy()->setHour(explode(':', $s['time'])[0])->setMinute(explode(':', $s['time'])[1]) : null,
                         'latitude' => $addr->latitude,
@@ -788,7 +788,7 @@ class DatabaseSeeder extends Seeder
 
         // --- ROUTE 2: Carlos Gómez (COMPLETED - San Pedrito & Alto Comedero) ---
         $routeCarlos = DeliveryRoute::firstOrCreate(
-            ['assigned_repartidor_id' => $repCarlos->id, 'date' => $today->toDateString()],
+            ['assigned_driver_id' => $repCarlos->id, 'date' => $today->toDateString()],
             [
                 'status' => 'COMPLETED',
                 'started_at' => $today->copy()->setHour(7)->setMinute(45),
@@ -867,7 +867,7 @@ class DatabaseSeeder extends Seeder
                 ['route_stop_id' => $stop->id],
                 [
                     'customer_id' => $cust->id,
-                    'repartidor_id' => $repCarlos->id,
+                    'driver_id' => $repCarlos->id,
                     'outcome_id' => $outcomeDelivered->id,
                     'arrived_at' => $today->copy()->setHour(explode(':', $s['time'])[0])->setMinute(explode(':', $s['time'])[1]),
                     'latitude' => $addr->latitude,
@@ -944,7 +944,7 @@ class DatabaseSeeder extends Seeder
 
         // --- ROUTE 3: Marcos Morales (IN_PROGRESS - Palpalá) ---
         $routeMarcos = DeliveryRoute::firstOrCreate(
-            ['assigned_repartidor_id' => $repMarcos->id, 'date' => $today->toDateString()],
+            ['assigned_driver_id' => $repMarcos->id, 'date' => $today->toDateString()],
             [
                 'status' => 'IN_PROGRESS',
                 'started_at' => $today->copy()->setHour(8)->setMinute(30),
@@ -1004,7 +1004,7 @@ class DatabaseSeeder extends Seeder
                 ['route_stop_id' => $stop->id],
                 [
                     'customer_id' => $cust->id,
-                    'repartidor_id' => $repMarcos->id,
+                    'driver_id' => $repMarcos->id,
                     'outcome_id' => $outcomeDelivered->id,
                     'arrived_at' => $today->copy()->setHour(explode(':', $s['time'])[0])->setMinute(explode(':', $s['time'])[1]),
                     'latitude' => $addr->latitude,

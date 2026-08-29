@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
-use App\Models\Repartidor;
+use App\Models\Driver;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -11,18 +11,18 @@ use Inertia\Response;
 class CustomerController extends Controller
 {
     /**
-     * Display a listing of customers with debt, address, and repartidor info.
+     * Display a listing of customers with debt, address, and repartidor/driver info.
      */
     public function index(Request $request): Response
     {
         $search = $request->query('search');
-        $repartidorId = $request->query('repartidor_id');
+        $driverId = $request->query('repartidor_id') ?? $request->query('driver_id');
         $debtStatus = $request->query('debt_status'); // 'with_debt', 'clean', 'all'
 
         $query = Customer::query()
             ->with([
                 'primaryAddress',
-                'repartidor.user',
+                'driver.user',
                 'balance',
                 'containerBalances.containerType',
             ])
@@ -36,8 +36,8 @@ class CustomerController extends Controller
             });
         }
 
-        if ($repartidorId) {
-            $query->where('repartidor_id', $repartidorId);
+        if ($driverId) {
+            $query->where('driver_id', $driverId);
         }
 
         if ($debtStatus === 'with_debt') {
@@ -51,7 +51,7 @@ class CustomerController extends Controller
 
         $customers = $query->orderBy('name')->paginate(15)->withQueryString();
 
-        $repartidores = Repartidor::with('user')->get()->map(fn ($r) => [
+        $drivers = Driver::with('user')->get()->map(fn ($r) => [
             'id' => $r->id,
             'name' => $r->user?->name ?? 'Sin nombre',
         ]);
@@ -60,10 +60,10 @@ class CustomerController extends Controller
             'customers' => $customers,
             'filters' => [
                 'search' => $search,
-                'repartidor_id' => $repartidorId,
+                'repartidor_id' => $driverId,
                 'debt_status' => $debtStatus ?? 'all',
             ],
-            'repartidores' => $repartidores,
+            'repartidores' => $drivers,
         ]);
     }
 
@@ -75,7 +75,7 @@ class CustomerController extends Controller
         $customer->load([
             'primaryAddress',
             'addresses',
-            'repartidor.user',
+            'driver.user',
             'balance',
             'containerBalances.containerType',
             'agreements.product',
@@ -109,5 +109,139 @@ class CustomerController extends Controller
             'accountEntries' => $accountEntries,
             'containerMovements' => $containerMovements,
         ]);
+    }
+
+    /**
+     * Store a newly created customer in storage.
+     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:200',
+            'phone_number' => 'nullable|string|max:50',
+            'repartidor_id' => 'nullable|exists:drivers,id',
+            'street' => 'required|string|max:200',
+            'apartment' => 'nullable|string|max:20',
+            'visual_reference' => 'nullable|string|max:500',
+            'initial_balance' => 'nullable|numeric|min:0',
+            'bidon_20l_balance' => 'nullable|integer|min:0',
+            'sifon_2l_balance' => 'nullable|integer|min:0',
+        ]);
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($validated, $request) {
+            $user = $request->user();
+
+            $customer = Customer::create([
+                'name' => $validated['name'],
+                'phone_number' => $validated['phone_number'] ?? null,
+                'driver_id' => $validated['repartidor_id'] ?? null,
+                'created_by' => $user->id,
+                'enabled' => true,
+            ]);
+
+            // Address
+            \App\Models\CustomerAddress::create([
+                'customer_id' => $customer->id,
+                'street' => $validated['street'],
+                'apartment' => $validated['apartment'] ?? null,
+                'visual_reference' => $validated['visual_reference'] ?? null,
+                'is_primary' => true,
+                'created_by' => $user->id,
+                'enabled' => true,
+            ]);
+
+            // Customer Balance
+            $initialDebt = (float) ($validated['initial_balance'] ?? 0);
+            \App\Models\CustomerBalance::create([
+                'customer_id' => $customer->id,
+                'current_balance' => $initialDebt,
+                'created_by' => $user->id,
+                'enabled' => true,
+            ]);
+
+            if ($initialDebt > 0) {
+                \App\Models\CustomerAccountEntry::create([
+                    'customer_id' => $customer->id,
+                    'entry_type' => 'ADJUSTMENT',
+                    'direction' => 1,
+                    'amount' => $initialDebt,
+                    'description' => 'Saldo deudor inicial registrado al dar de alta',
+                    'created_by' => $user->id,
+                ]);
+            }
+
+            // Container Balances (20L and Sifon)
+            $bidonType = \App\Models\ContainerType::where('code', 'BIDON_20L')->first();
+            if ($bidonType && isset($validated['bidon_20l_balance']) && (int) $validated['bidon_20l_balance'] > 0) {
+                \App\Models\CustomerContainerBalance::create([
+                    'customer_id' => $customer->id,
+                    'container_type_id' => $bidonType->id,
+                    'balance' => (int) $validated['bidon_20l_balance'],
+                    'created_by' => $user->id,
+                    'enabled' => true,
+                ]);
+            }
+
+            $sifonType = \App\Models\ContainerType::where('code', 'SIFON_2L')->first();
+            if ($sifonType && isset($validated['sifon_2l_balance']) && (int) $validated['sifon_2l_balance'] > 0) {
+                \App\Models\CustomerContainerBalance::create([
+                    'customer_id' => $customer->id,
+                    'container_type_id' => $sifonType->id,
+                    'balance' => (int) $validated['sifon_2l_balance'],
+                    'created_by' => $user->id,
+                    'enabled' => true,
+                ]);
+            }
+        });
+
+        return redirect()->route('customers.index')->with('success', 'Cliente creado exitosamente');
+    }
+
+    /**
+     * Update the specified customer in storage.
+     */
+    public function update(Request $request, Customer $customer)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:200',
+            'phone_number' => 'nullable|string|max:50',
+            'repartidor_id' => 'nullable|exists:drivers,id',
+            'street' => 'required|string|max:200',
+            'apartment' => 'nullable|string|max:20',
+            'visual_reference' => 'nullable|string|max:500',
+        ]);
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($validated, $request, $customer) {
+            $user = $request->user();
+
+            $customer->update([
+                'name' => $validated['name'],
+                'phone_number' => $validated['phone_number'] ?? null,
+                'driver_id' => $validated['repartidor_id'] ?? null,
+            ]);
+
+            // Update or Create Primary Address
+            $primaryAddress = $customer->primaryAddress;
+            if ($primaryAddress) {
+                $primaryAddress->update([
+                    'street' => $validated['street'],
+                    'apartment' => $validated['apartment'] ?? null,
+                    'visual_reference' => $validated['visual_reference'] ?? null,
+                    'last_modified_by' => $user->id,
+                ]);
+            } else {
+                \App\Models\CustomerAddress::create([
+                    'customer_id' => $customer->id,
+                    'street' => $validated['street'],
+                    'apartment' => $validated['apartment'] ?? null,
+                    'visual_reference' => $validated['visual_reference'] ?? null,
+                    'is_primary' => true,
+                    'created_by' => $user->id,
+                    'enabled' => true,
+                ]);
+            }
+        });
+
+        return redirect()->back()->with('success', 'Cliente actualizado exitosamente');
     }
 }

@@ -25,11 +25,13 @@ Route::middleware('auth')->group(function () {
 
     // Clientes
     Route::get('/customers', [\App\Http\Controllers\CustomerController::class, 'index'])->name('customers.index');
+    Route::post('/customers', [\App\Http\Controllers\CustomerController::class, 'store'])->name('customers.store');
+    Route::put('/customers/{customer}', [\App\Http\Controllers\CustomerController::class, 'update'])->name('customers.update');
     Route::get('/customers/{customer}', [\App\Http\Controllers\CustomerController::class, 'show'])->name('customers.show');
 
-    // Repartidores
-    Route::get('/repartidores', [\App\Http\Controllers\RepartidorController::class, 'index'])->name('repartidores.index');
-    Route::get('/repartidores/{repartidor}', [\App\Http\Controllers\RepartidorController::class, 'show'])->name('repartidores.show');
+    // Repartidores / Drivers
+    Route::get('/repartidores', [\App\Http\Controllers\DriverController::class, 'index'])->name('repartidores.index');
+    Route::get('/repartidores/{repartidor}', [\App\Http\Controllers\DriverController::class, 'show'])->name('repartidores.show');
 
     // Ventas
     Route::get('/sales', [\App\Http\Controllers\SaleController::class, 'index'])->name('sales.index');

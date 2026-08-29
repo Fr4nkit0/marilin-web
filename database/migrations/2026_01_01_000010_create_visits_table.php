@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('route_stop_id')->nullable()->constrained('route_stops')->cascadeOnDelete();
             $table->foreignId('customer_id')->constrained('customers')->cascadeOnDelete();
-            $table->foreignId('repartidor_id')->constrained('repartidores')->cascadeOnDelete();
+            $table->foreignId('driver_id')->constrained('drivers')->cascadeOnDelete();
             $table->foreignId('outcome_id')->nullable()->constrained('visit_outcomes')->nullOnDelete();
             $table->dateTime('arrived_at')->useCurrent();
             $table->decimal('latitude', 10, 7)->nullable();

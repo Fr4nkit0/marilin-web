@@ -40,7 +40,7 @@ class GetDailyDashboardMetricsAction
         $totalCollected = $cashPayments + $transferPayments;
 
         // 3. Route progress and stops
-        $routes = DeliveryRoute::with(['stops.visits', 'repartidor.user'])->whereDate('date', $targetDate)->get();
+        $routes = DeliveryRoute::with(['stops.visits', 'driver.user'])->whereDate('date', $targetDate)->get();
         $totalStops = 0;
         $completedStops = 0;
 
@@ -49,15 +49,15 @@ class GetDailyDashboardMetricsAction
         foreach ($routes as $route) {
             $routeStopsCount = $route->stops->count();
             $routeCompletedCount = $route->stops->filter(function ($stop) {
-                return $stop->visits->whereIn('status', ['COMPLETED', 'DELIVERED'])->isNotEmpty();
+                return $stop->visits->whereIn('status', ['COMPLETED', 'DELIVERED', 'FINISHED'])->isNotEmpty();
             })->count();
 
             $totalStops += $routeStopsCount;
             $completedStops += $routeCompletedCount;
 
             $repartidoresStatus[] = [
-                'id' => $route->repartidor?->id ?? $route->id,
-                'name' => $route->repartidor?->user?->name ?? 'Repartidor sin asignar',
+                'id' => $route->driver?->id ?? $route->id,
+                'name' => $route->driver?->user?->name ?? 'Chofer sin asignar',
                 'status' => $route->status, // PLANNED, IN_PROGRESS, COMPLETED
                 'totalStops' => $routeStopsCount,
                 'completedStops' => $routeCompletedCount,

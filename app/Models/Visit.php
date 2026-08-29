@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['route_stop_id', 'customer_id', 'repartidor_id', 'outcome_id', 'arrived_at', 'latitude', 'longitude', 'altitude', 'status', 'notes', 'created_by', 'last_modified_by', 'enabled'])]
+#[Fillable(['route_stop_id', 'customer_id', 'driver_id', 'outcome_id', 'arrived_at', 'latitude', 'longitude', 'altitude', 'status', 'notes', 'created_by', 'last_modified_by', 'enabled'])]
 class Visit extends Model
 {
     /** @use HasFactory<VisitFactory> */
@@ -31,14 +31,14 @@ class Visit extends Model
         return $this->belongsTo(RouteStop::class);
     }
 
+    public function driver(): BelongsTo
+    {
+        return $this->belongsTo(Driver::class, 'driver_id');
+    }
+
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
-    }
-
-    public function repartidor(): BelongsTo
-    {
-        return $this->belongsTo(Repartidor::class);
     }
 
     public function outcome(): BelongsTo

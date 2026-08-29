@@ -16,7 +16,7 @@ class RouteFactory extends Factory
     public function definition(): array
     {
         return [
-            'assigned_repartidor_id' => Repartidor::factory(),
+            'assigned_driver_id' => Driver::factory(),
             'date' => fake()->unique()->dateTimeBetween('-1 month', '+1 month')->format('Y-m-d'),
             'status' => 'PLANNED',
             'started_at' => null,

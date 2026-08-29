@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['assigned_repartidor_id', 'date', 'status', 'started_at', 'completed_at', 'enabled'])]
+#[Fillable(['assigned_driver_id', 'date', 'status', 'started_at', 'completed_at', 'enabled'])]
 class Route extends Model
 {
     /** @use HasFactory<RouteFactory> */
@@ -25,9 +25,9 @@ class Route extends Model
         ];
     }
 
-    public function repartidor(): BelongsTo
+    public function driver(): BelongsTo
     {
-        return $this->belongsTo(Repartidor::class, 'assigned_repartidor_id');
+        return $this->belongsTo(Driver::class, 'assigned_driver_id');
     }
 
     public function stops(): HasMany

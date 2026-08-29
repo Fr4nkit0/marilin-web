@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\ContainerMovement;
+use App\Models\Driver;
 use App\Models\Payment;
-use App\Models\Repartidor;
 use App\Models\Route as DeliveryRoute;
 use App\Models\Sale;
 use Carbon\Carbon;
@@ -20,18 +20,18 @@ class CashCloseController extends Controller
     public function index(Request $request): Response
     {
         $date = $request->query('date', Carbon::today()->toDateString());
-        $repartidorId = $request->query('repartidor_id');
+        $driverId = $request->query('repartidor_id') ?? $request->query('driver_id');
 
-        $repartidores = Repartidor::with('user')->where('enabled', true)->get();
+        $drivers = Driver::with('user')->where('enabled', true)->get();
 
         // Selected driver or first driver
-        $selectedRepartidor = $repartidorId
-            ? $repartidores->firstWhere('id', $repartidorId)
-            : $repartidores->first();
+        $selectedDriver = $driverId
+            ? $drivers->firstWhere('id', $driverId)
+            : $drivers->first();
 
         $settlement = null;
 
-        if ($selectedRepartidor) {
+        if ($selectedDriver) {
             $route = DeliveryRoute::with([
                 'inventories.product',
                 'inventoryLoads.product',
@@ -39,40 +39,40 @@ class CashCloseController extends Controller
                 'stops.visits.payments.paymentMethod',
                 'stops.visits.containerMovements',
             ])
-                ->where('assigned_repartidor_id', $selectedRepartidor->id)
+                ->where('assigned_driver_id', $selectedDriver->id)
                 ->whereDate('date', $date)
                 ->first();
 
             if ($route) {
                 // Payments breakdown in route
-                $cashAmount = (float) Payment::whereHas('visit', fn ($q) => $q->where('repartidor_id', $selectedRepartidor->id))
+                $cashAmount = (float) Payment::whereHas('visit', fn ($q) => $q->where('driver_id', $selectedDriver->id))
                     ->whereDate('paid_at', $date)
                     ->whereHas('paymentMethod', fn ($q) => $q->where('code', 'CASH'))
                     ->where('status', 'CONFIRMED')
                     ->sum('amount');
 
-                $transferAmount = (float) Payment::whereHas('visit', fn ($q) => $q->where('repartidor_id', $selectedRepartidor->id))
+                $transferAmount = (float) Payment::whereHas('visit', fn ($q) => $q->where('driver_id', $selectedDriver->id))
                     ->whereDate('paid_at', $date)
                     ->whereHas('paymentMethod', fn ($q) => $q->where('code', 'TRANSFER'))
                     ->where('status', 'CONFIRMED')
                     ->sum('amount');
 
-                $totalSales = (float) Sale::whereHas('visit', fn ($q) => $q->where('repartidor_id', $selectedRepartidor->id))
+                $totalSales = (float) Sale::whereHas('visit', fn ($q) => $q->where('driver_id', $selectedDriver->id))
                     ->whereDate('date', $date)
                     ->sum('total');
 
-                $creditSales = (float) Sale::whereHas('visit', fn ($q) => $q->where('repartidor_id', $selectedRepartidor->id))
+                $creditSales = (float) Sale::whereHas('visit', fn ($q) => $q->where('driver_id', $selectedDriver->id))
                     ->whereDate('date', $date)
                     ->where('is_credit_sale', true)
                     ->sum('total');
 
                 // Containers movement in route
-                $containersDelivered = (int) ContainerMovement::whereHas('visit', fn ($q) => $q->where('repartidor_id', $selectedRepartidor->id))
+                $containersDelivered = (int) ContainerMovement::whereHas('visit', fn ($q) => $q->where('driver_id', $selectedDriver->id))
                     ->whereDate('created_at', $date)
                     ->where('movement_type', 'DELIVERED')
                     ->sum('quantity');
 
-                $containersReturned = (int) ContainerMovement::whereHas('visit', fn ($q) => $q->where('repartidor_id', $selectedRepartidor->id))
+                $containersReturned = (int) ContainerMovement::whereHas('visit', fn ($q) => $q->where('driver_id', $selectedDriver->id))
                     ->whereDate('created_at', $date)
                     ->where('movement_type', 'RETURNED')
                     ->sum('quantity');
@@ -100,11 +100,11 @@ class CashCloseController extends Controller
         }
 
         return Inertia::render('CashClose/Index', [
-            'repartidores' => $repartidores->map(fn ($r) => [
+            'repartidores' => $drivers->map(fn ($r) => [
                 'id' => $r->id,
                 'name' => $r->user?->name ?? 'Repartidor',
             ]),
-            'selectedRepartidorId' => $selectedRepartidor?->id,
+            'selectedRepartidorId' => $selectedDriver?->id,
             'settlement' => $settlement,
             'date' => $date,
         ]);

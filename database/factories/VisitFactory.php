@@ -22,7 +22,7 @@ class VisitFactory extends Factory
         return [
             'route_stop_id' => RouteStop::factory(),
             'customer_id' => Customer::factory(),
-            'repartidor_id' => Repartidor::factory(),
+            'driver_id' => Driver::factory(),
             'outcome_id' => null,
             'arrived_at' => now(),
             'latitude' => fake()->latitude(-34.7, -34.5),

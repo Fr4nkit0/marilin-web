@@ -3,7 +3,7 @@
 use App\Models\Customer;
 use App\Models\CustomerAddress;
 use App\Models\CustomerPreference;
-use App\Models\Repartidor;
+use App\Models\Driver;
 use App\Models\User;
 
 test('user model can be created with factory and has correct casts', function () {
@@ -18,16 +18,18 @@ test('user model can be created with factory and has correct casts', function ()
     expect($user->enabled)->toBeTrue();
 });
 
-test('repartidor belongs to a user and has customers and routes', function () {
+test('customer belongs to driver and creator', function () {
     $user = User::factory()->create();
-    $repartidor = Repartidor::factory()->create(['user_id' => $user->id]);
+    $driver = Driver::factory()->create();
 
-    expect($repartidor->user->id)->toBe($user->id);
-    expect($user->repartidor->id)->toBe($repartidor->id);
+    $customer = Customer::factory()->create([
+        'driver_id' => $driver->id,
+        'created_by' => $user->id,
+    ]);
 
-    $customer = Customer::factory()->create(['repartidor_id' => $repartidor->id]);
-    expect($repartidor->customers)->toHaveCount(1);
-    expect($repartidor->customers->first()->id)->toBe($customer->id);
+    expect($customer->driver)->toBeInstanceOf(Driver::class)
+        ->and($customer->driver->id)->toBe($driver->id)
+        ->and($customer->creator)->toBeInstanceOf(User::class);
 });
 
 test('customer has addresses, primary address, and preferences', function () {

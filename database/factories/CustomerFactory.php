@@ -17,8 +17,8 @@ class CustomerFactory extends Factory
     public function definition(): array
     {
         return [
-            'repartidor_id' => Repartidor::factory(),
-            'name' => fake()->name(),
+            'driver_id' => Driver::factory(),
+            'name' => fake()->company(),
             'phone_number' => fake()->phoneNumber(),
             'created_by' => User::factory(),
             'last_modified_by' => null,

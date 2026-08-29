@@ -34,9 +34,9 @@ class User extends Authenticatable
         ];
     }
 
-    public function repartidor(): HasOne
+    public function driver(): HasOne
     {
-        return $this->hasOne(Repartidor::class);
+        return $this->hasOne(Driver::class);
     }
 
     public function customersCreated(): HasMany

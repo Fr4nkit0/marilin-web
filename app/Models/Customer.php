@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-#[Fillable(['repartidor_id', 'name', 'phone_number', 'created_by', 'last_modified_by', 'enabled'])]
+#[Fillable(['driver_id', 'name', 'phone_number', 'created_by', 'last_modified_by', 'enabled'])]
 class Customer extends Model
 {
     /** @use HasFactory<CustomerFactory> */
@@ -23,9 +23,9 @@ class Customer extends Model
         ];
     }
 
-    public function repartidor(): BelongsTo
+    public function driver(): BelongsTo
     {
-        return $this->belongsTo(Repartidor::class, 'repartidor_id');
+        return $this->belongsTo(Driver::class, 'driver_id');
     }
 
     public function creator(): BelongsTo

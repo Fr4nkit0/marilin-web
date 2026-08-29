@@ -15,6 +15,7 @@ import {
     Clock,
     Plus,
     CreditCard,
+    Truck,
 } from 'lucide-react';
 
 interface Props {
@@ -29,6 +30,12 @@ interface Props {
             visual_reference?: string;
             latitude?: number;
             longitude?: number;
+        };
+        driver?: {
+            id: number;
+            user?: {
+                name: string;
+            };
         };
         repartidor?: {
             id: number;
@@ -140,10 +147,14 @@ export default function CustomerShow({ customer, accountEntries, containerMoveme
                                         </span>
                                     </div>
                                 )}
-                                <div className="flex items-center gap-1">
-                                    <User className="w-3.5 h-3.5 text-slate-400" />
-                                    <span>Repartidor: <strong className="text-slate-700">{customer.repartidor?.user?.name || 'Sin asignar'}</strong></span>
-                                </div>
+                                {(customer.driver?.user || customer.repartidor?.user) && (
+                                    <div className="flex items-center gap-1">
+                                        <Truck className="w-3.5 h-3.5 text-slate-400" />
+                                        <span>
+                                            Repartidor: <strong className="text-slate-700">{customer.driver?.user?.name || customer.repartidor?.user?.name}</strong>
+                                        </span>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
