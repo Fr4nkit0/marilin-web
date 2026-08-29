@@ -37,6 +37,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/repartidores', fn () => redirect()->route('drivers.index'))->name('repartidores.index');
     Route::get('/repartidores/{repartidor}', fn ($repartidor) => redirect()->route('drivers.show', $repartidor))->name('repartidores.show');
 
+    // Despacho y Rutas
+    Route::get('/routes', [\App\Http\Controllers\RouteController::class, 'index'])->name('routes.index');
+
     // Ventas
     Route::get('/sales', [\App\Http\Controllers\SaleController::class, 'index'])->name('sales.index');
 

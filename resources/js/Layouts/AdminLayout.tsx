@@ -47,7 +47,7 @@ export default function AdminLayout({
             active: route().current('dashboard'),
         },
         {
-            name: 'Choferes / Flota',
+            name: 'Choferes',
             href: route('drivers.index'),
             icon: Truck,
             active: route().current('drivers.*') || route().current('repartidores.*') || false,
@@ -60,7 +60,7 @@ export default function AdminLayout({
         },
         {
             name: 'Despacho y Rutas',
-            href: '#',
+            href: route('routes.index'),
             icon: CalendarCheck,
             active: route().current('routes.*') || false,
         },
