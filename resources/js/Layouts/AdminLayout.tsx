@@ -100,14 +100,31 @@ export default function AdminLayout({
                     sidebarOpen ? 'translate-x-0' : '-translate-x-full'
                 }`}
             >
-                {/* Brand Logo & Header - Stylized Typography */}
-                <div className="h-16 flex items-center justify-between px-6 border-b border-slate-100">
-                    <Link href={route('dashboard')} className="flex items-center gap-2 group">
-                        <div className="flex items-center">
-                            <span className="font-display text-2xl font-bold tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors">
-                                marilin
+                {/* Brand Logo & Header - Modern Clean Uppercase Branding */}
+                <div className="h-16 flex items-center justify-between px-5 border-b border-slate-100">
+                    <Link href={route('dashboard')} className="flex items-center gap-2.5 group">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white shadow-xs shadow-blue-500/20 group-hover:scale-105 transition-transform">
+                            <svg
+                                className="w-4.5 h-4.5 text-white"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2.2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            >
+                                <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" fill="currentColor" fillOpacity="0.2" />
+                            </svg>
+                        </div>
+                        <div className="flex flex-col">
+                            <div className="flex items-center tracking-wider">
+                                <span className="font-brand text-[17px] font-black tracking-[0.12em] text-slate-900 group-hover:text-blue-600 transition-colors">
+                                    MARILIN
+                                </span>
+                            </div>
+                            <span className="text-[9px] font-bold tracking-[0.18em] uppercase text-blue-600 -mt-1 font-sans">
+                                DISTRIBUIDORA
                             </span>
-                            <span className="w-1.5 h-1.5 rounded-full bg-blue-600 ml-0.5 mt-2 animate-pulse"></span>
                         </div>
                     </Link>
                     <button

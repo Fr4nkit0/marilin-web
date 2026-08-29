@@ -15,6 +15,7 @@ export default {
             fontFamily: {
                 sans: ['"IBM Plex Sans"', ...defaultTheme.fontFamily.sans],
                 display: ['"Space Grotesk"', ...defaultTheme.fontFamily.sans],
+                brand: ['"Outfit"', '"Plus Jakarta Sans"', ...defaultTheme.fontFamily.sans],
             },
             colors: {
                 brand: {
