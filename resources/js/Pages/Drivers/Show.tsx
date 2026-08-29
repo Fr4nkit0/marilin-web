@@ -75,26 +75,26 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
             header={
                 <div className="flex items-center gap-2 text-xs">
                     <Link
-                        href={route('repartidores.index')}
+                        href={route('drivers.index')}
                         className="text-slate-500 hover:text-blue-600 font-medium"
                     >
-                        Repartidores
+                        Choferes
                     </Link>
                     <span className="text-slate-400">/</span>
                     <span className="font-semibold text-slate-800">{repartidor.name}</span>
                 </div>
             }
         >
-            <Head title={`${repartidor.name} - Detalle de Repartidor`} />
+            <Head title={`${repartidor.name} - Detalle de Chofer`} />
 
             {/* Back link */}
             <div className="mb-4">
                 <Link
-                    href={route('repartidores.index')}
+                    href={route('drivers.index')}
                     className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-slate-800 transition"
                 >
                     <ArrowLeft className="w-3.5 h-3.5" />
-                    Volver al listado de repartidores
+                    Volver al listado de choferes
                 </Link>
             </div>
 

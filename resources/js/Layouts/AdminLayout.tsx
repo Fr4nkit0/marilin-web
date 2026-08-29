@@ -47,10 +47,10 @@ export default function AdminLayout({
             active: route().current('dashboard'),
         },
         {
-            name: 'Repartidores',
-            href: route('repartidores.index'),
+            name: 'Choferes / Flota',
+            href: route('drivers.index'),
             icon: Truck,
-            active: route().current('repartidores.*') || false,
+            active: route().current('drivers.*') || route().current('repartidores.*') || false,
         },
         {
             name: 'Clientes',

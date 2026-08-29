@@ -43,7 +43,7 @@ export default function RepartidoresIndex({ repartidores, filters }: Props) {
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         router.get(
-            route('repartidores.index'),
+            route('drivers.index'),
             { search: search || undefined },
             { preserveState: true, replace: true }
         );
@@ -211,7 +211,7 @@ export default function RepartidoresIndex({ repartidores, filters }: Props) {
                                             {/* Action */}
                                             <td className="px-6 py-4 text-right">
                                                 <Link
-                                                    href={route('repartidores.show', rep.id)}
+                                                    href={route('drivers.show', rep.id)}
                                                     className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 font-medium transition"
                                                 >
                                                     Ver Detalle

@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Driver;
 use App\Models\Payment;
 use App\Models\PaymentMethod;
-use App\Models\Repartidor;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -27,7 +27,7 @@ class PaymentController extends Controller
                 'customer',
                 'paymentMethod',
                 'recipient',
-                'visit.repartidor.user',
+                'visit.driver.user',
                 'sale',
             ]);
 

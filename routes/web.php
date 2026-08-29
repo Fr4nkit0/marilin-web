@@ -29,9 +29,13 @@ Route::middleware('auth')->group(function () {
     Route::put('/customers/{customer}', [\App\Http\Controllers\CustomerController::class, 'update'])->name('customers.update');
     Route::get('/customers/{customer}', [\App\Http\Controllers\CustomerController::class, 'show'])->name('customers.show');
 
-    // Repartidores / Drivers
-    Route::get('/repartidores', [\App\Http\Controllers\DriverController::class, 'index'])->name('repartidores.index');
-    Route::get('/repartidores/{repartidor}', [\App\Http\Controllers\DriverController::class, 'show'])->name('repartidores.show');
+    // Choferes / Drivers
+    Route::get('/drivers', [\App\Http\Controllers\DriverController::class, 'index'])->name('drivers.index');
+    Route::get('/drivers/{repartidor}', [\App\Http\Controllers\DriverController::class, 'show'])->name('drivers.show');
+
+    // Redirección de compatibilidad para /repartidores
+    Route::get('/repartidores', fn () => redirect()->route('drivers.index'))->name('repartidores.index');
+    Route::get('/repartidores/{repartidor}', fn ($repartidor) => redirect()->route('drivers.show', $repartidor))->name('repartidores.show');
 
     // Ventas
     Route::get('/sales', [\App\Http\Controllers\SaleController::class, 'index'])->name('sales.index');
