@@ -1,10 +1,12 @@
 schema: spec-driven
+mode: hybrid
 
 context: |
-  Tech stack: Laravel 12, PHP 8.5 (Sail), PostgreSQL 16, Redis, Mailpit, React 18, TypeScript, Inertia.js, Tailwind CSS, Pest PHP
+  Tech stack: Laravel 12, PHP 8.3/8.5 (Sail), PostgreSQL 16, Redis, Mailpit, React 18, TypeScript, Inertia.js v2, Tailwind CSS v4, Pest PHP 5
   Architecture: Inertia.js Monolith (Laravel backend + React TypeScript frontend)
-  Testing: Pest PHP 5.x (Feature/Unit with RefreshDatabase)
-  Quality: Laravel Pint, TypeScript (tsc --noEmit)
+  Design System: Stitch UI/UX Design System (Tailwind CSS v4, Lucide React / Heroicons, Headless UI, accessible components)
+  Testing: Pest PHP 5.x (Feature/Unit with RefreshDatabase), TypeScript compilation (npm run build)
+  Quality: Laravel Pint, TypeScript (tsc --noEmit / vite build)
 
 strict_tdd: true
 
