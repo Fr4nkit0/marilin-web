@@ -48,7 +48,7 @@ export default function AdminLayout({
         },
         {
             name: 'Clientes',
-            href: '#',
+            href: route('customers.index'),
             icon: Users,
             active: route().current('customers.*') || false,
         },
