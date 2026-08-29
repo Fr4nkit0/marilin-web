@@ -42,7 +42,7 @@ export default function AdminLayout({
         },
         {
             name: 'Repartidores',
-            href: '#',
+            href: route('repartidores.index'),
             icon: Truck,
             active: route().current('repartidores.*') || false,
         },
