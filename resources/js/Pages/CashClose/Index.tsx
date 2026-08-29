@@ -81,11 +81,11 @@ export default function CashCloseIndex({
                 description={`Conciliación de dinero en efectivo, transferencias y balance de stock retornado para ${selectedDate}.`}
             />
 
-            {/* Repartidores Selection Toolbar */}
+            {/* Drivers Selection Toolbar */}
             <div className="bg-white rounded-lg border border-slate-200 p-4 mb-6 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-3 w-full sm:w-auto">
                     <span className="text-xs font-semibold text-slate-700 whitespace-nowrap">
-                        Repartidor:
+                        Chofer:
                     </span>
                     <select
                         value={selectedId}
@@ -118,7 +118,7 @@ export default function CashCloseIndex({
                     <AlertCircle className="w-12 h-12 mx-auto text-slate-300 mb-3" />
                     <h3 className="text-base font-bold text-slate-700">Sin ruta para liquidar</h3>
                     <p className="text-xs text-slate-500 mt-1">
-                        El repartidor <strong>{activeRepartidorName}</strong> no tiene una ruta registrada en la fecha {selectedDate}.
+                        El chofer <strong>{activeRepartidorName}</strong> no tiene una ruta registrada en la fecha {selectedDate}.
                     </p>
                 </div>
             ) : (
