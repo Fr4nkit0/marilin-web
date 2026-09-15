@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Models\CustomerAgreement;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\SaleDetail;

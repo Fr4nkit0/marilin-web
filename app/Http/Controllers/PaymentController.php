@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Driver;
 use App\Models\Payment;
 use App\Models\PaymentMethod;
 use Carbon\Carbon;

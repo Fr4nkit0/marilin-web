@@ -5,12 +5,12 @@ namespace Database\Seeders;
 use App\Models\ContainerMovement;
 use App\Models\ContainerType;
 use App\Models\Customer;
+use App\Models\CustomerAccountEntry;
 use App\Models\CustomerAddress;
 use App\Models\CustomerAgreement;
 use App\Models\CustomerBalance;
 use App\Models\CustomerContainerBalance;
 use App\Models\CustomerPreference;
-use App\Models\CustomerAccountEntry;
 use App\Models\Driver;
 use App\Models\Payment;
 use App\Models\PaymentMethod;
@@ -25,7 +25,6 @@ use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Visit;
 use App\Models\VisitOutcome;
-use App\Models\VisitStatusHistory;
 use Carbon\Carbon;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -730,7 +729,7 @@ class DatabaseSeeder extends Seeder
                     );
 
                     // If not credit sale, register Payment and Account Entry
-                    if (!$s['is_credit'] && $s['method']) {
+                    if (! $s['is_credit'] && $s['method']) {
                         $tx = Transaction::create(['type' => 'IN', 'amount' => $totalSale]);
                         $pm = Payment::firstOrCreate(
                             ['sale_id' => $sale->id],
@@ -925,7 +924,7 @@ class DatabaseSeeder extends Seeder
                 ]
             );
 
-            if (!$s['is_credit'] && $s['method']) {
+            if (! $s['is_credit'] && $s['method']) {
                 $tx = Transaction::create(['type' => 'IN', 'amount' => $totalSale]);
                 Payment::firstOrCreate(
                     ['sale_id' => $sale->id],

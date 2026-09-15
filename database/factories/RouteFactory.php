@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Models\Repartidor;
+use App\Models\Driver;
 use App\Models\Route;
 use Illuminate\Database\Eloquent\Factories\Factory;
 

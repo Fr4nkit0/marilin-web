@@ -5,7 +5,6 @@ namespace Database\Factories;
 use App\Models\Customer;
 use App\Models\Sale;
 use App\Models\User;
-use App\Models\Visit;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

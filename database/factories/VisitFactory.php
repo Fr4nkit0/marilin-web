@@ -3,7 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Customer;
-use App\Models\Repartidor;
+use App\Models\Driver;
 use App\Models\RouteStop;
 use App\Models\User;
 use App\Models\Visit;
