@@ -48,6 +48,11 @@ class RouteStop extends Model
         return $this->hasOne(RouteStop::class, 'is_rescheduled_from');
     }
 
+    public function visit(): HasOne
+    {
+        return $this->hasOne(Visit::class)->latestOfMany();
+    }
+
     public function visits(): HasMany
     {
         return $this->hasMany(Visit::class);
