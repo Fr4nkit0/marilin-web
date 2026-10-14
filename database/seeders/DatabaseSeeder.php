@@ -484,9 +484,10 @@ class DatabaseSeeder extends Seeder
             CustomerAgreement::firstOrCreate(
                 ['customer_id' => $customer->id, 'product_id' => $productAgua20L->id],
                 [
-                    'special_price' => $cfg['price_agua'],
+                    'unit_price' => $cfg['price_agua'],
+                    'valid_from' => now(),
                     'created_by' => $admin->id,
-                    'enabled' => true,
+                    
                 ]
             );
 
@@ -664,7 +665,7 @@ class DatabaseSeeder extends Seeder
                         'customer_id' => $cust->id,
                         'driver_id' => $repJuan->id,
                         'outcome_id' => $outcomeDelivered->id,
-                        'arrived_at' => $s['time'] ? $today->copy()->setHour(explode(':', $s['time'])[0])->setMinute(explode(':', $s['time'])[1]) : null,
+                        'arrived_at' => $s['time'] ? $today->copy()->setHour((int) explode(':', $s['time'])[0])->setMinute((int) explode(':', $s['time'])[1]) : null,
                         'latitude' => $addr->latitude,
                         'longitude' => $addr->longitude,
                         'status' => $s['status'],
@@ -869,7 +870,7 @@ class DatabaseSeeder extends Seeder
                     'customer_id' => $cust->id,
                     'driver_id' => $repCarlos->id,
                     'outcome_id' => $outcomeDelivered->id,
-                    'arrived_at' => $today->copy()->setHour(explode(':', $s['time'])[0])->setMinute(explode(':', $s['time'])[1]),
+                    'arrived_at' => $today->copy()->setHour((int) explode(':', $s['time'])[0])->setMinute((int) explode(':', $s['time'])[1]),
                     'latitude' => $addr->latitude,
                     'longitude' => $addr->longitude,
                     'status' => 'FINISHED',
@@ -1006,7 +1007,7 @@ class DatabaseSeeder extends Seeder
                     'customer_id' => $cust->id,
                     'driver_id' => $repMarcos->id,
                     'outcome_id' => $outcomeDelivered->id,
-                    'arrived_at' => $today->copy()->setHour(explode(':', $s['time'])[0])->setMinute(explode(':', $s['time'])[1]),
+                    'arrived_at' => $today->copy()->setHour((int) explode(':', $s['time'])[0])->setMinute((int) explode(':', $s['time'])[1]),
                     'latitude' => $addr->latitude,
                     'longitude' => $addr->longitude,
                     'status' => 'FINISHED',
