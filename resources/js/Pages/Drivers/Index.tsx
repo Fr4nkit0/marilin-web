@@ -61,7 +61,7 @@ export default function RepartidoresIndex({ repartidores, filters }: Props) {
         <AdminLayout
             header={
                 <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                    <span className="text-sm font-medium text-slate-500">
                         Flota & Choferes
                     </span>
                 </div>
@@ -99,38 +99,38 @@ export default function RepartidoresIndex({ repartidores, filters }: Props) {
                 />
             </div>
 
-            {/* Search Filter */}
-            <div className="bg-white rounded-lg border border-slate-200 p-4 mb-6 shadow-2xs">
+            {/* Search Filter - Impeccable Cloud */}
+            <div className="bg-white/80 backdrop-blur-md rounded-2xl p-4 mb-6 shadow-sm border border-gray-200/60">
                 <form onSubmit={handleSearch} className="relative">
-                    <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <Search className="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
                         type="text"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         placeholder="Buscar por nombre de chofer o email..."
-                        className="w-full pl-9 pr-4 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        className="w-full pl-10 pr-4 py-2.5 text-sm bg-white border border-gray-200 text-slate-900 font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 placeholder-gray-400"
                     />
                 </form>
             </div>
 
-            {/* Repartidores Table */}
-            <div className="bg-white rounded-lg border border-slate-200 shadow-2xs overflow-hidden">
+            {/* Repartidores Table - Soft Borders, Light Theme */}
+            <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200/60">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs">
-                        <thead className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-100 uppercase tracking-wider">
+                    <table className="w-full text-left text-sm">
+                        <thead className="bg-white/80 backdrop-blur-md border-b border-gray-100 text-slate-500 font-medium text-sm tracking-wide">
                             <tr>
-                                <th className="px-6 py-3.5">Chofer</th>
-                                <th className="px-6 py-3.5">Estado Ruta Hoy</th>
-                                <th className="px-6 py-3.5">Progreso de Entregas</th>
-                                <th className="px-6 py-3.5 text-center">Clientes Asignados</th>
-                                <th className="px-6 py-3.5">Horario Salida</th>
-                                <th className="px-6 py-3.5 text-right">Acción</th>
+                                <th className="px-6 py-4">Chofer</th>
+                                <th className="px-6 py-4">Estado Ruta Hoy</th>
+                                <th className="px-6 py-4">Progreso de Entregas</th>
+                                <th className="px-6 py-4 text-center">Clientes Asignados</th>
+                                <th className="px-6 py-4">Horario Salida</th>
+                                <th className="px-6 py-4 text-right">Acción</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100">
+                        <tbody>
                             {repartidores.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-8 text-center text-slate-400">
+                                    <td colSpan={6} className="px-6 py-8 text-center text-slate-500 font-medium">
                                         No se encontraron choferes registrados.
                                     </td>
                                 </tr>
@@ -141,19 +141,19 @@ export default function RepartidoresIndex({ repartidores, filters }: Props) {
                                     const progress = rep.currentRoute?.progressPercent || 0;
 
                                     return (
-                                        <tr key={rep.id} className="hover:bg-slate-50/80 transition">
+                                        <tr key={rep.id} className="hover:bg-gray-50 transition-colors">
                                             {/* Driver Name */}
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 rounded-full bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs">
+                                                    <div className="w-10 h-10 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center font-semibold shadow-sm">
                                                         {rep.name.charAt(0)}
                                                     </div>
                                                     <div>
-                                                        <p className="font-semibold text-slate-900 text-sm">
+                                                        <p className="font-semibold text-slate-900">
                                                             {rep.name}
                                                         </p>
                                                         {rep.email && (
-                                                            <p className="text-[11px] text-slate-400">
+                                                            <p className="text-xs text-slate-500 mt-0.5">
                                                                 {rep.email}
                                                             </p>
                                                         )}
@@ -169,42 +169,42 @@ export default function RepartidoresIndex({ repartidores, filters }: Props) {
                                             {/* Progress */}
                                             <td className="px-6 py-4">
                                                 {hasRoute ? (
-                                                    <div className="w-40">
-                                                        <div className="flex justify-between text-[11px] font-medium text-slate-600 mb-1">
+                                                    <div className="w-48">
+                                                        <div className="flex justify-between text-xs font-medium text-gray-600 mb-1.5">
                                                             <span>
                                                                 {rep.currentRoute?.completedStops} de {rep.currentRoute?.totalStops}
                                                             </span>
-                                                            <span className="font-bold">{progress}%</span>
+                                                            <span className="text-slate-900 font-semibold">{progress}%</span>
                                                         </div>
-                                                        <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                                        <div className="w-full h-2 bg-slate-100 rounded-lg overflow-hidden">
                                                             <div
-                                                                className="h-full bg-blue-600 rounded-full transition-all duration-300"
+                                                                className="h-full bg-blue-600 transition-all duration-300 rounded-lg"
                                                                 style={{ width: `${progress}%` }}
                                                             />
                                                         </div>
                                                     </div>
                                                 ) : (
-                                                    <span className="text-slate-400 italic">Sin ruta hoy</span>
+                                                    <span className="text-gray-400 font-medium text-xs">Sin ruta hoy</span>
                                                 )}
                                             </td>
 
                                             {/* Assigned Customers */}
                                             <td className="px-6 py-4 text-center">
-                                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 font-medium text-[11px]">
-                                                    <Users className="w-3 h-3 text-slate-400" />
+                                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-700 font-medium text-xs">
+                                                    <Users className="w-4 h-4" />
                                                     {rep.totalCustomers} clientes
                                                 </span>
                                             </td>
 
                                             {/* Timings */}
-                                            <td className="px-6 py-4 text-slate-500">
+                                            <td className="px-6 py-4 font-medium text-gray-600">
                                                 {rep.currentRoute?.startedAt ? (
-                                                    <div className="flex items-center gap-1">
-                                                        <Clock className="w-3.5 h-3.5 text-slate-400" />
+                                                    <div className="flex items-center gap-1.5">
+                                                        <Clock className="w-4 h-4 text-gray-400" />
                                                         <span>{rep.currentRoute.startedAt} hs</span>
                                                     </div>
                                                 ) : (
-                                                    <span>-</span>
+                                                    <span className="text-gray-300">-</span>
                                                 )}
                                             </td>
 
@@ -212,10 +212,10 @@ export default function RepartidoresIndex({ repartidores, filters }: Props) {
                                             <td className="px-6 py-4 text-right">
                                                 <Link
                                                     href={route('drivers.show', rep.id)}
-                                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 font-medium transition"
+                                                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-blue-600 text-white hover:bg-blue-700 font-medium text-sm transition-colors shadow-sm"
                                                 >
                                                     Ver Detalle
-                                                    <ArrowUpRight className="w-3.5 h-3.5" />
+                                                    <ArrowUpRight className="w-4 h-4" />
                                                 </Link>
                                             </td>
                                         </tr>
@@ -229,3 +229,4 @@ export default function RepartidoresIndex({ repartidores, filters }: Props) {
         </AdminLayout>
     );
 }
+

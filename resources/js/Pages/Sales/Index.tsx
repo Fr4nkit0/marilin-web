@@ -125,7 +125,7 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
         <AdminLayout
             header={
                 <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                    <span className="text-sm font-medium text-slate-500">
                         Facturación
                     </span>
                 </div>
@@ -164,7 +164,7 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
             </div>
 
             {/* Filters */}
-            <div className="bg-white rounded-lg border border-slate-200 p-4 mb-6 shadow-2xs">
+            <div className="bg-white border border-gray-200/60 rounded-2xl p-4 mb-6 shadow-sm">
                 <form onSubmit={handleSearch} className="grid grid-cols-1 gap-3 sm:grid-cols-12 items-center">
                     {/* Search */}
                     <div className="sm:col-span-4 relative">
@@ -174,7 +174,7 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder="Buscar por cliente..."
-                            className="w-full pl-9 pr-4 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                            className="w-full pl-9 pr-4 py-2 text-sm font-medium border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent bg-white text-slate-900 placeholder-gray-400 shadow-sm transition-all"
                         />
                     </div>
 
@@ -184,7 +184,8 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
                             type="date"
                             value={date}
                             onChange={(e) => handleFilterChange('date', e.target.value)}
-                            className="w-full py-2 px-3 text-xs border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 text-slate-700 bg-white"
+                            style={{ colorScheme: 'light' }}
+                            className="w-full py-2 px-3 text-sm font-medium border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent bg-white text-slate-900 shadow-sm transition-all"
                         />
                     </div>
 
@@ -193,9 +194,9 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
                         <select
                             value={repartidorId}
                             onChange={(e) => handleFilterChange('repartidor_id', e.target.value)}
-                            className="w-full py-2 px-3 text-xs border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 text-slate-700 bg-white"
+                            className="w-full py-2 px-3 text-sm font-medium border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent bg-white text-slate-900 shadow-sm transition-all"
                         >
-                            <option value="">Todos los Repartidores</option>
+                            <option value="">Todos los repartidores</option>
                             {repartidores.map((rep) => (
                                 <option key={rep.id} value={rep.id}>
                                     {rep.name}
@@ -209,21 +210,21 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
                         <select
                             value={saleType}
                             onChange={(e) => handleFilterChange('sale_type', e.target.value)}
-                            className="w-full py-2 px-3 text-xs border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 text-slate-700 bg-white"
+                            className="w-full py-2 px-3 text-sm font-medium border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent bg-white text-slate-900 shadow-sm transition-all"
                         >
                             <option value="all">Todo tipo</option>
                             <option value="cash_immediate">Contado</option>
-                            <option value="credit">A Crédito</option>
+                            <option value="credit">A crédito</option>
                         </select>
                     </div>
                 </form>
             </div>
 
             {/* Sales Table */}
-            <div className="bg-white rounded-lg border border-slate-200 shadow-2xs overflow-hidden">
+            <div className="bg-white border border-gray-200/60 rounded-2xl shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs">
-                        <thead className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-100 uppercase tracking-wider">
+                    <table className="w-full text-left text-sm">
+                        <thead className="bg-slate-50/80 backdrop-blur-md text-slate-500 font-medium text-xs border-b border-gray-200/60">
                             <tr>
                                 <th className="px-6 py-3.5">Fecha / Hora</th>
                                 <th className="px-6 py-3.5">Cliente</th>
@@ -233,10 +234,10 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
                                 <th className="px-6 py-3.5 text-right">Total</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100">
+                        <tbody>
                             {sales.data.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-8 text-center text-slate-400">
+                                    <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
                                         No se encontraron ventas con los filtros seleccionados.
                                     </td>
                                 </tr>
@@ -244,20 +245,20 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
                                 sales.data.map((sale) => {
                                     const paymentMethodName = sale.payments?.[0]?.payment_method?.name || (sale.is_credit_sale ? 'Crédito Ruta' : 'Efectivo');
                                     return (
-                                        <tr key={sale.id} className="hover:bg-slate-50/80 transition">
-                                            <td className="px-6 py-4 text-slate-500 font-medium whitespace-nowrap">
+                                        <tr key={sale.id} className="border-b border-gray-50 last:border-0 hover:bg-slate-50/50 transition-colors">
+                                            <td className="px-6 py-4 text-slate-500 whitespace-nowrap">
                                                 {new Date(sale.date).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })} hs
                                             </td>
                                             <td className="px-6 py-4">
                                                 {sale.customer ? (
                                                     <Link
                                                         href={route('customers.show', sale.customer.id)}
-                                                        className="font-semibold text-slate-900 hover:text-blue-600 transition"
+                                                        className="font-medium text-slate-900 hover:text-slate-600 transition"
                                                     >
                                                         {sale.customer.name}
                                                     </Link>
                                                 ) : (
-                                                    <span className="text-slate-400 italic">Consumidor Final</span>
+                                                    <span className="text-slate-400 font-medium italic">Consumidor Final</span>
                                                 )}
                                             </td>
                                             <td className="px-6 py-4 text-slate-700">
@@ -265,9 +266,9 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
                                             </td>
                                             <td className="px-6 py-4 text-slate-600">
                                                 {sale.details && sale.details.length > 0 ? (
-                                                    <div className="space-y-0.5">
+                                                    <div className="space-y-1">
                                                         {sale.details.map((d) => (
-                                                            <div key={d.id} className="text-[11px]">
+                                                            <div key={d.id} className="text-xs">
                                                                 {d.quantity}x {d.product?.name}
                                                             </div>
                                                         ))}
@@ -279,7 +280,7 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
                                             <td className="px-6 py-4 text-center">
                                                 <PaymentMethodBadge method={paymentMethodName} />
                                             </td>
-                                            <td className="px-6 py-4 text-right font-bold text-sm text-slate-900">
+                                            <td className="px-6 py-4 text-right font-semibold text-slate-900">
                                                 ${Number(sale.total).toLocaleString('es-AR')}
                                             </td>
                                         </tr>
@@ -292,7 +293,7 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
 
                 {/* Pagination */}
                 {sales.last_page > 1 && (
-                    <div className="p-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                    <div className="p-4 flex items-center justify-between text-sm text-slate-500 bg-white border-t border-gray-50">
                         <span>
                             Página {sales.current_page} de {sales.last_page} ({sales.total} ventas)
                         </span>
@@ -302,12 +303,12 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
                                     key={idx}
                                     href={link.url || '#'}
                                     preserveState
-                                    className={`px-3 py-1.5 rounded-md border text-xs font-medium transition ${
+                                    className={`px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors ${
                                         link.active
-                                            ? 'bg-blue-600 text-white border-blue-600 font-bold'
+                                            ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
                                             : !link.url
-                                            ? 'text-slate-300 border-slate-100 pointer-events-none'
-                                            : 'text-slate-700 border-slate-200 hover:bg-slate-50'
+                                            ? 'text-slate-300 border-gray-100 pointer-events-none'
+                                            : 'text-slate-700 border-gray-200/60 hover:bg-slate-50'
                                     }`}
                                     dangerouslySetInnerHTML={{ __html: link.label }}
                                 />

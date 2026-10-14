@@ -1,7 +1,7 @@
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import AdminLayout from '@/Layouts/AdminLayout';
 import { PageProps } from '@/types';
 import { Head } from '@inertiajs/react';
-import DeleteUserForm from './Partials/DeleteUserForm';
+
 import UpdatePasswordForm from './Partials/UpdatePasswordForm';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm';
 
@@ -10,34 +10,67 @@ export default function Edit({
     status,
 }: PageProps<{ mustVerifyEmail: boolean; status?: string }>) {
     return (
-        <AuthenticatedLayout
+        <AdminLayout
             header={
-                <h2 className="text-xl font-semibold leading-tight text-gray-800">
-                    Profile
-                </h2>
+                <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-slate-900">
+                        Configuración
+                    </span>
+                </div>
             }
         >
-            <Head title="Profile" />
+            <Head title="Configuración de Cuenta" />
 
-            <div className="py-12">
-                <div className="mx-auto max-w-7xl space-y-6 sm:px-6 lg:px-8">
-                    <div className="bg-white p-4 shadow sm:rounded-lg sm:p-8">
-                        <UpdateProfileInformationForm
-                            mustVerifyEmail={mustVerifyEmail}
-                            status={status}
-                            className="max-w-xl"
-                        />
+            <div className="max-w-5xl">
+                <div className="mb-8">
+                    <h1 className="text-3xl font-semibold text-slate-900 tracking-tight">
+                        Cuenta
+                    </h1>
+                    <p className="text-sm text-slate-500 mt-2">
+                        Administrá tu información personal, correo electrónico y la seguridad de tu perfil.
+                    </p>
+                </div>
+
+                <div className="divide-y divide-gray-200/60">
+                    
+                    {/* Sección 1: Perfil */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 py-8">
+                        <div className="md:col-span-1">
+                            <h2 className="text-base font-semibold text-slate-900">Información del perfil</h2>
+                            <p className="mt-1 text-sm text-slate-500">
+                                Actualizá tu nombre y la dirección de correo electrónico con la que ingresás al sistema.
+                            </p>
+                        </div>
+                        <div className="md:col-span-2 bg-white shadow-[0_1px_3px_rgb(0,0,0,0.02)] sm:rounded-2xl border border-gray-200/60 overflow-hidden">
+                            <div className="px-6 py-6 sm:p-8">
+                                <UpdateProfileInformationForm
+                                    mustVerifyEmail={mustVerifyEmail}
+                                    status={status}
+                                    className="max-w-xl"
+                                />
+                            </div>
+                        </div>
                     </div>
 
-                    <div className="bg-white p-4 shadow sm:rounded-lg sm:p-8">
-                        <UpdatePasswordForm className="max-w-xl" />
+                    {/* Sección 2: Contraseña */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 py-8">
+                        <div className="md:col-span-1">
+                            <h2 className="text-base font-semibold text-slate-900">Seguridad</h2>
+                            <p className="mt-1 text-sm text-slate-500">
+                                Asegurate de que tu cuenta use una contraseña larga y aleatoria para mantenerte seguro.
+                            </p>
+                        </div>
+                        <div className="md:col-span-2 bg-white shadow-[0_1px_3px_rgb(0,0,0,0.02)] sm:rounded-2xl border border-gray-200/60 overflow-hidden">
+                            <div className="px-6 py-6 sm:p-8">
+                                <UpdatePasswordForm className="max-w-xl" />
+                            </div>
+                        </div>
                     </div>
 
-                    <div className="bg-white p-4 shadow sm:rounded-lg sm:p-8">
-                        <DeleteUserForm className="max-w-xl" />
-                    </div>
+
+
                 </div>
             </div>
-        </AuthenticatedLayout>
+        </AdminLayout>
     );
 }

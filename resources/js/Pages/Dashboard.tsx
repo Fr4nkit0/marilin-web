@@ -1,22 +1,19 @@
 import React from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import {
     KpiCard,
     StatusBadge,
-    PageHeader,
 } from '@/Components/StitchUi';
 import {
     DollarSign,
     MapPin,
     Truck,
     Package,
-    ArrowUpRight,
+    ArrowRight,
     CircleDollarSign,
     CheckCircle2,
-    Clock,
     RefreshCw,
-    TrendingUp,
 } from 'lucide-react';
 
 interface RepartidorStatus {
@@ -70,8 +67,8 @@ export default function Dashboard({ metrics }: Props) {
         <AdminLayout
             header={
                 <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                        Vista General
+                    <span className="text-sm font-medium text-slate-900">
+                        Dashboard
                     </span>
                 </div>
             }
@@ -79,21 +76,25 @@ export default function Dashboard({ metrics }: Props) {
             <Head title="Panel de Control - Marilin" />
 
             {/* Page Header */}
-            <PageHeader
-                title="Monitoreo de Operaciones"
-                description={`Resumen operativo en tiempo real para la jornada de hoy (${metrics.date}).`}
-                actions={
-                    <div className="flex items-center gap-2">
-                        <button
-                            onClick={() => window.location.reload()}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-2xs"
-                        >
-                            <RefreshCw className="w-3.5 h-3.5 text-slate-500" />
-                            Actualizar
-                        </button>
-                    </div>
-                }
-            />
+            <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">
+                        Dashboard
+                    </h1>
+                    <p className="text-sm text-slate-500 mt-1">
+                        Resumen operativo de hoy: <span className="font-medium text-slate-700">{metrics.date}</span>
+                    </p>
+                </div>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 transition-all shadow-[0_1px_2px_rgba(0,0,0,0.05)] ring-1 ring-inset ring-slate-200/80 cursor-pointer"
+                    >
+                        <RefreshCw className="w-4 h-4 text-slate-400" strokeWidth={2} />
+                        Actualizar
+                    </button>
+                </div>
+            </div>
 
             {/* 1. KPIs Row */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
@@ -105,7 +106,7 @@ export default function Dashboard({ metrics }: Props) {
                     trend={{
                         value: `${kpis.salesDelta > 0 ? '+' : ''}${kpis.salesDelta}%`,
                         isPositive: kpis.salesDelta >= 0,
-                        label: 'vs. jornada anterior',
+                        label: 'vs. ayer',
                     }}
                 />
 
@@ -114,7 +115,7 @@ export default function Dashboard({ metrics }: Props) {
                     value={formattedCollected}
                     icon={CircleDollarSign}
                     variant="success"
-                    subtitle={`Efectivo: $${kpis.cashPayments.toLocaleString('es-AR')} | Transf: $${kpis.transferPayments.toLocaleString('es-AR')}`}
+                    subtitle={`EFE: $${kpis.cashPayments.toLocaleString('es-AR')} | TRF: $${kpis.transferPayments.toLocaleString('es-AR')}`}
                 />
 
                 <KpiCard
@@ -125,7 +126,7 @@ export default function Dashboard({ metrics }: Props) {
                     trend={{
                         value: `${kpis.stopsProgressPercent}%`,
                         isPositive: true,
-                        label: 'completadas hoy',
+                        label: 'completadas',
                     }}
                 />
 
@@ -133,89 +134,88 @@ export default function Dashboard({ metrics }: Props) {
                     title="Movimiento Envases"
                     value={`+${kpis.containersDelivered} / -${kpis.containersReturned}`}
                     icon={Package}
-                    variant="amber"
-                    subtitle="Entregados vs. Retornados"
+                    variant="slate"
+                    subtitle="Entregados vs retornados"
                 />
             </div>
 
-            {/* 2. Main Content Grid: Repartidores Status & Activity */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Repartidores En Ruta Table (2 Cols) */}
-                <div className="lg:col-span-2 bg-white rounded-lg border border-slate-200 shadow-2xs overflow-hidden">
-                    <div className="p-4 sm:px-6 border-b border-slate-100 flex items-center justify-between">
-                        <div>
-                            <h2 className="text-base font-bold font-display text-slate-900">
-                                Estado de Repartidores en Calle
-                            </h2>
-                            <p className="text-xs text-slate-500">
-                                Avance de entregas y ruteo en tiempo real
-                            </p>
-                        </div>
-                        <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
-                            {repartidores.length} choferes asignados
+            {/* 2. Main Content Grid: Repartidores & Actions */}
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                
+                {/* Repartidores En Ruta Table */}
+                <div className="lg:col-span-3 bg-white rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden">
+                    <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+                        <h2 className="text-base font-semibold text-slate-900">
+                            Repartidores en ruta
+                        </h2>
+                        <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-medium">
+                            {repartidores.length} activos
                         </span>
                     </div>
 
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left text-xs">
-                            <thead className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-100 uppercase tracking-wider">
+                        <table className="w-full text-left text-sm whitespace-nowrap">
+                            <thead className="bg-slate-50/50 border-b border-gray-100">
                                 <tr>
-                                    <th className="px-6 py-3">Repartidor</th>
-                                    <th className="px-6 py-3">Estado</th>
-                                    <th className="px-6 py-3">Progreso de Paradas</th>
-                                    <th className="px-6 py-3">Horario</th>
-                                    <th className="px-6 py-3 text-right">Acción</th>
+                                    <th className="px-6 py-3 text-xs font-medium text-slate-500 w-1/4">
+                                        Repartidor
+                                    </th>
+                                    <th className="px-6 py-3 text-xs font-medium text-slate-500 w-1/4">
+                                        Progreso
+                                    </th>
+                                    <th className="px-6 py-3 text-xs font-medium text-slate-500 w-1/4">
+                                        Estado
+                                    </th>
+                                    <th className="px-6 py-3 text-xs font-medium text-slate-500 w-1/4 text-right">
+                                        Acciones
+                                    </th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100">
+                            <tbody className="bg-white divide-y divide-gray-100">
                                 {repartidores.length === 0 ? (
                                     <tr>
-                                        <td colSpan={5} className="px-6 py-8 text-center text-slate-400">
-                                            No hay rutas activas planificadas para hoy.
+                                        <td colSpan={4} className="px-6 py-8 text-center text-sm font-medium text-slate-400">
+                                            No hay repartidores activos en este momento.
                                         </td>
                                     </tr>
                                 ) : (
                                     repartidores.map((rep) => (
-                                        <tr key={rep.id} className="hover:bg-slate-50/80 transition">
-                                            <td className="px-6 py-4 font-semibold text-slate-900 flex items-center gap-2.5">
-                                                <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-[11px] font-bold text-slate-700">
-                                                    {rep.name.charAt(0)}
-                                                </div>
-                                                <span>{rep.name}</span>
-                                            </td>
+                                        <tr key={rep.id} className="hover:bg-slate-50 transition-colors">
                                             <td className="px-6 py-4">
-                                                <StatusBadge status={rep.status} />
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="w-36">
-                                                    <div className="flex justify-between text-[11px] font-medium text-slate-600 mb-1">
-                                                        <span>{rep.completedStops} de {rep.totalStops}</span>
-                                                        <span>{rep.progressPercent}%</span>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 bg-slate-100 text-slate-700 flex items-center justify-center font-semibold text-xs rounded-full">
+                                                        {rep.name.substring(0,2).toUpperCase()}
                                                     </div>
-                                                    <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                                    <span className="font-medium text-slate-900">{rep.name}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-sm font-medium text-slate-900">{rep.completedStops} / {rep.totalStops}</span>
+                                                        <span className="text-xs text-slate-500">Paradas</span>
+                                                    </div>
+                                                    <div className="w-24 h-2 bg-slate-100 rounded-full overflow-hidden">
                                                         <div
-                                                            className="h-full bg-blue-600 rounded-full transition-all duration-300"
+                                                            className="h-full bg-blue-600 transition-all duration-300 rounded-full"
                                                             style={{ width: `${rep.progressPercent}%` }}
                                                         />
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 text-slate-500">
-                                                {rep.startedAt ? (
-                                                    <span className="flex items-center gap-1">
-                                                        <Clock className="w-3.5 h-3.5 text-slate-400" />
-                                                        {rep.startedAt} hs
-                                                    </span>
-                                                ) : (
-                                                    <span>-</span>
-                                                )}
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-3">
+                                                    <StatusBadge status={rep.status} />
+                                                    {rep.startedAt && (
+                                                        <span className="text-xs text-slate-500">
+                                                            desde {rep.startedAt}
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </td>
                                             <td className="px-6 py-4 text-right">
-                                                <button
-                                                    className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-800 transition"
-                                                >
-                                                    Ver Ruta
-                                                    <ArrowUpRight className="w-3.5 h-3.5" />
+                                                <button className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-white border border-gray-200/60 hover:bg-slate-50 text-slate-600 transition-colors shadow-sm cursor-pointer">
+                                                    <ArrowRight className="w-4 h-4" strokeWidth={2} />
                                                 </button>
                                             </td>
                                         </tr>
@@ -226,41 +226,46 @@ export default function Dashboard({ metrics }: Props) {
                     </div>
                 </div>
 
-                {/* Quick Actions & Summary (1 Col) */}
+                {/* Quick Actions (1 Col) */}
                 <div className="space-y-6">
-                    {/* Quick Access Card */}
-                    <div className="bg-white rounded-lg border border-slate-200 p-5 shadow-2xs">
-                        <h3 className="text-sm font-bold font-display text-slate-900 mb-3">
-                            Accesos Directos
+                    <div className="bg-white rounded-2xl border border-gray-200/60 p-6 shadow-sm">
+                        <h3 className="text-sm font-semibold text-slate-900 mb-4">
+                            Acciones rápidas
                         </h3>
-                        <div className="grid grid-cols-2 gap-2 text-xs font-medium">
-                            <button className="p-3 rounded-lg border border-slate-100 bg-slate-50 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700 text-slate-700 transition flex flex-col items-center justify-center gap-1.5 text-center">
-                                <Truck className="w-5 h-5 text-blue-600" />
-                                <span>Despachar Camión</span>
+                        <div className="flex flex-col gap-3">
+                            <button className="w-full flex items-center justify-between px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white transition-all rounded-lg text-sm font-medium shadow-[0_1px_2px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.2)] ring-1 ring-inset ring-blue-700/50 cursor-pointer">
+                                <span className="flex items-center gap-2">
+                                    <Truck className="w-4 h-4 text-blue-100" strokeWidth={2} />
+                                    Asignar ruta
+                                </span>
+                                <ArrowRight className="w-4 h-4 text-blue-200" strokeWidth={2} />
                             </button>
-                            <button className="p-3 rounded-lg border border-slate-100 bg-slate-50 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700 text-slate-700 transition flex flex-col items-center justify-center gap-1.5 text-center">
-                                <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                                <span>Cierre de Caja</span>
+                            <button className="w-full flex items-center justify-between px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-700 transition-all rounded-lg text-sm font-medium shadow-[0_1px_2px_rgba(0,0,0,0.05)] ring-1 ring-inset ring-slate-200/80 cursor-pointer">
+                                <span className="flex items-center gap-2">
+                                    <CheckCircle2 className="w-4 h-4 text-slate-400" strokeWidth={2} />
+                                    Cierre de caja
+                                </span>
+                                <ArrowRight className="w-4 h-4 text-slate-300" strokeWidth={2} />
                             </button>
                         </div>
                     </div>
 
-                    {/* Stock Alert / Summary */}
-                    <div className="bg-blue-900 text-white rounded-lg p-5 shadow-xs relative overflow-hidden">
-                        <div className="relative z-10">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-blue-300">
-                                Ecosistema Marilin
+                    {/* Stock / System Status */}
+                    <div className="bg-white rounded-2xl border border-gray-200/60 p-6 shadow-sm">
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-semibold text-slate-900">
+                                Sistema
                             </span>
-                            <h4 className="text-base font-bold font-display mt-0.5">
-                                Base Central Jujuy
-                            </h4>
-                            <p className="text-xs text-blue-100 mt-2 leading-relaxed">
-                                Plataforma operativa de logística, cobranzas y envases retornables en tiempo real.
-                            </p>
+                            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
                         </div>
+                        <p className="text-xs text-slate-500 leading-relaxed mt-2">
+                            Todos los servicios operativos. Sincronización en tiempo real activa.
+                        </p>
                     </div>
                 </div>
+
             </div>
         </AdminLayout>
     );
 }
+

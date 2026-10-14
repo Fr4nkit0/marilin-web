@@ -91,55 +91,56 @@ export default function CustomerShow({ customer, accountEntries, containerMoveme
     return (
         <AdminLayout
             header={
-                <div className="flex items-center gap-2 text-xs">
+                <div className="flex items-center gap-2 text-sm font-medium">
                     <Link
                         href={route('customers.index')}
-                        className="text-slate-500 hover:text-blue-600 font-medium"
+                        className="text-slate-500 hover:text-slate-900 transition-colors"
                     >
                         Clientes
                     </Link>
                     <span className="text-slate-400">/</span>
-                    <span className="font-semibold text-slate-800">{customer.name}</span>
+                    <span className="text-slate-900">{customer.name}</span>
                 </div>
             }
         >
             <Head title={`${customer.name} - Detalle de Cliente`} />
 
-            {/* Back button & Page Header */}
+            {/* Back button */}
             <div className="mb-4">
                 <Link
                     href={route('customers.index')}
-                    className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-slate-800 transition"
+                    className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-900 transition"
                 >
-                    <ArrowLeft className="w-3.5 h-3.5" />
-                    Volver al listado de clientes
+                    <ArrowLeft className="w-4 h-4" />
+                    Volver al listado
                 </Link>
             </div>
 
             {/* Top Customer 360 Header Card */}
-            <div className="bg-white rounded-lg border border-slate-200 p-6 mb-6 shadow-2xs">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                    <div className="flex items-start gap-4">
-                        <div className="w-14 h-14 rounded-full bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center text-xl font-bold font-display">
-                            {customer.name.charAt(0)}
+            <div className="bg-white/80 backdrop-blur-md rounded-2xl p-6 mb-6 shadow-sm border border-gray-200/60 relative overflow-hidden">
+                {/* Decorative background subtle gradient or color block if needed, but keeping it white and clean */}
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative z-10">
+                    <div className="flex items-start gap-5">
+                        <div className="w-16 h-16 rounded-lg bg-slate-100 text-slate-900 flex items-center justify-center text-2xl font-medium">
+                            {customer.name.charAt(0).toUpperCase()}
                         </div>
                         <div>
                             <div className="flex items-center gap-3">
-                                <h1 className="text-2xl font-bold font-display text-slate-900">
+                                <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">
                                     {customer.name}
                                 </h1>
                                 <DebtBadge hasDebt={hasDebt} balance={balanceNum} />
                             </div>
-                            <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 mt-2">
+                            <div className="flex flex-wrap items-center gap-5 text-sm font-medium text-slate-500 mt-2 tracking-wide">
                                 {customer.phone_number && (
-                                    <div className="flex items-center gap-1">
-                                        <Phone className="w-3.5 h-3.5 text-slate-400" />
+                                    <div className="flex items-center gap-1.5">
+                                        <Phone className="w-4 h-4 text-slate-400" />
                                         <span>{customer.phone_number}</span>
                                     </div>
                                 )}
                                 {customer.primary_address && (
-                                    <div className="flex items-center gap-1">
-                                        <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                                    <div className="flex items-center gap-1.5">
+                                        <MapPin className="w-4 h-4 text-slate-400" />
                                         <span>
                                             {customer.primary_address.street}
                                             {customer.primary_address.apartment && ` (Depto ${customer.primary_address.apartment})`}
@@ -148,10 +149,10 @@ export default function CustomerShow({ customer, accountEntries, containerMoveme
                                     </div>
                                 )}
                                 {(customer.driver?.user || customer.repartidor?.user) && (
-                                    <div className="flex items-center gap-1">
-                                        <Truck className="w-3.5 h-3.5 text-slate-400" />
+                                    <div className="flex items-center gap-1.5">
+                                        <Truck className="w-4 h-4 text-slate-400" />
                                         <span>
-                                            Repartidor: <strong className="text-slate-700">{customer.driver?.user?.name || customer.repartidor?.user?.name}</strong>
+                                            Repartidor: <strong className="text-slate-900 font-medium">{customer.driver?.user?.name || customer.repartidor?.user?.name}</strong>
                                         </span>
                                     </div>
                                 )}
@@ -160,16 +161,16 @@ export default function CustomerShow({ customer, accountEntries, containerMoveme
                     </div>
 
                     {/* Quick Stats on Right */}
-                    <div className="flex items-center gap-4 border-t md:border-t-0 md:border-l border-slate-100 pt-3 md:pt-0 md:pl-6">
+                    <div className="flex items-center gap-4 border-t border-slate-700 md:border-t-0 md:border-l border-slate-700 md:pl-6 pt-4 md:pt-0">
                         <div className="text-right">
-                            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                            <span className="text-xs font-medium text-slate-400 block mb-1 tracking-wide">
                                 Saldo Actual
                             </span>
-                            <p className={`text-2xl font-bold font-display ${hasDebt ? 'text-rose-600' : 'text-emerald-600'}`}>
+                            <p className={`text-3xl font-semibold tracking-tight ${hasDebt ? 'text-red-600' : 'text-emerald-600'}`}>
                                 ${Math.abs(balanceNum).toLocaleString('es-AR')}
                             </p>
-                            <span className="text-[11px] text-slate-400">
-                                {hasDebt ? 'Deuda a favor de la empresa' : 'Al día / Sin saldo deudor'}
+                            <span className="text-xs font-medium text-slate-400 mt-1 block tracking-wide">
+                                {hasDebt ? 'Deuda pendiente' : 'Al día / Sin saldo'}
                             </span>
                         </div>
                     </div>
@@ -177,26 +178,26 @@ export default function CustomerShow({ customer, accountEntries, containerMoveme
             </div>
 
             {/* Content Tabs Navigation */}
-            <div className="border-b border-slate-200 mb-6 flex items-center gap-6 text-sm font-semibold">
+            <div className="flex items-center gap-6 mb-6 border-b border-gray-100">
                 <button
                     onClick={() => setActiveTab('account')}
-                    className={`pb-3 relative transition ${
+                    className={`pb-3 text-sm font-medium tracking-wide transition-colors border-b-4 ${
                         activeTab === 'account'
-                            ? 'text-blue-600 border-b-2 border-blue-600 font-bold'
-                            : 'text-slate-500 hover:text-slate-800'
+                            ? 'border-blue-600 text-slate-900'
+                            : 'border-transparent text-slate-500 hover:text-slate-900 hover:border-gray-200/60'
                     }`}
                 >
                     <span className="flex items-center gap-2">
                         <Receipt className="w-4 h-4" />
-                        Cuenta Corriente & Movimientos
+                        Cuenta Corriente
                     </span>
                 </button>
                 <button
                     onClick={() => setActiveTab('containers')}
-                    className={`pb-3 relative transition ${
+                    className={`pb-3 text-sm font-medium tracking-wide transition-colors border-b-4 ${
                         activeTab === 'containers'
-                            ? 'text-blue-600 border-b-2 border-blue-600 font-bold'
-                            : 'text-slate-500 hover:text-slate-800'
+                            ? 'border-blue-600 text-slate-900'
+                            : 'border-transparent text-slate-500 hover:text-slate-900 hover:border-gray-200/60'
                     }`}
                 >
                     <span className="flex items-center gap-2">
@@ -206,74 +207,69 @@ export default function CustomerShow({ customer, accountEntries, containerMoveme
                 </button>
                 <button
                     onClick={() => setActiveTab('agreements')}
-                    className={`pb-3 relative transition ${
+                    className={`pb-3 text-sm font-medium tracking-wide transition-colors border-b-4 ${
                         activeTab === 'agreements'
-                            ? 'text-blue-600 border-b-2 border-blue-600 font-bold'
-                            : 'text-slate-500 hover:text-slate-800'
+                            ? 'border-blue-600 text-slate-900'
+                            : 'border-transparent text-slate-500 hover:text-slate-900 hover:border-gray-200/60'
                     }`}
                 >
                     <span className="flex items-center gap-2">
                         <Tag className="w-4 h-4" />
-                        Acuerdos de Precios
+                        Acuerdos
                     </span>
                 </button>
             </div>
 
             {/* TAB 1: Account Entries */}
             {activeTab === 'account' && (
-                <div className="bg-white rounded-lg border border-slate-200 shadow-2xs overflow-hidden">
-                    <div className="p-4 sm:px-6 border-b border-slate-100 flex items-center justify-between">
-                        <div>
-                            <h3 className="text-base font-bold font-display text-slate-900">
-                                Libro de Movimientos Contables
-                            </h3>
-                            <p className="text-xs text-slate-500">
-                                Historial cronológico de débitos por ventas y créditos por pagos o cobranzas.
-                            </p>
-                        </div>
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-200/60 overflow-hidden">
+                    <div className="p-5 border-b border-gray-100 bg-white">
+                        <h3 className="text-base font-semibold text-slate-900 tracking-wide">
+                            Movimientos Contables
+                        </h3>
                     </div>
 
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left text-xs">
-                            <thead className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-100 uppercase tracking-wider">
+                        <table className="w-full text-left text-sm whitespace-nowrap">
+                            <thead className="bg-gray-50 border-b border-gray-100">
                                 <tr>
-                                    <th className="px-6 py-3.5">Fecha y Hora</th>
-                                    <th className="px-6 py-3.5">Concepto</th>
-                                    <th className="px-6 py-3.5">Tipo</th>
-                                    <th className="px-6 py-3.5 text-center">Método</th>
-                                    <th className="px-6 py-3.5 text-right">Monto</th>
+                                    <th className="px-6 py-4 text-xs font-medium text-slate-500 tracking-wide">Fecha y Hora</th>
+                                    <th className="px-6 py-4 text-xs font-medium text-slate-500 tracking-wide">Concepto</th>
+                                    <th className="px-6 py-4 text-xs font-medium text-slate-500 tracking-wide text-center">Tipo</th>
+                                    <th className="px-6 py-4 text-xs font-medium text-slate-500 tracking-wide text-center">Método</th>
+                                    <th className="px-6 py-4 text-xs font-medium text-slate-500 tracking-wide text-right">Monto</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100">
+                            <tbody className="bg-white">
                                 {accountEntries.length === 0 ? (
                                     <tr>
-                                        <td colSpan={5} className="px-6 py-8 text-center text-slate-400">
-                                            No hay movimientos registrados en la cuenta corriente.
+                                        <td colSpan={5} className="px-6 py-8 text-center text-slate-500 text-sm">
+                                            No hay movimientos registrados.
                                         </td>
                                     </tr>
                                 ) : (
                                     accountEntries.map((entry) => {
                                         const isDebit = entry.direction === 1; // Sale / increase debt
                                         return (
-                                            <tr key={entry.id} className="hover:bg-slate-50/80 transition">
-                                                <td className="px-6 py-3.5 text-slate-500 font-medium">
+                                            <tr key={entry.id} className="hover:bg-slate-50 transition-colors">
+                                                <td className="px-6 py-4 text-gray-600">
                                                     {entry.createdAt}
                                                 </td>
-                                                <td className="px-6 py-3.5 font-semibold text-slate-800">
-                                                    {entry.description || (isDebit ? 'Venta de productos' : 'Cobranza / Pago recibido')}
+                                                <td className="px-6 py-4 font-medium text-slate-900">
+                                                    {entry.description || (isDebit ? 'Venta de productos' : 'Cobranza')}
                                                 </td>
-                                                <td className="px-6 py-3.5">
+                                                <td className="px-6 py-4 text-center">
                                                     <span
-                                                        className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold ${
+                                                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
                                                             isDebit
-                                                                ? 'bg-rose-50 text-rose-700 border border-rose-100'
-                                                                : 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                                                                ? 'bg-slate-100 text-slate-700'
+                                                                : 'bg-slate-100 text-gray-700'
                                                         }`}
                                                     >
                                                         {entry.entryType}
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-3.5 text-center">
+                                                <td className="px-6 py-4 text-center">
                                                     {entry.paymentMethod ? (
                                                         <PaymentMethodBadge method={entry.paymentMethod} />
                                                     ) : (
@@ -281,8 +277,8 @@ export default function CustomerShow({ customer, accountEntries, containerMoveme
                                                     )}
                                                 </td>
                                                 <td
-                                                    className={`px-6 py-3.5 text-right font-bold text-sm ${
-                                                        isDebit ? 'text-rose-600' : 'text-emerald-600'
+                                                    className={`px-6 py-4 text-right font-medium text-sm ${
+                                                        isDebit ? 'text-red-600' : 'text-emerald-600'
                                                     }`}
                                                 >
                                                     {isDebit ? '+' : '-'}${entry.amount.toLocaleString('es-AR')}
@@ -302,79 +298,82 @@ export default function CustomerShow({ customer, accountEntries, containerMoveme
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {/* Container Cards */}
                     <div className="md:col-span-1 space-y-4">
-                        <h3 className="text-sm font-bold font-display text-slate-900">
-                            Envases en Posesión del Cliente
+                        <h3 className="text-sm font-semibold text-slate-900 mb-3 border-b border-gray-100 pb-2">
+                            Envases en Posesión
                         </h3>
                         {customer.container_balances?.map((cb) => (
                             <div
                                 key={cb.id}
-                                className="bg-white rounded-lg border border-slate-200 p-4 shadow-2xs flex items-center justify-between"
+                                className="bg-white rounded-lg border border-gray-200 p-5 shadow-sm flex items-center justify-between"
                             >
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2.5 rounded-lg bg-blue-50 text-blue-600 border border-blue-100">
-                                        <Package className="w-5 h-5" />
+                                <div className="flex items-center gap-4">
+                                    <div className="p-2.5 rounded-lg bg-slate-100 text-slate-900">
+                                        <Package className="w-6 h-6" />
                                     </div>
                                     <div>
-                                        <p className="text-sm font-bold text-slate-900">
+                                        <p className="text-sm font-semibold text-slate-900">
                                             {cb.container_type?.name || 'Envase'}
                                         </p>
-                                        <p className="text-xs text-slate-500">
+                                        <p className="text-xs text-slate-500 mt-0.5">
                                             Capacidad: {cb.container_type?.capacity_liters || 20}L
                                         </p>
                                     </div>
                                 </div>
-                                <span className="text-xl font-bold font-display text-slate-900">
-                                    {cb.balance} <span className="text-xs text-slate-400 font-normal">unid.</span>
+                                <span className="text-2xl font-medium text-slate-900">
+                                    {cb.balance}
                                 </span>
                             </div>
                         ))}
+                        {(!customer.container_balances || customer.container_balances.length === 0) && (
+                            <p className="text-sm text-slate-500 italic">El cliente no posee envases en comodato.</p>
+                        )}
                     </div>
 
                     {/* Movement History */}
-                    <div className="md:col-span-2 bg-white rounded-lg border border-slate-200 shadow-2xs overflow-hidden">
-                        <div className="p-4 sm:px-6 border-b border-slate-100">
-                            <h3 className="text-sm font-bold font-display text-slate-900">
-                                Últimos Movimientos de Envases
+                    <div className="md:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-200/60 overflow-hidden">
+                        <div className="p-5 border-b border-gray-100">
+                            <h3 className="text-base font-semibold text-slate-900 tracking-wide">
+                                Historial de Envases
                             </h3>
                         </div>
                         <div className="overflow-x-auto">
-                            <table className="w-full text-left text-xs">
-                                <thead className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-100 uppercase">
+                            <table className="w-full text-left text-sm whitespace-nowrap">
+                                <thead className="bg-gray-50 border-b border-gray-100">
                                     <tr>
-                                        <th className="px-6 py-3">Fecha</th>
-                                        <th className="px-6 py-3">Envase</th>
-                                        <th className="px-6 py-3">Tipo de Operación</th>
-                                        <th className="px-6 py-3 text-right">Cantidad</th>
+                                        <th className="px-6 py-4 text-xs font-medium text-slate-500 tracking-wide">Fecha</th>
+                                        <th className="px-6 py-4 text-xs font-medium text-slate-500 tracking-wide">Envase</th>
+                                        <th className="px-6 py-4 text-xs font-medium text-slate-500 tracking-wide text-center">Operación</th>
+                                        <th className="px-6 py-4 text-xs font-medium text-slate-500 tracking-wide text-right">Cantidad</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-100">
+                                <tbody className="bg-white">
                                     {containerMovements.length === 0 ? (
                                         <tr>
-                                            <td colSpan={4} className="px-6 py-6 text-center text-slate-400">
+                                            <td colSpan={4} className="px-6 py-8 text-center text-slate-500 text-sm">
                                                 Sin movimientos recientes.
                                             </td>
                                         </tr>
                                     ) : (
                                         containerMovements.map((cm) => (
-                                            <tr key={cm.id} className="hover:bg-slate-50">
-                                                <td className="px-6 py-3 text-slate-500">
+                                            <tr key={cm.id} className="hover:bg-slate-50 transition-colors">
+                                                <td className="px-6 py-4 text-gray-600">
                                                     {cm.created_at}
                                                 </td>
-                                                <td className="px-6 py-3 font-medium text-slate-800">
+                                                <td className="px-6 py-4 font-medium text-slate-900">
                                                     {cm.container_type?.name}
                                                 </td>
-                                                <td className="px-6 py-3">
+                                                <td className="px-6 py-4 text-center">
                                                     <span
-                                                        className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                                                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
                                                             cm.type === 'DELIVERED'
-                                                                ? 'bg-blue-50 text-blue-700'
-                                                                : 'bg-emerald-50 text-emerald-700'
+                                                                ? 'bg-slate-100 text-slate-700'
+                                                                : 'bg-slate-100 text-gray-700'
                                                         }`}
                                                     >
-                                                        {cm.type === 'DELIVERED' ? 'Entregado al cliente' : 'Devuelto/Retirado'}
+                                                        {cm.type === 'DELIVERED' ? 'Entregado' : 'Devuelto'}
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-3 text-right font-bold text-slate-900">
+                                                <td className="px-6 py-4 text-right font-medium text-slate-900">
                                                     {cm.quantity} unid.
                                                 </td>
                                             </tr>
@@ -389,39 +388,34 @@ export default function CustomerShow({ customer, accountEntries, containerMoveme
 
             {/* TAB 3: Agreements */}
             {activeTab === 'agreements' && (
-                <div className="bg-white rounded-lg border border-slate-200 shadow-2xs overflow-hidden">
-                    <div className="p-4 sm:px-6 border-b border-slate-100 flex items-center justify-between">
-                        <div>
-                            <h3 className="text-base font-bold font-display text-slate-900">
-                                Acuerdos de Precios Especiales
-                            </h3>
-                            <p className="text-xs text-slate-500">
-                                Listas de precios pactadas para este cliente sobre el catálogo general.
-                            </p>
-                        </div>
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-200/60 overflow-hidden">
+                    <div className="p-5 border-b border-gray-100">
+                        <h3 className="text-base font-semibold text-slate-900 tracking-wide">
+                            Acuerdos de Precios
+                        </h3>
                     </div>
 
                     <div className="p-6">
                         {customer.agreements && customer.agreements.length > 0 ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                                 {customer.agreements.map((ag) => (
                                     <div
                                         key={ag.id}
-                                        className="p-4 rounded-lg border border-slate-200 bg-slate-50/50 flex items-center justify-between"
+                                        className="p-5 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-between shadow-sm"
                                     >
                                         <div>
-                                            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                            <p className="text-xs font-medium text-slate-500">
                                                 Producto
                                             </p>
-                                            <p className="text-sm font-bold text-slate-900 mt-0.5">
+                                            <p className="text-sm font-semibold text-slate-900 mt-1">
                                                 {ag.product?.name || 'Producto'}
                                             </p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                                                Precio Pactado
+                                            <p className="text-xs font-medium text-slate-500">
+                                                Precio Acordado
                                             </p>
-                                            <p className="text-lg font-bold font-display text-blue-600 mt-0.5">
+                                            <p className="text-lg font-medium text-slate-900 mt-1">
                                                 ${Number(ag.special_price).toLocaleString('es-AR')}
                                             </p>
                                         </div>
@@ -429,8 +423,8 @@ export default function CustomerShow({ customer, accountEntries, containerMoveme
                                 ))}
                             </div>
                         ) : (
-                            <div className="text-center py-8 text-slate-400 text-xs">
-                                No hay acuerdos de precios diferenciales; rige el precio de lista estándar.
+                            <div className="text-center py-12 text-slate-500 text-sm border-2 border-dashed border-gray-200 rounded-lg">
+                                Sin acuerdos especiales.
                             </div>
                         )}
                     </div>

@@ -89,62 +89,22 @@ export default function AdminLayout({
             {/* Mobile Sidebar Backdrop */}
             {sidebarOpen && (
                 <div
-                    className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-xs lg:hidden"
+                    className="fixed inset-0 z-40 bg-gray-900/40 backdrop-blur-sm lg:hidden"
                     onClick={() => setSidebarOpen(false)}
                 />
             )}
 
-            {/* Sidebar (Fixed 240px) */}
+            {/* Sidebar */}
             <aside
-                className={`fixed inset-y-0 left-0 z-50 w-60 bg-white border-r border-slate-200 flex flex-col transition-transform duration-200 ease-in-out lg:translate-x-0 ${
+                className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200/60 flex flex-col transition-transform duration-200 ease-in-out lg:translate-x-0 ${
                     sidebarOpen ? 'translate-x-0' : '-translate-x-full'
                 }`}
             >
-                {/* Brand Logo & Header - Pure Organic Water Drop with Uppercase Branding */}
-                <div className="h-16 flex items-center justify-between px-5 border-b border-slate-100">
-                    <Link href={route('dashboard')} className="flex items-center gap-2.5 group">
-                        <div className="flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
-                            <svg
-                                className="w-7 h-7 drop-shadow-xs"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                            >
-                                <defs>
-                                    <linearGradient id="pureWaterDrop" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" stopColor="#38bdf8" />
-                                        <stop offset="60%" stopColor="#2563eb" />
-                                        <stop offset="100%" stopColor="#1d4ed8" />
-                                    </linearGradient>
-                                </defs>
-                                {/* Organic pure water drop without box/frame */}
-                                <path
-                                    d="M12 2.5C12 2.5 5.5 10.2 5.5 15C5.5 18.5899 8.41015 21.5 12 21.5C15.5899 21.5 18.5 18.5899 18.5 15C18.5 10.2 12 2.5 12 2.5Z"
-                                    fill="url(#pureWaterDrop)"
-                                />
-                                {/* Water light reflection curve */}
-                                <path
-                                    d="M9 13.5C9 11.2 10.8 8.8 12 7.8"
-                                    stroke="white"
-                                    strokeWidth="1.8"
-                                    strokeLinecap="round"
-                                    strokeOpacity="0.8"
-                                />
-                            </svg>
-                        </div>
-                        <div className="flex flex-col">
-                            <div className="flex items-center">
-                                <span className="font-brand text-[18px] font-black tracking-[0.14em] text-slate-900 group-hover:text-blue-600 transition-colors">
-                                    MARILIN
-                                </span>
-                            </div>
-                            <span className="text-[9.5px] font-bold tracking-[0.22em] uppercase text-blue-600 -mt-1 font-sans">
-                                DISTRIBUIDORA
-                            </span>
-                        </div>
-                    </Link>
+                {/* Brand Logo & Header */}
+                <div className="flex items-center justify-between px-6 bg-white border-b border-gray-200/60 h-16 lg:hidden">
+                    <div className="flex-1"></div>
                     <button
-                        className="lg:hidden p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                        className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100"
                         onClick={() => setSidebarOpen(false)}
                     >
                         <X className="w-5 h-5" />
@@ -152,8 +112,8 @@ export default function AdminLayout({
                 </div>
 
                 {/* Navigation Items */}
-                <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-                    <div className="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+                    <div className="px-3 pb-3 text-xs font-semibold text-slate-500">
                         Operaciones
                     </div>
                     {navigation.map((item) => {
@@ -162,20 +122,23 @@ export default function AdminLayout({
                             <Link
                                 key={item.name}
                                 href={item.href}
-                                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
                                     item.active
-                                        ? 'bg-blue-50 text-blue-700 font-semibold'
-                                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                                        ? 'bg-slate-100 text-slate-900 font-medium'
+                                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
                                 }`}
                             >
                                 <Icon
-                                    className={`w-4 h-4 ${
-                                        item.active ? 'text-blue-600' : 'text-slate-400'
+                                    className={`w-5 h-5 ${
+                                        item.active ? 'text-slate-900' : 'text-slate-500 group-hover:text-slate-700'
                                     }`}
+                                    strokeWidth={2}
                                 />
                                 <span className="flex-1">{item.name}</span>
                                 {item.badge && (
-                                    <span className="px-1.5 py-0.5 text-xs font-semibold bg-blue-100 text-blue-700 rounded-full">
+                                    <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
+                                        item.active ? 'bg-blue-50 text-blue-700' : 'bg-slate-100 text-slate-600'
+                                    }`}>
                                         {item.badge}
                                     </span>
                                 )}
@@ -185,57 +148,59 @@ export default function AdminLayout({
                 </nav>
 
                 {/* Operational Status Box */}
-                <div className="p-3 m-3 bg-slate-50 rounded-lg border border-slate-200 text-xs">
-                    <div className="flex items-center gap-2 text-slate-700 font-medium mb-1">
-                        <MapPin className="w-3.5 h-3.5 text-blue-600" />
+                <div className="p-4 mx-4 mb-4 bg-slate-50 rounded-xl border border-gray-200/60 text-xs shadow-sm">
+                    <div className="flex items-center gap-2 text-slate-900 font-medium mb-1">
+                        <MapPin className="w-4 h-4 text-emerald-500" strokeWidth={2} />
                         <span>Base Central Jujuy</span>
                     </div>
-                    <p className="text-[11px] text-slate-500">Distribución de Agua & Soda</p>
+                    <p className="text-[11px] text-slate-500 font-medium pl-6">Distr. Agua & Soda</p>
                 </div>
 
                 {/* User Footer */}
-                <div className="p-3 border-t border-slate-100 flex items-center justify-between">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-8 h-8 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center text-xs font-bold text-blue-700">
+                <div className="p-4 bg-white border-t border-gray-200/60 flex items-center justify-between">
+                    <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-10 h-10 rounded-full bg-slate-100 border border-gray-200/60 flex items-center justify-center text-sm font-semibold text-slate-700">
                             {user.name.charAt(0).toUpperCase()}
                         </div>
                         <div className="min-w-0">
-                            <p className="text-xs font-semibold text-slate-900 truncate">{user.name}</p>
-                            <p className="text-[11px] text-slate-500 truncate">Administrador</p>
+                            <p className="text-sm font-medium text-slate-900 truncate">{user.name}</p>
+                            <p className="text-xs text-slate-500 truncate">Administrador</p>
                         </div>
                     </div>
                     <button
                         onClick={() => setShowLogoutModal(true)}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                        className="p-2 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition cursor-pointer"
                         title="Cerrar sesión"
                     >
-                        <LogOut className="w-4 h-4" />
+                        <LogOut className="w-5 h-5" strokeWidth={2} />
                     </button>
                 </div>
             </aside>
 
             {/* Main Area */}
-            <div className="flex-1 lg:pl-60 flex flex-col min-w-0">
+            <div className="flex-1 lg:pl-64 flex flex-col min-w-0">
                 {/* Topbar */}
-                <header className="h-16 bg-white border-b border-slate-200 sticky top-0 z-30 flex items-center justify-between px-4 sm:px-6 lg:px-8">
+                <header className="h-16 bg-white/80 backdrop-blur-md border-b border-gray-200/60 sticky top-0 z-30 flex items-center justify-between px-4 sm:px-6 lg:px-8 shadow-sm">
                     <div className="flex items-center gap-3">
                         <button
                             onClick={() => setSidebarOpen(true)}
-                            className="lg:hidden p-2 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                            className="lg:hidden p-2 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                         >
                             <Menu className="w-5 h-5" />
                         </button>
-                        {header}
+                        <div className="text-slate-900 font-medium text-sm">
+                            {header}
+                        </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-4">
                         {/* Notifications */}
-                        <button className="relative p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition">
-                            <Bell className="w-5 h-5" />
-                            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-orange-500 rounded-full"></span>
+                        <button className="relative p-2 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition">
+                            <Bell className="w-5 h-5" strokeWidth={2} />
+                            <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
                         </button>
 
-                        <div className="h-5 w-[1px] bg-slate-200"></div>
+                        <div className="h-6 w-px bg-slate-200"></div>
 
                         {/* User Menu */}
                         <div className="relative">
@@ -243,28 +208,28 @@ export default function AdminLayout({
                                 onClick={() => setUserMenuOpen(!userMenuOpen)}
                                 className="flex items-center gap-2 text-sm font-medium text-slate-700 hover:text-slate-900"
                             >
-                                <span className="hidden sm:inline-block text-xs font-semibold">{user.name}</span>
-                                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                                <span className="hidden sm:inline-block">{user.name}</span>
+                                <ChevronDown className="w-4 h-4 text-slate-500" strokeWidth={2} />
                             </button>
 
                             {userMenuOpen && (
-                                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-100 py-1 z-50">
+                                <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200/60 py-1.5 z-50">
                                     <Link
                                         href={route('profile.edit')}
-                                        className="block px-4 py-2 text-xs text-slate-700 hover:bg-slate-50"
+                                        className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
                                         onClick={() => setUserMenuOpen(false)}
                                     >
-                                        Mi Perfil
+                                        Mi perfil
                                     </Link>
                                     <button
                                         type="button"
-                                        className="w-full text-left block px-4 py-2 text-xs text-rose-600 hover:bg-rose-50 cursor-pointer"
+                                        className="w-full text-left block px-4 py-2 text-sm text-rose-600 hover:bg-rose-50 cursor-pointer"
                                         onClick={() => {
                                             setUserMenuOpen(false);
                                             setShowLogoutModal(true);
                                         }}
                                     >
-                                        Cerrar Sesión
+                                        Cerrar sesión
                                     </button>
                                 </div>
                             )}
@@ -273,7 +238,7 @@ export default function AdminLayout({
                 </header>
 
                 {/* Page Content */}
-                <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+                <main className="flex-1 p-4 sm:p-6 lg:p-8 w-full max-w-none mx-auto bg-slate-50">
                     {children}
                 </main>
             </div>
@@ -283,42 +248,42 @@ export default function AdminLayout({
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                     {/* Backdrop */}
                     <div
-                        className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity"
+                        className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity"
                         onClick={() => setShowLogoutModal(false)}
                     />
 
                     {/* Modal Card */}
-                    <div className="relative bg-white rounded-xl shadow-2xl border border-slate-200 max-w-md w-full p-6 overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-150">
+                    <div className="relative bg-white rounded-2xl shadow-xl border border-gray-200/60 max-w-md w-full p-6 overflow-hidden z-10">
                         <div className="flex items-start gap-4">
-                            <div className="w-11 h-11 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 shrink-0">
-                                <AlertTriangle className="w-5 h-5" />
+                            <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center text-rose-600 shrink-0">
+                                <AlertTriangle className="w-5 h-5" strokeWidth={2} />
                             </div>
-                            <div className="flex-1">
-                                <h3 className="text-base font-bold font-display text-slate-900">
-                                    ¿Estás seguro de cerrar sesión?
+                            <div className="flex-1 pt-1">
+                                <h3 className="text-lg font-semibold text-slate-900">
+                                    Cerrar sesión
                                 </h3>
-                                <p className="mt-1.5 text-xs text-slate-500 leading-relaxed">
-                                    Finalizarás tu sesión administrativa actual en Marilin Web. Para volver a acceder deberás ingresar tus credenciales nuevamente.
+                                <p className="mt-2 text-sm text-slate-500">
+                                    Finalizarás tu sesión actual. Deberás ingresar credenciales nuevamente para acceder.
                                 </p>
                             </div>
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="mt-6 flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                        <div className="mt-8 flex items-center justify-end gap-3">
                             <button
                                 type="button"
                                 onClick={() => setShowLogoutModal(false)}
-                                className="px-4 py-2 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition cursor-pointer"
+                                className="px-4 py-2.5 rounded-lg text-sm font-medium text-slate-700 bg-white border border-gray-200/60 hover:bg-slate-50 transition cursor-pointer"
                             >
                                 Cancelar
                             </button>
                             <button
                                 type="button"
                                 onClick={handleConfirmLogout}
-                                className="px-4 py-2 rounded-lg bg-rose-600 text-xs font-semibold text-white hover:bg-rose-700 transition shadow-xs cursor-pointer flex items-center gap-1.5"
+                                className="px-4 py-2.5 rounded-lg bg-blue-600 text-sm font-medium text-white hover:bg-blue-700 transition shadow-sm cursor-pointer flex items-center gap-2"
                             >
-                                <LogOut className="w-3.5 h-3.5" />
-                                Cerrar Sesión
+                                <LogOut className="w-4 h-4" strokeWidth={2} />
+                                Cerrar sesión
                             </button>
                         </div>
                     </div>
