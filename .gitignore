@@ -52,3 +52,5 @@ yarn-error.log*
 # SDD & Agent local cache
 .atl/
 .engram/
+.impeccable/
+openspec/
