@@ -14,7 +14,6 @@ import {
     X,
     Bell,
     ChevronDown,
-    MapPin,
     AlertTriangle,
 } from 'lucide-react';
 
@@ -146,15 +145,6 @@ export default function AdminLayout({
                         );
                     })}
                 </nav>
-
-                {/* Operational Status Box */}
-                <div className="p-4 mx-4 mb-4 bg-slate-50 rounded-xl border border-gray-200/60 text-xs shadow-sm">
-                    <div className="flex items-center gap-2 text-slate-900 font-medium mb-1">
-                        <MapPin className="w-4 h-4 text-emerald-500" strokeWidth={2} />
-                        <span>Base Central Jujuy</span>
-                    </div>
-                    <p className="text-[11px] text-slate-500 font-medium pl-6">Distr. Agua & Soda</p>
-                </div>
 
                 {/* User Footer */}
                 <div className="p-4 bg-white border-t border-gray-200/60 flex items-center justify-between">
