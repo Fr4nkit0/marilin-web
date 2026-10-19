@@ -24,6 +24,7 @@ Route::prefix('v1')->group(function (): void {
             Route::get('/bootstrap', [SyncController::class, 'bootstrap'])->name('api.v1.sync.bootstrap');
             Route::get('/pull', [SyncController::class, 'pull'])->name('api.v1.sync.pull');
             Route::post('/route-visits', [SyncController::class, 'syncRouteVisits'])->name('api.v1.sync.route-visits');
+            Route::post('/customers', [SyncController::class, 'syncCustomers'])->name('api.v1.sync.customers');
         });
     });
 });

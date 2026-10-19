@@ -385,4 +385,123 @@ class SyncController extends Controller
             'message' => 'Route visits synchronized successfully',
         ]);
     }
+    public function syncCustomers(Request $request): JsonResponse
+    {
+        $driver = $this->resolveDriver($request);
+        /** @var User $user */
+        $user = $request->user();
+
+        $request->validate([
+            'customers' => ['required', 'array'],
+            'customers.*.uuid' => ['required', 'string'],
+            'customers.*.server_id' => ['nullable', 'integer'],
+            'customers.*.name' => ['required', 'string'],
+            'customers.*.phone_number' => ['nullable', 'string'],
+            'customers.*.address' => ['required', 'array'],
+            'customers.*.address.street' => ['required', 'string'],
+            'customers.*.address.apartment' => ['nullable', 'string'],
+            'customers.*.address.floor' => ['nullable', 'integer'],
+            'customers.*.address.visual_reference' => ['nullable', 'string'],
+            'customers.*.address.neighborhood' => ['nullable', 'string'],
+            'customers.*.address.latitude' => ['nullable', 'numeric'],
+            'customers.*.address.longitude' => ['nullable', 'numeric'],
+        ]);
+
+        /** @var array<int, array<string, mixed>> $customersData */
+        $customersData = $request->input('customers', []);
+        $createdCustomers = [];
+
+        $processedCount = DB::transaction(function () use ($customersData, $user, $driver, &$createdCustomers): int {
+            $count = 0;
+
+            foreach ($customersData as $customerData) {
+                $uuid = (string) $customerData['uuid'];
+                $serverId = $customerData['server_id'] ?? null;
+                $alreadyExists = IdempotencyRecord::query()->where('uuid', $uuid)->exists();
+
+                if ($alreadyExists) {
+                    continue;
+                }
+
+                $customer = null;
+                if ($serverId) {
+                    $customer = Customer::find($serverId);
+                }
+                if (! $customer && $uuid) {
+                    $customer = Customer::where('client_uuid', $uuid)->first();
+                }
+
+                if ($customer) {
+                    $customer->update([
+                        'name' => $customerData['name'],
+                        'phone_number' => $customerData['phone_number'] ?? null,
+                        'last_modified_by' => $user->id,
+                    ]);
+
+                    $addressData = $customerData['address'];
+                    if ($customer->primaryAddress) {
+                        $customer->primaryAddress->update([
+                            'street' => $addressData['street'],
+                            'apartment' => $addressData['apartment'] ?? null,
+                            'floor' => $addressData['floor'] ?? null,
+                            'visual_reference' => $addressData['visual_reference'] ?? null,
+                            'neighborhood' => $addressData['neighborhood'] ?? null,
+                            'latitude' => $addressData['latitude'] ?? null,
+                            'longitude' => $addressData['longitude'] ?? null,
+                            'last_modified_by' => $user->id,
+                        ]);
+                    }
+                } else {
+                    $customer = Customer::create([
+                        'driver_id' => $driver->id,
+                        'client_uuid' => $uuid,
+                        'name' => $customerData['name'],
+                        'phone_number' => $customerData['phone_number'] ?? null,
+                        'created_by' => $user->id,
+                        'enabled' => true,
+                    ]);
+
+                    $addressData = $customerData['address'];
+                    $address = CustomerAddress::create([
+                        'customer_id' => $customer->id,
+                        'street' => $addressData['street'],
+                        'apartment' => $addressData['apartment'] ?? null,
+                        'floor' => $addressData['floor'] ?? null,
+                        'visual_reference' => $addressData['visual_reference'] ?? null,
+                        'neighborhood' => $addressData['neighborhood'] ?? null,
+                        'latitude' => $addressData['latitude'] ?? null,
+                        'longitude' => $addressData['longitude'] ?? null,
+                        'is_primary' => true,
+                        'created_by' => $user->id,
+                        'enabled' => true,
+                    ]);
+
+                    $createdCustomers[] = [
+                        'uuid' => $uuid,
+                        'server_id' => $customer->id,
+                        'address_server_id' => $address->id,
+                    ];
+                }
+
+                IdempotencyRecord::create([
+                    'uuid' => $uuid,
+                    'entity_type' => 'customer',
+                    'user_id' => $user->id,
+                ]);
+
+                $count++;
+            }
+
+            return $count;
+        });
+
+        return response()->json([
+            'data' => [
+                'processed_customers' => $processedCount,
+                'created_customers' => $createdCustomers,
+                'synced_at' => now()->toIso8601String(),
+            ],
+            'message' => 'Customers synchronized successfully',
+        ]);
+    }
 }

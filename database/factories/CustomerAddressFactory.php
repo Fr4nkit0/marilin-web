@@ -22,6 +22,7 @@ class CustomerAddressFactory extends Factory
             'apartment' => fake()->optional()->buildingNumber(),
             'floor' => fake()->optional()->numberBetween(1, 15),
             'visual_reference' => fake()->optional()->sentence(),
+            'neighborhood' => fake()->optional()->citySuffix(),
             'latitude' => fake()->latitude(-34.7, -34.5),
             'longitude' => fake()->longitude(-58.6, -58.3),
             'is_primary' => true,
