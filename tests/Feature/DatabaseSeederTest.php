@@ -43,9 +43,24 @@ test('the seeded driver Esteban gets a full day to work from the app', function 
         ->and($customers['Familia Quispe']['preferences'])->not->toBeEmpty()
         ->and(collect($customers['Supermercado El Tunal']['agreements']))->toHaveCount(2)
         ->and(collect($customers['Escuela N° 432 Alto Comedero']['agreements'])->pluck('unit_price')->all())->toBe(['1800.00'])
-        ->and($products['Sifón de Soda 2L']['price'])->toBe('1000.00')
-        ->and($products->keys())->not->toContain('Bidón de Agua 12L')
-        ->and($response->json('data.truck_inventory'))->toHaveCount(3);
+        ->and($products->map(fn (array $product): string => $product['price'])->all())->toBe(['Bidón 20L' => '6500.00', 'Sifón 1.5L' => '1500.00'])
+        ->and($response->json('data.truck_inventory'))->toHaveCount(2);
+});
+
+test('the seeded visit outcomes are absent, refused and reschedule, and only reschedule triggers a reschedule', function (): void {
+    $response = $this->withToken(appLogin('esteban.benitez@marilin.com'))->getJson('/api/v1/sync/bootstrap')->assertOk();
+
+    $outcomes = collect($response->json('data.visit_outcomes'))
+        ->map(fn (array $outcome): array => [$outcome['code'], $outcome['name'], $outcome['triggers_reschedule']])
+        ->sortBy(0)
+        ->values()
+        ->all();
+
+    expect($outcomes)->toBe([
+        ['absent', 'Ausente', false],
+        ['refused', 'No quiso', false],
+        ['reschedule', 'Reprogramar', true],
+    ]);
 });
 
 test('the first pull of Esteban carries the disabled customer and the discontinued product', function (): void {

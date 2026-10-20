@@ -121,17 +121,17 @@ class DatabaseSeeder extends Seeder
         $sifon2L = ContainerType::firstOrCreate(
             ['code' => 'SIFON_2L'],
             [
-                'description' => 'Sifón Soda 2 Litros Retornable',
+                'description' => 'Sifón Soda 1.5 Litros Retornable',
                 'enabled' => true,
             ]
         );
 
         // 3. Products
         $productAgua20L = Product::firstOrCreate(
-            ['name' => 'Bidón de Agua Purificada 20L'],
+            ['name' => 'Bidón 20L'],
             [
                 'description' => 'Agua purificada y mineralizada de 20 litros en bidón retornable',
-                'price' => 2000.00,
+                'price' => 6500.00,
                 'requires_container' => true,
                 'container_type_id' => $bidon20L->id,
                 'available_quantity' => 500.00,
@@ -140,25 +140,13 @@ class DatabaseSeeder extends Seeder
         );
 
         $productSoda2L = Product::firstOrCreate(
-            ['name' => 'Sifón de Soda 2L'],
+            ['name' => 'Sifón 1.5L'],
             [
-                'description' => 'Soda en sifón retornable de 2 litros',
-                'price' => 1000.00,
+                'description' => 'Soda en sifón retornable de 1.5 litros',
+                'price' => 1500.00,
                 'requires_container' => true,
                 'container_type_id' => $sifon2L->id,
                 'available_quantity' => 350.00,
-                'enabled' => true,
-            ]
-        );
-
-        $productDispenser = Product::firstOrCreate(
-            ['name' => 'Dispensador de Mesa Natural'],
-            [
-                'description' => 'Soporte con canilla para bidón de 20L',
-                'price' => 25000.00,
-                'requires_container' => false,
-                'container_type_id' => null,
-                'available_quantity' => 60.00,
                 'enabled' => true,
             ]
         );
@@ -192,20 +180,20 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Tarjeta de Débito/Crédito', 'enabled' => true]
         );
 
-        // 5. Visit Outcomes
-        $outcomeDelivered = VisitOutcome::firstOrCreate(
-            ['name' => 'Entrega Exitosa'],
-            ['triggers_reschedule' => false, 'enabled' => true]
+        // 5. Visit Outcomes: what happened when there was no sale. Only rescheduling reopens the stop later.
+        VisitOutcome::firstOrCreate(
+            ['code' => 'absent'],
+            ['name' => 'Ausente', 'triggers_reschedule' => false, 'enabled' => true]
         );
 
-        $outcomeAbsent = VisitOutcome::firstOrCreate(
-            ['name' => 'Cliente Ausente'],
-            ['triggers_reschedule' => true, 'enabled' => true]
+        VisitOutcome::firstOrCreate(
+            ['code' => 'refused'],
+            ['name' => 'No quiso', 'triggers_reschedule' => false, 'enabled' => true]
         );
 
-        $outcomePostponed = VisitOutcome::firstOrCreate(
-            ['name' => 'Reprogramado por Lluvia'],
-            ['triggers_reschedule' => true, 'enabled' => true]
+        $outcomeReschedule = VisitOutcome::firstOrCreate(
+            ['code' => 'reschedule'],
+            ['name' => 'Reprogramar', 'triggers_reschedule' => true, 'enabled' => true]
         );
 
         // 6. Customers across San Salvador de Jujuy & Palpalá
@@ -825,8 +813,8 @@ class DatabaseSeeder extends Seeder
                     [
                         'customer_id' => $cust->id,
                         'driver_id' => $repJuan->id,
-                        // A visit still in progress has no outcome yet.
-                        'outcome_id' => $s['status'] === 'FINISHED' ? $outcomeDelivered->id : null,
+                        // Outcomes explain a visit without sale; these ones sold or are still in progress.
+                        'outcome_id' => null,
                         'arrived_at' => $s['time'] ? $today->copy()->setHour((int) explode(':', $s['time'])[0])->setMinute((int) explode(':', $s['time'])[1]) : null,
                         'latitude' => $addr->latitude,
                         'longitude' => $addr->longitude,
@@ -1030,7 +1018,7 @@ class DatabaseSeeder extends Seeder
                 [
                     'customer_id' => $cust->id,
                     'driver_id' => $repCarlos->id,
-                    'outcome_id' => $outcomeDelivered->id,
+                    'outcome_id' => null,
                     'arrived_at' => $today->copy()->setHour((int) explode(':', $s['time'])[0])->setMinute((int) explode(':', $s['time'])[1]),
                     'latitude' => $addr->latitude,
                     'longitude' => $addr->longitude,
@@ -1177,7 +1165,7 @@ class DatabaseSeeder extends Seeder
                 [
                     'customer_id' => $cust->id,
                     'driver_id' => $repMarcos->id,
-                    'outcome_id' => $outcomeDelivered->id,
+                    'outcome_id' => null,
                     'arrived_at' => $today->copy()->setHour((int) explode(':', $s['time'])[0])->setMinute((int) explode(':', $s['time'])[1]),
                     'latitude' => $addr->latitude,
                     'longitude' => $addr->longitude,
@@ -1258,7 +1246,7 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        foreach ([[$productAgua20L, 40.00], [$productSoda2L, 20.00], [$productDispenser, 2.00]] as [$product, $quantity]) {
+        foreach ([[$productAgua20L, 40.00], [$productSoda2L, 20.00]] as [$product, $quantity]) {
             RouteInventoryLoad::firstOrCreate(
                 ['route_id' => $routeEsteban->id, 'product_id' => $product->id],
                 ['quantity' => $quantity, 'created_by' => $admin->id]
@@ -1287,7 +1275,7 @@ class DatabaseSeeder extends Seeder
             );
         }
 
-        // The greengrocer was closed at 08:30: the visit is finished as absent and the stop is rescheduled for 16:00.
+        // The greengrocer was closed at 08:30: the driver rescheduled the visit for 16:00.
         $absentCustomer = $createdCustomers['Verdulería Los Andes'];
         $absentStop = RouteStop::query()
             ->where('route_id', $routeEsteban->id)
@@ -1300,7 +1288,7 @@ class DatabaseSeeder extends Seeder
             [
                 'customer_id' => $absentCustomer->id,
                 'driver_id' => $repEsteban->id,
-                'outcome_id' => $outcomeAbsent->id,
+                'outcome_id' => $outcomeReschedule->id,
                 'arrived_at' => $today->copy()->setHour(8)->setMinute(35),
                 'latitude' => $absentCustomer->primaryAddress->latitude,
                 'longitude' => $absentCustomer->primaryAddress->longitude,
