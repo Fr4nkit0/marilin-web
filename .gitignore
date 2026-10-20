@@ -52,12 +52,9 @@ yarn-error.log*
 # SDD & Agent local cache
 .atl/
 .engram/
-<<<<<<< HEAD
 .impeccable/
 openspec/
 CLAUDE.md
-=======
 
 # uso local — tickets writing-plans
 /plans
->>>>>>> acc1d12 (chore: ignora la carpeta local plans)
