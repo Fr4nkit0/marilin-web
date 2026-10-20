@@ -2,10 +2,17 @@
 
 declare(strict_types=1);
 
+use App\Models\ContainerMovement;
+use App\Models\ContainerType;
+use App\Models\Customer;
 use App\Models\Driver;
+use App\Models\Payment;
+use App\Models\PaymentMethod;
 use App\Models\Route;
+use App\Models\RouteStop;
 use App\Models\Sale;
 use App\Models\User;
+use App\Models\Visit;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -31,4 +38,56 @@ test('the dashboard shows the requested day and each driver row carries the driv
             ->where('metrics.kpis.totalSales', 1200)
             ->where('metrics.repartidores.0.id', $driver->id)
             ->where('metrics.repartidores.0.name', 'Juan Pérez'));
+});
+
+test('each KPI card carries the records behind it', function (): void {
+    $driverUser = User::factory()->create(['name' => 'Juan Pérez']);
+    $driver = Driver::factory()->create(['user_id' => $driverUser->id]);
+    $route = Route::factory()->create(['assigned_driver_id' => $driver->id, 'date' => '2026-10-20', 'status' => 'IN_PROGRESS']);
+    $hotel = Customer::factory()->create(['name' => 'Hotel Altos de la Viña']);
+    $tolaba = Customer::factory()->create(['name' => 'Familia Tolaba']);
+    $verduleria = Customer::factory()->create(['name' => 'Verdulería Los Andes']);
+
+    $done = RouteStop::factory()->create(['route_id' => $route->id, 'customer_id' => $hotel->id, 'scheduled_time' => '09:00']);
+    Visit::factory()->create(['route_stop_id' => $done->id, 'customer_id' => $hotel->id, 'driver_id' => $driver->id, 'status' => 'FINISHED']);
+    RouteStop::factory()->create(['route_id' => $route->id, 'customer_id' => $tolaba->id, 'scheduled_time' => '13:00']);
+    $absent = RouteStop::factory()->create(['route_id' => $route->id, 'customer_id' => $verduleria->id, 'scheduled_time' => '08:30']);
+    RouteStop::factory()->create(['route_id' => $route->id, 'customer_id' => $verduleria->id, 'scheduled_time' => '16:00', 'is_rescheduled_from' => $absent->id]);
+
+    Sale::factory()->create(['customer_id' => $hotel->id, 'created_by' => $driverUser->id, 'date' => '2026-10-20 09:10:00', 'total' => 3400, 'is_credit_sale' => false]);
+    Payment::factory()->create([
+        'customer_id' => $hotel->id,
+        'received_by' => $driverUser->id,
+        'payment_method_id' => PaymentMethod::factory()->create(['code' => 'CASH', 'name' => 'Efectivo'])->id,
+        'paid_at' => '2026-10-20 09:12:00',
+        'amount' => 3400,
+        'status' => 'CONFIRMED',
+    ]);
+    ContainerMovement::factory()->create([
+        'customer_id' => $hotel->id,
+        'created_by' => $driverUser->id,
+        'container_type_id' => ContainerType::factory()->create(['description' => 'Bidón 20L'])->id,
+        'movement_type' => 'RETURNED',
+        'direction' => -1,
+        'quantity' => 6,
+        'created_at' => '2026-10-20 09:11:00',
+    ]);
+
+    $details = null;
+    $this->get(route('dashboard', ['date' => '2026-10-20']))
+        ->assertOk()
+        ->assertInertia(function (Assert $page) use (&$details): void {
+            $details = $page->toArray()['props']['metrics']['details'];
+        });
+
+    expect($details['sales'][0])->toMatchArray(['customer' => 'Hotel Altos de la Viña', 'driver' => 'Juan Pérez', 'at' => '2026-10-20 09:10', 'amount' => 3400, 'credit' => false])
+        ->and($details['payments'][0])->toMatchArray(['customer' => 'Hotel Altos de la Viña', 'driver' => 'Juan Pérez', 'method' => 'CASH', 'amount' => 3400])
+        ->and($details['containers'][0])->toMatchArray(['customer' => 'Hotel Altos de la Viña', 'driver' => 'Juan Pérez', 'container' => 'Bidón 20L', 'movement' => 'RETURNED', 'quantity' => 6])
+        ->and(collect($details['stops'])->map(fn (array $stop): array => [$stop['time'], $stop['customer'], $stop['status']])->all())->toBe([
+            ['08:30', 'Verdulería Los Andes', 'RESCHEDULED'],
+            ['09:00', 'Hotel Altos de la Viña', 'FINISHED'],
+            ['13:00', 'Familia Tolaba', 'PENDING'],
+            ['16:00', 'Verdulería Los Andes', 'PENDING'],
+        ])
+        ->and($details['stops'][0]['driver'])->toBe('Juan Pérez');
 });

@@ -5,8 +5,10 @@ namespace App\Actions;
 use App\Models\ContainerMovement;
 use App\Models\Payment;
 use App\Models\Route as DeliveryRoute;
+use App\Models\RouteStop;
 use App\Models\Sale;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 
 class GetDailyDashboardMetricsAction
 {
@@ -40,7 +42,9 @@ class GetDailyDashboardMetricsAction
         $totalCollected = $cashPayments + $transferPayments;
 
         // 3. Route progress and stops
-        $routes = DeliveryRoute::with(['stops.visits', 'driver.user'])->whereDate('date', $targetDate)->get();
+        $routes = DeliveryRoute::with(['stops.visits', 'stops.visit', 'stops.rescheduledTo', 'stops.customer:id,name', 'driver.user'])
+            ->whereDate('date', $targetDate)
+            ->get();
         $totalStops = 0;
         $completedStops = 0;
 
@@ -91,6 +95,80 @@ class GetDailyDashboardMetricsAction
                 'containersReturned' => $containersReturned,
             ],
             'repartidores' => $repartidoresStatus,
+            'details' => $this->details($targetDate, $routes),
+        ];
+    }
+
+    /**
+     * The records behind each KPI card, in the order they happened.
+     *
+     * @param  Collection<int, DeliveryRoute>  $routes
+     * @return array<string, array<int, array<string, mixed>>>
+     */
+    private function details(string $date, Collection $routes): array
+    {
+        $minute = fn ($moment): ?string => $moment === null ? null : Carbon::parse($moment)->format('Y-m-d H:i');
+
+        return [
+            'sales' => Sale::query()
+                ->with(['customer:id,name', 'creator:id,name'])
+                ->whereDate('date', $date)
+                ->orderBy('date')
+                ->orderBy('id')
+                ->get()
+                ->map(fn (Sale $sale): array => [
+                    'id' => $sale->id,
+                    'customer' => $sale->customer?->name,
+                    'driver' => $sale->creator?->name,
+                    'at' => $minute($sale->date),
+                    'amount' => (float) $sale->total,
+                    'credit' => (bool) $sale->is_credit_sale,
+                ])
+                ->all(),
+            'payments' => Payment::query()
+                ->with(['customer:id,name', 'recipient:id,name', 'paymentMethod:id,code'])
+                ->whereDate('paid_at', $date)
+                ->where('status', 'CONFIRMED')
+                ->whereHas('paymentMethod', fn ($q) => $q->whereIn('code', ['CASH', 'TRANSFER']))
+                ->orderBy('paid_at')
+                ->orderBy('id')
+                ->get()
+                ->map(fn (Payment $payment): array => [
+                    'id' => $payment->id,
+                    'customer' => $payment->customer?->name,
+                    'driver' => $payment->recipient?->name,
+                    'at' => $minute($payment->paid_at),
+                    'method' => $payment->paymentMethod?->code,
+                    'amount' => (float) $payment->amount,
+                ])
+                ->all(),
+            'stops' => $routes
+                ->flatMap(fn (DeliveryRoute $route) => $route->stops->map(fn (RouteStop $stop): array => [
+                    'id' => $stop->id,
+                    'driver' => $route->driver?->user?->name,
+                    'customer' => $stop->customer?->name,
+                    'time' => $stop->scheduled_time === null ? null : substr((string) $stop->scheduled_time, 0, 5),
+                    'status' => $stop->effectiveStatus(),
+                ]))
+                ->sortBy([['driver', 'asc'], ['time', 'asc'], ['id', 'asc']])
+                ->values()
+                ->all(),
+            'containers' => ContainerMovement::query()
+                ->with(['customer:id,name', 'creator:id,name', 'containerType:id,description'])
+                ->whereDate('created_at', $date)
+                ->orderBy('created_at')
+                ->orderBy('id')
+                ->get()
+                ->map(fn (ContainerMovement $movement): array => [
+                    'id' => $movement->id,
+                    'customer' => $movement->customer?->name,
+                    'driver' => $movement->creator?->name,
+                    'at' => $minute($movement->created_at),
+                    'container' => $movement->containerType?->description,
+                    'movement' => $movement->movement_type,
+                    'quantity' => (int) $movement->quantity,
+                ])
+                ->all(),
         ];
     }
 }

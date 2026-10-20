@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import {
     KpiCard,
     StatusBadge,
 } from '@/Components/StitchUi';
+import DashboardDetailModal from '@/Components/DashboardDetailModal';
+import { DashboardDetailKind, DashboardMetrics } from '@/types/dashboard';
 import {
     DollarSign,
     MapPin,
@@ -16,40 +18,13 @@ import {
     RefreshCw,
 } from 'lucide-react';
 
-interface RepartidorStatus {
-    id: number;
-    name: string;
-    status: string;
-    totalStops: number;
-    completedStops: number;
-    progressPercent: number;
-    startedAt?: string;
-    completedAt?: string;
-}
-
-interface DashboardMetrics {
-    date: string;
-    kpis: {
-        totalSales: number;
-        salesDelta: number;
-        totalCollected: number;
-        cashPayments: number;
-        transferPayments: number;
-        totalStops: number;
-        completedStops: number;
-        stopsProgressPercent: number;
-        containersDelivered: number;
-        containersReturned: number;
-    };
-    repartidores: RepartidorStatus[];
-}
-
 interface Props {
     metrics: DashboardMetrics;
 }
 
 export default function Dashboard({ metrics }: Props) {
     const { kpis, repartidores } = metrics;
+    const [openDetail, setOpenDetail] = useState<DashboardDetailKind | null>(null);
 
     const showDay = (date: string) => {
         if (!date) return;
@@ -117,6 +92,7 @@ export default function Dashboard({ metrics }: Props) {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
                 <KpiCard
                     title="Ventas del Día"
+                    onClick={() => setOpenDetail('sales')}
                     value={formattedSales}
                     icon={DollarSign}
                     variant="primary"
@@ -129,6 +105,7 @@ export default function Dashboard({ metrics }: Props) {
 
                 <KpiCard
                     title="Cobranza Recaudada"
+                    onClick={() => setOpenDetail('payments')}
                     value={formattedCollected}
                     icon={CircleDollarSign}
                     variant="success"
@@ -137,6 +114,7 @@ export default function Dashboard({ metrics }: Props) {
 
                 <KpiCard
                     title="Paradas de Ruta"
+                    onClick={() => setOpenDetail('stops')}
                     value={`${kpis.completedStops} / ${kpis.totalStops}`}
                     icon={MapPin}
                     variant="accent"
@@ -149,6 +127,7 @@ export default function Dashboard({ metrics }: Props) {
 
                 <KpiCard
                     title="Movimiento Envases"
+                    onClick={() => setOpenDetail('containers')}
                     value={`+${kpis.containersDelivered} / -${kpis.containersReturned}`}
                     icon={Package}
                     variant="slate"
@@ -298,6 +277,8 @@ export default function Dashboard({ metrics }: Props) {
                 </div>
 
             </div>
+
+            <DashboardDetailModal kind={openDetail} details={metrics.details} onClose={() => setOpenDetail(null)} />
         </AdminLayout>
     );
 }
