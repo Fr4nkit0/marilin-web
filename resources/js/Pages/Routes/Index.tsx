@@ -43,6 +43,7 @@ interface TruckStockItem {
 
 interface LoadHistoryItem {
     id: number;
+    isInitial: boolean;
     loadedAt: string | null;
     productName: string;
     quantity: number;
@@ -421,9 +422,7 @@ export default function RoutesIndex({
                                                                         {load.loadedAt ?? '—'}
                                                                     </td>
                                                                     <td className="px-4 py-2.5 text-slate-700">
-                                                                        {load.loadedAt === routeItem.loadHistory[0].loadedAt
-                                                                            ? 'Inicial'
-                                                                            : 'Recarga'}
+                                                                        {load.isInitial ? 'Inicial' : 'Recarga'}
                                                                     </td>
                                                                     <td className="px-4 py-2.5 font-medium text-slate-900">
                                                                         {load.productName}

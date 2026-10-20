@@ -22,6 +22,8 @@ class RegisterTruckLoadAction
     {
         DB::transaction(function () use ($route, $quantities, $loadedBy): void {
             $loadedAt = now();
+            // Same order as the sale push, so a load and a sale touching the same products never deadlock.
+            ksort($quantities);
 
             foreach ($quantities as $productId => $quantity) {
                 RouteInventoryLoad::query()->create([

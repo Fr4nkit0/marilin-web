@@ -112,7 +112,8 @@ class SalePusher extends EntityPusher
             return;
         }
 
-        foreach ($sale->details->groupBy('product_id') as $productId => $details) {
+        // Product id order, the same a truck load uses, so the two never lock rows in opposite orders.
+        foreach ($sale->details->groupBy('product_id')->sortKeys() as $productId => $details) {
             RouteInventory::query()
                 ->where('route_id', $routeId)
                 ->where('product_id', $productId)

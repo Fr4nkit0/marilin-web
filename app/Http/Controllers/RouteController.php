@@ -77,8 +77,10 @@ class RouteController extends Controller
                     'loaded' => (float) $route->inventoryLoads->where('product_id', $inv->product_id)->sum('quantity'),
                     'current' => (float) $inv->current_quantity,
                 ])->values(),
+                // The first load of the day is the one registered at the earliest moment; later ones are reloads.
                 'loadHistory' => $route->inventoryLoads->map(fn ($load) => [
                     'id' => $load->id,
+                    'isInitial' => $load->loaded_at?->equalTo($route->inventoryLoads->first()->loaded_at) ?? false,
                     'loadedAt' => $load->loaded_at?->format('H:i'),
                     'productName' => $load->product?->name ?? 'Producto',
                     'quantity' => (float) $load->quantity,

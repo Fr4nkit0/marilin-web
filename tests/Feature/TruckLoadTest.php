@@ -145,3 +145,16 @@ test('the cash close adds up every load of a product instead of listing each one
             ->where('settlement.stockLoaded.0.quantity', 80)
             ->where('settlement.stockLoaded.0.loads', 2));
 });
+
+test('a reload made in the same minute as the first load is still a reload', function (): void {
+    loadTruck([['product_id' => $this->water->id, 'quantity' => 60], ['product_id' => $this->soda->id, 'quantity' => 30]]);
+    $this->travel(20)->seconds();
+    loadTruck([['product_id' => $this->water->id, 'quantity' => 5]]);
+
+    $this->get(route('routes.index', ['date' => '2026-10-20']))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('routes.0.loadHistory.0.isInitial', true)
+            ->where('routes.0.loadHistory.1.isInitial', true)
+            ->where('routes.0.loadHistory.2.isInitial', false)
+            ->where('routes.0.loadHistory.2.loadedAt', '08:00'));
+});
