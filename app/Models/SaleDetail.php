@@ -17,7 +17,7 @@ class SaleDetail extends Model
     protected function casts(): array
     {
         return [
-            'quantity' => 'decimal:2',
+            'quantity' => 'integer',
             'unit_price' => 'decimal:2',
         ];
     }

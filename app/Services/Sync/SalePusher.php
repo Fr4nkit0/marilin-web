@@ -31,7 +31,7 @@ class SalePusher extends EntityPusher
             'details' => ['required', 'array', 'min:1'],
             'details.*.product_id' => ['required', 'integer', 'exists:products,id'],
             'details.*.customer_agreement_id' => ['nullable', 'integer', 'exists:customer_agreements,id'],
-            'details.*.quantity' => ['required', 'numeric', 'gt:0'],
+            'details.*.quantity' => ['required', 'integer', 'gt:0'],
             'details.*.unit_price' => ['required', 'numeric', 'min:0'],
         ];
     }
