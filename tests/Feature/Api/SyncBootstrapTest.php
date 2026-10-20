@@ -39,14 +39,14 @@ test('bootstrap returns the full day of the authenticated driver', function (): 
     [$user, $driver, $route] = driverWithToday();
     Sanctum::actingAs($user, ['*']);
 
-    $product = Product::factory()->create(['enabled' => true]);
+    $product = Product::factory()->create(['enabled' => true, 'price' => 1250.50]);
     $containerType = ContainerType::factory()->create(['enabled' => true]);
     $paymentMethod = PaymentMethod::factory()->create(['enabled' => true]);
     $outcome = VisitOutcome::factory()->create(['enabled' => true]);
     $disabledProduct = Product::factory()->create(['enabled' => false]);
 
     $customer = Customer::factory()->create(['driver_id' => $driver->id, 'enabled' => true]);
-    $address = CustomerAddress::factory()->create(['customer_id' => $customer->id]);
+    $address = CustomerAddress::factory()->create(['customer_id' => $customer->id, 'floor' => 'PB']);
     CustomerBalance::factory()->create(['customer_id' => $customer->id, 'current_balance' => 1500.50]);
     CustomerContainerBalance::factory()->create([
         'customer_id' => $customer->id,
@@ -87,6 +87,7 @@ test('bootstrap returns the full day of the authenticated driver', function (): 
     expect($response->json('data.route.id'))->toBe($route->id)
         ->and($response->json('data.server_time'))->not->toBeNull()
         ->and(collect($response->json('data.products'))->pluck('id'))->toContain($product->id)
+        ->and(collect($response->json('data.products'))->firstWhere('id', $product->id)['price'])->toBe('1250.50')
         ->and(collect($response->json('data.products'))->pluck('id'))->not->toContain($disabledProduct->id)
         ->and(collect($response->json('data.container_types'))->pluck('id'))->toContain($containerType->id)
         ->and(collect($response->json('data.payment_methods'))->pluck('id'))->toContain($paymentMethod->id)
@@ -104,6 +105,7 @@ test('bootstrap returns the full day of the authenticated driver', function (): 
     $payload = $customers[0];
     expect($payload['id'])->toBe($customer->id)
         ->and($payload['addresses'])->toHaveCount(1)
+        ->and($payload['addresses'][0]['floor'])->toBe('PB')
         ->and($payload)->toHaveKey('preferences')
         ->and(collect($payload['agreements'])->pluck('id')->all())->toBe([$current->id])
         ->and($payload['balance']['current_balance'])->toEqual('1500.50')

@@ -60,6 +60,32 @@ test('pull returns only records changed after the cursor, disabled ones included
         ->and(collect($response->json('data.customers'))->pluck('id'))->not->toContain($old->id);
 });
 
+test('pull returns the address floor as text', function (): void {
+    $customer = Customer::factory()->create(['driver_id' => $this->driver->id]);
+    $text = CustomerAddress::factory()->create(['customer_id' => $customer->id, 'floor' => 'PB']);
+    $numeric = CustomerAddress::factory()->create(['customer_id' => $customer->id, 'floor' => '3']);
+
+    $addresses = collect($this->getJson('/api/v1/sync/pull')->assertOk()->json('data.customer_addresses'))->keyBy('id');
+
+    expect($addresses[$text->id]['floor'])->toBe('PB')
+        ->and($addresses[$numeric->id]['floor'])->toBe('3');
+});
+
+test('pull returns the list price of products and a price change travels in the next pull', function (): void {
+    $product = Product::factory()->create(['price' => 800, 'updated_at' => now()->subDays(3)]);
+
+    $first = $this->getJson('/api/v1/sync/pull')->assertOk();
+    expect(collect($first->json('data.products'))->firstWhere('id', $product->id)['price'])->toBe('800.00');
+
+    $this->travel(5)->minutes();
+    $product->update(['price' => 875.25]);
+
+    $next = $this->getJson('/api/v1/sync/pull?cursor='.urlencode($first->json('meta.cursor')))->assertOk();
+
+    expect(pullIds($next->json(), 'products'))->toBe([$product->id])
+        ->and($next->json('data.products.0.price'))->toBe('875.25');
+});
+
 test('pull does not expose data of another driver', function (): void {
     $other = Driver::factory()->create(['enabled' => true]);
     Customer::factory()->create(['driver_id' => $other->id]);

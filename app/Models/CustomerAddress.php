@@ -18,7 +18,7 @@ class CustomerAddress extends Model
     protected function casts(): array
     {
         return [
-            'floor' => 'integer',
+            'floor' => 'string',
             'latitude' => 'decimal:7',
             'longitude' => 'decimal:7',
             'is_primary' => 'boolean',

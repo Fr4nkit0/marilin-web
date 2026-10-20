@@ -19,7 +19,7 @@ interface CustomerAddress {
     id: number;
     street: string;
     apartment?: string;
-    floor?: number;
+    floor?: string;
     visual_reference?: string;
     is_primary: boolean;
 }
@@ -87,6 +87,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
         phone_number: '',
         repartidor_id: '',
         street: '',
+        floor: '',
         apartment: '',
         visual_reference: '',
         initial_balance: '0',
@@ -99,6 +100,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
         phone_number: '',
         repartidor_id: '',
         street: '',
+        floor: '',
         apartment: '',
         visual_reference: '',
     });
@@ -121,6 +123,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
             phone_number: c.phone_number || '',
             repartidor_id: assignedDriverId ? String(assignedDriverId) : '',
             street: c.primary_address?.street || '',
+            floor: c.primary_address?.floor || '',
             apartment: c.primary_address?.apartment || '',
             visual_reference: c.primary_address?.visual_reference || '',
         });
@@ -298,6 +301,11 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                                         <MapPin className="w-4 h-4 text-gray-400 shrink-0 mt-0.5" />
                                                         <span className="truncate whitespace-normal">
                                                             {c.primary_address.street}
+                                                            {c.primary_address.floor && (
+                                                                <span className="text-gray-400">
+                                                                    , Piso {c.primary_address.floor}
+                                                                </span>
+                                                            )}
                                                             {c.primary_address.apartment && (
                                                                 <span className="text-gray-400">
                                                                     , Depto {c.primary_address.apartment}
@@ -504,16 +512,30 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                     {errors.street && <p className="text-sm text-red-600 mt-1">{errors.street}</p>}
                                 </div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                            Piso / Departamento
+                                            Piso
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={data.floor}
+                                            onChange={(e) => setData('floor', e.target.value)}
+                                            maxLength={20}
+                                            placeholder="Ej: PB, 3, Local 2"
+                                            className="w-full px-4 py-2 text-sm border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 "
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                            Departamento
                                         </label>
                                         <input
                                             type="text"
                                             value={data.apartment}
                                             onChange={(e) => setData('apartment', e.target.value)}
-                                            placeholder="Ej: Piso 2 - Depto B"
+                                            placeholder="Ej: 4B"
                                             className="w-full px-4 py-2 text-sm border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 "
                                         />
                                     </div>
@@ -718,16 +740,30 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                     )}
                                 </div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                            Piso / Departamento
+                                            Piso
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={editForm.data.floor}
+                                            onChange={(e) => editForm.setData('floor', e.target.value)}
+                                            maxLength={20}
+                                            placeholder="Ej: PB, 3, Local 2"
+                                            className="w-full px-4 py-2 text-sm border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 "
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                            Departamento
                                         </label>
                                         <input
                                             type="text"
                                             value={editForm.data.apartment}
                                             onChange={(e) => editForm.setData('apartment', e.target.value)}
-                                            placeholder="Ej: Depto 4B"
+                                            placeholder="Ej: 4B"
                                             className="w-full px-4 py-2 text-sm border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 "
                                         />
                                     </div>

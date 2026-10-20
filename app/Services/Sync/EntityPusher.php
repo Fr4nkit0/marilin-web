@@ -36,6 +36,7 @@ abstract class EntityPusher
      */
     final public function push(Driver $driver, User $user, array $record): array
     {
+        $record = $this->normalize($record);
         $uuid = is_string($record['uuid'] ?? null) ? $record['uuid'] : null;
         $validator = Validator::make($record, $this->rules());
 
@@ -62,6 +63,17 @@ abstract class EntityPusher
         }
 
         return $this->rejected($uuid, 'The record could not be saved.');
+    }
+
+    /**
+     * Adjusts what older app builds still send before it is validated.
+     *
+     * @param  array<string, mixed>  $record
+     * @return array<string, mixed>
+     */
+    protected function normalize(array $record): array
+    {
+        return $record;
     }
 
     /**

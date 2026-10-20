@@ -18,6 +18,7 @@ class ProductFactory extends Factory
         return [
             'name' => fake()->words(2, true),
             'description' => fake()->sentence(),
+            'price' => fake()->randomFloat(2, 100, 3000),
             'requires_container' => true,
             'container_type_id' => ContainerType::factory(),
             'available_quantity' => fake()->randomFloat(2, 10, 500),

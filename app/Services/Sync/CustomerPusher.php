@@ -156,6 +156,21 @@ class CustomerPusher extends EntityPusher
     }
 
     /**
+     * Builds before the floor became text send it as a JSON number; it is kept in its text form.
+     *
+     * @param  array<string, mixed>  $record
+     * @return array<string, mixed>
+     */
+    protected function normalize(array $record): array
+    {
+        if (is_int($record['address']['floor'] ?? null)) {
+            $record['address']['floor'] = (string) $record['address']['floor'];
+        }
+
+        return $record;
+    }
+
+    /**
      * @return array<string, array<int, string>>
      */
     protected function rules(): array
@@ -169,7 +184,7 @@ class CustomerPusher extends EntityPusher
             'address' => ['required', 'array'],
             'address.street' => ['required', 'string'],
             'address.apartment' => ['nullable', 'string'],
-            'address.floor' => ['nullable', 'integer'],
+            'address.floor' => ['nullable', 'string', 'max:20'],
             'address.visual_reference' => ['nullable', 'string'],
             'address.neighborhood' => ['nullable', 'string'],
             'address.latitude' => ['nullable', 'numeric', 'between:-90,90'],

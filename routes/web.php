@@ -5,6 +5,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DriverController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReviewInboxController;
 use App\Http\Controllers\RouteController;
@@ -54,6 +55,12 @@ Route::middleware('auth')->group(function () {
 
     // Cobros
     Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
+
+    // Productos y precio de lista
+    Route::middleware('can:manage-products')->group(function () {
+        Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+        Route::patch('/products/{product}/price', [ProductController::class, 'updatePrice'])->name('products.price');
+    });
 
     // Revisión de lo subido por la app
     Route::get('/review', [ReviewInboxController::class, 'index'])->middleware('can:review-inbox')->name('review.index');

@@ -246,14 +246,14 @@ test('push rejects an edit that points at a server id that does not exist', func
 
 test('push keeps the full address when creating and editing a customer', function (): void {
     $uuid = (string) Str::uuid();
-    $detail = ['apartment' => '4B', 'floor' => 4, 'visual_reference' => 'Porton verde'];
+    $detail = ['apartment' => '4B', 'floor' => '4', 'visual_reference' => 'Porton verde'];
 
     $this->postJson('/api/v1/sync/push', ['customers' => [customerPayload(['uuid' => $uuid, 'address' => $detail])]])->assertOk();
 
     $customer = Customer::query()->where('client_uuid', $uuid)->firstOrFail();
     expect($customer->primaryAddress->only(array_keys($detail)))->toBe($detail);
 
-    $edited = ['apartment' => '5C', 'floor' => 5, 'visual_reference' => 'Porton rojo'];
+    $edited = ['apartment' => '5C', 'floor' => 'PB', 'visual_reference' => 'Porton rojo'];
     $this->postJson('/api/v1/sync/push', ['customers' => [customerPayload([
         'uuid' => $uuid,
         'modified_at' => '2026-10-21T09:00:00Z',
@@ -261,6 +261,38 @@ test('push keeps the full address when creating and editing a customer', functio
     ])]])->assertOk();
 
     expect($customer->fresh()->primaryAddress->only(array_keys($edited)))->toBe($edited);
+});
+
+test('push stores a text floor and a numeric floor exactly as written', function (string $floor): void {
+    $payload = customerPayload(['address' => ['floor' => $floor]]);
+
+    $this->postJson('/api/v1/sync/push', ['customers' => [$payload]])
+        ->assertOk()
+        ->assertJsonPath('data.customers.0.status', 'accepted');
+
+    $customer = Customer::query()->where('client_uuid', $payload['uuid'])->firstOrFail();
+    expect($customer->primaryAddress->floor)->toBe($floor);
+})->with(['PB', '3', 'Local 2']);
+
+test('push stores a floor sent as a number as its text form', function (): void {
+    $payload = customerPayload(['address' => ['floor' => 3]]);
+
+    $this->postJson('/api/v1/sync/push', ['customers' => [$payload]])
+        ->assertOk()
+        ->assertJsonPath('data.customers.0.status', 'accepted');
+
+    $customer = Customer::query()->where('client_uuid', $payload['uuid'])->firstOrFail();
+    expect($customer->primaryAddress->floor)->toBe('3');
+});
+
+test('push rejects a floor longer than 20 characters', function (): void {
+    $payload = customerPayload(['address' => ['floor' => str_repeat('A', 21)]]);
+
+    $response = $this->postJson('/api/v1/sync/push', ['customers' => [$payload]]);
+
+    $response->assertOk()->assertJsonPath('data.customers.0.status', 'rejected');
+    expect($response->json('data.customers.0.error'))->toContain('floor')
+        ->and(Customer::query()->where('client_uuid', $payload['uuid'])->exists())->toBeFalse();
 });
 
 test('push clamps a modification date ahead of the server clock so later server edits are not shadowed', function (): void {
