@@ -14,6 +14,7 @@ use Laravel\Sanctum\Sanctum;
 uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
+    $this->travelTo('2026-10-22 12:00:00');
     $this->user = User::factory()->create(['enabled' => true]);
     $this->driver = Driver::factory()->create(['user_id' => $this->user->id, 'enabled' => true]);
     Sanctum::actingAs($this->user, ['*']);
@@ -260,4 +261,16 @@ test('push keeps the full address when creating and editing a customer', functio
     ])]])->assertOk();
 
     expect($customer->fresh()->primaryAddress->only(array_keys($edited)))->toBe($edited);
+});
+
+test('push clamps a modification date ahead of the server clock so later server edits are not shadowed', function (): void {
+    $this->travelTo('2026-10-20 15:00:00');
+    $customer = customerPayload(['modified_at' => '2026-10-25T08:00:00Z']);
+
+    $this->postJson('/api/v1/sync/push', ['customers' => [$customer]])->assertOk();
+
+    $stored = Customer::query()->where('client_uuid', $customer['uuid'])->firstOrFail();
+
+    expect($stored->updated_at->toIso8601String())->toBe('2026-10-20T15:00:00+00:00')
+        ->and($stored->created_at->toIso8601String())->toBe('2026-10-20T15:00:00+00:00');
 });

@@ -99,7 +99,7 @@ class CustomerPusher
      */
     private function create(Driver $driver, User $user, array $record): Customer
     {
-        $modifiedAt = Carbon::parse($record['modified_at']);
+        $modifiedAt = $this->modifiedAt($record);
 
         $customer = (new Customer)->forceFill([
             'driver_id' => $driver->id,
@@ -134,7 +134,7 @@ class CustomerPusher
      */
     private function edit(Customer $customer, User $user, array $record): void
     {
-        $modifiedAt = Carbon::parse($record['modified_at']);
+        $modifiedAt = $this->modifiedAt($record);
 
         if (! $modifiedAt->greaterThan($customer->updated_at)) {
             return;
@@ -163,6 +163,16 @@ class CustomerPusher
             'last_modified_by' => $user->id,
             'updated_at' => $modifiedAt,
         ])->save();
+    }
+
+    /**
+     * The app's clock can run ahead of the server's; a future date would shadow every later server-side edit.
+     *
+     * @param  array<string, mixed>  $record
+     */
+    private function modifiedAt(array $record): Carbon
+    {
+        return Carbon::parse($record['modified_at'])->min(now());
     }
 
     /**
