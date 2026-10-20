@@ -121,16 +121,17 @@ class DatabaseSeeder extends Seeder
         $sifon2L = ContainerType::firstOrCreate(
             ['code' => 'SIFON_2L'],
             [
-                'description' => 'Sifón Soda 2 Litros Retornable',
+                'description' => 'Sifón Soda 1.5 Litros Retornable',
                 'enabled' => true,
             ]
         );
 
         // 3. Products
         $productAgua20L = Product::firstOrCreate(
-            ['name' => 'Bidón de Agua Purificada 20L'],
+            ['name' => 'Bidón 20L'],
             [
                 'description' => 'Agua purificada y mineralizada de 20 litros en bidón retornable',
+                'price' => 6500.00,
                 'requires_container' => true,
                 'container_type_id' => $bidon20L->id,
                 'available_quantity' => 500.00,
@@ -139,9 +140,10 @@ class DatabaseSeeder extends Seeder
         );
 
         $productSoda2L = Product::firstOrCreate(
-            ['name' => 'Sifón de Soda 2L'],
+            ['name' => 'Sifón 1.5L'],
             [
-                'description' => 'Soda en sifón retornable de 2 litros',
+                'description' => 'Soda en sifón retornable de 1.5 litros',
+                'price' => 1500.00,
                 'requires_container' => true,
                 'container_type_id' => $sifon2L->id,
                 'available_quantity' => 350.00,
@@ -149,14 +151,16 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        $productDispenser = Product::firstOrCreate(
-            ['name' => 'Dispensador de Mesa Natural'],
+        // Discontinued product: travels in the pull as disabled and never in the bootstrap.
+        Product::firstOrCreate(
+            ['name' => 'Bidón de Agua 12L'],
             [
-                'description' => 'Soporte con canilla para bidón de 20L',
-                'requires_container' => false,
-                'container_type_id' => null,
-                'available_quantity' => 60.00,
-                'enabled' => true,
+                'description' => 'Presentación discontinuada',
+                'price' => 1400.00,
+                'requires_container' => true,
+                'container_type_id' => $bidon20L->id,
+                'available_quantity' => 0,
+                'enabled' => false,
             ]
         );
 
@@ -176,20 +180,20 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Tarjeta de Débito/Crédito', 'enabled' => true]
         );
 
-        // 5. Visit Outcomes
-        $outcomeDelivered = VisitOutcome::firstOrCreate(
-            ['name' => 'Entrega Exitosa'],
-            ['triggers_reschedule' => false, 'enabled' => true]
+        // 5. Visit Outcomes: what happened when there was no sale. Only rescheduling reopens the stop later.
+        VisitOutcome::firstOrCreate(
+            ['code' => 'absent'],
+            ['name' => 'Ausente', 'triggers_reschedule' => false, 'enabled' => true]
         );
 
-        $outcomeAbsent = VisitOutcome::firstOrCreate(
-            ['name' => 'Cliente Ausente'],
-            ['triggers_reschedule' => true, 'enabled' => true]
+        VisitOutcome::firstOrCreate(
+            ['code' => 'refused'],
+            ['name' => 'No quiso', 'triggers_reschedule' => false, 'enabled' => true]
         );
 
-        $outcomePostponed = VisitOutcome::firstOrCreate(
-            ['name' => 'Reprogramado por Lluvia'],
-            ['triggers_reschedule' => true, 'enabled' => true]
+        $outcomeReschedule = VisitOutcome::firstOrCreate(
+            ['code' => 'reschedule'],
+            ['name' => 'Reprogramar', 'triggers_reschedule' => true, 'enabled' => true]
         );
 
         // 6. Customers across San Salvador de Jujuy & Palpalá
@@ -201,6 +205,8 @@ class DatabaseSeeder extends Seeder
                 'rep' => $repJuan,
                 'street' => 'Belgrano 340',
                 'ref' => 'Frente a Plaza Belgrano',
+                'neighborhood' => 'Centro',
+                'price_soda' => 950.00,
                 'lat' => -24.18578,
                 'lng' => -65.29947,
                 'bidon_balance' => 18,
@@ -252,7 +258,10 @@ class DatabaseSeeder extends Seeder
                 'phone' => '+54 388 422-9900',
                 'rep' => $repJuan,
                 'street' => 'Alvear 740',
-                'ref' => '1er Piso Oficina B',
+                'ref' => 'Edificio con portero',
+                'floor' => '1',
+                'apartment' => 'B',
+                'neighborhood' => 'Centro',
                 'lat' => -24.18700,
                 'lng' => -65.30200,
                 'bidon_balance' => 4,
@@ -335,6 +344,9 @@ class DatabaseSeeder extends Seeder
                 'rep' => $repJuan,
                 'street' => 'Belgrano 680',
                 'ref' => 'Peatonal Belgrano',
+                'floor' => 'PB',
+                'neighborhood' => 'Centro',
+                'price_soda' => 900.00,
                 'lat' => -24.18650,
                 'lng' => -65.30050,
                 'bidon_balance' => 8,
@@ -422,6 +434,114 @@ class DatabaseSeeder extends Seeder
                 'price_agua' => 2100.00,
                 'initial_debt' => 0.00,
             ],
+
+            // E. Alto Comedero: Esteban's day, still to be worked from the mobile app
+            [
+                'name' => 'Supermercado El Tunal',
+                'phone' => '+54 388 431-2200',
+                'rep' => $repEsteban,
+                'street' => 'Av. Forestal 1520',
+                'ref' => 'Portón de carga lateral',
+                'neighborhood' => 'Alto Comedero',
+                'lat' => -24.23100,
+                'lng' => -65.26500,
+                'bidon_balance' => 10,
+                'sifon_balance' => 6,
+                'price_agua' => 1750.00,
+                'price_soda' => 900.00,
+                'initial_debt' => 21000.00,
+            ],
+            [
+                'name' => 'Escuela N° 432 Alto Comedero',
+                'phone' => '+54 388 431-4320',
+                'rep' => $repEsteban,
+                'street' => 'Calle 25 de Mayo 800',
+                'ref' => 'Entrada por portería',
+                'neighborhood' => 'Alto Comedero',
+                'lat' => -24.23700,
+                'lng' => -65.26200,
+                'bidon_balance' => 8,
+                'sifon_balance' => 0,
+                'price_agua' => 1800.00,
+                'expired_price_agua' => 1650.00,
+                'initial_debt' => 0.00,
+            ],
+            [
+                'name' => 'Familia Quispe',
+                'phone' => '+54 388 415-6677',
+                'rep' => $repEsteban,
+                'street' => 'Pasaje Los Molles 45',
+                'ref' => 'Casa de rejas verdes',
+                'floor' => 'PB',
+                'apartment' => '3',
+                'neighborhood' => 'Alto Comedero',
+                'lat' => -24.23400,
+                'lng' => -65.26800,
+                'bidon_balance' => 2,
+                'sifon_balance' => 2,
+                'price_agua' => 2100.00,
+                'initial_debt' => 4200.00,
+            ],
+            [
+                'name' => 'Familia Mamaní',
+                'phone' => '+54 388 416-7788',
+                'rep' => $repEsteban,
+                'street' => 'Av. Snopek 2100',
+                'ref' => 'Monoblock 4',
+                'floor' => '2',
+                'apartment' => 'C',
+                'neighborhood' => 'Alto Comedero',
+                'lat' => -24.23900,
+                'lng' => -65.25900,
+                'bidon_balance' => 2,
+                'sifon_balance' => 0,
+                'price_agua' => 2100.00,
+                'initial_debt' => 0.00,
+            ],
+            [
+                'name' => 'Consultorio Odontológico Sonrisas',
+                'phone' => '+54 388 432-1100',
+                'rep' => $repEsteban,
+                'street' => 'Av. Forestal 1800',
+                'ref' => 'Galería Comedero',
+                'floor' => 'Local 2',
+                'neighborhood' => 'Alto Comedero',
+                'lat' => -24.23250,
+                'lng' => -65.26350,
+                'bidon_balance' => 3,
+                'sifon_balance' => 0,
+                'price_agua' => 2000.00,
+                'initial_debt' => 0.00,
+            ],
+            [
+                'name' => 'Verdulería Los Andes',
+                'phone' => '+54 388 433-5544',
+                'rep' => $repEsteban,
+                'street' => 'Calle 12 de Octubre 310',
+                'ref' => 'Frente a la feria',
+                'neighborhood' => 'Alto Comedero',
+                'lat' => -24.23550,
+                'lng' => -65.26650,
+                'bidon_balance' => 4,
+                'sifon_balance' => 4,
+                'price_agua' => 1950.00,
+                'initial_debt' => 7800.00,
+            ],
+            [
+                'name' => 'Kiosco Don Ramón',
+                'phone' => '+54 388 434-9900',
+                'rep' => $repEsteban,
+                'street' => 'Av. Snopek 2400',
+                'ref' => 'Cerró el local',
+                'neighborhood' => 'Alto Comedero',
+                'lat' => -24.24000,
+                'lng' => -65.25700,
+                'bidon_balance' => 0,
+                'sifon_balance' => 0,
+                'price_agua' => 2000.00,
+                'initial_debt' => 0.00,
+                'enabled' => false,
+            ],
         ];
 
         $createdCustomers = [];
@@ -432,13 +552,16 @@ class DatabaseSeeder extends Seeder
                     'driver_id' => $cfg['rep']->id,
                     'phone_number' => $cfg['phone'],
                     'created_by' => $admin->id,
-                    'enabled' => true,
+                    'enabled' => $cfg['enabled'] ?? true,
                 ]
             );
 
             CustomerAddress::firstOrCreate(
                 ['customer_id' => $customer->id, 'street' => $cfg['street']],
                 [
+                    'floor' => $cfg['floor'] ?? null,
+                    'apartment' => $cfg['apartment'] ?? null,
+                    'neighborhood' => $cfg['neighborhood'] ?? null,
                     'visual_reference' => $cfg['ref'],
                     'latitude' => $cfg['lat'],
                     'longitude' => $cfg['lng'],
@@ -448,15 +571,18 @@ class DatabaseSeeder extends Seeder
                 ]
             );
 
-            CustomerPreference::firstOrCreate(
-                ['customer_id' => $customer->id, 'day_of_week' => 1],
-                [
-                    'time_window_start' => '08:30:00',
-                    'time_window_end' => '13:00:00',
-                    'created_by' => $admin->id,
-                    'enabled' => true,
-                ]
-            );
+            // Monday plus today's weekday (0 = Sunday), so the app always has a window for the day it syncs.
+            foreach (array_unique([1, $today->dayOfWeek]) as $dayOfWeek) {
+                CustomerPreference::firstOrCreate(
+                    ['customer_id' => $customer->id, 'day_of_week' => $dayOfWeek],
+                    [
+                        'time_window_start' => '08:30:00',
+                        'time_window_end' => '13:00:00',
+                        'created_by' => $admin->id,
+                        'enabled' => true,
+                    ]
+                );
+            }
 
             // Container balances
             CustomerContainerBalance::firstOrCreate(
@@ -479,16 +605,38 @@ class DatabaseSeeder extends Seeder
                 );
             }
 
-            // Agreement
+            // Agreements: current ones have no end date; products without one sell at list price.
             CustomerAgreement::firstOrCreate(
-                ['customer_id' => $customer->id, 'product_id' => $productAgua20L->id],
+                ['customer_id' => $customer->id, 'product_id' => $productAgua20L->id, 'valid_to' => null],
                 [
                     'unit_price' => $cfg['price_agua'],
-                    'valid_from' => now(),
+                    'valid_from' => $today->copy()->subMonth(),
                     'created_by' => $admin->id,
-                    
                 ]
             );
+
+            if (isset($cfg['price_soda'])) {
+                CustomerAgreement::firstOrCreate(
+                    ['customer_id' => $customer->id, 'product_id' => $productSoda2L->id, 'valid_to' => null],
+                    [
+                        'unit_price' => $cfg['price_soda'],
+                        'valid_from' => $today->copy()->subMonth(),
+                        'created_by' => $admin->id,
+                    ]
+                );
+            }
+
+            if (isset($cfg['expired_price_agua'])) {
+                CustomerAgreement::firstOrCreate(
+                    ['customer_id' => $customer->id, 'product_id' => $productAgua20L->id, 'valid_to' => $today->copy()->subMonth()->subDay()->toDateString()],
+                    [
+                        'unit_price' => $cfg['expired_price_agua'],
+                        'valid_from' => $today->copy()->subMonths(4),
+                        'reason' => 'Precio promocional vencido',
+                        'created_by' => $admin->id,
+                    ]
+                );
+            }
 
             // Initial debt / CustomerBalance
             CustomerBalance::firstOrCreate(
@@ -632,6 +780,7 @@ class DatabaseSeeder extends Seeder
                 'customer' => 'Familia Tolaba',
                 'status' => 'PENDING',
                 'time' => null,
+                'scheduled' => '13:00',
                 'qty_agua' => 2,
                 'qty_soda' => 0,
                 'method' => null,
@@ -641,6 +790,7 @@ class DatabaseSeeder extends Seeder
                 'customer' => 'Hotel Altos de la Viña',
                 'status' => 'PENDING',
                 'time' => null,
+                'scheduled' => '15:30',
                 'qty_agua' => 6,
                 'qty_soda' => 4,
                 'method' => null,
@@ -654,7 +804,7 @@ class DatabaseSeeder extends Seeder
 
             $stop = RouteStop::firstOrCreate(
                 ['route_id' => $routeJuan->id, 'customer_id' => $cust->id],
-                ['address_id' => $addr->id, 'enabled' => true]
+                ['address_id' => $addr->id, 'scheduled_time' => $s['scheduled'] ?? null, 'enabled' => true]
             );
 
             if ($s['status'] !== 'PENDING') {
@@ -663,7 +813,8 @@ class DatabaseSeeder extends Seeder
                     [
                         'customer_id' => $cust->id,
                         'driver_id' => $repJuan->id,
-                        'outcome_id' => $outcomeDelivered->id,
+                        // Outcomes explain a visit without sale; these ones sold or are still in progress.
+                        'outcome_id' => null,
                         'arrived_at' => $s['time'] ? $today->copy()->setHour((int) explode(':', $s['time'])[0])->setMinute((int) explode(':', $s['time'])[1]) : null,
                         'latitude' => $addr->latitude,
                         'longitude' => $addr->longitude,
@@ -770,17 +921,7 @@ class DatabaseSeeder extends Seeder
                         );
                     } else {
                         // Credit sale adds to debt
-                        CustomerAccountEntry::firstOrCreate(
-                            ['sale_id' => $sale->id, 'entry_type' => 'SALE'],
-                            [
-                                'customer_id' => $cust->id,
-                                'direction' => 1,
-                                'amount' => $totalSale,
-                                'description' => "Venta a Crédito {$s['qty_agua']}x Bidones 20L",
-                                'created_by' => $repJuan->user_id,
-                                'created_at' => $visit->arrived_at,
-                            ]
-                        );
+                        $this->bookCreditSale($sale, $cust, $repJuan->user_id, "Venta a Crédito {$s['qty_agua']}x Bidones 20L");
                     }
                 }
             }
@@ -801,9 +942,18 @@ class DatabaseSeeder extends Seeder
             ['route_id' => $routeCarlos->id, 'product_id' => $productAgua20L->id],
             ['quantity' => 50.00, 'created_by' => $admin->id]
         );
+        RouteInventoryLoad::firstOrCreate(
+            ['route_id' => $routeCarlos->id, 'product_id' => $productSoda2L->id],
+            ['quantity' => 20.00, 'created_by' => $admin->id]
+        );
+        // Loaded minus sold below: agua 50 - 36, soda 20 - 18.
         RouteInventory::firstOrCreate(
             ['route_id' => $routeCarlos->id, 'product_id' => $productAgua20L->id],
-            ['current_quantity' => 12.00, 'created_by' => $admin->id, 'enabled' => true]
+            ['current_quantity' => 14.00, 'created_by' => $admin->id, 'enabled' => true]
+        );
+        RouteInventory::firstOrCreate(
+            ['route_id' => $routeCarlos->id, 'product_id' => $productSoda2L->id],
+            ['current_quantity' => 2.00, 'created_by' => $admin->id, 'enabled' => true]
         );
 
         $carlosStops = [
@@ -868,7 +1018,7 @@ class DatabaseSeeder extends Seeder
                 [
                     'customer_id' => $cust->id,
                     'driver_id' => $repCarlos->id,
-                    'outcome_id' => $outcomeDelivered->id,
+                    'outcome_id' => null,
                     'arrived_at' => $today->copy()->setHour((int) explode(':', $s['time'])[0])->setMinute((int) explode(':', $s['time'])[1]),
                     'latitude' => $addr->latitude,
                     'longitude' => $addr->longitude,
@@ -897,6 +1047,16 @@ class DatabaseSeeder extends Seeder
                     ['sale_id' => $sale->id, 'product_id' => $productAgua20L->id],
                     ['quantity' => $s['qty_agua'], 'unit_price' => 1800.00]
                 );
+            }
+            if ($s['qty_soda'] > 0) {
+                SaleDetail::firstOrCreate(
+                    ['sale_id' => $sale->id, 'product_id' => $productSoda2L->id],
+                    ['quantity' => $s['qty_soda'], 'unit_price' => 1000.00]
+                );
+            }
+
+            if ($s['is_credit']) {
+                $this->bookCreditSale($sale, $cust, $repCarlos->user_id, "Venta a Crédito {$s['qty_agua']}x Bidones 20L");
             }
 
             ContainerMovement::firstOrCreate(
@@ -1005,7 +1165,7 @@ class DatabaseSeeder extends Seeder
                 [
                     'customer_id' => $cust->id,
                     'driver_id' => $repMarcos->id,
-                    'outcome_id' => $outcomeDelivered->id,
+                    'outcome_id' => null,
                     'arrived_at' => $today->copy()->setHour((int) explode(':', $s['time'])[0])->setMinute((int) explode(':', $s['time'])[1]),
                     'latitude' => $addr->latitude,
                     'longitude' => $addr->longitude,
@@ -1073,6 +1233,96 @@ class DatabaseSeeder extends Seeder
                     'status' => 'CONFIRMED',
                 ]
             );
+        }
+
+        // --- ROUTE 4: Esteban Benítez (IN_PROGRESS - Alto Comedero) ---
+        // The day to work from the mobile app: almost everything pending, one absent customer already rescheduled.
+        $routeEsteban = DeliveryRoute::firstOrCreate(
+            ['assigned_driver_id' => $repEsteban->id, 'date' => $today->toDateString()],
+            [
+                'status' => 'IN_PROGRESS',
+                'started_at' => $today->copy()->setHour(8),
+                'enabled' => true,
+            ]
+        );
+
+        foreach ([[$productAgua20L, 40.00], [$productSoda2L, 20.00]] as [$product, $quantity]) {
+            RouteInventoryLoad::firstOrCreate(
+                ['route_id' => $routeEsteban->id, 'product_id' => $product->id],
+                ['quantity' => $quantity, 'created_by' => $admin->id]
+            );
+            RouteInventory::firstOrCreate(
+                ['route_id' => $routeEsteban->id, 'product_id' => $product->id],
+                ['current_quantity' => $quantity, 'created_by' => $admin->id, 'enabled' => true]
+            );
+        }
+
+        $estebanStops = [
+            'Verdulería Los Andes' => '08:30',
+            'Supermercado El Tunal' => '09:00',
+            'Escuela N° 432 Alto Comedero' => '09:45',
+            'Consultorio Odontológico Sonrisas' => '10:30',
+            'Familia Quispe' => '11:15',
+            'Familia Mamaní' => '12:00',
+        ];
+
+        foreach ($estebanStops as $customerName => $scheduledTime) {
+            $cust = $createdCustomers[$customerName];
+
+            RouteStop::firstOrCreate(
+                ['route_id' => $routeEsteban->id, 'customer_id' => $cust->id, 'is_rescheduled_from' => null],
+                ['address_id' => $cust->primaryAddress->id, 'scheduled_time' => $scheduledTime, 'enabled' => true]
+            );
+        }
+
+        // The greengrocer was closed at 08:30: the driver rescheduled the visit for 16:00.
+        $absentCustomer = $createdCustomers['Verdulería Los Andes'];
+        $absentStop = RouteStop::query()
+            ->where('route_id', $routeEsteban->id)
+            ->where('customer_id', $absentCustomer->id)
+            ->whereNull('is_rescheduled_from')
+            ->firstOrFail();
+
+        Visit::firstOrCreate(
+            ['route_stop_id' => $absentStop->id],
+            [
+                'customer_id' => $absentCustomer->id,
+                'driver_id' => $repEsteban->id,
+                'outcome_id' => $outcomeReschedule->id,
+                'arrived_at' => $today->copy()->setHour(8)->setMinute(35),
+                'latitude' => $absentCustomer->primaryAddress->latitude,
+                'longitude' => $absentCustomer->primaryAddress->longitude,
+                'status' => 'FINISHED',
+                'notes' => 'Local cerrado, vuelvo a la tarde',
+                'created_by' => $repEsteban->user_id,
+                'enabled' => true,
+            ]
+        );
+
+        RouteStop::firstOrCreate(
+            ['route_id' => $routeEsteban->id, 'customer_id' => $absentCustomer->id, 'is_rescheduled_from' => $absentStop->id],
+            ['address_id' => $absentStop->address_id, 'scheduled_time' => '16:00', 'enabled' => true]
+        );
+    }
+
+    /**
+     * A credit sale is owed by the customer: it books the ledger entry and raises the balance once.
+     */
+    private function bookCreditSale(Sale $sale, Customer $customer, int $userId, string $description): void
+    {
+        $entry = CustomerAccountEntry::firstOrCreate(
+            ['sale_id' => $sale->id, 'entry_type' => 'SALE'],
+            [
+                'customer_id' => $customer->id,
+                'direction' => 1,
+                'amount' => $sale->total,
+                'description' => $description,
+                'created_by' => $userId,
+            ]
+        );
+
+        if ($entry->wasRecentlyCreated) {
+            CustomerBalance::query()->where('customer_id', $customer->id)->increment('current_balance', (float) $sale->total);
         }
     }
 }

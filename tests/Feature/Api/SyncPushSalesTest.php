@@ -224,6 +224,20 @@ test('push rejects a sale whose total does not match its lines and leaves no tra
         ->and((float) $this->waterStock->fresh()->current_quantity)->toBe(17.0);
 });
 
+test('push rejects a sale with a fractional quantity and leaves no trace of it', function (): void {
+    $fractional = salePayload(['total' => 1050, 'details' => [['product_id' => $this->water->id, 'quantity' => 1.5, 'unit_price' => 700]]]);
+
+    $response = push(['sales' => [$fractional]]);
+
+    $response->assertOk()
+        ->assertJsonPath('data.sales.0.status', 'rejected')
+        ->assertJsonPath('data.sales.0.server_id', null);
+
+    expect($response->json('data.sales.0.error'))->toContain('quantity')
+        ->and(Sale::query()->where('client_uuid', $fractional['uuid'])->exists())->toBeFalse()
+        ->and((float) $this->waterStock->fresh()->current_quantity)->toBe(20.0);
+});
+
 test('push rejects a payment that points at a sale of another customer and a sale that points at a visit of another customer', function (): void {
     $other = Customer::factory()->create(['driver_id' => $this->driver->id, 'created_by' => $this->user->id]);
     $otherSale = salePayload(['customer_id' => $other->id]);

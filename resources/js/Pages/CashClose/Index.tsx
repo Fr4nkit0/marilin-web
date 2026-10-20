@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { PageHeader, KpiCard, StatusBadge } from '@/Components/StitchUi';
+import CashCloseDetailModal from '@/Components/CashCloseDetailModal';
+import { CashCloseDetailKind, SettlementData } from '@/types/cash-close';
 import {
     CircleDollarSign,
     DollarSign,
@@ -13,20 +15,6 @@ import {
     ArrowUpRight,
     TrendingUp,
 } from 'lucide-react';
-
-interface SettlementData {
-    routeId: number;
-    status: string;
-    totalSales: number;
-    creditSales: number;
-    cashAmount: number;
-    transferAmount: number;
-    totalCollected: number;
-    containersDelivered: number;
-    containersReturned: number;
-    stockLoaded: { product: string; quantity: number }[];
-    stockRemaining: { product: string; quantity: number }[];
-}
 
 interface Props {
     repartidores: { id: number; name: string }[];
@@ -43,6 +31,7 @@ export default function CashCloseIndex({
 }: Props) {
     const [selectedId, setSelectedId] = useState(selectedRepartidorId || '');
     const [selectedDate, setSelectedDate] = useState(date);
+    const [openDetail, setOpenDetail] = useState<CashCloseDetailKind | null>(null);
 
     const handleSelectRepartidor = (id: string | number) => {
         setSelectedId(id);
@@ -128,6 +117,7 @@ export default function CashCloseIndex({
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                         <KpiCard
                             title="Total Rendición Efectivo"
+                            onClick={() => setOpenDetail('cash')}
                             value={`$${settlement.cashAmount.toLocaleString('es-AR')}`}
                             icon={DollarSign}
                             variant="primary"
@@ -135,6 +125,7 @@ export default function CashCloseIndex({
                         />
                         <KpiCard
                             title="Transferencias Verificadas"
+                            onClick={() => setOpenDetail('transfer')}
                             value={`$${settlement.transferAmount.toLocaleString('es-AR')}`}
                             icon={CheckCircle2}
                             variant="success"
@@ -142,6 +133,7 @@ export default function CashCloseIndex({
                         />
                         <KpiCard
                             title="Ventas a Crédito (Cta Cte)"
+                            onClick={() => setOpenDetail('credit')}
                             value={`$${settlement.creditSales.toLocaleString('es-AR')}`}
                             icon={CircleDollarSign}
                             variant="amber"
@@ -149,6 +141,7 @@ export default function CashCloseIndex({
                         />
                         <KpiCard
                             title="Balance Envases Retornables"
+                            onClick={() => setOpenDetail('containers')}
                             value={`+${settlement.containersDelivered} / -${settlement.containersReturned}`}
                             icon={Package}
                             variant="accent"
@@ -176,7 +169,7 @@ export default function CashCloseIndex({
                                 </div>
                                 <div className="flex justify-between py-2 border-b border-gray-50 last:border-0">
                                     <span className="text-slate-600 font-medium">Cobranza de Cuentas Corrientes previas:</span>
-                                    <span className="font-semibold text-slate-900">+${(settlement.totalCollected - (settlement.totalSales - settlement.creditSales)).toLocaleString('es-AR')}</span>
+                                    <span className="font-semibold text-slate-900">+${settlement.debtCollected.toLocaleString('es-AR')}</span>
                                 </div>
                                 <div className="flex justify-between items-center py-4 bg-slate-50 border border-gray-100 px-5 rounded-xl mt-4 shadow-sm">
                                     <span className="text-slate-700 font-medium">Efectivo Físico a Entregar:</span>
@@ -210,7 +203,8 @@ export default function CashCloseIndex({
                                                 <div>
                                                     <p className="font-medium text-slate-900 text-sm">{load.product}</p>
                                                     <p className="text-xs text-slate-500 mt-1">
-                                                        Carga inicial: {load.quantity} unid.
+                                                        Cargado en el día: {load.quantity} unid.
+                                                        {load.loads > 1 && ` (${load.loads} cargas)`}
                                                     </p>
                                                 </div>
                                                 <div className="text-right">
@@ -228,6 +222,12 @@ export default function CashCloseIndex({
                             </div>
                         </div>
                     </div>
+
+                    <CashCloseDetailModal
+                        kind={openDetail}
+                        details={settlement.details}
+                        onClose={() => setOpenDetail(null)}
+                    />
                 </div>
             )}
         </AdminLayout>

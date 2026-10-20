@@ -31,7 +31,7 @@ class SalePusher extends EntityPusher
             'details' => ['required', 'array', 'min:1'],
             'details.*.product_id' => ['required', 'integer', 'exists:products,id'],
             'details.*.customer_agreement_id' => ['nullable', 'integer', 'exists:customer_agreements,id'],
-            'details.*.quantity' => ['required', 'numeric', 'gt:0'],
+            'details.*.quantity' => ['required', 'integer', 'gt:0'],
             'details.*.unit_price' => ['required', 'numeric', 'min:0'],
         ];
     }
@@ -112,7 +112,8 @@ class SalePusher extends EntityPusher
             return;
         }
 
-        foreach ($sale->details->groupBy('product_id') as $productId => $details) {
+        // Product id order, the same a truck load uses, so the two never lock rows in opposite orders.
+        foreach ($sale->details->groupBy('product_id')->sortKeys() as $productId => $details) {
             RouteInventory::query()
                 ->where('route_id', $routeId)
                 ->where('product_id', $productId)

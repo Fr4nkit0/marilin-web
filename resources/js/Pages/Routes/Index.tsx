@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { PageHeader, StatusBadge, KpiCard } from '@/Components/StitchUi';
+import TruckLoadModal, { LoadableProduct } from '@/Components/TruckLoadModal';
 import {
     CalendarCheck,
     Truck,
@@ -15,6 +16,7 @@ import {
     ChevronDown,
     ChevronUp,
     Filter,
+    PackagePlus,
 } from 'lucide-react';
 
 interface StopItem {
@@ -32,10 +34,20 @@ interface StopItem {
     notes?: string;
 }
 
-interface LoadItem {
-    id: number;
+interface TruckStockItem {
+    productId: number;
     productName: string;
-    initialQuantity: number;
+    loaded: number;
+    current: number;
+}
+
+interface LoadHistoryItem {
+    id: number;
+    isInitial: boolean;
+    loadedAt: string | null;
+    productName: string;
+    quantity: number;
+    loadedBy: string | null;
 }
 
 interface StockItem {
@@ -62,7 +74,9 @@ interface RouteItem {
         pendingStops: number;
         progressPercent: number;
     };
-    truckLoads: LoadItem[];
+    truckStock: TruckStockItem[];
+    loadHistory: LoadHistoryItem[];
+    canLoad: boolean;
     currentStock: StockItem[];
     stops: StopItem[];
 }
@@ -75,6 +89,7 @@ interface DriverOption {
 interface Props {
     routes: RouteItem[];
     drivers: DriverOption[];
+    products: LoadableProduct[];
     selectedDate: string;
     filters: {
         status: string;
@@ -93,10 +108,12 @@ interface Props {
 export default function RoutesIndex({
     routes,
     drivers,
+    products,
     selectedDate,
     filters,
     kpis,
 }: Props) {
+    const [loadingRoute, setLoadingRoute] = useState<RouteItem | null>(null);
     const [statusFilter, setStatusFilter] = useState(filters.status || 'all');
     const [driverFilter, setDriverFilter] = useState(filters.driver_id || '');
     const [date, setDate] = useState(selectedDate);
@@ -345,37 +362,81 @@ export default function RoutesIndex({
                                             <h4 className="text-sm font-semibold text-slate-900 mb-4 flex items-center gap-2">
                                                 <Package className="w-4 h-4 text-slate-500" />
                                                 Carga en Camión
+                                                {routeItem.canLoad && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setLoadingRoute(routeItem)}
+                                                        className="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium shadow-sm cursor-pointer"
+                                                    >
+                                                        <PackagePlus className="w-3.5 h-3.5" />
+                                                        {routeItem.loadHistory.length === 0 ? 'Registrar carga inicial' : 'Registrar recarga'}
+                                                    </button>
+                                                )}
                                             </h4>
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                                                {routeItem.truckLoads.map((load) => {
-                                                    const currentInv = routeItem.currentStock.find(
-                                                        (i) => i.productName === load.productName
-                                                    );
-                                                    return (
+                                            {routeItem.truckStock.length === 0 ? (
+                                                <p className="text-sm text-slate-500 mb-4">
+                                                    Todavía no se registró ninguna carga para esta ruta.
+                                                </p>
+                                            ) : (
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+                                                    {routeItem.truckStock.map((stock) => (
                                                         <div
-                                                            key={load.id}
+                                                            key={stock.productId}
                                                             className="bg-white border border-gray-200/60 rounded-xl p-4 flex items-center justify-between shadow-sm"
                                                         >
                                                             <div>
                                                                 <p className="text-sm font-medium text-slate-900">
-                                                                    {load.productName}
+                                                                    {stock.productName}
                                                                 </p>
                                                                 <p className="text-xs text-slate-500 mt-1">
-                                                                    Inicial: {load.initialQuantity} u.
+                                                                    Cargado en el día: {stock.loaded} u.
                                                                 </p>
                                                             </div>
                                                             <div className="text-right">
-                                                                <span className="text-xs text-slate-500">
-                                                                    Remanente
-                                                                </span>
+                                                                <span className="text-xs text-slate-500">Remanente</span>
                                                                 <p className="text-lg font-semibold text-slate-900">
-                                                                    {currentInv ? currentInv.currentQuantity : 0} u.
+                                                                    {stock.current} u.
                                                                 </p>
                                                             </div>
                                                         </div>
-                                                    );
-                                                })}
-                                            </div>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            {routeItem.loadHistory.length > 0 && (
+                                                <div className="bg-white border border-gray-200/60 rounded-xl shadow-sm overflow-hidden">
+                                                    <table className="w-full text-left text-sm">
+                                                        <thead className="border-b border-gray-100 text-slate-500">
+                                                            <tr>
+                                                                <th className="px-4 py-2.5 text-xs font-medium">Hora</th>
+                                                                <th className="px-4 py-2.5 text-xs font-medium">Carga</th>
+                                                                <th className="px-4 py-2.5 text-xs font-medium">Producto</th>
+                                                                <th className="px-4 py-2.5 text-xs font-medium">Registró</th>
+                                                                <th className="px-4 py-2.5 text-xs font-medium text-right">Unidades</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="divide-y divide-gray-50">
+                                                            {routeItem.loadHistory.map((load) => (
+                                                                <tr key={load.id}>
+                                                                    <td className="px-4 py-2.5 text-slate-700 whitespace-nowrap">
+                                                                        {load.loadedAt ?? '—'}
+                                                                    </td>
+                                                                    <td className="px-4 py-2.5 text-slate-700">
+                                                                        {load.isInitial ? 'Inicial' : 'Recarga'}
+                                                                    </td>
+                                                                    <td className="px-4 py-2.5 font-medium text-slate-900">
+                                                                        {load.productName}
+                                                                    </td>
+                                                                    <td className="px-4 py-2.5 text-slate-600">{load.loadedBy ?? '—'}</td>
+                                                                    <td className="px-4 py-2.5 text-right font-semibold text-slate-900">
+                                                                        +{load.quantity}
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            )}
                                         </div>
 
                                         {/* Stops Table */}
@@ -462,6 +523,13 @@ export default function RoutesIndex({
                     })}
                 </div>
             )}
+            <TruckLoadModal
+                routeId={loadingRoute?.id ?? null}
+                driverName={loadingRoute?.driver.name ?? ''}
+                isFirstLoad={(loadingRoute?.loadHistory.length ?? 0) === 0}
+                products={products}
+                onClose={() => setLoadingRoute(null)}
+            />
         </AdminLayout>
     );
 }

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['name', 'triggers_reschedule', 'enabled'])]
+#[Fillable(['code', 'name', 'triggers_reschedule', 'enabled'])]
 class VisitOutcome extends Model
 {
     /** @use HasFactory<VisitOutcomeFactory> */

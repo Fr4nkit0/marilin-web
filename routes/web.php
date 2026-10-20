@@ -10,6 +10,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReviewInboxController;
 use App\Http\Controllers\RouteController;
 use App\Http\Controllers\SaleController;
+use App\Http\Controllers\TruckLoadController;
 use App\Services\Review\ReviewInbox;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -49,6 +50,9 @@ Route::middleware('auth')->group(function () {
 
     // Despacho y Rutas
     Route::get('/routes', [RouteController::class, 'index'])->name('routes.index');
+    Route::post('/routes/{route}/loads', [TruckLoadController::class, 'store'])
+        ->middleware('can:load-trucks')
+        ->name('routes.loads.store');
 
     // Ventas
     Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');

@@ -128,6 +128,8 @@ export interface KpiCardProps {
     };
     variant?: 'primary' | 'accent' | 'success' | 'amber' | 'slate';
     className?: string;
+    /** Makes the card a button, e.g. to open the records behind the figure. */
+    onClick?: () => void;
 }
 
 export function KpiCard({
@@ -138,6 +140,7 @@ export function KpiCard({
     trend,
     variant = 'primary',
     className = '',
+    onClick,
 }: KpiCardProps) {
     const iconColors = {
         primary: 'bg-blue-50 text-blue-600 border border-blue-100',
@@ -147,9 +150,16 @@ export function KpiCard({
         slate: 'bg-slate-50 text-slate-600 border border-slate-100',
     };
 
+    const Wrapper = onClick ? 'button' : 'div';
+
     return (
-        <div
-            className={`bg-white rounded-2xl border border-gray-200/60 p-5 shadow-sm transition-shadow hover:shadow-md ${className}`}
+        <Wrapper
+            {...(onClick ? { type: 'button' as const, onClick } : {})}
+            className={`bg-white rounded-2xl border border-gray-200/60 p-5 shadow-sm transition-shadow hover:shadow-md ${
+                onClick
+                    ? 'w-full text-left cursor-pointer hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-600/30'
+                    : ''
+            } ${className}`}
         >
             <div className="flex items-center justify-between">
                 <p className="text-sm font-medium text-slate-500">{title}</p>
@@ -185,7 +195,8 @@ export function KpiCard({
             {(subtitle || trend?.label) && (
                 <p className="mt-2 text-xs text-slate-400">{subtitle || trend?.label}</p>
             )}
-        </div>
+            {onClick && <p className="mt-3 text-xs font-medium text-blue-600">Ver detalle →</p>}
+        </Wrapper>
     );
 }
 

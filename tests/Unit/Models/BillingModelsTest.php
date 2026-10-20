@@ -45,9 +45,11 @@ test('sales and sale details compute totals and link products', function () {
     $detail = SaleDetail::factory()->create([
         'sale_id' => $sale->id,
         'product_id' => $product->id,
-        'quantity' => 2.00,
+        'quantity' => 2,
         'unit_price' => 1500.00,
     ]);
+
+    expect($detail->fresh()->quantity)->toBe(2);
 
     expect($sale->details)->toHaveCount(1);
     expect($sale->customer->id)->toBe($customer->id);
