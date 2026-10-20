@@ -13,7 +13,7 @@ class PushRequest extends FormRequest
      *
      * @var array<int, string>
      */
-    private const array ENTITIES = ['customers', 'route_stops', 'visits', 'container_movements'];
+    private const array ENTITIES = ['customers', 'route_stops', 'visits', 'container_movements', 'sales', 'payments'];
 
     public function authorize(): bool
     {

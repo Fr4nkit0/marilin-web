@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['customer_id', 'visit_id', 'date', 'total', 'status', 'is_credit_sale', 'notes', 'created_by', 'last_modified_by', 'enabled'])]
+#[Fillable(['client_uuid', 'customer_id', 'visit_id', 'date', 'total', 'status', 'is_credit_sale', 'notes', 'created_by', 'last_modified_by', 'enabled', 'needs_review', 'review_reason'])]
 class Sale extends Model
 {
     /** @use HasFactory<SaleFactory> */
@@ -18,6 +18,8 @@ class Sale extends Model
     protected function casts(): array
     {
         return [
+            'needs_review' => 'boolean',
+            'reviewed_at' => 'datetime',
             'date' => 'datetime',
             'total' => 'decimal:2',
             'is_credit_sale' => 'boolean',

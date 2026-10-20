@@ -14,6 +14,8 @@ class PushService
         private readonly RescheduledStopPusher $routeStops,
         private readonly VisitPusher $visits,
         private readonly ContainerMovementPusher $containerMovements,
+        private readonly SalePusher $sales,
+        private readonly PaymentPusher $payments,
     ) {}
 
     /**
@@ -28,6 +30,8 @@ class PushService
             'route_stops' => $this->routeStops,
             'visits' => $this->visits,
             'container_movements' => $this->containerMovements,
+            'sales' => $this->sales,
+            'payments' => $this->payments,
         ];
     }
 

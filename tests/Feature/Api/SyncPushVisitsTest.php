@@ -15,8 +15,9 @@ use App\Models\Visit;
 use App\Models\VisitOutcome;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
-use Illuminate\Testing\TestResponse;
 use Laravel\Sanctum\Sanctum;
+
+require_once __DIR__.'/PushHelpers.php';
 
 uses(RefreshDatabase::class);
 
@@ -44,14 +45,6 @@ beforeEach(function (): void {
         'scheduled_time' => '09:00',
     ]);
 });
-
-/**
- * @param  array<string, array<int, array<string, mixed>>>  $records
- */
-function push(array $records): TestResponse
-{
-    return test()->postJson('/api/v1/sync/push', $records);
-}
 
 /**
  * @param  array<string, mixed>  $overrides

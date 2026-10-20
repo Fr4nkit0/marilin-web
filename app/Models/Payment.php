@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['transaction_id', 'customer_id', 'visit_id', 'sale_id', 'payment_method_id', 'amount', 'received_by', 'paid_at', 'status'])]
+#[Fillable(['client_uuid', 'transaction_id', 'customer_id', 'visit_id', 'sale_id', 'payment_method_id', 'amount', 'received_by', 'paid_at', 'status', 'needs_review', 'review_reason'])]
 class Payment extends Model
 {
     /** @use HasFactory<PaymentFactory> */
@@ -18,6 +18,8 @@ class Payment extends Model
     protected function casts(): array
     {
         return [
+            'needs_review' => 'boolean',
+            'reviewed_at' => 'datetime',
             'amount' => 'decimal:2',
             'paid_at' => 'datetime',
         ];

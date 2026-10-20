@@ -88,6 +88,16 @@ abstract class EntityPusher
     }
 
     /**
+     * A payment or sale may only point at records of the same customer; anything else would book money on the wrong account.
+     */
+    protected function assertBelongsToCustomer(?Model $related, Customer $customer, string $name): void
+    {
+        if ($related !== null && $related->getAttribute('customer_id') !== $customer->id) {
+            throw new RejectedRecord("The {$name} belongs to another customer.");
+        }
+    }
+
+    /**
      * Resolves a reference sent as `<prefix>_uuid` (the app's id) or `<prefix>_id` (the server's id).
      * Returns null when the record carries no such reference; rejects the record when it points at nothing.
      *
