@@ -197,3 +197,24 @@ test('pull omits stops of customers that are disabled or no longer assigned, lik
 
     expect(pullIds($response->json(), 'route_stops'))->toBe([$kept->id]);
 });
+
+test('pull re-sends a customer and its address received after the cursor even when the app modification date is older', function (): void {
+    $customer = Customer::factory()->create([
+        'driver_id' => $this->driver->id,
+        'updated_at' => now()->subDays(2),
+        'received_at' => now()->subMinute(),
+    ]);
+    $address = CustomerAddress::factory()->create(['customer_id' => $customer->id, 'updated_at' => now()->subDays(2)]);
+    $stale = Customer::factory()->create([
+        'driver_id' => $this->driver->id,
+        'updated_at' => now()->subDays(2),
+        'received_at' => now()->subDays(2),
+    ]);
+
+    $cursor = now()->subHour()->toIso8601String();
+    $response = $this->getJson('/api/v1/sync/pull?cursor='.urlencode($cursor))->assertOk();
+
+    expect(pullIds($response->json(), 'customers'))->toBe([$customer->id])
+        ->and(pullIds($response->json(), 'customer_addresses'))->toBe([$address->id])
+        ->and(collect($response->json('data.customers'))->pluck('id'))->not->toContain($stale->id);
+});

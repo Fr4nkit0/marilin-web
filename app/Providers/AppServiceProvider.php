@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\User;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 
@@ -20,6 +22,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // What the apps upload lands here for the admin to look at; drivers must not clear their own records.
+        Gate::define('review-inbox', fn (User $user): bool => $user->is_super_user);
+
         Vite::prefetch(concurrency: 3);
     }
 }

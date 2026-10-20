@@ -16,6 +16,7 @@ import {
     ChevronDown,
     MapPin,
     AlertTriangle,
+    ClipboardCheck,
 } from 'lucide-react';
 
 interface NavItem {
@@ -76,6 +77,16 @@ export default function AdminLayout({
             icon: CircleDollarSign,
             active: route().current('payments.*') || false,
         },
+        ...(user.is_super_user
+            ? [
+                  {
+                      name: 'Revisión',
+                      href: route('review.index'),
+                      icon: ClipboardCheck,
+                      active: route().current('review.*') || false,
+                  },
+              ]
+            : []),
         {
             name: 'Cierre y Arqueo',
             href: route('cash-close.index'),
