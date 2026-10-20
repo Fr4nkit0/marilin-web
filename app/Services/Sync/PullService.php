@@ -33,6 +33,17 @@ class PullService
     ];
 
     /**
+     * Entities pushed by the app carry the app's own modification date in updated_at, which can be hours old,
+     * so the moment the server received them also puts them in the window. Value: relation to the customer, or null.
+     *
+     * @var array<string, string|null>
+     */
+    private const array RECEIVED_AT_SOURCE = [
+        'customers' => null,
+        'customer_addresses' => 'customer',
+    ];
+
+    /**
      * Returns one page of everything that changed in (cursor, until], disabled records included.
      *
      * @return array{data: array<string, mixed>, meta: array<string, mixed>}
@@ -45,11 +56,20 @@ class PullService
 
         foreach ($this->entities($driver) as $name => $query) {
             $query->where(function (Builder $q) use ($name, $cursor, $until): void {
-                $inWindow = fn (Builder $b) => $b
-                    ->when($cursor, fn (Builder $w) => $w->where('updated_at', '>=', $cursor))
-                    ->where('updated_at', '<=', $until);
+                $inColumnWindow = fn (string $column) => fn (Builder $b) => $b
+                    ->when($cursor, fn (Builder $w) => $w->where($column, '>=', $cursor))
+                    ->where($column, '<=', $until);
+                $inWindow = $inColumnWindow('updated_at');
 
                 $q->where($inWindow);
+
+                if (array_key_exists($name, self::RECEIVED_AT_SOURCE)) {
+                    $relation = self::RECEIVED_AT_SOURCE[$name];
+
+                    $relation === null
+                        ? $q->orWhere($inColumnWindow('received_at'))
+                        : $q->orWhereHas($relation, $inColumnWindow('received_at'));
+                }
 
                 foreach (self::DEPENDENT_RELATIONS[$name] ?? [] as $relation) {
                     $q->orWhereHas($relation, $inWindow);

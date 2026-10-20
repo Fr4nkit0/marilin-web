@@ -11,7 +11,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('customers', function (Blueprint $table): void {
-            $table->timestamp('received_at')->nullable();
+            $table->timestamp('received_at')->nullable()->index();
             $table->boolean('needs_review')->default(false);
             $table->text('review_reason')->nullable();
             $table->timestamp('reviewed_at')->nullable();
