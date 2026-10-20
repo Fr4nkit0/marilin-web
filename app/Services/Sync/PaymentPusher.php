@@ -22,12 +22,9 @@ class PaymentPusher extends EntityPusher
     {
         return [
             'uuid' => ['required', 'uuid'],
-            'customer_id' => ['nullable', 'integer', 'required_without:customer_uuid'],
-            'customer_uuid' => ['nullable', 'uuid', 'required_without:customer_id'],
-            'visit_id' => ['nullable', 'integer'],
-            'visit_uuid' => ['nullable', 'uuid'],
-            'sale_id' => ['nullable', 'integer'],
-            'sale_uuid' => ['nullable', 'uuid'],
+            ...$this->referenceRules('customer', required: true),
+            ...$this->referenceRules('visit'),
+            ...$this->referenceRules('sale'),
             'payment_method_id' => ['required', 'integer', 'exists:payment_methods,id'],
             'amount' => ['required', 'numeric', 'gt:0'],
             'paid_at' => ['required', 'date'],
@@ -36,10 +33,8 @@ class PaymentPusher extends EntityPusher
 
     protected function handle(Driver $driver, User $user, array $record): array
     {
-        $existing = Payment::query()->where('client_uuid', $record['uuid'])->first();
-
-        if ($existing !== null) {
-            return $this->accepted($record['uuid'], $existing->id, $existing->needs_review ? $existing->review_reason : null);
+        if ($replay = $this->alreadyPushed(Payment::class, $record)) {
+            return $replay;
         }
 
         /** @var Customer $customer */
@@ -64,8 +59,7 @@ class PaymentPusher extends EntityPusher
             'received_by' => $user->id,
             'paid_at' => Carbon::parse($record['paid_at']),
             'status' => 'CONFIRMED',
-            'needs_review' => $reason !== null,
-            'review_reason' => $reason?->value,
+            ...$this->reviewAttributes($reason),
         ]);
 
         $this->ledger->bookPayment($customer, $payment, $user);

@@ -24,10 +24,8 @@ class ContainerMovementPusher extends EntityPusher
     {
         return [
             'uuid' => ['required', 'uuid'],
-            'customer_id' => ['nullable', 'integer', 'required_without:customer_uuid'],
-            'customer_uuid' => ['nullable', 'uuid', 'required_without:customer_id'],
-            'visit_id' => ['nullable', 'integer'],
-            'visit_uuid' => ['nullable', 'uuid'],
+            ...$this->referenceRules('customer', required: true),
+            ...$this->referenceRules('visit'),
             'container_type_id' => ['required', 'integer', 'exists:container_types,id'],
             'movement_type' => ['required', 'in:'.implode(',', array_keys(self::DIRECTIONS))],
             'quantity' => ['required', 'integer', 'min:1'],
@@ -36,16 +34,15 @@ class ContainerMovementPusher extends EntityPusher
 
     protected function handle(Driver $driver, User $user, array $record): array
     {
-        $existing = ContainerMovement::query()->where('client_uuid', $record['uuid'])->first();
-
-        if ($existing !== null) {
-            return $this->accepted($record['uuid'], $existing->id);
+        if ($replay = $this->alreadyPushed(ContainerMovement::class, $record)) {
+            return $replay;
         }
 
         /** @var Customer $customer */
         $customer = $this->reference(Customer::class, $record, 'customer');
         $visit = $this->reference(Visit::class, $record, 'visit');
         $direction = self::DIRECTIONS[$record['movement_type']];
+        $reason = $this->reviewReasonForCustomer($customer, $driver);
 
         $movement = ContainerMovement::create([
             'client_uuid' => $record['uuid'],
@@ -57,6 +54,7 @@ class ContainerMovementPusher extends EntityPusher
             'direction' => $direction,
             'created_by' => $user->id,
             'enabled' => true,
+            ...$this->reviewAttributes($reason),
         ]);
 
         // Guarantees the row exists so the lock below always has something to lock when two first movements race.
@@ -82,6 +80,6 @@ class ContainerMovementPusher extends EntityPusher
             'last_modified_by' => $user->id,
         ])->save();
 
-        return $this->accepted($record['uuid'], $movement->id);
+        return $this->accepted($record['uuid'], $movement->id, $reason?->value);
     }
 }

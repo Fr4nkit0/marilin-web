@@ -22,10 +22,8 @@ class SalePusher extends EntityPusher
     {
         return [
             'uuid' => ['required', 'uuid'],
-            'customer_id' => ['nullable', 'integer', 'required_without:customer_uuid'],
-            'customer_uuid' => ['nullable', 'uuid', 'required_without:customer_id'],
-            'visit_id' => ['nullable', 'integer'],
-            'visit_uuid' => ['nullable', 'uuid'],
+            ...$this->referenceRules('customer', required: true),
+            ...$this->referenceRules('visit'),
             'date' => ['required', 'date'],
             'total' => ['required', 'numeric', 'min:0'],
             'is_credit_sale' => ['nullable', 'boolean'],
@@ -40,10 +38,8 @@ class SalePusher extends EntityPusher
 
     protected function handle(Driver $driver, User $user, array $record): array
     {
-        $existing = Sale::query()->where('client_uuid', $record['uuid'])->first();
-
-        if ($existing !== null) {
-            return $this->accepted($record['uuid'], $existing->id, $existing->needs_review ? $existing->review_reason : null);
+        if ($replay = $this->alreadyPushed(Sale::class, $record)) {
+            return $replay;
         }
 
         $this->assertTotalMatchesDetails($record);
@@ -66,8 +62,7 @@ class SalePusher extends EntityPusher
             'notes' => $record['notes'] ?? null,
             'created_by' => $user->id,
             'enabled' => true,
-            'needs_review' => $reason !== null,
-            'review_reason' => $reason?->value,
+            ...$this->reviewAttributes($reason),
         ]);
 
         foreach ($record['details'] as $detail) {

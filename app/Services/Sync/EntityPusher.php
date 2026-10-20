@@ -8,6 +8,8 @@ use App\Models\Customer;
 use App\Models\Driver;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\QueryException;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
@@ -41,11 +43,25 @@ abstract class EntityPusher
             return $this->rejected($uuid, $validator->errors()->first());
         }
 
-        try {
-            return DB::transaction(fn (): array => $this->handle($driver, $user, $record));
-        } catch (RejectedRecord $rejection) {
-            return $this->rejected($uuid, $rejection->getMessage());
+        // Twice at most: a concurrent push may have created the very same record between our lookup and our insert,
+        // and on the second pass the idempotent replay path finds it and answers with its server id.
+        for ($attempt = 1; $attempt <= 2; $attempt++) {
+            try {
+                return DB::transaction(fn (): array => $this->handle($driver, $user, $record));
+            } catch (RejectedRecord $rejection) {
+                return $this->rejected($uuid, $rejection->getMessage());
+            } catch (UniqueConstraintViolationException $violation) {
+                if ($attempt === 2) {
+                    report($violation);
+                }
+            } catch (QueryException $failure) {
+                report($failure);
+
+                return $this->rejected($uuid, 'The record could not be saved.');
+            }
         }
+
+        return $this->rejected($uuid, 'The record could not be saved.');
     }
 
     /**
@@ -58,6 +74,55 @@ abstract class EntityPusher
             'status' => 'accepted',
             'server_id' => $serverId,
             'review_reason' => $reviewReason,
+        ];
+    }
+
+    /**
+     * Idempotency: a record the server already holds is answered again with the same server id and, if it still waits for review, its reason.
+     *
+     * @param  class-string<Model>  $model
+     * @param  array<string, mixed>  $record
+     * @return array<string, mixed>|null
+     */
+    protected function alreadyPushed(string $model, array $record): ?array
+    {
+        $existing = $model::query()->where('client_uuid', $record['uuid'])->first();
+
+        return $existing === null
+            ? null
+            : $this->accepted($record['uuid'], $existing->getKey(), $this->pendingReason($existing));
+    }
+
+    /**
+     * The reason a record is waiting for review, or null when it is not (or the admin already reviewed it).
+     */
+    protected function pendingReason(Model $record): ?string
+    {
+        return $record->getAttribute('needs_review') && $record->getAttribute('reviewed_at') === null
+            ? $record->getAttribute('review_reason')
+            : null;
+    }
+
+    /**
+     * The columns that mark a new record for review, or leave it alone when there is no reason.
+     *
+     * @return array{needs_review: bool, review_reason: string|null}
+     */
+    protected function reviewAttributes(?ReviewReason $reason): array
+    {
+        return ['needs_review' => $reason !== null, 'review_reason' => $reason?->value];
+    }
+
+    /**
+     * Rules of a reference sent as `<name>_uuid` (the app's id) or `<name>_id` (the server's id).
+     *
+     * @return array<string, array<int, string>>
+     */
+    protected function referenceRules(string $name, bool $required = false): array
+    {
+        return [
+            "{$name}_id" => ['nullable', 'integer', ...($required ? ["required_without:{$name}_uuid"] : [])],
+            "{$name}_uuid" => ['nullable', 'uuid', ...($required ? ["required_without:{$name}_id"] : [])],
         ];
     }
 

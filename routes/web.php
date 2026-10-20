@@ -56,10 +56,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
 
     // Revisión de lo subido por la app
-    Route::get('/review', [ReviewInboxController::class, 'index'])->name('review.index');
+    Route::get('/review', [ReviewInboxController::class, 'index'])->middleware('can:review-inbox')->name('review.index');
     Route::patch('/review/{type}/{id}', [ReviewInboxController::class, 'markReviewed'])
         ->whereIn('type', ReviewInbox::TYPES)
         ->whereNumber('id')
+        ->middleware('can:review-inbox')
         ->name('review.reviewed');
 
     // Cierre de Caja / Arqueo

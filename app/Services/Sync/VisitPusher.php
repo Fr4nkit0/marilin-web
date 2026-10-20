@@ -17,10 +17,8 @@ class VisitPusher extends EntityPusher
     {
         return [
             'uuid' => ['required', 'uuid'],
-            'customer_id' => ['nullable', 'integer', 'required_without:customer_uuid'],
-            'customer_uuid' => ['nullable', 'uuid', 'required_without:customer_id'],
-            'route_stop_id' => ['nullable', 'integer'],
-            'route_stop_uuid' => ['nullable', 'uuid'],
+            ...$this->referenceRules('customer', required: true),
+            ...$this->referenceRules('route_stop'),
             'outcome_id' => ['nullable', 'integer', 'exists:visit_outcomes,id'],
             'arrived_at' => ['required', 'date'],
             'latitude' => ['nullable', 'numeric', 'between:-90,90'],
@@ -32,10 +30,8 @@ class VisitPusher extends EntityPusher
 
     protected function handle(Driver $driver, User $user, array $record): array
     {
-        $existing = Visit::query()->where('client_uuid', $record['uuid'])->first();
-
-        if ($existing !== null) {
-            return $this->accepted($record['uuid'], $existing->id, $existing->needs_review ? $existing->review_reason : null);
+        if ($replay = $this->alreadyPushed(Visit::class, $record)) {
+            return $replay;
         }
 
         /** @var Customer $customer */
@@ -58,8 +54,7 @@ class VisitPusher extends EntityPusher
             'notes' => $record['notes'] ?? null,
             'created_by' => $user->id,
             'enabled' => true,
-            'needs_review' => $reason !== null,
-            'review_reason' => $reason?->value,
+            ...$this->reviewAttributes($reason),
         ]);
 
         return $this->accepted($record['uuid'], $visit->id, $reason?->value);

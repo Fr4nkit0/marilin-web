@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Review;
 
+use App\Models\ContainerMovement;
 use App\Models\Customer;
 use App\Models\Driver;
 use App\Models\Payment;
@@ -24,7 +25,7 @@ use Illuminate\Support\Facades\DB;
  */
 class ReviewInbox
 {
-    public const array TYPES = ['visit', 'sale', 'payment', 'route_stop', 'customer'];
+    public const array TYPES = ['visit', 'sale', 'payment', 'route_stop', 'customer', 'container_movement'];
 
     /**
      * @var array<string, class-string<Model>>
@@ -35,6 +36,7 @@ class ReviewInbox
         'payment' => Payment::class,
         'route_stop' => RouteStop::class,
         'customer' => Customer::class,
+        'container_movement' => ContainerMovement::class,
     ];
 
     /**
@@ -78,6 +80,7 @@ class ReviewInbox
                 'payment' => $this->selectPayment(),
                 'route_stop' => $this->selectRouteStop(),
                 'customer' => $this->selectCustomer(),
+                'container_movement' => $this->selectContainerMovement(),
             };
             $union = $union === null ? $query : $union->unionAll($query);
         }
@@ -146,5 +149,16 @@ class ReviewInbox
         return DB::table('customers')
             ->where('customers.needs_review', true)
             ->selectRaw("'customer' as type, customers.id, customers.driver_id, customers.id as customer_id, customers.updated_at as occurred_at, customers.review_reason as reason, customers.reviewed_at, customers.reviewed_by");
+    }
+
+    /**
+     * A movement carries no date of the app, so the moment the server received it is its date.
+     */
+    private function selectContainerMovement(): Builder
+    {
+        return DB::table('container_movements')
+            ->leftJoin('drivers', 'drivers.user_id', '=', 'container_movements.created_by')
+            ->where('container_movements.needs_review', true)
+            ->selectRaw("'container_movement' as type, container_movements.id, drivers.id as driver_id, container_movements.customer_id, container_movements.created_at as occurred_at, container_movements.review_reason as reason, container_movements.reviewed_at, container_movements.reviewed_by");
     }
 }

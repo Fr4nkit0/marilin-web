@@ -255,3 +255,39 @@ test('push rejects a second reschedule of a stop that was already rescheduled', 
     expect(RouteStop::query()->where('client_uuid', $second['uuid'])->exists())->toBeFalse()
         ->and(RouteStop::query()->where('is_rescheduled_from', $this->stop->id)->count())->toBe(1);
 });
+
+test('push rejects a record the database refuses and still saves the rest of the batch', function (): void {
+    $overflowing = visitPayload(['altitude' => 999999999999]);
+    $valid = visitPayload();
+
+    $response = push(['visits' => [$overflowing, $valid]]);
+
+    $response->assertOk()
+        ->assertJsonPath('data.visits.0.status', 'rejected')
+        ->assertJsonPath('data.visits.0.server_id', null)
+        ->assertJsonPath('data.visits.1.status', 'accepted');
+
+    expect($response->json('data.visits.0.error'))->toBeString()->not->toBeEmpty()
+        ->and(Visit::query()->where('client_uuid', $overflowing['uuid'])->exists())->toBeFalse()
+        ->and(Visit::query()->where('client_uuid', $valid['uuid'])->exists())->toBeTrue();
+});
+
+test('push accepts a container movement on a customer of another driver or a disabled one, flags it and still moves the balance', function (string $case): void {
+    $this->containerType = ContainerType::factory()->create();
+    $customer = $case === 'disabled'
+        ? Customer::factory()->disabled()->create(['driver_id' => $this->driver->id])
+        : Customer::factory()->create(['driver_id' => Driver::factory()->create(['enabled' => true])->id]);
+    $payload = movementPayload(['customer_id' => $customer->id]);
+
+    $response = push(['container_movements' => [$payload]]);
+
+    $response->assertOk()->assertJsonPath('data.container_movements.0.status', 'accepted');
+
+    $movement = ContainerMovement::query()->where('client_uuid', $payload['uuid'])->firstOrFail();
+    $reason = $response->json('data.container_movements.0.review_reason');
+
+    expect($reason)->toBeString()->not->toBeEmpty()
+        ->and($movement->needs_review)->toBeTrue()
+        ->and($movement->review_reason)->toBe($reason)
+        ->and(CustomerContainerBalance::query()->where('customer_id', $customer->id)->firstOrFail()->balance)->toBe(5);
+})->with(['other driver' => ['other driver'], 'disabled' => ['disabled']]);

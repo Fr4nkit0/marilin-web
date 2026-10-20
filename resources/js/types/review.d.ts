@@ -1,4 +1,4 @@
-export type ReviewType = 'visit' | 'sale' | 'payment' | 'route_stop' | 'customer';
+export type ReviewType = 'visit' | 'sale' | 'payment' | 'route_stop' | 'customer' | 'container_movement';
 export type ReviewStatus = 'pending' | 'reviewed' | 'all';
 
 export interface ReviewItem {

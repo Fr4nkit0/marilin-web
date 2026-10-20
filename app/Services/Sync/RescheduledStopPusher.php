@@ -17,18 +17,15 @@ class RescheduledStopPusher extends EntityPusher
     {
         return [
             'uuid' => ['required', 'uuid'],
-            'rescheduled_from_id' => ['nullable', 'integer', 'required_without:rescheduled_from_uuid'],
-            'rescheduled_from_uuid' => ['nullable', 'uuid', 'required_without:rescheduled_from_id'],
+            ...$this->referenceRules('rescheduled_from', required: true),
             'scheduled_time' => ['required', 'date_format:H:i'],
         ];
     }
 
     protected function handle(Driver $driver, User $user, array $record): array
     {
-        $existing = RouteStop::query()->where('client_uuid', $record['uuid'])->first();
-
-        if ($existing !== null) {
-            return $this->accepted($record['uuid'], $existing->id);
+        if ($replay = $this->alreadyPushed(RouteStop::class, $record)) {
+            return $replay;
         }
 
         /** @var RouteStop $original */

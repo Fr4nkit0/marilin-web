@@ -27,7 +27,7 @@ class CustomerPusher extends EntityPusher
             $this->edit($customer, $user, $record);
         }
 
-        return $this->accepted($record['uuid'], $customer->id, $customer->needs_review ? $customer->review_reason : null);
+        return $this->accepted($record['uuid'], $customer->id, $this->pendingReason($customer));
     }
 
     /**
@@ -40,10 +40,7 @@ class CustomerPusher extends EntityPusher
         }
 
         $customer->timestamps = false;
-        $customer->forceFill([
-            'needs_review' => true,
-            'review_reason' => ReviewReason::ForeignCustomer->value,
-        ])->save();
+        $customer->forceFill($this->reviewAttributes(ReviewReason::ForeignCustomer))->save();
     }
 
     /**
