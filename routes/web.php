@@ -6,8 +6,10 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DriverController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReviewInboxController;
 use App\Http\Controllers\RouteController;
 use App\Http\Controllers\SaleController;
+use App\Services\Review\ReviewInbox;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -52,6 +54,13 @@ Route::middleware('auth')->group(function () {
 
     // Cobros
     Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
+
+    // Revisión de lo subido por la app
+    Route::get('/review', [ReviewInboxController::class, 'index'])->name('review.index');
+    Route::patch('/review/{type}/{id}', [ReviewInboxController::class, 'markReviewed'])
+        ->whereIn('type', ReviewInbox::TYPES)
+        ->whereNumber('id')
+        ->name('review.reviewed');
 
     // Cierre de Caja / Arqueo
     Route::get('/cash-close', [CashCloseController::class, 'index'])->name('cash-close.index');
