@@ -5,16 +5,14 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\V1\PullRequest;
 use App\Models\ContainerMovement;
 use App\Models\Customer;
 use App\Models\CustomerAddress;
-use App\Models\CustomerAgreement;
 use App\Models\CustomerContainerBalance;
 use App\Models\Driver;
 use App\Models\IdempotencyRecord;
 use App\Models\Payment;
-use App\Models\Product;
-use App\Models\Route;
 use App\Models\RouteInventory;
 use App\Models\RouteStop;
 use App\Models\Sale;
@@ -23,7 +21,7 @@ use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Visit;
 use App\Services\Sync\BootstrapService;
-use Carbon\Carbon;
+use App\Services\Sync\PullService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -51,63 +49,18 @@ class SyncController extends Controller
         ]);
     }
 
-    public function pull(Request $request): JsonResponse
+    public function pull(PullRequest $request, PullService $pull): JsonResponse
     {
-        $driver = $this->resolveDriver($request);
-
-        $updatedSince = $request->filled('updated_since')
-            ? Carbon::parse($request->string('updated_since')->toString())
-            : now()->startOfDay();
-
-        $routes = Route::query()
-            ->where('assigned_driver_id', $driver->id)
-            ->where('updated_at', '>', $updatedSince)
-            ->with('inventories.product')
-            ->get();
-
-        $routeStops = RouteStop::query()
-            ->whereHas('route', fn ($q) => $q->where('assigned_driver_id', $driver->id))
-            ->where('updated_at', '>', $updatedSince)
-            ->with(['address', 'customer'])
-            ->get();
-
-        $customers = Customer::query()
-            ->where('driver_id', $driver->id)
-            ->where('updated_at', '>', $updatedSince)
-            ->with(['addresses', 'preferences', 'agreements.product', 'containerBalances.containerType'])
-            ->get();
-
-        $customerAddresses = CustomerAddress::query()
-            ->whereHas('customer', fn ($q) => $q->where('driver_id', $driver->id))
-            ->where('updated_at', '>', $updatedSince)
-            ->get();
-
-        $customerAgreements = CustomerAgreement::query()
-            ->whereHas('customer', fn ($q) => $q->where('driver_id', $driver->id))
-            ->where('updated_at', '>', $updatedSince)
-            ->get();
-
-        $products = Product::query()
-            ->where('updated_at', '>', $updatedSince)
-            ->get();
-
-        $routeInventories = RouteInventory::query()
-            ->whereHas('route', fn ($q) => $q->where('assigned_driver_id', $driver->id))
-            ->where('updated_at', '>', $updatedSince)
-            ->with('product')
-            ->get();
+        $result = $pull->page(
+            $this->resolveDriver($request),
+            $request->cursor(),
+            $request->until(),
+            $request->page(),
+        );
 
         return response()->json([
-            'data' => [
-                'routes' => $routes,
-                'route_stops' => $routeStops,
-                'customers' => $customers,
-                'customer_addresses' => $customerAddresses,
-                'customer_agreements' => $customerAgreements,
-                'products' => $products,
-                'route_inventories' => $routeInventories,
-                'server_time' => now()->toIso8601String(),
-            ],
+            'data' => $result['data'],
+            'meta' => $result['meta'],
             'message' => null,
         ]);
     }

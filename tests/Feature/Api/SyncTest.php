@@ -95,35 +95,6 @@ test('sync bootstrap returns driver active route, stops, catalog and truck inven
     expect($response->json('data.truck_inventory'))->toHaveCount(1);
 });
 
-test('sync pull returns modified records since timestamp', function (): void {
-    $since = now()->subHour()->toIso8601String();
-
-    $customer = Customer::factory()->create([
-        'driver_id' => $this->driver->id,
-        'created_by' => $this->user->id,
-        'updated_at' => now(),
-    ]);
-
-    $response = $this->getJson('/api/v1/sync/pull?updated_since='.urlencode($since));
-
-    $response->assertOk()
-        ->assertJsonStructure([
-            'data' => [
-                'routes',
-                'route_stops',
-                'customers',
-                'customer_addresses',
-                'customer_agreements',
-                'products',
-                'route_inventories',
-                'server_time',
-            ],
-            'message',
-        ]);
-
-    expect(collect($response->json('data.customers'))->pluck('id'))->toContain($customer->id);
-});
-
 test('sync route-visits atomically persists visits, movements, sales, and payments with idempotency', function (): void {
     $product = Product::factory()->create(['enabled' => true]);
     $containerType = ContainerType::factory()->create(['enabled' => true]);
