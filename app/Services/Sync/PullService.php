@@ -24,6 +24,15 @@ use Illuminate\Support\Carbon;
 class PullService
 {
     /**
+     * Relations whose changes also make the parent row travel (e.g. a visit changes the stop status).
+     *
+     * @var array<string, array<int, string>>
+     */
+    private const array DEPENDENT_RELATIONS = [
+        'route_stops' => ['visits', 'rescheduledTo'],
+    ];
+
+    /**
      * Returns one page of everything that changed in (cursor, until], disabled records included.
      *
      * @return array{data: array<string, mixed>, meta: array<string, mixed>}
@@ -35,15 +44,32 @@ class PullService
         $data = [];
 
         foreach ($this->entities($driver) as $name => $query) {
-            $query->when($cursor, fn (Builder $q) => $q->where('updated_at', '>=', $cursor))
-                ->where('updated_at', '<=', $until)
+            $query->where(function (Builder $q) use ($name, $cursor, $until): void {
+                $inWindow = fn (Builder $b) => $b
+                    ->when($cursor, fn (Builder $w) => $w->where('updated_at', '>=', $cursor))
+                    ->where('updated_at', '<=', $until);
+
+                $q->where($inWindow);
+
+                foreach (self::DEPENDENT_RELATIONS[$name] ?? [] as $relation) {
+                    $q->orWhereHas($relation, $inWindow);
+                }
+            })
                 ->orderBy('updated_at')
                 ->orderBy('id');
+
+            if ($name === 'route_stops') {
+                $query->with(['visit', 'rescheduledTo']);
+            }
 
             $rows = $query->offset(($page - 1) * $size)->limit($size + 1)->get();
 
             $hasMore = $hasMore || $rows->count() > $size;
             $data[$name] = $rows->take($size)->values();
+
+            if ($name === 'route_stops') {
+                $data[$name] = $data[$name]->map(fn (RouteStop $stop): RouteStop => $this->withEffectiveStatus($stop));
+            }
         }
 
         return [
@@ -53,7 +79,7 @@ class PullService
                 'per_page' => $size,
                 'is_last_page' => ! $hasMore,
                 'until' => $until->toIso8601String(),
-                'cursor' => $hasMore ? null : $until->toIso8601String(),
+                'cursor' => $hasMore ? null : $until->copy()->subSeconds((int) config('sync.pull_cursor_margin_seconds'))->toIso8601String(),
             ],
         ];
     }
@@ -81,5 +107,13 @@ class PullService
             'payment_methods' => PaymentMethod::query(),
             'visit_outcomes' => VisitOutcome::query(),
         ];
+    }
+
+    private function withEffectiveStatus(RouteStop $stop): RouteStop
+    {
+        $stop->setAttribute('status', $stop->effectiveStatus());
+        $stop->unsetRelations();
+
+        return $stop;
     }
 }

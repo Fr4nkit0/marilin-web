@@ -10,7 +10,9 @@ use App\Models\Product;
 use App\Models\Route;
 use App\Models\RouteStop;
 use App\Models\User;
+use App\Models\Visit;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Laravel\Sanctum\Sanctum;
 
 uses(RefreshDatabase::class);
@@ -91,10 +93,59 @@ test('pull paginates with a fixed page size and delivers the new cursor on the l
 
     expect($third->json('data.customers'))->toHaveCount(1)
         ->and($third->json('meta.is_last_page'))->toBeTrue()
-        ->and($third->json('meta.cursor'))->toBe($until)
+        ->and($third->json('meta.cursor'))->toBe(Carbon::parse($until)->subSeconds(5)->toIso8601String())
         ->and($seen->sort()->values()->all())->toBe($customers->pluck('id')->sort()->values()->all());
 });
 
 test('pull rejects a malformed cursor', function (): void {
     $this->getJson('/api/v1/sync/pull?cursor=not-a-date')->assertUnprocessable();
+});
+
+test('pull sends the derived status of a stop and re-sends it when its visit changes', function (): void {
+    $route = Route::factory()->create(['assigned_driver_id' => $this->driver->id]);
+    $stop = RouteStop::factory()->create(['route_id' => $route->id, 'updated_at' => now()->subDays(2)]);
+    $visit = Visit::factory()->create([
+        'route_stop_id' => $stop->id,
+        'customer_id' => $stop->customer_id,
+        'status' => 'FINISHED',
+        'updated_at' => now()->subMinute(),
+    ]);
+
+    $cursor = now()->subHour()->toIso8601String();
+    $response = $this->getJson('/api/v1/sync/pull?cursor='.urlencode($cursor))->assertOk();
+
+    expect(pullIds($response->json(), 'route_stops'))->toBe([$stop->id])
+        ->and($response->json('data.route_stops.0.status'))->toBe('FINISHED')
+        ->and($response->json('data.route_stops.0'))->not->toHaveKeys(['visit', 'rescheduled_to']);
+});
+
+test('pull scopes children and balances to the authenticated driver', function (): void {
+    $other = Customer::factory()->create(['driver_id' => Driver::factory()->create()->id]);
+    CustomerAddress::factory()->create(['customer_id' => $other->id]);
+    CustomerBalance::factory()->create(['customer_id' => $other->id]);
+
+    $response = $this->getJson('/api/v1/sync/pull')->assertOk();
+
+    expect($response->json('data.customer_addresses'))->toBe([])
+        ->and($response->json('data.customer_balances'))->toBe([])
+        ->and($response->json('data.customer_container_balances'))->toBe([])
+        ->and($response->json('data.customer_agreements'))->toBe([]);
+});
+
+test('pull keeps paging while any entity still has rows, even if others are exhausted', function (): void {
+    config(['sync.pull_page_size' => 2]);
+    $route = Route::factory()->create(['assigned_driver_id' => $this->driver->id]);
+    Customer::factory()->create(['driver_id' => $this->driver->id]);
+    $stops = RouteStop::factory()->count(3)->create(['route_id' => $route->id]);
+
+    $first = $this->getJson('/api/v1/sync/pull?page=1')->assertOk();
+    $until = $first->json('meta.until');
+    $second = $this->getJson('/api/v1/sync/pull?page=2&until='.urlencode($until))->assertOk();
+
+    expect($first->json('meta.is_last_page'))->toBeFalse()
+        ->and($second->json('meta.is_last_page'))->toBeTrue()
+        ->and($second->json('data.customers'))->toBe([])
+        ->and($second->json('data.route_stops'))->toHaveCount(1)
+        ->and(collect($first->json('data.route_stops'))->merge($second->json('data.route_stops'))->pluck('id')->sort()->values()->all())
+        ->toBe($stops->pluck('id')->sort()->values()->all());
 });

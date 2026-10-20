@@ -58,6 +58,18 @@ class RouteStop extends Model
         return $this->hasMany(Visit::class);
     }
 
+    /**
+     * Status derived from the stop's visit and its reschedule link.
+     */
+    public function effectiveStatus(): string
+    {
+        if ($this->rescheduledTo !== null) {
+            return 'RESCHEDULED';
+        }
+
+        return $this->visit->status ?? 'PENDING';
+    }
+
     public function scopeEnabled($query)
     {
         return $query->where('enabled', true);

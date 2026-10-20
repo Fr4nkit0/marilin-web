@@ -70,19 +70,10 @@ class BootstrapService
                 'address_id' => $stop->address_id,
                 'scheduled_time' => $stop->scheduled_time,
                 'is_rescheduled_from' => $stop->is_rescheduled_from,
-                'status' => $this->stopStatus($stop),
+                'status' => $stop->effectiveStatus(),
                 'enabled' => $stop->enabled,
             ])
             ->all();
-    }
-
-    private function stopStatus(RouteStop $stop): string
-    {
-        if ($stop->rescheduledTo !== null) {
-            return 'RESCHEDULED';
-        }
-
-        return $stop->visit->status ?? 'PENDING';
     }
 
     /**
