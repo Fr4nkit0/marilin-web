@@ -274,6 +274,17 @@ test('push stores a text floor and a numeric floor exactly as written', function
     expect($customer->primaryAddress->floor)->toBe($floor);
 })->with(['PB', '3', 'Local 2']);
 
+test('push stores a floor sent as a number as its text form', function (): void {
+    $payload = customerPayload(['address' => ['floor' => 3]]);
+
+    $this->postJson('/api/v1/sync/push', ['customers' => [$payload]])
+        ->assertOk()
+        ->assertJsonPath('data.customers.0.status', 'accepted');
+
+    $customer = Customer::query()->where('client_uuid', $payload['uuid'])->firstOrFail();
+    expect($customer->primaryAddress->floor)->toBe('3');
+});
+
 test('push rejects a floor longer than 20 characters', function (): void {
     $payload = customerPayload(['address' => ['floor' => str_repeat('A', 21)]]);
 
