@@ -18,9 +18,10 @@ Branch: feat/1-mobile-sync. Delivery: ask-on-risk. Tests: Pest (`./vendor/bin/sa
 - [x] T1 S7 — inline — 584bb12
 - [x] T2 S2 S3 S4 — inline — b0730e6
 - [x] T3 S1 — inline — 8219906
-- [ ] T4 S5 S6 — inline
+- [x] T4 S5 S6 — inline — 6ba5354
 
 ## Log
 
 - L1 (2026-10-20) User: "bueno tenemos que hacer algo para que el dashbord sea mas interactivo porque ahora no no lo es como esta compuesto y organizado me gusta pero hay que agregarle interactividad". After the 6-point proposal: "si avanza ademas agregale algo mas quitar la card del navbar que dice base central".
 - L2 Routes: no writer trigger (single repo, sequential units sharing Dashboard.tsx), all inline.
+- L3 (2026-10-20) Done. Evidence: `tests/Feature/DashboardTest.php` (3 tests: requested day, details per card, sync status) and full suite 165 passed; `npm run build` (tsc) ok. Sync time is sent as ISO 8601 so the browser computes "hace X" in its own timezone. Not checked visually in a browser.
