@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Api\V1;
 
+use App\Services\Map\SaltaBoundingBox;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 
 class RouteRequest extends FormRequest
@@ -14,13 +16,31 @@ class RouteRequest extends FormRequest
     }
 
     /**
-     * Coordinates are validated by the controller response so the 422 payload keeps its shape.
-     *
      * @return array<string, mixed>
      */
     public function rules(): array
     {
         return [];
+    }
+
+    public function after(): array
+    {
+        return [
+            function (Validator $validator): void {
+                $origin = $this->origin();
+                $destination = $this->destination();
+
+                if ($origin === null || $destination === null) {
+                    $validator->errors()->add('coordinates', 'Origin and destination coordinates are required.');
+
+                    return;
+                }
+
+                if (! SaltaBoundingBox::contains(...$origin) || ! SaltaBoundingBox::contains(...$destination)) {
+                    $validator->errors()->add('coordinates', 'Coordinates are outside Salta bounding box.');
+                }
+            },
+        ];
     }
 
     /**

@@ -54,6 +54,14 @@ class PullService
                 foreach (self::DEPENDENT_RELATIONS[$name] ?? [] as $relation) {
                     $q->orWhereHas($relation, $inWindow);
                 }
+
+                if ($name === 'customer_agreements') {
+                    // An agreement that ends inside the window changes its meaning without touching updated_at.
+                    $q->orWhere(fn (Builder $b) => $b
+                        ->whereNotNull('valid_to')
+                        ->when($cursor, fn (Builder $w) => $w->where('valid_to', '>=', $cursor->toDateString()))
+                        ->where('valid_to', '<=', $until->toDateString()));
+                }
             })
                 ->orderBy('updated_at')
                 ->orderBy('id');
@@ -94,7 +102,9 @@ class PullService
 
         return [
             'routes' => Route::query()->where('assigned_driver_id', $driver->id),
-            'route_stops' => RouteStop::query()->whereHas('route', $ownRoute),
+            'route_stops' => RouteStop::query()
+                ->whereHas('route', $ownRoute)
+                ->whereHas('customer', fn (Builder $query) => $query->where('driver_id', $driver->id)->where('enabled', true)),
             'route_inventories' => RouteInventory::query()->whereHas('route', $ownRoute),
             'customers' => Customer::query()->where('driver_id', $driver->id),
             'customer_addresses' => CustomerAddress::query()->whereHas('customer', $ownCustomer),

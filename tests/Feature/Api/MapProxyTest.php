@@ -213,3 +213,15 @@ test('geocode endpoint falls back to nominatim when no local address matches and
 
     Http::assertSentCount(1);
 });
+
+test('tile endpoint rejects an invalid zoom level with 422', function (): void {
+    $this->getJson('/api/v1/map/tiles/25/1/1.png')
+        ->assertStatus(422)
+        ->assertJson(['message' => 'Zoom level must be between 0 and 19.']);
+});
+
+test('route endpoint requires origin and destination', function (): void {
+    $this->getJson('/api/v1/map/route')
+        ->assertStatus(422)
+        ->assertJson(['message' => 'Origin and destination coordinates are required.']);
+});

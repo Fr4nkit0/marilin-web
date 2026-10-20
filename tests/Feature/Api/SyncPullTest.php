@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Models\Customer;
 use App\Models\CustomerAddress;
+use App\Models\CustomerAgreement;
 use App\Models\CustomerBalance;
 use App\Models\Driver;
 use App\Models\Product;
@@ -103,7 +104,8 @@ test('pull rejects a malformed cursor', function (): void {
 
 test('pull sends the derived status of a stop and re-sends it when its visit changes', function (): void {
     $route = Route::factory()->create(['assigned_driver_id' => $this->driver->id]);
-    $stop = RouteStop::factory()->create(['route_id' => $route->id, 'updated_at' => now()->subDays(2)]);
+    $owned = Customer::factory()->create(['driver_id' => $this->driver->id, 'enabled' => true]);
+    $stop = RouteStop::factory()->create(['route_id' => $route->id, 'customer_id' => $owned->id, 'updated_at' => now()->subDays(2)]);
     $visit = Visit::factory()->create([
         'route_stop_id' => $stop->id,
         'customer_id' => $stop->customer_id,
@@ -135,8 +137,8 @@ test('pull scopes children and balances to the authenticated driver', function (
 test('pull keeps paging while any entity still has rows, even if others are exhausted', function (): void {
     config(['sync.pull_page_size' => 2]);
     $route = Route::factory()->create(['assigned_driver_id' => $this->driver->id]);
-    Customer::factory()->create(['driver_id' => $this->driver->id]);
-    $stops = RouteStop::factory()->count(3)->create(['route_id' => $route->id]);
+    $owned = Customer::factory()->create(['driver_id' => $this->driver->id]);
+    $stops = RouteStop::factory()->count(3)->create(['route_id' => $route->id, 'customer_id' => $owned->id]);
 
     $first = $this->getJson('/api/v1/sync/pull?page=1')->assertOk();
     $until = $first->json('meta.until');
@@ -148,4 +150,50 @@ test('pull keeps paging while any entity still has rows, even if others are exha
         ->and($second->json('data.route_stops'))->toHaveCount(1)
         ->and(collect($first->json('data.route_stops'))->merge($second->json('data.route_stops'))->pluck('id')->sort()->values()->all())
         ->toBe($stops->pluck('id')->sort()->values()->all());
+});
+
+test('pull re-sends an agreement whose validity ended inside the window even if its row did not change', function (): void {
+    $customer = Customer::factory()->create(['driver_id' => $this->driver->id, 'updated_at' => now()->subYear()]);
+    $expiredToday = CustomerAgreement::factory()->create([
+        'customer_id' => $customer->id,
+        'valid_from' => now()->subMonths(3)->toDateString(),
+        'valid_to' => now()->toDateString(),
+        'updated_at' => now()->subMonths(3),
+    ]);
+    $expiredLongAgo = CustomerAgreement::factory()->create([
+        'customer_id' => $customer->id,
+        'valid_from' => now()->subYear()->toDateString(),
+        'valid_to' => now()->subMonths(6)->toDateString(),
+        'updated_at' => now()->subMonths(6),
+    ]);
+
+    $cursor = now()->subDay()->toIso8601String();
+    $response = $this->getJson('/api/v1/sync/pull?cursor='.urlencode($cursor))->assertOk();
+
+    expect(pullIds($response->json(), 'customer_agreements'))->toBe([$expiredToday->id])
+        ->and(collect($response->json('data.customer_agreements'))->pluck('id'))->not->toContain($expiredLongAgo->id);
+});
+
+test('pull clamps a future until so the next cursor never jumps ahead of the server clock', function (): void {
+    $future = now()->addDay()->toIso8601String();
+
+    $response = $this->getJson('/api/v1/sync/pull?until='.urlencode($future))->assertOk();
+
+    expect(Carbon::parse($response->json('meta.until'))->lte(now()))->toBeTrue()
+        ->and(Carbon::parse($response->json('meta.cursor'))->lte(now()))->toBeTrue();
+});
+
+test('pull omits stops of customers that are disabled or no longer assigned, like the bootstrap', function (): void {
+    $route = Route::factory()->create(['assigned_driver_id' => $this->driver->id]);
+    $active = Customer::factory()->create(['driver_id' => $this->driver->id, 'enabled' => true]);
+    $disabled = Customer::factory()->create(['driver_id' => $this->driver->id, 'enabled' => false]);
+    $reassigned = Customer::factory()->create(['driver_id' => Driver::factory()->create()->id]);
+
+    $kept = RouteStop::factory()->create(['route_id' => $route->id, 'customer_id' => $active->id]);
+    RouteStop::factory()->create(['route_id' => $route->id, 'customer_id' => $disabled->id]);
+    RouteStop::factory()->create(['route_id' => $route->id, 'customer_id' => $reassigned->id]);
+
+    $response = $this->getJson('/api/v1/sync/pull')->assertOk();
+
+    expect(pullIds($response->json(), 'route_stops'))->toBe([$kept->id]);
 });

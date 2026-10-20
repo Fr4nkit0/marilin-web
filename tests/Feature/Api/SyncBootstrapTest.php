@@ -17,6 +17,7 @@ use App\Models\RouteStop;
 use App\Models\User;
 use App\Models\VisitOutcome;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Laravel\Sanctum\Sanctum;
 
 uses(RefreshDatabase::class);
@@ -164,4 +165,13 @@ test('bootstrap orders stops by scheduled time and omits stops of customers no l
     $ids = collect($this->getJson('/api/v1/sync/bootstrap')->assertOk()->json('data.stops'))->pluck('id')->all();
 
     expect($ids)->toBe([$unscheduled->id, $early->id, $late->id]);
+});
+
+test('bootstrap server_time carries the safety margin so the first pull cannot miss a same-second write', function (): void {
+    [$user] = driverWithToday();
+    Sanctum::actingAs($user, ['*']);
+
+    $serverTime = Carbon::parse($this->getJson('/api/v1/sync/bootstrap')->assertOk()->json('data.server_time'));
+
+    expect($serverTime->lte(now()->subSeconds((int) config('sync.pull_cursor_margin_seconds'))->addSecond()))->toBeTrue();
 });

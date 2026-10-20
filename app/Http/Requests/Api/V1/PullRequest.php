@@ -32,13 +32,17 @@ class PullRequest extends FormRequest
     }
 
     /**
-     * Upper bound frozen by the first page so later pages see the same snapshot.
+     * Upper bound frozen by the first page so later pages see the same snapshot, never ahead of the server clock.
      */
     public function until(): Carbon
     {
-        return $this->filled('until')
-            ? Carbon::parse($this->string('until')->toString())
-            : now()->startOfSecond();
+        $now = now()->startOfSecond();
+
+        if (! $this->filled('until')) {
+            return $now;
+        }
+
+        return Carbon::parse($this->string('until')->toString())->min($now);
     }
 
     public function page(): int

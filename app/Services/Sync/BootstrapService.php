@@ -35,7 +35,7 @@ class BootstrapService
             'container_types' => ContainerType::query()->where('enabled', true)->get(),
             'payment_methods' => PaymentMethod::query()->where('enabled', true)->get(),
             'visit_outcomes' => VisitOutcome::query()->where('enabled', true)->get(),
-            'server_time' => now()->toIso8601String(),
+            'server_time' => now()->startOfSecond()->subSeconds((int) config('sync.pull_cursor_margin_seconds'))->toIso8601String(),
         ];
     }
 
