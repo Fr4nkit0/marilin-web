@@ -14,7 +14,11 @@ use App\Models\Visit;
 use App\Services\Sync\ReviewReason;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
+use Laravel\Sanctum\Sanctum;
+
+require_once __DIR__.'/Api/PushHelpers.php';
 
 uses(RefreshDatabase::class);
 
@@ -57,6 +61,9 @@ function flaggedRecord(string $type, array $who, string $day = '2026-10-22', arr
         'payment' => Payment::factory()->create([
             'customer_id' => $customer->id, 'received_by' => $driver->user_id, 'paid_at' => "{$day} 10:00:00",
         ]),
+        'customer' => Customer::factory()->create([
+            'driver_id' => $driver->id, 'name' => $customer->name, 'updated_at' => "{$day} 10:00:00",
+        ]),
         'route_stop' => RouteStop::factory()->create([
             'route_id' => Route::query()->firstOrCreate(
                 ['assigned_driver_id' => $driver->id, 'date' => $day],
@@ -67,6 +74,7 @@ function flaggedRecord(string $type, array $who, string $day = '2026-10-22', arr
         ]),
     };
 
+    $record->timestamps = false;
     $record->forceFill($review)->save();
 
     return $record;
@@ -74,15 +82,15 @@ function flaggedRecord(string $type, array $who, string $day = '2026-10-22', arr
 
 test('the review inbox lists what is waiting for review with type, driver, customer, date and reason', function (): void {
     $who = inboxDriver();
-    foreach (['visit', 'sale', 'payment', 'route_stop'] as $type) {
+    foreach (['visit', 'sale', 'payment', 'route_stop', 'customer'] as $type) {
         flaggedRecord($type, $who);
     }
     Visit::factory()->create(['route_stop_id' => null, 'customer_id' => $who['customer']->id, 'driver_id' => $who['driver']->id]);
 
     $this->get('/review')->assertOk()->assertInertia(fn (Assert $page) => $page
         ->component('Review/Index')
-        ->has('items.data', 4)
-        ->where('items.data', fn ($items) => collect($items)->pluck('type')->sort()->values()->all() === ['payment', 'route_stop', 'sale', 'visit'])
+        ->has('items.data', 5)
+        ->where('items.data', fn ($items) => collect($items)->pluck('type')->sort()->values()->all() === ['customer', 'payment', 'route_stop', 'sale', 'visit'])
         ->where('items.data.0.driver', 'Repartidor Uno')
         ->where('items.data.0.customer', 'Cliente Uno')
         ->where('items.data.0.occurred_at', fn ($date) => str_starts_with((string) $date, '2026-10-22'))
@@ -134,14 +142,14 @@ test('the review inbox filters by date range, both ends included', function (): 
 
 test('the review inbox filters by type', function (): void {
     $who = inboxDriver();
-    foreach (['visit', 'sale', 'payment', 'route_stop'] as $type) {
+    foreach (['visit', 'sale', 'payment', 'route_stop', 'customer'] as $type) {
         flaggedRecord($type, $who);
     }
 
-    $rows = inboxRows('?type=payment');
+    $rows = inboxRows('?type=customer');
 
     expect($rows)->toHaveCount(1)
-        ->and($rows[0]['type'])->toBe('payment');
+        ->and($rows[0]['type'])->toBe('customer');
 });
 
 test('the review inbox filters by status and shows what is pending by default', function (): void {
@@ -184,7 +192,7 @@ test('marking a :type as reviewed saves who and when and takes it out of the pen
         ->and($other->fresh()->reviewed_at)->toBeNull()
         ->and(collect(inboxRows())->pluck('id')->all())->toBe([$other->id])
         ->and(collect(inboxRows('?status=reviewed'))->pluck('reviewed_by')->all())->toBe([$this->admin->name]);
-})->with(['visit', 'sale', 'payment', 'route_stop']);
+})->with(['visit', 'sale', 'payment', 'route_stop', 'customer']);
 
 test('the review inbox offers no way to edit or annul a record', function (): void {
     $record = flaggedRecord('sale', inboxDriver());
@@ -229,4 +237,26 @@ test('a record that was already reviewed keeps its first reviewer and date', fun
 
     expect($record->fresh()->reviewed_by)->toBe($this->admin->id)
         ->and($record->fresh()->reviewed_at->toIso8601String())->toBe('2026-10-23T12:00:00+00:00');
+});
+
+test('a customer of another driver edited through the push shows up in the inbox', function (): void {
+    $owner = inboxDriver('Repartidor Dueño', 'Cliente Ajeno');
+    $editor = inboxDriver('Repartidor Editor', 'Otro');
+    Sanctum::actingAs($editor['driver']->user, ['*']);
+
+    push(['customers' => [[
+        'uuid' => (string) Str::uuid(),
+        'server_id' => $owner['customer']->id,
+        'name' => 'Cliente Ajeno',
+        'modified_at' => '2026-10-23T11:00:00Z',
+        'address' => ['street' => 'Av Belgrano 100'],
+    ]]])->assertOk()->assertJsonPath('data.customers.0.status', 'accepted');
+
+    $this->actingAs($this->admin, 'web');
+    $rows = inboxRows();
+
+    expect($rows)->toHaveCount(1)
+        ->and($rows[0]['type'])->toBe('customer')
+        ->and($rows[0]['driver'])->toBe('Repartidor Dueño')
+        ->and($rows[0]['reason'])->toBe('El cliente está asignado a otro repartidor.');
 });

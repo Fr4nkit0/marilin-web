@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Review;
 
+use App\Models\Customer;
 use App\Models\Driver;
 use App\Models\Payment;
 use App\Models\RouteStop;
@@ -23,7 +24,7 @@ use Illuminate\Support\Facades\DB;
  */
 class ReviewInbox
 {
-    public const array TYPES = ['visit', 'sale', 'payment', 'route_stop'];
+    public const array TYPES = ['visit', 'sale', 'payment', 'route_stop', 'customer'];
 
     /**
      * @var array<string, class-string<Model>>
@@ -33,6 +34,7 @@ class ReviewInbox
         'sale' => Sale::class,
         'payment' => Payment::class,
         'route_stop' => RouteStop::class,
+        'customer' => Customer::class,
     ];
 
     /**
@@ -75,6 +77,7 @@ class ReviewInbox
                 'sale' => $this->selectSale(),
                 'payment' => $this->selectPayment(),
                 'route_stop' => $this->selectRouteStop(),
+                'customer' => $this->selectCustomer(),
             };
             $union = $union === null ? $query : $union->unionAll($query);
         }
@@ -133,5 +136,15 @@ class ReviewInbox
             ->join('routes', 'routes.id', '=', 'route_stops.route_id')
             ->where('route_stops.needs_review', true)
             ->selectRaw("'route_stop' as type, route_stops.id, routes.assigned_driver_id as driver_id, route_stops.customer_id, CAST(routes.date AS timestamp) as occurred_at, route_stops.review_reason as reason, route_stops.reviewed_at, route_stops.reviewed_by");
+    }
+
+    /**
+     * A customer the app created or edited that belongs to another driver; the date is the app's modification date.
+     */
+    private function selectCustomer(): Builder
+    {
+        return DB::table('customers')
+            ->where('customers.needs_review', true)
+            ->selectRaw("'customer' as type, customers.id, customers.driver_id, customers.id as customer_id, customers.updated_at as occurred_at, customers.review_reason as reason, customers.reviewed_at, customers.reviewed_by");
     }
 }

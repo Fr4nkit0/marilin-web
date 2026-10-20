@@ -17,6 +17,7 @@ const TYPE_LABELS: Record<ReviewType, string> = {
     sale: 'Venta',
     payment: 'Pago',
     route_stop: 'Parada reprogramada',
+    customer: 'Cliente',
 };
 
 const inputClass =
