@@ -9,21 +9,45 @@ use App\Models\User;
 
 class PushService
 {
-    public function __construct(private readonly CustomerPusher $customers) {}
+    public function __construct(
+        private readonly CustomerPusher $customers,
+        private readonly RescheduledStopPusher $routeStops,
+        private readonly VisitPusher $visits,
+        private readonly ContainerMovementPusher $containerMovements,
+    ) {}
+
+    /**
+     * Entities in dependency order: later ones may reference earlier ones of the same request by uuid.
+     *
+     * @return array<string, EntityPusher>
+     */
+    private function pushers(): array
+    {
+        return [
+            'customers' => $this->customers,
+            'route_stops' => $this->routeStops,
+            'visits' => $this->visits,
+            'container_movements' => $this->containerMovements,
+        ];
+    }
 
     /**
      * Processes each record independently and answers one result per record, grouped by entity.
      *
-     * @param  array<int, mixed>  $customers
-     * @return array{customers: array<int, array<string, mixed>>}
+     * @param  array<string, array<int, mixed>>  $records
+     * @return array<string, array<int, array<string, mixed>>>
      */
-    public function push(Driver $driver, User $user, array $customers): array
+    public function push(Driver $driver, User $user, array $records): array
     {
-        return [
-            'customers' => array_map(
-                fn (mixed $record): array => $this->customers->push($driver, $user, (array) $record),
-                $customers,
-            ),
-        ];
+        $results = [];
+
+        foreach ($this->pushers() as $entity => $pusher) {
+            $results[$entity] = array_map(
+                fn (mixed $record): array => $pusher->push($driver, $user, (array) $record),
+                $records[$entity] ?? [],
+            );
+        }
+
+        return $results;
     }
 }

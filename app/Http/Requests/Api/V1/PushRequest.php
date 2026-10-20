@@ -8,6 +8,13 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class PushRequest extends FormRequest
 {
+    /**
+     * Entities a push may carry.
+     *
+     * @var array<int, string>
+     */
+    private const array ENTITIES = ['customers', 'route_stops', 'visits', 'container_movements'];
+
     public function authorize(): bool
     {
         return true;
@@ -20,16 +27,20 @@ class PushRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'customers' => ['nullable', 'array'],
-        ];
+        return array_fill_keys(self::ENTITIES, ['nullable', 'array']);
     }
 
     /**
-     * @return array<int, mixed>
+     * @return array<string, array<int, mixed>>
      */
-    public function customers(): array
+    public function records(): array
     {
-        return array_values((array) $this->input('customers', []));
+        $records = [];
+
+        foreach (self::ENTITIES as $entity) {
+            $records[$entity] = array_values((array) $this->input($entity, []));
+        }
+
+        return $records;
     }
 }

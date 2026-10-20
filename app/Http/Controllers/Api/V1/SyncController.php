@@ -60,7 +60,7 @@ class SyncController extends Controller
         $user = $request->user();
 
         return response()->json([
-            'data' => $push->push($this->resolveDriver($request), $user, $request->customers()),
+            'data' => $push->push($this->resolveDriver($request), $user, $request->records()),
             'message' => null,
         ]);
     }

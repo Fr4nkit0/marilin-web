@@ -9,59 +9,25 @@ use App\Models\CustomerAddress;
 use App\Models\Driver;
 use App\Models\User;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
 
-class CustomerPusher
+class CustomerPusher extends EntityPusher
 {
-    /**
-     * @param  array<string, mixed>  $record
-     * @return array<string, mixed>
-     */
-    public function push(Driver $driver, User $user, array $record): array
+    protected function handle(Driver $driver, User $user, array $record): array
     {
-        $validator = Validator::make($record, $this->rules());
+        $customer = $this->find($record);
 
-        if ($validator->fails()) {
-            return $this->rejected($record, $validator->errors()->first());
+        if ($customer === null && isset($record['server_id'])) {
+            throw new RejectedRecord('The server_id does not match any customer.');
         }
 
-        return DB::transaction(function () use ($driver, $user, $record): array {
-            $customer = $this->find($record);
+        if ($customer === null) {
+            $customer = $this->create($driver, $user, $record);
+        } else {
+            $this->flagForReviewIfForeign($customer, $driver);
+            $this->edit($customer, $user, $record);
+        }
 
-            if ($customer === null && isset($record['server_id'])) {
-                return $this->rejected($record, 'The server_id does not match any customer.');
-            }
-
-            if ($customer === null) {
-                $customer = $this->create($driver, $user, $record);
-            } else {
-                $this->flagForReviewIfForeign($customer, $driver);
-                $this->edit($customer, $user, $record);
-            }
-
-            return [
-                'uuid' => $record['uuid'],
-                'status' => 'accepted',
-                'server_id' => $customer->id,
-                'review_reason' => $customer->needs_review ? $customer->review_reason : null,
-            ];
-        });
-    }
-
-    /**
-     * @param  array<string, mixed>  $record
-     * @return array<string, mixed>
-     */
-    private function rejected(array $record, string $error): array
-    {
-        return [
-            'uuid' => is_string($record['uuid'] ?? null) ? $record['uuid'] : null,
-            'status' => 'rejected',
-            'server_id' => null,
-            'review_reason' => null,
-            'error' => $error,
-        ];
+        return $this->accepted($record['uuid'], $customer->id, $customer->needs_review ? $customer->review_reason : null);
     }
 
     /**
@@ -76,7 +42,7 @@ class CustomerPusher
         $customer->timestamps = false;
         $customer->forceFill([
             'needs_review' => true,
-            'review_reason' => 'Customer is assigned to another driver.',
+            'review_reason' => ReviewReason::ForeignCustomer->value,
         ])->save();
     }
 
@@ -195,7 +161,7 @@ class CustomerPusher
     /**
      * @return array<string, array<int, string>>
      */
-    private function rules(): array
+    protected function rules(): array
     {
         return [
             'uuid' => ['required', 'uuid'],
