@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Driver;
+use App\Models\Product;
 use App\Models\Route as DeliveryRoute;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -26,7 +27,9 @@ class RouteController extends Controller
                 'driver.user',
                 'stops.customer.primaryAddress',
                 'stops.visit.outcome',
+                'inventoryLoads' => fn ($query) => $query->orderBy('loaded_at')->orderBy('id'),
                 'inventoryLoads.product',
+                'inventoryLoads.creator',
                 'inventories.product',
             ]);
 
@@ -38,7 +41,9 @@ class RouteController extends Controller
             $routesQuery->where('assigned_driver_id', $driverId);
         }
 
-        $routes = $routesQuery->get()->map(function ($route) {
+        $canLoad = $request->user()?->can('load-trucks') ?? false;
+
+        $routes = $routesQuery->get()->map(function ($route) use ($canLoad) {
             $totalStops = $route->stops->count();
             $completedStops = $route->stops->filter(
                 fn ($s) => $s->visit && in_array($s->visit->status, ['FINISHED', 'DELIVERED', 'COMPLETED'])
@@ -65,11 +70,21 @@ class RouteController extends Controller
                     'pendingStops' => $pendingStops,
                     'progressPercent' => $progress,
                 ],
-                'truckLoads' => $route->inventoryLoads->map(fn ($load) => [
+                // Every load of the day (the first one and any reload) adds up per product.
+                'truckStock' => $route->inventories->map(fn ($inv) => [
+                    'productId' => $inv->product_id,
+                    'productName' => $inv->product?->name ?? 'Producto',
+                    'loaded' => (float) $route->inventoryLoads->where('product_id', $inv->product_id)->sum('quantity'),
+                    'current' => (float) $inv->current_quantity,
+                ])->values(),
+                'loadHistory' => $route->inventoryLoads->map(fn ($load) => [
                     'id' => $load->id,
+                    'loadedAt' => $load->loaded_at?->format('H:i'),
                     'productName' => $load->product?->name ?? 'Producto',
-                    'initialQuantity' => (float) $load->quantity,
-                ]),
+                    'quantity' => (float) $load->quantity,
+                    'loadedBy' => $load->creator?->name,
+                ])->values(),
+                'canLoad' => $canLoad && ! in_array($route->status, ['COMPLETED', 'CANCELLED'], true),
                 'currentStock' => $route->inventories->map(fn ($inv) => [
                     'id' => $inv->id,
                     'productName' => $inv->product?->name ?? 'Producto',
@@ -107,6 +122,7 @@ class RouteController extends Controller
         return Inertia::render('Routes/Index', [
             'routes' => $routes,
             'drivers' => $drivers,
+            'products' => Product::query()->where('enabled', true)->orderBy('name')->get(['id', 'name']),
             'selectedDate' => $date,
             'filters' => [
                 'status' => $statusFilter ?? 'all',

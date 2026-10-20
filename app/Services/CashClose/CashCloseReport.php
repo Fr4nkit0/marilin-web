@@ -57,10 +57,15 @@ class CashCloseReport
             'debtCollected' => (float) $payments->whereNull('sale_id')->sum('amount'),
             'containersDelivered' => (int) $containers->where('movement_type', 'DELIVERED')->sum('quantity'),
             'containersReturned' => (int) $containers->where('movement_type', 'RETURNED')->sum('quantity'),
-            'stockLoaded' => $route->inventoryLoads->map(fn ($load): array => [
-                'product' => $load->product?->name,
-                'quantity' => (float) $load->quantity,
-            ]),
+            // The first load and every reload of a product add up to what the truck took out.
+            'stockLoaded' => $route->inventoryLoads
+                ->groupBy('product_id')
+                ->map(fn ($loads): array => [
+                    'product' => $loads->first()->product?->name,
+                    'quantity' => (float) $loads->sum('quantity'),
+                    'loads' => $loads->count(),
+                ])
+                ->values(),
             'stockRemaining' => $route->inventories->map(fn ($inventory): array => [
                 'product' => $inventory->product?->name,
                 'quantity' => (float) $inventory->current_quantity,

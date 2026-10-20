@@ -28,6 +28,9 @@ class AppServiceProvider extends ServiceProvider
         // List prices reach every driver's app on the next pull.
         Gate::define('manage-products', fn (User $user): bool => $user->is_super_user);
 
+        // The truck is loaded at the warehouse, so only the admin records loads.
+        Gate::define('load-trucks', fn (User $user): bool => $user->is_super_user);
+
         Vite::prefetch(concurrency: 3);
     }
 }

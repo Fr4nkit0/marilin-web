@@ -48,7 +48,7 @@ export interface SettlementData {
     debtCollected: number;
     containersDelivered: number;
     containersReturned: number;
-    stockLoaded: { product: string; quantity: number }[];
+    stockLoaded: { product: string; quantity: number; loads: number }[];
     stockRemaining: { product: string; quantity: number }[];
     details: CashCloseDetails;
 }

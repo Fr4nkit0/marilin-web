@@ -203,7 +203,8 @@ export default function CashCloseIndex({
                                                 <div>
                                                     <p className="font-medium text-slate-900 text-sm">{load.product}</p>
                                                     <p className="text-xs text-slate-500 mt-1">
-                                                        Carga inicial: {load.quantity} unid.
+                                                        Cargado en el día: {load.quantity} unid.
+                                                        {load.loads > 1 && ` (${load.loads} cargas)`}
                                                     </p>
                                                 </div>
                                                 <div className="text-right">
