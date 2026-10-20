@@ -3,15 +3,23 @@
 namespace App\Actions;
 
 use App\Models\ContainerMovement;
+use App\Models\Driver;
 use App\Models\Payment;
 use App\Models\Route as DeliveryRoute;
 use App\Models\RouteStop;
 use App\Models\Sale;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class GetDailyDashboardMetricsAction
 {
+    /**
+     * A driver on route whose app has not reached the server for longer than this is flagged.
+     */
+    private const int STALE_SYNC_MINUTES = 30;
+
     /**
      * Execute the action to get aggregated KPIs for the given date.
      *
@@ -96,7 +104,49 @@ class GetDailyDashboardMetricsAction
             ],
             'repartidores' => $repartidoresStatus,
             'details' => $this->details($targetDate, $routes),
+            'sync' => $this->syncStatus(),
         ];
+    }
+
+    /**
+     * Each enabled driver's last contact from the app (any API call with their token), as of now.
+     *
+     * @return array<int, array{id: int, name: string, lastSyncAt: string|null, onRoute: bool, stale: bool}>
+     */
+    private function syncStatus(): array
+    {
+        $drivers = Driver::with('user:id,name')->where('enabled', true)->get();
+
+        $lastUsed = PersonalAccessToken::query()
+            ->where('tokenable_type', (new User)->getMorphClass())
+            ->whereIn('tokenable_id', $drivers->pluck('user_id'))
+            ->groupBy('tokenable_id')
+            ->selectRaw('tokenable_id, max(last_used_at) as last_used_at')
+            ->pluck('last_used_at', 'tokenable_id');
+
+        $onRoute = DeliveryRoute::query()
+            ->whereDate('date', Carbon::today()->toDateString())
+            ->where('status', 'IN_PROGRESS')
+            ->pluck('assigned_driver_id')
+            ->flip();
+
+        return $drivers
+            ->map(function (Driver $driver) use ($lastUsed, $onRoute): array {
+                $last = $lastUsed[$driver->user_id] ?? null;
+                $lastAt = $last === null ? null : Carbon::parse($last);
+                $isOnRoute = $onRoute->has($driver->id);
+
+                return [
+                    'id' => $driver->id,
+                    'name' => $driver->user?->name ?? 'Repartidor',
+                    'lastSyncAt' => $lastAt?->toIso8601String(),
+                    'onRoute' => $isOnRoute,
+                    'stale' => $isOnRoute && ($lastAt === null || $lastAt->lt(now()->subMinutes(self::STALE_SYNC_MINUTES))),
+                ];
+            })
+            ->sortBy('name')
+            ->values()
+            ->all();
     }
 
     /**

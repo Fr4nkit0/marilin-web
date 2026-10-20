@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import {
@@ -6,7 +6,7 @@ import {
     StatusBadge,
 } from '@/Components/StitchUi';
 import DashboardDetailModal from '@/Components/DashboardDetailModal';
-import { DashboardDetailKind, DashboardMetrics } from '@/types/dashboard';
+import { DashboardDetailKind, DashboardMetrics, DriverSyncStatus } from '@/types/dashboard';
 import {
     DollarSign,
     MapPin,
@@ -18,6 +18,20 @@ import {
     RefreshCw,
 } from 'lucide-react';
 
+const REFRESH_EVERY_MS = 30_000;
+
+function minutesAgo(since: number, now: number): string {
+    const seconds = Math.max(0, Math.round((now - since) / 1000));
+    if (seconds < 60) return 'hace unos segundos';
+    const minutes = Math.round(seconds / 60);
+    return minutes === 1 ? 'hace 1 minuto' : `hace ${minutes} minutos`;
+}
+
+function lastSyncLabel(status: DriverSyncStatus, now: number): string {
+    if (!status.lastSyncAt) return 'Nunca sincronizó';
+    return `Sincronizó ${minutesAgo(new Date(status.lastSyncAt).getTime(), now)}`;
+}
+
 interface Props {
     metrics: DashboardMetrics;
 }
@@ -25,6 +39,24 @@ interface Props {
 export default function Dashboard({ metrics }: Props) {
     const { kpis, repartidores } = metrics;
     const [openDetail, setOpenDetail] = useState<DashboardDetailKind | null>(null);
+    const [updatedAt, setUpdatedAt] = useState(() => Date.now());
+    const [now, setNow] = useState(() => Date.now());
+
+    // Every refresh brings new metrics; that moment is what "Actualizado hace X" counts from.
+    useEffect(() => setUpdatedAt(Date.now()), [metrics]);
+
+    useEffect(() => {
+        const refresh = setInterval(
+            () => router.reload({ only: ['metrics'] }),
+            REFRESH_EVERY_MS,
+        );
+        const tick = setInterval(() => setNow(Date.now()), 10_000);
+
+        return () => {
+            clearInterval(refresh);
+            clearInterval(tick);
+        };
+    }, []);
 
     const showDay = (date: string) => {
         if (!date) return;
@@ -70,6 +102,9 @@ export default function Dashboard({ metrics }: Props) {
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
+                    <span className="text-xs text-slate-400 whitespace-nowrap">
+                        Actualizado {minutesAgo(updatedAt, now)}
+                    </span>
                     <input
                         type="date"
                         value={metrics.date}
@@ -262,17 +297,33 @@ export default function Dashboard({ metrics }: Props) {
                         </div>
                     </div>
 
-                    {/* Stock / System Status */}
+                    {/* App sync status per driver */}
                     <div className="bg-white rounded-2xl border border-gray-200/60 p-6 shadow-sm">
-                        <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-semibold text-slate-900">
-                                Sistema
-                            </span>
-                            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-sm font-semibold text-slate-900">Sistema</span>
+                            <div
+                                className={`w-2.5 h-2.5 rounded-full ${
+                                    metrics.sync.some((status) => status.stale) ? 'bg-amber-500' : 'bg-emerald-500'
+                                }`}
+                            ></div>
                         </div>
-                        <p className="text-xs text-slate-500 leading-relaxed mt-2">
-                            Todos los servicios operativos. Sincronización en tiempo real activa.
-                        </p>
+                        {metrics.sync.length === 0 ? (
+                            <p className="text-xs text-slate-500">No hay repartidores habilitados.</p>
+                        ) : (
+                            <ul className="space-y-2.5">
+                                {metrics.sync.map((status) => (
+                                    <li key={status.id} className="flex items-start justify-between gap-3 text-xs">
+                                        <span className="font-medium text-slate-700">{status.name}</span>
+                                        <span
+                                            className={`text-right ${status.stale ? 'text-amber-700 font-medium' : 'text-slate-500'}`}
+                                        >
+                                            {lastSyncLabel(status, now)}
+                                            {status.stale && <span className="block">En ruta sin sincronizar</span>}
+                                        </span>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
                     </div>
                 </div>
 

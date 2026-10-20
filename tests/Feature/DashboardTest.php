@@ -91,3 +91,25 @@ test('each KPI card carries the records behind it', function (): void {
         ])
         ->and($details['stops'][0]['driver'])->toBe('Juan Pérez');
 });
+
+test('the system card shows each driver last app sync and flags a route in progress that went quiet', function (): void {
+    $juan = Driver::factory()->create(['user_id' => User::factory()->create(['name' => 'Juan Pérez'])->id, 'enabled' => true]);
+    $esteban = Driver::factory()->create(['user_id' => User::factory()->create(['name' => 'Esteban Benítez'])->id, 'enabled' => true]);
+    $carlos = Driver::factory()->create(['user_id' => User::factory()->create(['name' => 'Carlos Gómez'])->id, 'enabled' => true]);
+    Route::factory()->create(['assigned_driver_id' => $juan->id, 'date' => '2026-10-20', 'status' => 'IN_PROGRESS']);
+    Route::factory()->create(['assigned_driver_id' => $esteban->id, 'date' => '2026-10-20', 'status' => 'IN_PROGRESS']);
+
+    $juan->user->createToken('android')->accessToken->forceFill(['last_used_at' => now()->subMinutes(4)])->save();
+    $esteban->user->createToken('android')->accessToken->forceFill(['last_used_at' => now()->subMinutes(45)])->save();
+
+    $sync = null;
+    $this->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(function (Assert $page) use (&$sync): void {
+            $sync = collect($page->toArray()['props']['metrics']['sync'])->keyBy('name');
+        });
+
+    expect($sync['Juan Pérez'])->toMatchArray(['lastSyncAt' => '2026-10-20T17:56:00+00:00', 'onRoute' => true, 'stale' => false])
+        ->and($sync['Esteban Benítez'])->toMatchArray(['lastSyncAt' => '2026-10-20T17:15:00+00:00', 'onRoute' => true, 'stale' => true])
+        ->and($sync['Carlos Gómez'])->toMatchArray(['lastSyncAt' => null, 'onRoute' => false, 'stale' => false]);
+});

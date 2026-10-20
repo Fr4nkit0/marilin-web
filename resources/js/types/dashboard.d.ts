@@ -54,6 +54,14 @@ export interface DashboardDetails {
 
 export type DashboardDetailKind = keyof DashboardDetails;
 
+export interface DriverSyncStatus {
+    id: number;
+    name: string;
+    lastSyncAt: string | null;
+    onRoute: boolean;
+    stale: boolean;
+}
+
 export interface DashboardMetrics {
     date: string;
     kpis: {
@@ -70,4 +78,5 @@ export interface DashboardMetrics {
     };
     repartidores: RepartidorStatus[];
     details: DashboardDetails;
+    sync: DriverSyncStatus[];
 }
