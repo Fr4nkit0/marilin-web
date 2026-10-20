@@ -14,6 +14,11 @@ class SaltaBoundingBox
 
     public const float MAX_LNG = -62.0;
 
+    public static function viewbox(): string
+    {
+        return implode(',', [self::MIN_LNG, self::MAX_LAT, self::MAX_LNG, self::MIN_LAT]);
+    }
+
     public static function contains(float $latitude, float $longitude): bool
     {
         return $latitude >= self::MIN_LAT

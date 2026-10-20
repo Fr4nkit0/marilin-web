@@ -11,6 +11,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable(['uuid', 'entity_type', 'user_id'])]
 class IdempotencyRecord extends Model
 {
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'uuid' => 'string',
+        ];
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
