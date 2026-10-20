@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-#[Fillable(['route_id', 'customer_id', 'address_id', 'is_rescheduled_from', 'enabled'])]
+#[Fillable(['route_id', 'customer_id', 'address_id', 'is_rescheduled_from', 'scheduled_time', 'enabled'])]
 class RouteStop extends Model
 {
     /** @use HasFactory<RouteStopFactory> */

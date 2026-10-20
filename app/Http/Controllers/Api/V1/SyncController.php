@@ -6,7 +6,6 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\ContainerMovement;
-use App\Models\ContainerType;
 use App\Models\Customer;
 use App\Models\CustomerAddress;
 use App\Models\CustomerAgreement;
@@ -14,7 +13,6 @@ use App\Models\CustomerContainerBalance;
 use App\Models\Driver;
 use App\Models\IdempotencyRecord;
 use App\Models\Payment;
-use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\Route;
 use App\Models\RouteInventory;
@@ -24,7 +22,7 @@ use App\Models\SaleDetail;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Visit;
-use App\Models\VisitOutcome;
+use App\Services\Sync\BootstrapService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -45,68 +43,10 @@ class SyncController extends Controller
         return $driver;
     }
 
-    public function bootstrap(Request $request): JsonResponse
+    public function bootstrap(Request $request, BootstrapService $bootstrap): JsonResponse
     {
-        $driver = $this->resolveDriver($request);
-        $today = now()->toDateString();
-
-        /** @var Route|null $route */
-        $route = Route::query()
-            ->where('assigned_driver_id', $driver->id)
-            ->where(function ($q) use ($today): void {
-                $q->whereDate('date', $today)
-                    ->orWhere('status', 'IN_PROGRESS');
-            })
-            ->orderByRaw("CASE WHEN status = 'IN_PROGRESS' THEN 1 WHEN date = '{$today}' THEN 2 ELSE 3 END")
-            ->with([
-                'stops.customer.addresses',
-                'stops.customer.preferences',
-                'stops.customer.agreements.product',
-                'stops.customer.containerBalances.containerType',
-                'stops.address',
-                'inventories.product',
-            ])
-            ->first();
-
-        $customers = Customer::query()
-            ->where('driver_id', $driver->id)
-            ->where('enabled', true)
-            ->with([
-                'addresses',
-                'preferences',
-                'agreements.product',
-                'containerBalances.containerType',
-            ])
-            ->get();
-
-        $products = Product::query()
-            ->where('enabled', true)
-            ->get();
-
-        $containerTypes = ContainerType::query()
-            ->where('enabled', true)
-            ->get();
-
-        $paymentMethods = PaymentMethod::query()
-            ->where('enabled', true)
-            ->get();
-
-        $visitOutcomes = VisitOutcome::query()
-            ->where('enabled', true)
-            ->get();
-
         return response()->json([
-            'data' => [
-                'route' => $route,
-                'stops' => $route?->stops ?? [],
-                'truck_inventory' => $route?->inventories ?? [],
-                'customers' => $customers,
-                'products' => $products,
-                'container_types' => $containerTypes,
-                'payment_methods' => $paymentMethods,
-                'visit_outcomes' => $visitOutcomes,
-                'server_time' => now()->toIso8601String(),
-            ],
+            'data' => $bootstrap->build($this->resolveDriver($request)),
             'message' => null,
         ]);
     }
@@ -385,6 +325,7 @@ class SyncController extends Controller
             'message' => 'Route visits synchronized successfully',
         ]);
     }
+
     public function syncCustomers(Request $request): JsonResponse
     {
         $driver = $this->resolveDriver($request);

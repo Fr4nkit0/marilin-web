@@ -1,0 +1,145 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Models\ContainerType;
+use App\Models\Customer;
+use App\Models\CustomerAddress;
+use App\Models\CustomerAgreement;
+use App\Models\CustomerBalance;
+use App\Models\CustomerContainerBalance;
+use App\Models\Driver;
+use App\Models\PaymentMethod;
+use App\Models\Product;
+use App\Models\Route;
+use App\Models\RouteInventory;
+use App\Models\RouteStop;
+use App\Models\User;
+use App\Models\VisitOutcome;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
+
+uses(RefreshDatabase::class);
+
+function driverWithToday(): array
+{
+    $user = User::factory()->create(['enabled' => true]);
+    $driver = Driver::factory()->create(['user_id' => $user->id, 'enabled' => true]);
+    $route = Route::factory()->create([
+        'assigned_driver_id' => $driver->id,
+        'date' => now()->toDateString(),
+        'status' => 'PLANNED',
+    ]);
+
+    return [$user, $driver, $route];
+}
+
+test('bootstrap returns the full day of the authenticated driver', function (): void {
+    [$user, $driver, $route] = driverWithToday();
+    Sanctum::actingAs($user, ['*']);
+
+    $product = Product::factory()->create(['enabled' => true]);
+    $containerType = ContainerType::factory()->create(['enabled' => true]);
+    $paymentMethod = PaymentMethod::factory()->create(['enabled' => true]);
+    $outcome = VisitOutcome::factory()->create(['enabled' => true]);
+    $disabledProduct = Product::factory()->create(['enabled' => false]);
+
+    $customer = Customer::factory()->create(['driver_id' => $driver->id, 'enabled' => true]);
+    $address = CustomerAddress::factory()->create(['customer_id' => $customer->id]);
+    CustomerBalance::factory()->create(['customer_id' => $customer->id, 'current_balance' => 1500.50]);
+    CustomerContainerBalance::factory()->create([
+        'customer_id' => $customer->id,
+        'container_type_id' => $containerType->id,
+        'balance' => 4,
+    ]);
+
+    $current = CustomerAgreement::factory()->create([
+        'customer_id' => $customer->id,
+        'product_id' => $product->id,
+        'unit_price' => 900,
+        'valid_from' => now()->subMonth()->toDateString(),
+        'valid_to' => null,
+    ]);
+    $expired = CustomerAgreement::factory()->create([
+        'customer_id' => $customer->id,
+        'product_id' => $product->id,
+        'valid_from' => now()->subMonths(6)->toDateString(),
+        'valid_to' => now()->subMonths(2)->toDateString(),
+    ]);
+
+    $original = RouteStop::factory()->create([
+        'route_id' => $route->id,
+        'customer_id' => $customer->id,
+        'address_id' => $address->id,
+    ]);
+    $rescheduled = RouteStop::factory()->create([
+        'route_id' => $route->id,
+        'customer_id' => $customer->id,
+        'address_id' => $address->id,
+        'is_rescheduled_from' => $original->id,
+        'scheduled_time' => '16:00:00',
+    ]);
+    RouteInventory::factory()->create(['route_id' => $route->id, 'product_id' => $product->id, 'current_quantity' => 20]);
+
+    $response = $this->getJson('/api/v1/sync/bootstrap')->assertOk();
+
+    expect($response->json('data.route.id'))->toBe($route->id)
+        ->and($response->json('data.server_time'))->not->toBeNull()
+        ->and(collect($response->json('data.products'))->pluck('id'))->toContain($product->id)
+        ->and(collect($response->json('data.products'))->pluck('id'))->not->toContain($disabledProduct->id)
+        ->and(collect($response->json('data.container_types'))->pluck('id'))->toContain($containerType->id)
+        ->and(collect($response->json('data.payment_methods'))->pluck('id'))->toContain($paymentMethod->id)
+        ->and(collect($response->json('data.visit_outcomes'))->pluck('id'))->toContain($outcome->id)
+        ->and($response->json('data.truck_inventory'))->toHaveCount(1);
+
+    $stops = collect($response->json('data.stops'))->keyBy('id');
+    expect($stops)->toHaveCount(2)
+        ->and($stops[$original->id]['scheduled_time'])->toBeNull()
+        ->and($stops[$rescheduled->id]['scheduled_time'])->toBe('16:00:00')
+        ->and($stops[$rescheduled->id]['is_rescheduled_from'])->toBe($original->id);
+
+    $customers = $response->json('data.customers');
+    expect($customers)->toHaveCount(1);
+    $payload = $customers[0];
+    expect($payload['id'])->toBe($customer->id)
+        ->and($payload['addresses'])->toHaveCount(1)
+        ->and($payload)->toHaveKey('preferences')
+        ->and(collect($payload['agreements'])->pluck('id')->all())->toBe([$current->id])
+        ->and($payload['balance']['current_balance'])->toEqual('1500.50')
+        ->and($payload['container_balances'][0]['balance'])->toBe(4)
+        ->and(collect($payload['agreements'])->pluck('id'))->not->toContain($expired->id);
+});
+
+test('bootstrap does not expose another driver customers or route', function (): void {
+    [$user, $driver] = driverWithToday();
+    Sanctum::actingAs($user, ['*']);
+
+    $otherDriver = Driver::factory()->create(['enabled' => true]);
+    $otherRoute = Route::factory()->create([
+        'assigned_driver_id' => $otherDriver->id,
+        'date' => now()->toDateString(),
+    ]);
+    $otherCustomer = Customer::factory()->create(['driver_id' => $otherDriver->id, 'enabled' => true]);
+    RouteStop::factory()->create(['route_id' => $otherRoute->id, 'customer_id' => $otherCustomer->id]);
+
+    $response = $this->getJson('/api/v1/sync/bootstrap')->assertOk();
+
+    expect($response->json('data.customers'))->toBe([])
+        ->and($response->json('data.stops'))->toBe([])
+        ->and($response->json('data.route.assigned_driver_id'))->not->toBe($otherDriver->id);
+});
+
+test('bootstrap prefers the in-progress route over today planned route', function (): void {
+    [$user, $driver, $today] = driverWithToday();
+    Sanctum::actingAs($user, ['*']);
+
+    $inProgress = Route::factory()->create([
+        'assigned_driver_id' => $driver->id,
+        'date' => now()->subDay()->toDateString(),
+        'status' => 'IN_PROGRESS',
+    ]);
+
+    $this->getJson('/api/v1/sync/bootstrap')
+        ->assertOk()
+        ->assertJsonPath('data.route.id', $inProgress->id);
+});

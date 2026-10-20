@@ -1,0 +1,101 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services\Sync;
+
+use App\Models\ContainerType;
+use App\Models\Customer;
+use App\Models\Driver;
+use App\Models\PaymentMethod;
+use App\Models\Product;
+use App\Models\Route;
+use App\Models\RouteStop;
+use App\Models\VisitOutcome;
+use Illuminate\Database\Eloquent\Collection;
+
+class BootstrapService
+{
+    /**
+     * Builds the full day of a driver: today's (or in-progress) route, assigned customers and catalogs.
+     *
+     * @return array<string, mixed>
+     */
+    public function build(Driver $driver): array
+    {
+        $today = now()->toDateString();
+        $route = $this->currentRoute($driver, $today);
+
+        return [
+            'route' => $route,
+            'stops' => $route === null ? [] : $this->stops($route),
+            'truck_inventory' => $route === null ? [] : $route->inventories()->get(),
+            'customers' => $this->customers($driver, $today),
+            'products' => Product::query()->where('enabled', true)->get(),
+            'container_types' => ContainerType::query()->where('enabled', true)->get(),
+            'payment_methods' => PaymentMethod::query()->where('enabled', true)->get(),
+            'visit_outcomes' => VisitOutcome::query()->where('enabled', true)->get(),
+            'server_time' => now()->toIso8601String(),
+        ];
+    }
+
+    private function currentRoute(Driver $driver, string $today): ?Route
+    {
+        return Route::query()
+            ->where('assigned_driver_id', $driver->id)
+            ->where(function ($query) use ($today): void {
+                $query->whereDate('date', $today)->orWhere('status', 'IN_PROGRESS');
+            })
+            ->orderByRaw('CASE WHEN status = ? THEN 1 WHEN date = ? THEN 2 ELSE 3 END', ['IN_PROGRESS', $today])
+            ->first();
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function stops(Route $route): array
+    {
+        return $route->stops()
+            ->with(['visit', 'rescheduledTo'])
+            ->orderBy('id')
+            ->get()
+            ->map(fn (RouteStop $stop): array => [
+                'id' => $stop->id,
+                'route_id' => $stop->route_id,
+                'customer_id' => $stop->customer_id,
+                'address_id' => $stop->address_id,
+                'scheduled_time' => $stop->scheduled_time,
+                'is_rescheduled_from' => $stop->is_rescheduled_from,
+                'status' => $this->stopStatus($stop),
+                'enabled' => $stop->enabled,
+            ])
+            ->all();
+    }
+
+    private function stopStatus(RouteStop $stop): string
+    {
+        if ($stop->rescheduledTo !== null) {
+            return 'RESCHEDULED';
+        }
+
+        return $stop->visit->status ?? 'PENDING';
+    }
+
+    /**
+     * @return Collection<int, Customer>
+     */
+    private function customers(Driver $driver, string $today): Collection
+    {
+        return Customer::query()
+            ->where('driver_id', $driver->id)
+            ->where('enabled', true)
+            ->with([
+                'addresses',
+                'preferences',
+                'agreements' => fn ($query) => $query->active($today),
+                'balance',
+                'containerBalances',
+            ])
+            ->get();
+    }
+}
