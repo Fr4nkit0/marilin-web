@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-#[Fillable(['route_id', 'customer_id', 'address_id', 'is_rescheduled_from', 'enabled'])]
+#[Fillable(['route_id', 'customer_id', 'address_id', 'is_rescheduled_from', 'scheduled_time', 'enabled'])]
 class RouteStop extends Model
 {
     /** @use HasFactory<RouteStopFactory> */
@@ -56,6 +56,18 @@ class RouteStop extends Model
     public function visits(): HasMany
     {
         return $this->hasMany(Visit::class);
+    }
+
+    /**
+     * Status derived from the stop's visit and its reschedule link.
+     */
+    public function effectiveStatus(): string
+    {
+        if ($this->rescheduledTo !== null) {
+            return 'RESCHEDULED';
+        }
+
+        return $this->visit->status ?? 'PENDING';
     }
 
     public function scopeEnabled($query)

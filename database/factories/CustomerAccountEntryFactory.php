@@ -4,8 +4,6 @@ namespace Database\Factories;
 
 use App\Models\Customer;
 use App\Models\CustomerAccountEntry;
-use App\Models\Payment;
-use App\Models\Sale;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 

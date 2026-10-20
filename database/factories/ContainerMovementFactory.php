@@ -6,7 +6,6 @@ use App\Models\ContainerMovement;
 use App\Models\ContainerType;
 use App\Models\Customer;
 use App\Models\User;
-use App\Models\Visit;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

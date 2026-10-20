@@ -2,9 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ContainerType;
 use App\Models\Customer;
+use App\Models\CustomerAccountEntry;
+use App\Models\CustomerAddress;
+use App\Models\CustomerBalance;
+use App\Models\CustomerContainerBalance;
 use App\Models\Driver;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -128,7 +134,7 @@ class CustomerController extends Controller
             'sifon_2l_balance' => 'nullable|integer|min:0',
         ]);
 
-        \Illuminate\Support\Facades\DB::transaction(function () use ($validated, $request) {
+        DB::transaction(function () use ($validated, $request) {
             $user = $request->user();
 
             $customer = Customer::create([
@@ -140,7 +146,7 @@ class CustomerController extends Controller
             ]);
 
             // Address
-            \App\Models\CustomerAddress::create([
+            CustomerAddress::create([
                 'customer_id' => $customer->id,
                 'street' => $validated['street'],
                 'apartment' => $validated['apartment'] ?? null,
@@ -152,7 +158,7 @@ class CustomerController extends Controller
 
             // Customer Balance
             $initialDebt = (float) ($validated['initial_balance'] ?? 0);
-            \App\Models\CustomerBalance::create([
+            CustomerBalance::create([
                 'customer_id' => $customer->id,
                 'current_balance' => $initialDebt,
                 'created_by' => $user->id,
@@ -160,7 +166,7 @@ class CustomerController extends Controller
             ]);
 
             if ($initialDebt > 0) {
-                \App\Models\CustomerAccountEntry::create([
+                CustomerAccountEntry::create([
                     'customer_id' => $customer->id,
                     'entry_type' => 'ADJUSTMENT',
                     'direction' => 1,
@@ -171,9 +177,9 @@ class CustomerController extends Controller
             }
 
             // Container Balances (20L and Sifon)
-            $bidonType = \App\Models\ContainerType::where('code', 'BIDON_20L')->first();
+            $bidonType = ContainerType::where('code', 'BIDON_20L')->first();
             if ($bidonType && isset($validated['bidon_20l_balance']) && (int) $validated['bidon_20l_balance'] > 0) {
-                \App\Models\CustomerContainerBalance::create([
+                CustomerContainerBalance::create([
                     'customer_id' => $customer->id,
                     'container_type_id' => $bidonType->id,
                     'balance' => (int) $validated['bidon_20l_balance'],
@@ -182,9 +188,9 @@ class CustomerController extends Controller
                 ]);
             }
 
-            $sifonType = \App\Models\ContainerType::where('code', 'SIFON_2L')->first();
+            $sifonType = ContainerType::where('code', 'SIFON_2L')->first();
             if ($sifonType && isset($validated['sifon_2l_balance']) && (int) $validated['sifon_2l_balance'] > 0) {
-                \App\Models\CustomerContainerBalance::create([
+                CustomerContainerBalance::create([
                     'customer_id' => $customer->id,
                     'container_type_id' => $sifonType->id,
                     'balance' => (int) $validated['sifon_2l_balance'],
@@ -211,7 +217,7 @@ class CustomerController extends Controller
             'visual_reference' => 'nullable|string|max:500',
         ]);
 
-        \Illuminate\Support\Facades\DB::transaction(function () use ($validated, $request, $customer) {
+        DB::transaction(function () use ($validated, $request, $customer) {
             $user = $request->user();
 
             $customer->update([
@@ -230,7 +236,7 @@ class CustomerController extends Controller
                     'last_modified_by' => $user->id,
                 ]);
             } else {
-                \App\Models\CustomerAddress::create([
+                CustomerAddress::create([
                     'customer_id' => $customer->id,
                     'street' => $validated['street'],
                     'apartment' => $validated['apartment'] ?? null,

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Driver;
-use App\Models\Route as DeliveryRoute;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -24,42 +23,42 @@ class DriverController extends Controller
             'routes' => fn ($q) => $q->whereDate('date', $date)
                 ->with(['stops.customer.primaryAddress', 'stops.visit', 'inventoryLoads.product', 'inventories.product']),
         ])
-        ->where('enabled', true)
-        ->get()
-        ->map(function ($driver) use ($date) {
-            $todayRoute = $driver->routes->first();
+            ->where('enabled', true)
+            ->get()
+            ->map(function ($driver) {
+                $todayRoute = $driver->routes->first();
 
-            $totalStops = $todayRoute ? $todayRoute->stops->count() : 0;
-            $completedStops = $todayRoute ? $todayRoute->stops->filter(
-                fn ($s) => $s->visit && in_array($s->visit->status, ['FINISHED', 'DELIVERED', 'COMPLETED'])
-            )->count() : 0;
+                $totalStops = $todayRoute ? $todayRoute->stops->count() : 0;
+                $completedStops = $todayRoute ? $todayRoute->stops->filter(
+                    fn ($s) => $s->visit && in_array($s->visit->status, ['FINISHED', 'DELIVERED', 'COMPLETED'])
+                )->count() : 0;
 
-            $progress = $totalStops > 0 ? round(($completedStops / $totalStops) * 100) : 0;
+                $progress = $totalStops > 0 ? round(($completedStops / $totalStops) * 100) : 0;
 
-            $routeData = $todayRoute ? [
-                'id' => $todayRoute->id,
-                'status' => $todayRoute->status,
-                'startedAt' => $todayRoute->started_at?->format('H:i'),
-                'completedAt' => $todayRoute->completed_at?->format('H:i'),
-                'totalStops' => $totalStops,
-                'completedStops' => $completedStops,
-                'progressPercent' => $progress,
-                'truckLoads' => $todayRoute->inventoryLoads->map(fn ($l) => [
-                    'product' => $l->product?->name,
-                    'quantity' => (float) $l->quantity,
-                ]),
-            ] : null;
+                $routeData = $todayRoute ? [
+                    'id' => $todayRoute->id,
+                    'status' => $todayRoute->status,
+                    'startedAt' => $todayRoute->started_at?->format('H:i'),
+                    'completedAt' => $todayRoute->completed_at?->format('H:i'),
+                    'totalStops' => $totalStops,
+                    'completedStops' => $completedStops,
+                    'progressPercent' => $progress,
+                    'truckLoads' => $todayRoute->inventoryLoads->map(fn ($l) => [
+                        'product' => $l->product?->name,
+                        'quantity' => (float) $l->quantity,
+                    ]),
+                ] : null;
 
-            return [
-                'id' => $driver->id,
-                'name' => $driver->user?->name ?? 'Sin nombre',
-                'phone_number' => $driver->user?->phone_number,
-                'email' => $driver->user?->email,
-                'totalCustomers' => $driver->customers->count(),
-                'currentRoute' => $routeData,
-                'todayRoute' => $routeData,
-            ];
-        });
+                return [
+                    'id' => $driver->id,
+                    'name' => $driver->user?->name ?? 'Sin nombre',
+                    'phone_number' => $driver->user?->phone_number,
+                    'email' => $driver->user?->email,
+                    'totalCustomers' => $driver->customers->count(),
+                    'currentRoute' => $routeData,
+                    'todayRoute' => $routeData,
+                ];
+            });
 
         return Inertia::render('Drivers/Index', [
             'repartidores' => $drivers,

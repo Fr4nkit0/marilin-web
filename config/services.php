@@ -35,4 +35,16 @@ return [
         ],
     ],
 
+    'osrm' => [
+        'url' => env('OSRM_URL', 'https://router.project-osrm.org'),
+    ],
+
+    'nominatim' => [
+        'url' => env('NOMINATIM_URL', 'https://nominatim.openstreetmap.org'),
+    ],
+
+    'map' => [
+        'cache_store' => env('MAP_CACHE_STORE'),
+    ],
+
 ];

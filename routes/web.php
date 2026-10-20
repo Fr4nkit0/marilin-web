@@ -1,6 +1,13 @@
 <?php
 
+use App\Http\Controllers\CashCloseController;
+use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DriverController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RouteController;
+use App\Http\Controllers\SaleController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -14,7 +21,7 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/dashboard', \App\Http\Controllers\DashboardController::class)
+Route::get('/dashboard', DashboardController::class)
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
@@ -24,30 +31,30 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // Clientes
-    Route::get('/customers', [\App\Http\Controllers\CustomerController::class, 'index'])->name('customers.index');
-    Route::post('/customers', [\App\Http\Controllers\CustomerController::class, 'store'])->name('customers.store');
-    Route::put('/customers/{customer}', [\App\Http\Controllers\CustomerController::class, 'update'])->name('customers.update');
-    Route::get('/customers/{customer}', [\App\Http\Controllers\CustomerController::class, 'show'])->name('customers.show');
+    Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
+    Route::post('/customers', [CustomerController::class, 'store'])->name('customers.store');
+    Route::put('/customers/{customer}', [CustomerController::class, 'update'])->name('customers.update');
+    Route::get('/customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
 
     // Choferes / Drivers
-    Route::get('/drivers', [\App\Http\Controllers\DriverController::class, 'index'])->name('drivers.index');
-    Route::get('/drivers/{repartidor}', [\App\Http\Controllers\DriverController::class, 'show'])->name('drivers.show');
+    Route::get('/drivers', [DriverController::class, 'index'])->name('drivers.index');
+    Route::get('/drivers/{repartidor}', [DriverController::class, 'show'])->name('drivers.show');
 
     // Redirección de compatibilidad para /repartidores
     Route::get('/repartidores', fn () => redirect()->route('drivers.index'))->name('repartidores.index');
     Route::get('/repartidores/{repartidor}', fn ($repartidor) => redirect()->route('drivers.show', $repartidor))->name('repartidores.show');
 
     // Despacho y Rutas
-    Route::get('/routes', [\App\Http\Controllers\RouteController::class, 'index'])->name('routes.index');
+    Route::get('/routes', [RouteController::class, 'index'])->name('routes.index');
 
     // Ventas
-    Route::get('/sales', [\App\Http\Controllers\SaleController::class, 'index'])->name('sales.index');
+    Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
 
     // Cobros
-    Route::get('/payments', [\App\Http\Controllers\PaymentController::class, 'index'])->name('payments.index');
+    Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
 
     // Cierre de Caja / Arqueo
-    Route::get('/cash-close', [\App\Http\Controllers\CashCloseController::class, 'index'])->name('cash-close.index');
+    Route::get('/cash-close', [CashCloseController::class, 'index'])->name('cash-close.index');
 });
 
 require __DIR__.'/auth.php';

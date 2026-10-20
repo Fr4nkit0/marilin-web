@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-#[Fillable(['driver_id', 'name', 'phone_number', 'created_by', 'last_modified_by', 'enabled'])]
+#[Fillable(['driver_id', 'client_uuid', 'name', 'phone_number', 'created_by', 'last_modified_by', 'enabled'])]
 class Customer extends Model
 {
     /** @use HasFactory<CustomerFactory> */
