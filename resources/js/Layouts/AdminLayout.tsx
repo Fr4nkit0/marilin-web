@@ -9,6 +9,7 @@ import {
     CircleDollarSign,
     Package,
     SlidersHorizontal,
+    Tag,
     LogOut,
     Menu,
     X,
@@ -79,6 +80,12 @@ export default function AdminLayout({
         },
         ...(user.is_super_user
             ? [
+                  {
+                      name: 'Productos',
+                      href: route('products.index'),
+                      icon: Tag,
+                      active: route().current('products.*') || false,
+                  },
                   {
                       name: 'Revisión',
                       href: route('review.index'),

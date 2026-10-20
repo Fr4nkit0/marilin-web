@@ -89,6 +89,15 @@ test('push accepts a sale with its details, unit prices and the date the app set
         ->and((float) $sale->details()->where('product_id', $this->water->id)->firstOrFail()->unit_price)->toBe(700.0);
 });
 
+test('push keeps the unit price the app sent even when it differs from the list price', function (): void {
+    $this->water->update(['price' => 950]);
+
+    push(['sales' => [salePayload()]])->assertOk()->assertJsonPath('data.sales.0.status', 'accepted');
+
+    $detail = Sale::query()->latest('id')->firstOrFail()->details()->where('product_id', $this->water->id)->firstOrFail();
+    expect((float) $detail->unit_price)->toBe(700.0);
+});
+
 test('push books an account entry for an accepted sale, raises the customer balance and discounts the route inventory by product', function (): void {
     CustomerBalance::factory()->create(['customer_id' => $this->customer->id, 'current_balance' => 1000]);
     $payload = salePayload();

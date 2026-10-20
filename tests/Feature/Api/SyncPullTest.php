@@ -71,6 +71,21 @@ test('pull returns the address floor as text', function (): void {
         ->and($addresses[$numeric->id]['floor'])->toBe('3');
 });
 
+test('pull returns the list price of products and a price change travels in the next pull', function (): void {
+    $product = Product::factory()->create(['price' => 800, 'updated_at' => now()->subDays(3)]);
+
+    $first = $this->getJson('/api/v1/sync/pull')->assertOk();
+    expect(collect($first->json('data.products'))->firstWhere('id', $product->id)['price'])->toBe('800.00');
+
+    $this->travel(5)->minutes();
+    $product->update(['price' => 875.25]);
+
+    $next = $this->getJson('/api/v1/sync/pull?cursor='.urlencode($first->json('meta.cursor')))->assertOk();
+
+    expect(pullIds($next->json(), 'products'))->toBe([$product->id])
+        ->and($next->json('data.products.0.price'))->toBe('875.25');
+});
+
 test('pull does not expose data of another driver', function (): void {
     $other = Driver::factory()->create(['enabled' => true]);
     Customer::factory()->create(['driver_id' => $other->id]);
