@@ -15,7 +15,7 @@ Branch: feat/1-mobile-sync. Delivery: ask-on-risk. Tests: Pest (`./vendor/bin/sa
 
 ## Tasks
 
-- [ ] T1 S7 — inline
+- [x] T1 S7 — inline — 584bb12
 - [ ] T2 S2 S3 S4 — inline
 - [ ] T3 S1 — inline
 - [ ] T4 S5 S6 — inline
