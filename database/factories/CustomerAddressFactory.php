@@ -20,7 +20,7 @@ class CustomerAddressFactory extends Factory
             'customer_id' => Customer::factory(),
             'street' => fake()->streetAddress(),
             'apartment' => fake()->optional()->buildingNumber(),
-            'floor' => fake()->optional()->numberBetween(1, 15),
+            'floor' => fake()->optional()->randomElement(['PB', '1', '2', '3B', '10']),
             'visual_reference' => fake()->optional()->sentence(),
             'neighborhood' => fake()->optional()->citySuffix(),
             'latitude' => fake()->latitude(-34.7, -34.5),

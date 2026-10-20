@@ -26,7 +26,7 @@ interface Props {
         primary_address?: {
             street: string;
             apartment?: string;
-            floor?: number;
+            floor?: string;
             visual_reference?: string;
             latitude?: number;
             longitude?: number;
@@ -143,6 +143,7 @@ export default function CustomerShow({ customer, accountEntries, containerMoveme
                                         <MapPin className="w-4 h-4 text-slate-400" />
                                         <span>
                                             {customer.primary_address.street}
+                                            {customer.primary_address.floor && ` (Piso ${customer.primary_address.floor})`}
                                             {customer.primary_address.apartment && ` (Depto ${customer.primary_address.apartment})`}
                                             {customer.primary_address.visual_reference && ` - ${customer.primary_address.visual_reference}`}
                                         </span>

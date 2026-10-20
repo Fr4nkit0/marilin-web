@@ -46,7 +46,7 @@ test('bootstrap returns the full day of the authenticated driver', function (): 
     $disabledProduct = Product::factory()->create(['enabled' => false]);
 
     $customer = Customer::factory()->create(['driver_id' => $driver->id, 'enabled' => true]);
-    $address = CustomerAddress::factory()->create(['customer_id' => $customer->id]);
+    $address = CustomerAddress::factory()->create(['customer_id' => $customer->id, 'floor' => 'PB']);
     CustomerBalance::factory()->create(['customer_id' => $customer->id, 'current_balance' => 1500.50]);
     CustomerContainerBalance::factory()->create([
         'customer_id' => $customer->id,
@@ -104,6 +104,7 @@ test('bootstrap returns the full day of the authenticated driver', function (): 
     $payload = $customers[0];
     expect($payload['id'])->toBe($customer->id)
         ->and($payload['addresses'])->toHaveCount(1)
+        ->and($payload['addresses'][0]['floor'])->toBe('PB')
         ->and($payload)->toHaveKey('preferences')
         ->and(collect($payload['agreements'])->pluck('id')->all())->toBe([$current->id])
         ->and($payload['balance']['current_balance'])->toEqual('1500.50')

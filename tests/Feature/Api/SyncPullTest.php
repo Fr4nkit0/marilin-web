@@ -60,6 +60,17 @@ test('pull returns only records changed after the cursor, disabled ones included
         ->and(collect($response->json('data.customers'))->pluck('id'))->not->toContain($old->id);
 });
 
+test('pull returns the address floor as text', function (): void {
+    $customer = Customer::factory()->create(['driver_id' => $this->driver->id]);
+    $text = CustomerAddress::factory()->create(['customer_id' => $customer->id, 'floor' => 'PB']);
+    $numeric = CustomerAddress::factory()->create(['customer_id' => $customer->id, 'floor' => '3']);
+
+    $addresses = collect($this->getJson('/api/v1/sync/pull')->assertOk()->json('data.customer_addresses'))->keyBy('id');
+
+    expect($addresses[$text->id]['floor'])->toBe('PB')
+        ->and($addresses[$numeric->id]['floor'])->toBe('3');
+});
+
 test('pull does not expose data of another driver', function (): void {
     $other = Driver::factory()->create(['enabled' => true]);
     Customer::factory()->create(['driver_id' => $other->id]);

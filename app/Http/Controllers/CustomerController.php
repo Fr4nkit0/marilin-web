@@ -128,6 +128,7 @@ class CustomerController extends Controller
             'repartidor_id' => 'nullable|exists:drivers,id',
             'street' => 'required|string|max:200',
             'apartment' => 'nullable|string|max:20',
+            'floor' => 'nullable|string|max:20',
             'visual_reference' => 'nullable|string|max:500',
             'initial_balance' => 'nullable|numeric|min:0',
             'bidon_20l_balance' => 'nullable|integer|min:0',
@@ -150,6 +151,7 @@ class CustomerController extends Controller
                 'customer_id' => $customer->id,
                 'street' => $validated['street'],
                 'apartment' => $validated['apartment'] ?? null,
+                'floor' => $validated['floor'] ?? null,
                 'visual_reference' => $validated['visual_reference'] ?? null,
                 'is_primary' => true,
                 'created_by' => $user->id,
@@ -214,6 +216,7 @@ class CustomerController extends Controller
             'repartidor_id' => 'nullable|exists:drivers,id',
             'street' => 'required|string|max:200',
             'apartment' => 'nullable|string|max:20',
+            'floor' => 'nullable|string|max:20',
             'visual_reference' => 'nullable|string|max:500',
         ]);
 
@@ -232,6 +235,7 @@ class CustomerController extends Controller
                 $primaryAddress->update([
                     'street' => $validated['street'],
                     'apartment' => $validated['apartment'] ?? null,
+                    'floor' => $validated['floor'] ?? null,
                     'visual_reference' => $validated['visual_reference'] ?? null,
                     'last_modified_by' => $user->id,
                 ]);
@@ -240,6 +244,7 @@ class CustomerController extends Controller
                     'customer_id' => $customer->id,
                     'street' => $validated['street'],
                     'apartment' => $validated['apartment'] ?? null,
+                    'floor' => $validated['floor'] ?? null,
                     'visual_reference' => $validated['visual_reference'] ?? null,
                     'is_primary' => true,
                     'created_by' => $user->id,

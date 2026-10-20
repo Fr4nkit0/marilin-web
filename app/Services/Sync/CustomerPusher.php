@@ -169,7 +169,7 @@ class CustomerPusher extends EntityPusher
             'address' => ['required', 'array'],
             'address.street' => ['required', 'string'],
             'address.apartment' => ['nullable', 'string'],
-            'address.floor' => ['nullable', 'integer'],
+            'address.floor' => ['nullable', 'string', 'max:20'],
             'address.visual_reference' => ['nullable', 'string'],
             'address.neighborhood' => ['nullable', 'string'],
             'address.latitude' => ['nullable', 'numeric', 'between:-90,90'],
