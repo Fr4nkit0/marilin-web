@@ -29,7 +29,7 @@ class BootstrapService
         return [
             'route' => $route,
             'stops' => $route === null ? [] : $this->stops($route),
-            'truck_inventory' => $route === null ? [] : $route->inventories()->get(),
+            'truck_inventory' => $route === null ? [] : $route->inventories()->with('product')->get(),
             'customers' => $this->customers($driver, $today),
             'products' => Product::query()->where('enabled', true)->get(),
             'container_types' => ContainerType::query()->where('enabled', true)->get(),
@@ -56,7 +56,11 @@ class BootstrapService
     private function stops(Route $route): array
     {
         return $route->stops()
+            ->whereHas('customer', fn ($query) => $query
+                ->where('driver_id', $route->assigned_driver_id)
+                ->where('enabled', true))
             ->with(['visit', 'rescheduledTo'])
+            ->orderByRaw('scheduled_time asc nulls first')
             ->orderBy('id')
             ->get()
             ->map(fn (RouteStop $stop): array => [
@@ -92,9 +96,9 @@ class BootstrapService
             ->with([
                 'addresses',
                 'preferences',
-                'agreements' => fn ($query) => $query->active($today),
+                'agreements' => fn ($query) => $query->active($today)->with('product'),
                 'balance',
-                'containerBalances',
+                'containerBalances.containerType',
             ])
             ->get();
     }

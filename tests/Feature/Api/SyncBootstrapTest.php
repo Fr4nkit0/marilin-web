@@ -107,6 +107,9 @@ test('bootstrap returns the full day of the authenticated driver', function (): 
         ->and(collect($payload['agreements'])->pluck('id')->all())->toBe([$current->id])
         ->and($payload['balance']['current_balance'])->toEqual('1500.50')
         ->and($payload['container_balances'][0]['balance'])->toBe(4)
+        ->and($payload['container_balances'][0]['container_type']['id'])->toBe($containerType->id)
+        ->and($payload['agreements'][0]['product']['id'])->toBe($product->id)
+        ->and($response->json('data.truck_inventory.0.product.id'))->toBe($product->id)
         ->and(collect($payload['agreements'])->pluck('id'))->not->toContain($expired->id);
 });
 
@@ -142,4 +145,23 @@ test('bootstrap prefers the in-progress route over today planned route', functio
     $this->getJson('/api/v1/sync/bootstrap')
         ->assertOk()
         ->assertJsonPath('data.route.id', $inProgress->id);
+});
+
+test('bootstrap orders stops by scheduled time and omits stops of customers no longer assigned', function (): void {
+    [$user, $driver, $route] = driverWithToday();
+    Sanctum::actingAs($user, ['*']);
+
+    $customer = Customer::factory()->create(['driver_id' => $driver->id, 'enabled' => true]);
+    $late = RouteStop::factory()->create(['route_id' => $route->id, 'customer_id' => $customer->id, 'scheduled_time' => '17:00:00']);
+    $early = RouteStop::factory()->create(['route_id' => $route->id, 'customer_id' => $customer->id, 'scheduled_time' => '09:00:00']);
+    $unscheduled = RouteStop::factory()->create(['route_id' => $route->id, 'customer_id' => $customer->id]);
+
+    $disabled = Customer::factory()->create(['driver_id' => $driver->id, 'enabled' => false]);
+    RouteStop::factory()->create(['route_id' => $route->id, 'customer_id' => $disabled->id]);
+    $reassigned = Customer::factory()->create(['driver_id' => Driver::factory()->create()->id, 'enabled' => true]);
+    RouteStop::factory()->create(['route_id' => $route->id, 'customer_id' => $reassigned->id]);
+
+    $ids = collect($this->getJson('/api/v1/sync/bootstrap')->assertOk()->json('data.stops'))->pluck('id')->all();
+
+    expect($ids)->toBe([$unscheduled->id, $early->id, $late->id]);
 });
