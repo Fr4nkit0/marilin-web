@@ -109,7 +109,7 @@ test('the system card shows each driver last app sync and flags a route in progr
             $sync = collect($page->toArray()['props']['metrics']['sync'])->keyBy('name');
         });
 
-    expect($sync['Juan Pérez'])->toMatchArray(['lastSyncAt' => '2026-10-20T17:56:00+00:00', 'onRoute' => true, 'stale' => false])
-        ->and($sync['Esteban Benítez'])->toMatchArray(['lastSyncAt' => '2026-10-20T17:15:00+00:00', 'onRoute' => true, 'stale' => true])
+    expect($sync['Juan Pérez'])->toMatchArray(['lastSyncAt' => '2026-10-20T17:56:00-03:00', 'onRoute' => true, 'stale' => false])
+        ->and($sync['Esteban Benítez'])->toMatchArray(['lastSyncAt' => '2026-10-20T17:15:00-03:00', 'onRoute' => true, 'stale' => true])
         ->and($sync['Carlos Gómez'])->toMatchArray(['lastSyncAt' => null, 'onRoute' => false, 'stale' => false]);
 });

@@ -12,7 +12,7 @@ use App\Models\Sale;
 use App\Models\User;
 use App\Models\Visit;
 use App\Services\CustomerLedger;
-use Illuminate\Support\Carbon;
+use App\Support\ClientTime;
 
 class SalePusher extends EntityPusher
 {
@@ -55,7 +55,7 @@ class SalePusher extends EntityPusher
             'client_uuid' => $record['uuid'],
             'customer_id' => $customer->id,
             'visit_id' => $visit?->id,
-            'date' => Carbon::parse($record['date']),
+            'date' => ClientTime::parse($record['date']),
             'total' => $record['total'],
             'status' => 'confirmed',
             'is_credit_sale' => (bool) ($record['is_credit_sale'] ?? false),

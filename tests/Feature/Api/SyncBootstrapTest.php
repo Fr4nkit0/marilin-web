@@ -150,6 +150,24 @@ test('bootstrap returns today route even when an older route is still in progres
         ->assertJsonPath('data.route.id', $today->id);
 });
 
+test('bootstrap uses the Argentine day, so a late sync still gets that day route', function (): void {
+    // 01:30 UTC on the 22nd is 22:30 on the 21st in Argentina.
+    $this->travelTo(Carbon::parse('2026-10-22 01:30:00', 'UTC'));
+    $user = User::factory()->create(['enabled' => true]);
+    $driver = Driver::factory()->create(['user_id' => $user->id, 'enabled' => true]);
+    $route = Route::factory()->create([
+        'assigned_driver_id' => $driver->id,
+        'date' => '2026-10-21',
+        'status' => 'IN_PROGRESS',
+    ]);
+    Sanctum::actingAs($user, ['*']);
+
+    expect(config('app.timezone'))->toBe('America/Argentina/Buenos_Aires');
+    $this->getJson('/api/v1/sync/bootstrap')
+        ->assertOk()
+        ->assertJsonPath('data.route.id', $route->id);
+});
+
 test('bootstrap sends no route when the only open one is from another day', function (): void {
     $user = User::factory()->create(['enabled' => true]);
     $driver = Driver::factory()->create(['user_id' => $user->id, 'enabled' => true]);
