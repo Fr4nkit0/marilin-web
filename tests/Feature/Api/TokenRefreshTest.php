@@ -130,6 +130,22 @@ test('logout revokes the access token and its refresh token', function (): void 
     $this->postJson('/api/v1/auth/refresh', [], bearer($tokens['refresh_token']))->assertUnauthorized();
 });
 
+test('refreshing or logging out on one phone keeps the session of another phone with the same name', function (): void {
+    $phoneA = loginTokens();
+    $phoneB = loginTokens();
+
+    $refreshedA = $this->postJson('/api/v1/auth/refresh', [], bearer($phoneA['refresh_token']))->assertOk()->json('data');
+    app('auth')->forgetGuards();
+    $this->getJson('/api/v1/auth/me', bearer($phoneB['token']))->assertOk();
+    app('auth')->forgetGuards();
+
+    $this->postJson('/api/v1/auth/logout', [], bearer($refreshedA['token']))->assertOk();
+    app('auth')->forgetGuards();
+
+    $this->postJson('/api/v1/auth/refresh', [], bearer($phoneB['refresh_token']))->assertOk();
+    expect($this->user->tokens()->count())->toBe(2);
+});
+
 test('a token issued before expiring tokens existed keeps working', function (): void {
     $legacy = $this->user->createToken('old-phone')->plainTextToken;
 

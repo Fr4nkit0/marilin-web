@@ -15,6 +15,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\Exceptions\MissingAbilityException;
 use Laravel\Sanctum\PersonalAccessToken;
@@ -51,9 +52,12 @@ class AuthController extends Controller
             ? $request->string('device_name')->toString()
             : 'mobile-driver';
 
+        // Phones often share a device name, so each login gets its own session name; refresh and logout only touch it.
+        $sessionName = $deviceName.' #'.Str::ulid();
+
         return response()->json([
             'data' => [
-                ...$issueTokens->execute($user, $deviceName),
+                ...$issueTokens->execute($user, $sessionName),
                 'user' => new UserResource($user),
             ],
             'message' => 'Login successful',

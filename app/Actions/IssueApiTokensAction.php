@@ -8,22 +8,22 @@ use App\Auth\ApiToken;
 use App\Models\User;
 
 /**
- * Issues the access and refresh tokens of one device, both named after it.
+ * Issues the access and refresh tokens of one login session, both named after it.
  */
 final class IssueApiTokensAction
 {
     /**
      * @return array{token: string, expires_at: string, refresh_token: string, refresh_expires_at: string}
      */
-    public function execute(User $user, string $deviceName): array
+    public function execute(User $user, string $sessionName): array
     {
         $access = $user->createToken(
-            $deviceName,
+            $sessionName,
             [ApiToken::ACCESS],
             now()->addMinutes((int) config('sanctum.access_token_ttl')),
         );
         $refresh = $user->createToken(
-            $deviceName,
+            $sessionName,
             [ApiToken::REFRESH],
             now()->addMinutes((int) config('sanctum.refresh_token_ttl')),
         );
