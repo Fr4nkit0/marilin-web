@@ -119,6 +119,18 @@ test('a user disabled while logged in is logged out on the next request', functi
     $this->assertGuest();
 });
 
+test('a disabled user whose next request is an Inertia form send is redirected with 303', function (): void {
+    $this->actingAs($this->user);
+    $this->user->update(['enabled' => false]);
+
+    $this->patch(route('profile.update'), ['name' => 'X', 'email' => 'juan@marilin.com'], ['X-Inertia' => 'true'])
+        ->assertStatus(303)
+        ->assertRedirect(route('login'));
+
+    $this->assertGuest();
+    expect($this->user->fresh()->name)->not->toBe('X');
+});
+
 test('admin accounts cannot be disabled or have their password changed from the users screen', function (): void {
     $other = User::factory()->superUser()->create();
 

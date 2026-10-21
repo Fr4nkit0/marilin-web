@@ -25,7 +25,9 @@ class EnsureUserIsEnabled
             $request->session()->invalidate();
             $request->session()->regenerateToken();
 
-            return redirect()->route('login')->withErrors(['email' => self::MESSAGE]);
+            // 303 so a form sent with PATCH, PUT or DELETE lands on the login page with GET;
+            // this runs outside the Inertia middleware that would otherwise convert the 302.
+            return redirect()->route('login', status: 303)->withErrors(['email' => self::MESSAGE]);
         }
 
         return $next($request);
