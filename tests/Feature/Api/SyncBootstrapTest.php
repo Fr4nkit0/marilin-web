@@ -135,11 +135,11 @@ test('bootstrap does not expose another driver customers or route', function ():
         ->and($response->json('data.route.assigned_driver_id'))->not->toBe($otherDriver->id);
 });
 
-test('bootstrap prefers the in-progress route over today planned route', function (): void {
+test('bootstrap returns today route even when an older route is still in progress', function (): void {
     [$user, $driver, $today] = driverWithToday();
     Sanctum::actingAs($user, ['*']);
 
-    $inProgress = Route::factory()->create([
+    Route::factory()->create([
         'assigned_driver_id' => $driver->id,
         'date' => now()->subDay()->toDateString(),
         'status' => 'IN_PROGRESS',
@@ -147,7 +147,23 @@ test('bootstrap prefers the in-progress route over today planned route', functio
 
     $this->getJson('/api/v1/sync/bootstrap')
         ->assertOk()
-        ->assertJsonPath('data.route.id', $inProgress->id);
+        ->assertJsonPath('data.route.id', $today->id);
+});
+
+test('bootstrap sends no route when the only open one is from another day', function (): void {
+    $user = User::factory()->create(['enabled' => true]);
+    $driver = Driver::factory()->create(['user_id' => $user->id, 'enabled' => true]);
+    Route::factory()->create([
+        'assigned_driver_id' => $driver->id,
+        'date' => now()->subDay()->toDateString(),
+        'status' => 'IN_PROGRESS',
+    ]);
+    Sanctum::actingAs($user, ['*']);
+
+    $this->getJson('/api/v1/sync/bootstrap')
+        ->assertOk()
+        ->assertJsonPath('data.route', null)
+        ->assertJsonPath('data.stops', []);
 });
 
 test('bootstrap orders stops by scheduled time and omits stops of customers no longer assigned', function (): void {
