@@ -54,6 +54,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Mobile Token Lifetimes
+    |--------------------------------------------------------------------------
+    |
+    | Minutes the mobile app's access and refresh tokens stay valid. The app
+    | renews an expired access token with its refresh token, so the driver
+    | only logs in again after a refresh token expires or is revoked.
+    |
+    */
+
+    'access_token_ttl' => (int) env('SANCTUM_ACCESS_TOKEN_TTL', 60 * 24),
+
+    'refresh_token_ttl' => (int) env('SANCTUM_REFRESH_TOKEN_TTL', 60 * 24 * 30),
+
+    /*
+    |--------------------------------------------------------------------------
     | Token Prefix
     |--------------------------------------------------------------------------
     |
