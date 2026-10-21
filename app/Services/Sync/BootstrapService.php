@@ -17,7 +17,7 @@ use Illuminate\Database\Eloquent\Collection;
 class BootstrapService
 {
     /**
-     * Builds the full day of a driver: today's (or in-progress) route, assigned customers and catalogs.
+     * Builds the full day of a driver: today's route, assigned customers and catalogs.
      *
      * @return array<string, mixed>
      */
