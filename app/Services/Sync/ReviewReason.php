@@ -12,6 +12,7 @@ enum ReviewReason: string
     case ForeignCustomer = 'Customer is assigned to another driver.';
     case DisabledCustomer = 'Customer is disabled.';
     case UnvisitedRescheduledStop = 'Rescheduled stop ended its day without a visit.';
+    case UnvisitedStop = 'Stop ended its day without a visit.';
 
     /**
      * What the admin reads in the review inbox; the backing value is what gets stored.
@@ -22,6 +23,7 @@ enum ReviewReason: string
             self::ForeignCustomer => 'El cliente está asignado a otro repartidor.',
             self::DisabledCustomer => 'El cliente está dado de baja.',
             self::UnvisitedRescheduledStop => 'La parada reprogramada terminó el día sin visita.',
+            self::UnvisitedStop => 'La parada terminó el día sin visita.',
         };
     }
 }

@@ -128,7 +128,7 @@ test('push accepts a visit of the stop with its outcome, arrival time, position 
         ->and($visit->route_stop_id)->toBe($this->stop->id)
         ->and($visit->customer_id)->toBe($this->customer->id)
         ->and($visit->outcome_id)->toBe($payload['outcome_id'])
-        ->and($visit->arrived_at->toIso8601String())->toBe('2026-10-22T09:15:00+00:00')
+        ->and($visit->arrived_at->toIso8601String())->toBe('2026-10-22T06:15:00-03:00')
         ->and((float) $visit->latitude)->toBe(-24.7859)
         ->and($visit->notes)->toBe('Dejo agua en el patio')
         ->and($visit->created_by)->toBe($this->user->id);

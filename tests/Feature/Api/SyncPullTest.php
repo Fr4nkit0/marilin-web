@@ -60,6 +60,16 @@ test('pull returns only records changed after the cursor, disabled ones included
         ->and(collect($response->json('data.customers'))->pluck('id'))->not->toContain($old->id);
 });
 
+test('a cursor sent in UTC is read as the same instant in Argentine time', function (): void {
+    $this->travelTo('2026-10-22 12:00:00');
+    // 11:30 in Argentina is 14:30 UTC, after a cursor of 14:00 UTC.
+    $changed = Customer::factory()->create(['driver_id' => $this->driver->id, 'updated_at' => '2026-10-22 11:30:00']);
+
+    $response = $this->getJson('/api/v1/sync/pull?cursor='.urlencode('2026-10-22T14:00:00Z'))->assertOk();
+
+    expect(pullIds($response->json(), 'customers'))->toBe([$changed->id]);
+});
+
 test('pull returns the address floor as text', function (): void {
     $customer = Customer::factory()->create(['driver_id' => $this->driver->id]);
     $text = CustomerAddress::factory()->create(['customer_id' => $customer->id, 'floor' => 'PB']);

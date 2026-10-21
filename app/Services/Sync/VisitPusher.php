@@ -9,7 +9,7 @@ use App\Models\Driver;
 use App\Models\RouteStop;
 use App\Models\User;
 use App\Models\Visit;
-use Illuminate\Support\Carbon;
+use App\Support\ClientTime;
 
 class VisitPusher extends EntityPusher
 {
@@ -46,7 +46,7 @@ class VisitPusher extends EntityPusher
             'customer_id' => $customer->id,
             'driver_id' => $driver->id,
             'outcome_id' => $record['outcome_id'] ?? null,
-            'arrived_at' => Carbon::parse($record['arrived_at']),
+            'arrived_at' => ClientTime::parse($record['arrived_at']),
             'latitude' => $record['latitude'] ?? null,
             'longitude' => $record['longitude'] ?? null,
             'altitude' => $record['altitude'] ?? null,

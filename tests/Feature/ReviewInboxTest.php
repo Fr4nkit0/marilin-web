@@ -190,7 +190,7 @@ test('marking a :type as reviewed saves who and when and takes it out of the pen
 
     $record->refresh();
 
-    expect($record->reviewed_at->toIso8601String())->toBe('2026-10-23T12:00:00+00:00')
+    expect($record->reviewed_at->toIso8601String())->toBe('2026-10-23T12:00:00-03:00')
         ->and($record->reviewed_by)->toBe($this->admin->id)
         ->and($record->needs_review)->toBeTrue()
         ->and($other->fresh()->reviewed_at)->toBeNull()
@@ -240,7 +240,7 @@ test('a record that was already reviewed keeps its first reviewer and date', fun
     $this->patch("/review/sale/{$record->id}")->assertNotFound();
 
     expect($record->fresh()->reviewed_by)->toBe($this->admin->id)
-        ->and($record->fresh()->reviewed_at->toIso8601String())->toBe('2026-10-23T12:00:00+00:00');
+        ->and($record->fresh()->reviewed_at->toIso8601String())->toBe('2026-10-23T12:00:00-03:00');
 });
 
 test('a customer of another driver edited through the push shows up in the inbox', function (): void {

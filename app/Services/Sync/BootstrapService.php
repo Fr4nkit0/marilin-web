@@ -17,7 +17,7 @@ use Illuminate\Database\Eloquent\Collection;
 class BootstrapService
 {
     /**
-     * Builds the full day of a driver: today's (or in-progress) route, assigned customers and catalogs.
+     * Builds the full day of a driver: today's route, assigned customers and catalogs.
      *
      * @return array<string, mixed>
      */
@@ -41,12 +41,11 @@ class BootstrapService
 
     private function currentRoute(Driver $driver, string $today): ?Route
     {
+        // Only today's route: the app shows the day's route, and stops left unvisited on
+        // earlier days go to the review inbox (review:flag-unvisited-stops).
         return Route::query()
             ->where('assigned_driver_id', $driver->id)
-            ->where(function ($query) use ($today): void {
-                $query->whereDate('date', $today)->orWhere('status', 'IN_PROGRESS');
-            })
-            ->orderByRaw('CASE WHEN status = ? THEN 1 WHEN date = ? THEN 2 ELSE 3 END', ['IN_PROGRESS', $today])
+            ->whereDate('date', $today)
             ->first();
     }
 

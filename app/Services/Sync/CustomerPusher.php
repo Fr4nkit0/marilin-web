@@ -8,6 +8,7 @@ use App\Models\Customer;
 use App\Models\CustomerAddress;
 use App\Models\Driver;
 use App\Models\User;
+use App\Support\ClientTime;
 use Illuminate\Support\Carbon;
 
 class CustomerPusher extends EntityPusher
@@ -135,7 +136,7 @@ class CustomerPusher extends EntityPusher
      */
     private function modifiedAt(array $record): Carbon
     {
-        return Carbon::parse($record['modified_at'])->min(now());
+        return ClientTime::parse($record['modified_at'])->min(now());
     }
 
     /**

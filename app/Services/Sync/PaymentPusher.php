@@ -12,7 +12,7 @@ use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Visit;
 use App\Services\CustomerLedger;
-use Illuminate\Support\Carbon;
+use App\Support\ClientTime;
 
 class PaymentPusher extends EntityPusher
 {
@@ -57,7 +57,7 @@ class PaymentPusher extends EntityPusher
             'payment_method_id' => $record['payment_method_id'],
             'amount' => $record['amount'],
             'received_by' => $user->id,
-            'paid_at' => Carbon::parse($record['paid_at']),
+            'paid_at' => ClientTime::parse($record['paid_at']),
             'status' => 'CONFIRMED',
             ...$this->reviewAttributes($reason),
         ]);

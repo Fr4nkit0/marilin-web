@@ -125,7 +125,7 @@ test('push does not overwrite a customer when the edit is older than the server 
     $response = $this->postJson('/api/v1/sync/push', ['customers' => [customerPayload([
         'uuid' => $uuid,
         'name' => 'Nombre viejo de la app',
-        'modified_at' => '2026-10-20T09:00:00Z',
+        'modified_at' => '2026-10-20T09:00:00-03:00',
         'address' => ['street' => 'Calle vieja de la app'],
     ])]]);
 
@@ -145,7 +145,7 @@ test('push overwrites a customer found by server id when the edit is newer and s
         'uuid' => $uuid,
         'server_id' => $customer->id,
         'name' => 'Nombre nuevo de la app',
-        'modified_at' => '2026-10-20T11:00:00Z',
+        'modified_at' => '2026-10-20T11:00:00-03:00',
         'address' => ['street' => 'Calle nueva de la app'],
     ])]]);
 
@@ -157,7 +157,7 @@ test('push overwrites a customer found by server id when the edit is newer and s
     expect($customer->name)->toBe('Nombre nuevo de la app')
         ->and($customer->client_uuid)->toBe($uuid)
         ->and($customer->last_modified_by)->toBe($this->user->id)
-        ->and($customer->updated_at->toIso8601String())->toBe('2026-10-20T11:00:00+00:00')
+        ->and($customer->updated_at->toIso8601String())->toBe('2026-10-20T11:00:00-03:00')
         ->and($address->fresh()->street)->toBe('Calle nueva de la app');
 });
 
@@ -168,7 +168,7 @@ test('push accepts an edit on a customer assigned to another driver and flags it
     $response = $this->postJson('/api/v1/sync/push', ['customers' => [customerPayload([
         'server_id' => $customer->id,
         'name' => 'Editado en la calle',
-        'modified_at' => '2026-10-20T11:00:00Z',
+        'modified_at' => '2026-10-20T11:00:00-03:00',
     ])]]);
 
     $response->assertOk()
@@ -185,17 +185,27 @@ test('push accepts an edit on a customer assigned to another driver and flags it
         ->and($customer->driver_id)->toBe($otherDriver->id);
 });
 
-test('push stores the dates sent by the app and records separately when the server received the customer', function (): void {
+test('a modification date sent in UTC is stored as the same instant in Argentine time', function (): void {
     $this->travelTo('2026-10-20 15:00:00');
     $customer = customerPayload(['modified_at' => '2026-10-18T08:30:00Z']);
 
     $this->postJson('/api/v1/sync/push', ['customers' => [$customer]])->assertOk();
 
     $stored = Customer::query()->where('client_uuid', $customer['uuid'])->firstOrFail();
+    expect($stored->updated_at->toIso8601String())->toBe('2026-10-18T05:30:00-03:00');
+});
 
-    expect($stored->created_at->toIso8601String())->toBe('2026-10-18T08:30:00+00:00')
-        ->and($stored->updated_at->toIso8601String())->toBe('2026-10-18T08:30:00+00:00')
-        ->and($stored->received_at->toIso8601String())->toBe('2026-10-20T15:00:00+00:00');
+test('push stores the dates sent by the app and records separately when the server received the customer', function (): void {
+    $this->travelTo('2026-10-20 15:00:00');
+    $customer = customerPayload(['modified_at' => '2026-10-18T08:30:00-03:00']);
+
+    $this->postJson('/api/v1/sync/push', ['customers' => [$customer]])->assertOk();
+
+    $stored = Customer::query()->where('client_uuid', $customer['uuid'])->firstOrFail();
+
+    expect($stored->created_at->toIso8601String())->toBe('2026-10-18T08:30:00-03:00')
+        ->and($stored->updated_at->toIso8601String())->toBe('2026-10-18T08:30:00-03:00')
+        ->and($stored->received_at->toIso8601String())->toBe('2026-10-20T15:00:00-03:00');
 });
 
 test('every entity the app can create has a unique client uuid and the generic idempotency table is gone', function (): void {
@@ -221,7 +231,7 @@ test('push flags a customer of another driver for review even when the edit is o
     $response = $this->postJson('/api/v1/sync/push', ['customers' => [customerPayload([
         'server_id' => $customer->id,
         'name' => 'Edicion vieja',
-        'modified_at' => '2026-10-20T09:00:00Z',
+        'modified_at' => '2026-10-20T09:00:00-03:00',
     ])]]);
 
     $response->assertOk()->assertJsonPath('data.customers.0.status', 'accepted');
@@ -256,7 +266,7 @@ test('push keeps the full address when creating and editing a customer', functio
     $edited = ['apartment' => '5C', 'floor' => 'PB', 'visual_reference' => 'Porton rojo'];
     $this->postJson('/api/v1/sync/push', ['customers' => [customerPayload([
         'uuid' => $uuid,
-        'modified_at' => '2026-10-21T09:00:00Z',
+        'modified_at' => '2026-10-21T09:00:00-03:00',
         'address' => $edited,
     ])]])->assertOk();
 
@@ -297,12 +307,12 @@ test('push rejects a floor longer than 20 characters', function (): void {
 
 test('push clamps a modification date ahead of the server clock so later server edits are not shadowed', function (): void {
     $this->travelTo('2026-10-20 15:00:00');
-    $customer = customerPayload(['modified_at' => '2026-10-25T08:00:00Z']);
+    $customer = customerPayload(['modified_at' => '2026-10-25T08:00:00-03:00']);
 
     $this->postJson('/api/v1/sync/push', ['customers' => [$customer]])->assertOk();
 
     $stored = Customer::query()->where('client_uuid', $customer['uuid'])->firstOrFail();
 
-    expect($stored->updated_at->toIso8601String())->toBe('2026-10-20T15:00:00+00:00')
-        ->and($stored->created_at->toIso8601String())->toBe('2026-10-20T15:00:00+00:00');
+    expect($stored->updated_at->toIso8601String())->toBe('2026-10-20T15:00:00-03:00')
+        ->and($stored->created_at->toIso8601String())->toBe('2026-10-20T15:00:00-03:00');
 });

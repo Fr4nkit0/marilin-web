@@ -79,7 +79,7 @@ test('push accepts a sale with its details, unit prices and the date the app set
         ->assertJsonPath('data.sales.0.review_reason', null);
 
     expect($sale->customer_id)->toBe($this->customer->id)
-        ->and($sale->date->toIso8601String())->toBe('2026-10-22T10:30:00+00:00')
+        ->and($sale->date->toIso8601String())->toBe('2026-10-22T07:30:00-03:00')
         ->and((float) $sale->total)->toBe(2500.5)
         ->and($sale->status)->toBe('confirmed')
         ->and($sale->is_credit_sale)->toBeTrue()
@@ -150,7 +150,7 @@ test('push books a cash transaction and an opposite account entry for an accepte
     expect($response->json('data.payments.0.server_id'))->toBe($payment->id)
         ->and($payment->status)->toBe('CONFIRMED')
         ->and($payment->received_by)->toBe($this->user->id)
-        ->and($payment->paid_at->toIso8601String())->toBe('2026-10-22T11:45:00+00:00')
+        ->and($payment->paid_at->toIso8601String())->toBe('2026-10-22T08:45:00-03:00')
         ->and($payment->sale_id)->toBe(Sale::query()->where('client_uuid', $sale['uuid'])->firstOrFail()->id)
         ->and($payment->transaction->type)->toBe('IN')
         ->and((float) $payment->transaction->amount)->toBe(1200.25)

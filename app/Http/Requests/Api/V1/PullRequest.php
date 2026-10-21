@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Api\V1;
 
+use App\Support\ClientTime;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Carbon;
 
@@ -28,7 +29,7 @@ class PullRequest extends FormRequest
 
     public function cursor(): ?Carbon
     {
-        return $this->filled('cursor') ? Carbon::parse($this->string('cursor')->toString()) : null;
+        return $this->filled('cursor') ? ClientTime::parse($this->string('cursor')->toString()) : null;
     }
 
     /**
@@ -42,7 +43,7 @@ class PullRequest extends FormRequest
             return $now;
         }
 
-        return Carbon::parse($this->string('until')->toString())->min($now);
+        return ClientTime::parse($this->string('until')->toString())->min($now);
     }
 
     public function page(): int
