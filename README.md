@@ -44,6 +44,7 @@ El ecosistema **Marilin** se compone de dos piezas fundamentales:
 - **📦 Inventario y Envases Retornables:** Control de stock en depósito y carga en camión (`route_inventory`), seguimiento de envases entregados/devueltos por cliente (`customer_container_balances`).
 - **💰 Facturación y Acuerdos de Precios:** Configuración de listas de precios especiales por cliente (`customer_agreements`), registro de ventas y emisión de comprobantes.
 - **💳 Cuentas Corrientes y Tesorería:** Registro de pagos (efectivo, transferencias, tarjetas), libro de movimientos contables (`customer_account_entries`) y saldo histórico de clientes.
+- **🔐 Usuarios:** El administrador crea las cuentas de los repartidores (no hay registro público), edita sus datos, les cambia la contraseña y las habilita o deshabilita. Deshabilitar corta sus sesiones en la app y en el panel.
 - **🔄 APIs de Sincronización Móvil:** Endpoints optimizados para recibir las visitas, ventas y cobranzas offline de la app Flutter al recuperar conectividad.
 
 ---

@@ -11,6 +11,7 @@ use App\Http\Controllers\ReviewInboxController;
 use App\Http\Controllers\RouteController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\TruckLoadController;
+use App\Http\Controllers\UserController;
 use App\Services\Review\ReviewInbox;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -64,6 +65,15 @@ Route::middleware('auth')->group(function () {
     Route::middleware('can:manage-products')->group(function () {
         Route::get('/products', [ProductController::class, 'index'])->name('products.index');
         Route::patch('/products/{product}/price', [ProductController::class, 'updatePrice'])->name('products.price');
+    });
+
+    // Cuentas de repartidores
+    Route::middleware('can:manage-users')->group(function () {
+        Route::get('/users', [UserController::class, 'index'])->name('users.index');
+        Route::post('/users', [UserController::class, 'store'])->name('users.store');
+        Route::patch('/users/{user}', [UserController::class, 'update'])->name('users.update');
+        Route::patch('/users/{user}/password', [UserController::class, 'password'])->name('users.password');
+        Route::patch('/users/{user}/status', [UserController::class, 'status'])->name('users.status');
     });
 
     // Revisión de lo subido por la app

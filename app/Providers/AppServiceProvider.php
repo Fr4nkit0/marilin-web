@@ -31,6 +31,9 @@ class AppServiceProvider extends ServiceProvider
         // The truck is loaded at the warehouse, so only the admin records loads.
         Gate::define('load-trucks', fn (User $user): bool => $user->is_super_user);
 
+        // Driver accounts are created and switched on or off by the admin only.
+        Gate::define('manage-users', fn (User $user): bool => $user->is_super_user);
+
         Vite::prefetch(concurrency: 3);
     }
 }
