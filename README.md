@@ -40,7 +40,7 @@ El ecosistema **Marilin** se compone de dos piezas fundamentales:
 ## ✨ Módulos y Funcionalidades Principales
 
 - **👥 Clientes y Zonas:** Ficha completa de clientes, geolocalización satelital, múltiples direcciones, horarios preferidos de entrega y asignación de repartidor.
-- **🚚 Planificación de Rutas:** Creación y asignación de rutas diarias, reordenamiento de paradas, reprogramación de visitas y monitoreo del estado de las entregas.
+- **🚚 Planificación de Rutas:** Generación automática de la ruta diaria de cada repartidor a partir de los días y horarios de visita de sus clientes (paradas ordenadas por horario), reprogramación de visitas y monitoreo del estado de las entregas.
 - **📦 Inventario y Envases Retornables:** Control de stock en depósito y carga en camión (`route_inventory`), seguimiento de envases entregados/devueltos por cliente (`customer_container_balances`).
 - **💰 Facturación y Acuerdos de Precios:** Configuración de listas de precios especiales por cliente (`customer_agreements`), registro de ventas y emisión de comprobantes.
 - **💳 Cuentas Corrientes y Tesorería:** Registro de pagos (efectivo, transferencias, tarjetas), libro de movimientos contables (`customer_account_entries`) y saldo histórico de clientes.
@@ -102,7 +102,17 @@ cd marilin-web
 ./vendor/bin/sail npm run build
 ```
 
-### 4. Acceso a las aplicaciones locales
+### 4. Tareas programadas
+
+El scheduler de Laravel tiene que estar corriendo (`./vendor/bin/sail artisan schedule:work` en local, o un cron con `schedule:run` cada minuto en el servidor):
+
+- `routes:generate` (00:30): crea la ruta del día de cada repartidor habilitado con sus clientes que tienen ese día de visita, usando la dirección principal y ordenando las paradas por el inicio de la franja horaria. No modifica rutas que ya existen. Se puede correr a mano para otra fecha con `--date=YYYY-MM-DD`.
+- `review:flag-rescheduled-stops` (01:00): manda a revisión las paradas reprogramadas que terminaron el día sin visita.
+- `review:flag-unvisited-stops` (01:00): manda a revisión las paradas de días anteriores que quedaron sin visita (la app solo muestra la ruta de hoy).
+
+Los horarios son de Argentina (`APP_TIMEZONE`, por defecto `America/Argentina/Buenos_Aires`).
+
+### 5. Acceso a las aplicaciones locales
 
 - **Panel Web Marilin:** [http://localhost](http://localhost)
 - **Buzón de Correos de Prueba (Mailpit):** [http://localhost:8025](http://localhost:8025)

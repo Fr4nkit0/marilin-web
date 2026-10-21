@@ -8,6 +8,9 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
+// Each night, every driver's route for the new day is built from the customers' visit preferences.
+Schedule::command('routes:generate')->dailyAt('00:30');
+
 // Once the day is over, rescheduled stops that nobody visited go to the review inbox.
 Schedule::command('review:flag-rescheduled-stops')->dailyAt('01:00');
 
