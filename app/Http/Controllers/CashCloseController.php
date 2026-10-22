@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Driver;
+use App\Services\CashClose\CashCloseExport;
 use App\Services\CashClose\CashCloseReport;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\Response as FileResponse;
 
 class CashCloseController extends Controller
 {
@@ -37,5 +39,26 @@ class CashCloseController extends Controller
             'settlement' => $settlement,
             'date' => $date,
         ]);
+    }
+
+    /**
+     * Download the cash close of one driver and day as PDF or Excel; a day without a route has nothing to export.
+     */
+    public function export(Request $request, string $format, CashCloseReport $report, CashCloseExport $export): FileResponse
+    {
+        $validated = $request->validate([
+            'repartidor_id' => ['required', 'integer'],
+            'date' => ['required', 'date_format:Y-m-d'],
+        ]);
+
+        $driver = Driver::with('user')->findOrFail($validated['repartidor_id']);
+        $settlement = $report->forDriver($driver, $validated['date']);
+        abort_if($settlement === null, 404);
+
+        $name = $driver->user?->name ?? 'Repartidor';
+
+        return $format === 'pdf'
+            ? $export->pdf($name, $validated['date'], $settlement)
+            : $export->xlsx($name, $validated['date'], $settlement);
     }
 }
