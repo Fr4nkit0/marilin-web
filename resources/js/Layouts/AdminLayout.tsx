@@ -10,6 +10,7 @@ import {
     Package,
     SlidersHorizontal,
     Tag,
+    UserCog,
     LogOut,
     Menu,
     X,
@@ -91,6 +92,12 @@ export default function AdminLayout({
                       href: route('review.index'),
                       icon: ClipboardCheck,
                       active: route().current('review.*') || false,
+                  },
+                  {
+                      name: 'Usuarios',
+                      href: route('users.index'),
+                      icon: UserCog,
+                      active: route().current('users.*') || false,
                   },
               ]
             : []),
