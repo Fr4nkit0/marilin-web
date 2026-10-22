@@ -5,8 +5,10 @@ declare(strict_types=1);
 use App\Models\ContainerMovement;
 use App\Models\Customer;
 use App\Models\CustomerAddress;
+use App\Models\CustomerAgreement;
 use App\Models\Driver;
 use App\Models\Payment;
+use App\Models\Product;
 use App\Models\Route;
 use App\Models\RouteStop;
 use App\Models\Sale;
@@ -65,6 +67,9 @@ function flaggedRecord(string $type, array $who, string $day = '2026-10-22', arr
         'container_movement' => ContainerMovement::factory()->create([
             'customer_id' => $customer->id, 'created_by' => $driver->user_id, 'created_at' => "{$day} 10:00:00",
         ]),
+        'customer_agreement' => CustomerAgreement::factory()->create([
+            'customer_id' => $customer->id, 'created_by' => $driver->user_id, 'created_at' => "{$day} 10:00:00",
+        ]),
         'customer' => Customer::factory()->create([
             'driver_id' => $driver->id, 'name' => $customer->name, 'updated_at' => "{$day} 10:00:00",
         ]),
@@ -86,15 +91,15 @@ function flaggedRecord(string $type, array $who, string $day = '2026-10-22', arr
 
 test('the review inbox lists what is waiting for review with type, driver, customer, date and reason', function (): void {
     $who = inboxDriver();
-    foreach (['visit', 'sale', 'payment', 'route_stop', 'customer', 'container_movement'] as $type) {
+    foreach (['visit', 'sale', 'payment', 'route_stop', 'customer', 'container_movement', 'customer_agreement'] as $type) {
         flaggedRecord($type, $who);
     }
     Visit::factory()->create(['route_stop_id' => null, 'customer_id' => $who['customer']->id, 'driver_id' => $who['driver']->id]);
 
     $this->get('/review')->assertOk()->assertInertia(fn (Assert $page) => $page
         ->component('Review/Index')
-        ->has('items.data', 6)
-        ->where('items.data', fn ($items) => collect($items)->pluck('type')->sort()->values()->all() === ['container_movement', 'customer', 'payment', 'route_stop', 'sale', 'visit'])
+        ->has('items.data', 7)
+        ->where('items.data', fn ($items) => collect($items)->pluck('type')->sort()->values()->all() === ['container_movement', 'customer', 'customer_agreement', 'payment', 'route_stop', 'sale', 'visit'])
         ->where('items.data.0.driver', 'Repartidor Uno')
         ->where('items.data.0.customer', 'Cliente Uno')
         ->where('items.data.0.occurred_at', fn ($date) => str_starts_with((string) $date, '2026-10-22'))
@@ -146,7 +151,7 @@ test('the review inbox filters by date range, both ends included', function (): 
 
 test('the review inbox filters by type', function (): void {
     $who = inboxDriver();
-    foreach (['visit', 'sale', 'payment', 'route_stop', 'customer', 'container_movement'] as $type) {
+    foreach (['visit', 'sale', 'payment', 'route_stop', 'customer', 'container_movement', 'customer_agreement'] as $type) {
         flaggedRecord($type, $who);
     }
 
@@ -196,7 +201,7 @@ test('marking a :type as reviewed saves who and when and takes it out of the pen
         ->and($other->fresh()->reviewed_at)->toBeNull()
         ->and(collect(inboxRows())->pluck('id')->all())->toBe([$other->id])
         ->and(collect(inboxRows('?status=reviewed'))->pluck('reviewed_by')->all())->toBe([$this->admin->name]);
-})->with(['visit', 'sale', 'payment', 'route_stop', 'customer', 'container_movement']);
+})->with(['visit', 'sale', 'payment', 'route_stop', 'customer', 'container_movement', 'customer_agreement']);
 
 test('the review inbox offers no way to edit or annul a record', function (): void {
     $record = flaggedRecord('sale', inboxDriver());
@@ -273,4 +278,31 @@ test('only a super user can open the review inbox or mark records as reviewed', 
     $this->patch("/review/sale/{$record->id}")->assertForbidden();
 
     expect($record->fresh()->reviewed_at)->toBeNull();
+});
+
+test('an agreement created by a driver through the push shows up in the inbox with its driver, date and Spanish reason', function (): void {
+    $who = inboxDriver('Repartidor Uno', 'Cliente Uno');
+    Sanctum::actingAs($who['driver']->user, ['*']);
+
+    push(['customer_agreements' => [[
+        'uuid' => (string) Str::uuid(),
+        'customer_id' => $who['customer']->id,
+        'product_id' => Product::factory()->create()->id,
+        'unit_price' => 900,
+        'valid_from' => '2026-10-23',
+    ]]])->assertOk()->assertJsonPath('data.customer_agreements.0.status', 'accepted');
+
+    $this->actingAs($this->admin, 'web');
+    $rows = inboxRows('?type=customer_agreement');
+
+    expect($rows)->toHaveCount(1)
+        ->and($rows[0]['type'])->toBe('customer_agreement')
+        ->and($rows[0]['driver'])->toBe('Repartidor Uno')
+        ->and($rows[0]['customer'])->toBe('Cliente Uno')
+        ->and($rows[0]['occurred_at'])->toStartWith('2026-10-23')
+        ->and($rows[0]['reason'])->toBe('Acuerdo de precio creado por el repartidor.');
+});
+
+test('the review inbox rejects an unknown type filter', function (): void {
+    $this->get('/review?type=invoice')->assertSessionHasErrors('type');
 });

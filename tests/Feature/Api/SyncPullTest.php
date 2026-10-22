@@ -210,6 +210,20 @@ test('pull re-sends an agreement whose validity ended inside the window even if 
         ->and(collect($response->json('data.customer_agreements'))->pluck('id'))->not->toContain($expiredLongAgo->id);
 });
 
+test('pull sends the client_uuid of agreements, null for the ones created on the web', function (): void {
+    $customer = Customer::factory()->create(['driver_id' => $this->driver->id]);
+    $fromApp = CustomerAgreement::factory()->create([
+        'customer_id' => $customer->id, 'client_uuid' => '7b0a3c9e-5d0e-4f7e-9d57-0c6a4c1b2f10',
+    ]);
+    $fromWeb = CustomerAgreement::factory()->create(['customer_id' => $customer->id]);
+
+    $rows = collect($this->getJson('/api/v1/sync/pull')->assertOk()->json('data.customer_agreements'))->keyBy('id');
+
+    expect($rows[$fromApp->id]['client_uuid'])->toBe('7b0a3c9e-5d0e-4f7e-9d57-0c6a4c1b2f10')
+        ->and($rows[$fromWeb->id])->toHaveKey('client_uuid')
+        ->and($rows[$fromWeb->id]['client_uuid'])->toBeNull();
+});
+
 test('pull clamps a future until so the next cursor never jumps ahead of the server clock', function (): void {
     $future = now()->addDay()->toIso8601String();
 
