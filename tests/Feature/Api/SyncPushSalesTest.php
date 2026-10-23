@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Models\Customer;
 use App\Models\CustomerAccountEntry;
+use App\Models\CustomerAgreement;
 use App\Models\CustomerBalance;
 use App\Models\Driver;
 use App\Models\Payment;
@@ -258,4 +259,80 @@ test('push rejects a payment that points at a sale of another customer and a sal
         ->and(Payment::query()->count())->toBe(0)
         ->and(Sale::query()->where('client_uuid', $sale['uuid'])->exists())->toBeFalse()
         ->and(CustomerAccountEntry::query()->count())->toBe(1);
+});
+
+test('push resolves a sale line agreement sent as customer_agreement_uuid', function (): void {
+    $agreement = CustomerAgreement::factory()->create([
+        'customer_id' => $this->customer->id,
+        'product_id' => $this->water->id,
+        'client_uuid' => (string) Str::uuid(),
+    ]);
+    $payload = salePayload([
+        'total' => 2100.00,
+        'details' => [['product_id' => $this->water->id, 'customer_agreement_uuid' => $agreement->client_uuid, 'quantity' => 3, 'unit_price' => 700.00]],
+    ]);
+
+    push(['sales' => [$payload]])->assertOk()->assertJsonPath('data.sales.0.status', 'accepted');
+
+    expect(Sale::query()->sole()->details->sole()->customer_agreement_id)->toBe($agreement->id);
+});
+
+test('push resolves an agreement pushed in the same request before the sale', function (): void {
+    $agreementUuid = (string) Str::uuid();
+    $payload = salePayload([
+        'total' => 2100.00,
+        'details' => [['product_id' => $this->water->id, 'customer_agreement_uuid' => $agreementUuid, 'quantity' => 3, 'unit_price' => 700.00]],
+    ]);
+
+    $response = push([
+        'customer_agreements' => [[
+            'uuid' => $agreementUuid, 'customer_id' => $this->customer->id, 'product_id' => $this->water->id,
+            'unit_price' => 700, 'valid_from' => '2026-10-22',
+        ]],
+        'sales' => [$payload],
+    ])->assertOk();
+
+    $agreement = CustomerAgreement::query()->sole();
+    expect($response->json('data.sales.0.status'))->toBe('accepted')
+        ->and(Sale::query()->sole()->details->sole()->customer_agreement_id)->toBe($agreement->id);
+});
+
+test('push still accepts a sale line that only sends customer_agreement_id', function (): void {
+    $agreement = CustomerAgreement::factory()->create(['customer_id' => $this->customer->id, 'product_id' => $this->water->id]);
+    $payload = salePayload([
+        'total' => 2100.00,
+        'details' => [['product_id' => $this->water->id, 'customer_agreement_id' => $agreement->id, 'quantity' => 3, 'unit_price' => 700.00]],
+    ]);
+
+    push(['sales' => [$payload]])->assertOk()->assertJsonPath('data.sales.0.status', 'accepted');
+
+    expect(Sale::query()->sole()->details->sole()->customer_agreement_id)->toBe($agreement->id);
+});
+
+test('push rejects a sale whose line agreement belongs to another customer and leaves no trace of it', function (string $reference): void {
+    $other = Customer::factory()->create(['driver_id' => $this->driver->id]);
+    $agreement = CustomerAgreement::factory()->create([
+        'customer_id' => $other->id, 'product_id' => $this->water->id, 'client_uuid' => (string) Str::uuid(),
+    ]);
+    $line = ['product_id' => $this->water->id, 'quantity' => 3, 'unit_price' => 700.00];
+    $line += $reference === 'uuid' ? ['customer_agreement_uuid' => $agreement->client_uuid] : ['customer_agreement_id' => $agreement->id];
+    $payload = salePayload(['total' => 2100.00, 'details' => [$line]]);
+
+    $result = push(['sales' => [$payload]])->assertOk()->json('data.sales.0');
+
+    expect($result['status'])->toBe('rejected')
+        ->and($result['error'])->toBe('The customer agreement belongs to another customer.')
+        ->and(Sale::query()->count())->toBe(0)
+        ->and(CustomerAgreement::query()->count())->toBe(1);
+})->with(['uuid', 'id']);
+
+test('push rejects a sale line agreement uuid that matches nothing', function (): void {
+    $payload = salePayload([
+        'total' => 2100.00,
+        'details' => [['product_id' => $this->water->id, 'customer_agreement_uuid' => (string) Str::uuid(), 'quantity' => 3, 'unit_price' => 700.00]],
+    ]);
+
+    $result = push(['sales' => [$payload]])->assertOk()->json('data.sales.0');
+
+    expect($result['status'])->toBe('rejected')->and(Sale::query()->count())->toBe(0);
 });

@@ -60,6 +60,7 @@ test('bootstrap returns the full day of the authenticated driver', function (): 
         'unit_price' => 900,
         'valid_from' => now()->subMonth()->toDateString(),
         'valid_to' => null,
+        'client_uuid' => '7b0a3c9e-5d0e-4f7e-9d57-0c6a4c1b2f10',
     ]);
     $expired = CustomerAgreement::factory()->create([
         'customer_id' => $customer->id,
@@ -111,6 +112,7 @@ test('bootstrap returns the full day of the authenticated driver', function (): 
         ->and($payload['balance']['current_balance'])->toEqual('1500.50')
         ->and($payload['container_balances'][0]['balance'])->toBe(4)
         ->and($payload['container_balances'][0]['container_type']['id'])->toBe($containerType->id)
+        ->and($payload['agreements'][0]['client_uuid'])->toBe('7b0a3c9e-5d0e-4f7e-9d57-0c6a4c1b2f10')
         ->and($payload['agreements'][0]['product']['id'])->toBe($product->id)
         ->and($response->json('data.truck_inventory.0.product.id'))->toBe($product->id)
         ->and(collect($payload['agreements'])->pluck('id'))->not->toContain($expired->id);

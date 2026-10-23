@@ -28,6 +28,9 @@ class AppServiceProvider extends ServiceProvider
         // List prices reach every driver's app on the next pull.
         Gate::define('manage-products', fn (User $user): bool => $user->is_super_user);
 
+        // An agreement overrides the list price for one customer, so it is the admin's call too.
+        Gate::define('manage-agreements', fn (User $user): bool => $user->is_super_user);
+
         // The truck is loaded at the warehouse, so only the admin records loads.
         Gate::define('load-trucks', fn (User $user): bool => $user->is_super_user);
 

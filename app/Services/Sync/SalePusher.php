@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Sync;
 
 use App\Models\Customer;
+use App\Models\CustomerAgreement;
 use App\Models\Driver;
 use App\Models\Route;
 use App\Models\RouteInventory;
@@ -31,6 +32,7 @@ class SalePusher extends EntityPusher
             'details' => ['required', 'array', 'min:1'],
             'details.*.product_id' => ['required', 'integer', 'exists:products,id'],
             'details.*.customer_agreement_id' => ['nullable', 'integer', 'exists:customer_agreements,id'],
+            'details.*.customer_agreement_uuid' => ['nullable', 'uuid'],
             'details.*.quantity' => ['required', 'integer', 'gt:0'],
             'details.*.unit_price' => ['required', 'numeric', 'min:0'],
         ];
@@ -49,6 +51,13 @@ class SalePusher extends EntityPusher
         $visit = $this->reference(Visit::class, $record, 'visit');
         $this->assertBelongsToCustomer($visit, $customer, 'visit');
 
+        $agreementIds = array_map(function (array $detail) use ($customer): ?int {
+            $agreement = $this->reference(CustomerAgreement::class, $detail, 'customer_agreement');
+            $this->assertBelongsToCustomer($agreement, $customer, 'customer agreement');
+
+            return $agreement?->id;
+        }, $record['details']);
+
         $reason = $this->reviewReasonForCustomer($customer, $driver);
 
         $sale = Sale::create([
@@ -65,10 +74,10 @@ class SalePusher extends EntityPusher
             ...$this->reviewAttributes($reason),
         ]);
 
-        foreach ($record['details'] as $detail) {
+        foreach ($record['details'] as $index => $detail) {
             $sale->details()->create([
                 'product_id' => $detail['product_id'],
-                'customer_agreement_id' => $detail['customer_agreement_id'] ?? null,
+                'customer_agreement_id' => $agreementIds[$index],
                 'quantity' => $detail['quantity'],
                 'unit_price' => $detail['unit_price'],
             ]);

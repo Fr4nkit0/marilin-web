@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CashCloseController;
+use App\Http\Controllers\CustomerAgreementController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DriverController;
@@ -39,6 +40,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
     Route::post('/customers', [CustomerController::class, 'store'])->name('customers.store');
     Route::put('/customers/{customer}', [CustomerController::class, 'update'])->name('customers.update');
+    Route::middleware('can:manage-agreements')->scopeBindings()->group(function () {
+        Route::post('/customers/{customer}/agreements', [CustomerAgreementController::class, 'store'])->name('customers.agreements.store');
+        Route::patch('/customers/{customer}/agreements/{agreement}/end', [CustomerAgreementController::class, 'end'])->name('customers.agreements.end');
+    });
     Route::get('/customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
 
     // Choferes / Drivers
@@ -86,6 +91,9 @@ Route::middleware('auth')->group(function () {
 
     // Cierre de Caja / Arqueo
     Route::get('/cash-close', [CashCloseController::class, 'index'])->name('cash-close.index');
+    Route::get('/cash-close/export/{format}', [CashCloseController::class, 'export'])
+        ->whereIn('format', ['pdf', 'xlsx'])
+        ->name('cash-close.export');
 });
 
 require __DIR__.'/auth.php';

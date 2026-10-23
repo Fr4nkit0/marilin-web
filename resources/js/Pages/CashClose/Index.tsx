@@ -14,6 +14,8 @@ import {
     AlertCircle,
     ArrowUpRight,
     TrendingUp,
+    FileText,
+    FileSpreadsheet,
 } from 'lucide-react';
 
 interface Props {
@@ -52,6 +54,9 @@ export default function CashCloseIndex({
     };
 
     const activeRepartidorName = repartidores.find((r) => r.id === Number(selectedId))?.name || 'Seleccione chofer';
+
+    const exportUrl = (format: 'pdf' | 'xlsx') =>
+        route('cash-close.export', { format, repartidor_id: selectedId, date: selectedDate });
 
     return (
         <AdminLayout
@@ -101,6 +106,25 @@ export default function CashCloseIndex({
                         className="py-2 px-3 text-sm font-medium border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent bg-white text-slate-900 shadow-sm transition-all"
                     />
                 </div>
+
+                {settlement && (
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <a
+                            href={exportUrl('pdf')}
+                            className="inline-flex items-center gap-2 py-2 px-3 text-sm font-medium border border-gray-200/60 rounded-lg bg-white text-slate-700 shadow-sm transition-all hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                        >
+                            <FileText className="w-4 h-4" aria-hidden="true" />
+                            Descargar PDF
+                        </a>
+                        <a
+                            href={exportUrl('xlsx')}
+                            className="inline-flex items-center gap-2 py-2 px-3 text-sm font-medium border border-gray-200/60 rounded-lg bg-white text-slate-700 shadow-sm transition-all hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                        >
+                            <FileSpreadsheet className="w-4 h-4" aria-hidden="true" />
+                            Descargar Excel
+                        </a>
+                    </div>
+                )}
             </div>
 
             {!settlement ? (

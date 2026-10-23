@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { PageHeader, DebtBadge, PaymentMethodBadge } from '@/Components/StitchUi';
+import CustomerAgreementFormModal from '@/Components/CustomerAgreementFormModal';
+import { AgreementProduct, AgreementStatus, CustomerAgreementRow } from '@/types/agreement';
 import {
     ArrowLeft,
     Phone,
@@ -54,13 +56,6 @@ interface Props {
                 capacity_liters?: number;
             };
         }[];
-        agreements?: {
-            id: number;
-            special_price: string | number;
-            product?: {
-                name: string;
-            };
-        }[];
     };
     accountEntries: {
         id: number;
@@ -80,10 +75,43 @@ interface Props {
         };
         created_at: string;
     }[];
+    agreements: CustomerAgreementRow[];
+    agreementProducts: AgreementProduct[];
+    canManageAgreements: boolean;
 }
 
-export default function CustomerShow({ customer, accountEntries, containerMovements }: Props) {
+const AGREEMENT_STATUS: Record<AgreementStatus, { label: string; className: string }> = {
+    active: { label: 'Vigente', className: 'bg-emerald-50 text-emerald-700' },
+    upcoming: { label: 'Futuro', className: 'bg-blue-50 text-blue-700' },
+    ended: { label: 'Finalizado', className: 'bg-slate-100 text-slate-500' },
+};
+
+const formatDay = (day: string) => day.split('-').reverse().join('/');
+
+const localToday = () => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+};
+
+export default function CustomerShow({
+    customer,
+    accountEntries,
+    containerMovements,
+    agreements,
+    agreementProducts,
+    canManageAgreements,
+}: Props) {
     const [activeTab, setActiveTab] = useState<'account' | 'containers' | 'agreements'>('account');
+    const [showAgreementForm, setShowAgreementForm] = useState(false);
+    const pageErrors = usePage().props.errors as Record<string, string>;
+
+    const endAgreement = (agreement: CustomerAgreementRow) => {
+        const confirmed = window.confirm(
+            `¿Finalizar el acuerdo de ${agreement.product ?? 'este producto'}? Deja de aplicarse desde hoy.`,
+        );
+        if (!confirmed) return;
+        router.patch(route('customers.agreements.end', [customer.id, agreement.id]), {}, { preserveScroll: true });
+    };
 
     const balanceNum = Number(customer.balance?.current_balance || 0);
     const hasDebt = balanceNum > 0;
@@ -390,47 +418,102 @@ export default function CustomerShow({ customer, accountEntries, containerMoveme
             {/* TAB 3: Agreements */}
             {activeTab === 'agreements' && (
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-200/60 overflow-hidden">
-                    <div className="p-5 border-b border-gray-100">
-                        <h3 className="text-base font-semibold text-slate-900 tracking-wide">
-                            Acuerdos de Precios
-                        </h3>
-                    </div>
-
-                    <div className="p-6">
-                        {customer.agreements && customer.agreements.length > 0 ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                                {customer.agreements.map((ag) => (
-                                    <div
-                                        key={ag.id}
-                                        className="p-5 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-between shadow-sm"
-                                    >
-                                        <div>
-                                            <p className="text-xs font-medium text-slate-500">
-                                                Producto
-                                            </p>
-                                            <p className="text-sm font-semibold text-slate-900 mt-1">
-                                                {ag.product?.name || 'Producto'}
-                                            </p>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="text-xs font-medium text-slate-500">
-                                                Precio Acordado
-                                            </p>
-                                            <p className="text-lg font-medium text-slate-900 mt-1">
-                                                ${Number(ag.special_price).toLocaleString('es-AR')}
-                                            </p>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="text-center py-12 text-slate-500 text-sm border-2 border-dashed border-gray-200 rounded-lg">
-                                Sin acuerdos especiales.
-                            </div>
+                    <div className="p-5 border-b border-gray-100 flex items-center justify-between gap-4">
+                        <div>
+                            <h3 className="text-base font-semibold text-slate-900 tracking-wide">
+                                Acuerdos de Precios
+                            </h3>
+                            <p className="text-xs text-slate-500 mt-1">
+                                Para cambiar un precio, finalizá el acuerdo y creá uno nuevo: las ventas ya hechas
+                                conservan el precio que usaron.
+                            </p>
+                        </div>
+                        {canManageAgreements && (
+                            <button
+                                type="button"
+                                onClick={() => setShowAgreementForm(true)}
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-500 cursor-pointer whitespace-nowrap"
+                            >
+                                <Plus className="w-4 h-4" />
+                                Nuevo acuerdo
+                            </button>
                         )}
                     </div>
+
+                    {pageErrors.agreement && (
+                        <p className="mx-5 mt-4 text-sm text-red-600">{pageErrors.agreement}</p>
+                    )}
+
+                    {agreements.length > 0 ? (
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                                <thead>
+                                    <tr className="text-left text-xs font-medium text-slate-500 border-b border-gray-100">
+                                        <th className="px-5 py-3">Producto</th>
+                                        <th className="px-5 py-3 text-right">Precio acordado</th>
+                                        <th className="px-5 py-3">Vigencia</th>
+                                        <th className="px-5 py-3">Estado</th>
+                                        <th className="px-5 py-3">Motivo</th>
+                                        <th className="px-5 py-3">Creado por</th>
+                                        {canManageAgreements && <th className="px-5 py-3" />}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {agreements.map((agreement) => (
+                                        <tr key={agreement.id} className="border-b border-gray-50 last:border-0">
+                                            <td className="px-5 py-3 font-medium text-slate-900">
+                                                {agreement.product ?? 'Producto'}
+                                            </td>
+                                            <td className="px-5 py-3 text-right font-semibold text-slate-900">
+                                                ${agreement.unitPrice.toLocaleString('es-AR')}
+                                            </td>
+                                            <td className="px-5 py-3 text-slate-600 whitespace-nowrap">
+                                                {formatDay(agreement.validFrom)} →{' '}
+                                                {agreement.validTo ? formatDay(agreement.validTo) : 'sin fin'}
+                                            </td>
+                                            <td className="px-5 py-3">
+                                                <span
+                                                    className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${AGREEMENT_STATUS[agreement.status].className}`}
+                                                >
+                                                    {AGREEMENT_STATUS[agreement.status].label}
+                                                </span>
+                                            </td>
+                                            <td className="px-5 py-3 text-slate-600">{agreement.reason ?? '—'}</td>
+                                            <td className="px-5 py-3 text-slate-600">{agreement.createdBy ?? '—'}</td>
+                                            {canManageAgreements && (
+                                                <td className="px-5 py-3 text-right">
+                                                    {agreement.status !== 'ended' && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => endAgreement(agreement)}
+                                                            className="text-sm font-medium text-red-600 hover:text-red-500 cursor-pointer"
+                                                        >
+                                                            Finalizar
+                                                        </button>
+                                                    )}
+                                                </td>
+                                            )}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        <div className="m-6 text-center py-12 text-slate-500 text-sm border-2 border-dashed border-gray-200 rounded-lg">
+                            Sin acuerdos especiales.
+                        </div>
+                    )}
                 </div>
             )}
+
+            <CustomerAgreementFormModal
+                show={showAgreementForm}
+                customerId={customer.id}
+                customerName={customer.name}
+                products={agreementProducts}
+                today={localToday()}
+                onClose={() => setShowAgreementForm(false)}
+            />
         </AdminLayout>
     );
 }

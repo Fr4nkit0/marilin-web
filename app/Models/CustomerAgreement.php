@@ -8,8 +8,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Validation\ValidationException;
 
-#[Fillable(['customer_id', 'product_id', 'unit_price', 'valid_from', 'valid_to', 'reason', 'created_by'])]
+#[Fillable(['customer_id', 'product_id', 'unit_price', 'valid_from', 'valid_to', 'reason', 'created_by', 'client_uuid', 'needs_review', 'review_reason'])]
 class CustomerAgreement extends Model
 {
     /** @use HasFactory<CustomerAgreementFactory> */
@@ -21,6 +22,8 @@ class CustomerAgreement extends Model
             'unit_price' => 'decimal:2',
             'valid_from' => 'date',
             'valid_to' => 'date',
+            'needs_review' => 'boolean',
+            'reviewed_at' => 'datetime',
         ];
     }
 
@@ -42,6 +45,37 @@ class CustomerAgreement extends Model
     public function saleDetails(): HasMany
     {
         return $this->hasMany(SaleDetail::class);
+    }
+
+    /**
+     * Whether the agreement sets the price on the given day, has not started yet, or is over.
+     *
+     * @return 'active'|'upcoming'|'ended'
+     */
+    public function statusOn(string $date): string
+    {
+        return match (true) {
+            $this->valid_to !== null && $this->valid_to->toDateString() < $date => 'ended',
+            $this->valid_from->toDateString() > $date => 'upcoming',
+            default => 'active',
+        };
+    }
+
+    /**
+     * Stops the agreement from today on: yesterday becomes its last day. Its price is never changed, so the
+     * sales that used it keep their meaning; a new price is a new agreement.
+     *
+     * @throws ValidationException when it is already over
+     */
+    public function end(): void
+    {
+        $today = now()->toDateString();
+
+        if ($this->statusOn($today) === 'ended') {
+            throw ValidationException::withMessages(['agreement' => 'El acuerdo ya está finalizado.']);
+        }
+
+        $this->update(['valid_to' => now()->subDay()->toDateString()]);
     }
 
     public function scopeActive($query, $date = null)

@@ -19,6 +19,7 @@ const TYPE_LABELS: Record<ReviewType, string> = {
     route_stop: 'Parada reprogramada',
     customer: 'Cliente',
     container_movement: 'Movimiento de envases',
+    customer_agreement: 'Acuerdo',
 };
 
 const inputClass =

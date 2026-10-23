@@ -6,11 +6,14 @@ use App\Models\ContainerType;
 use App\Models\Customer;
 use App\Models\CustomerAccountEntry;
 use App\Models\CustomerAddress;
+use App\Models\CustomerAgreement;
 use App\Models\CustomerBalance;
 use App\Models\CustomerContainerBalance;
 use App\Models\Driver;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -84,7 +87,6 @@ class CustomerController extends Controller
             'driver.user',
             'balance',
             'containerBalances.containerType',
-            'agreements.product',
         ]);
 
         // Paginate / fetch last 10 account movements (Sales, Payments, Adjustments)
@@ -110,10 +112,31 @@ class CustomerController extends Controller
             ->limit(10)
             ->get();
 
+        $today = now()->toDateString();
+        $agreements = $customer->agreements()
+            ->with(['product:id,name', 'creator:id,name'])
+            ->orderByDesc('valid_from')
+            ->orderByDesc('id')
+            ->get()
+            ->map(fn (CustomerAgreement $agreement): array => [
+                'id' => $agreement->id,
+                'product' => $agreement->product?->name,
+                'unitPrice' => (float) $agreement->unit_price,
+                'validFrom' => $agreement->valid_from->toDateString(),
+                'validTo' => $agreement->valid_to?->toDateString(),
+                'reason' => $agreement->reason,
+                'createdBy' => $agreement->creator?->name,
+                'status' => $agreement->statusOn($today),
+            ]);
+
         return Inertia::render('Customers/Show', [
             'customer' => $customer,
             'accountEntries' => $accountEntries,
             'containerMovements' => $containerMovements,
+            'agreements' => $agreements,
+            'agreementProducts' => Product::query()->enabled()->orderBy('name')->get(['id', 'name', 'price'])
+                ->map(fn (Product $product): array => ['id' => $product->id, 'name' => $product->name, 'price' => (float) $product->price]),
+            'canManageAgreements' => Gate::allows('manage-agreements'),
         ]);
     }
 

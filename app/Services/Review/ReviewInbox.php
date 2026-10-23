@@ -6,6 +6,7 @@ namespace App\Services\Review;
 
 use App\Models\ContainerMovement;
 use App\Models\Customer;
+use App\Models\CustomerAgreement;
 use App\Models\Driver;
 use App\Models\Payment;
 use App\Models\RouteStop;
@@ -25,7 +26,7 @@ use Illuminate\Support\Facades\DB;
  */
 class ReviewInbox
 {
-    public const array TYPES = ['visit', 'sale', 'payment', 'route_stop', 'customer', 'container_movement'];
+    public const array TYPES = ['visit', 'sale', 'payment', 'route_stop', 'customer', 'container_movement', 'customer_agreement'];
 
     /**
      * @var array<string, class-string<Model>>
@@ -37,6 +38,7 @@ class ReviewInbox
         'route_stop' => RouteStop::class,
         'customer' => Customer::class,
         'container_movement' => ContainerMovement::class,
+        'customer_agreement' => CustomerAgreement::class,
     ];
 
     /**
@@ -81,6 +83,7 @@ class ReviewInbox
                 'route_stop' => $this->selectRouteStop(),
                 'customer' => $this->selectCustomer(),
                 'container_movement' => $this->selectContainerMovement(),
+                'customer_agreement' => $this->selectCustomerAgreement(),
             };
             $union = $union === null ? $query : $union->unionAll($query);
         }
@@ -160,5 +163,16 @@ class ReviewInbox
             ->leftJoin('drivers', 'drivers.user_id', '=', 'container_movements.created_by')
             ->where('container_movements.needs_review', true)
             ->selectRaw("'container_movement' as type, container_movements.id, drivers.id as driver_id, container_movements.customer_id, container_movements.created_at as occurred_at, container_movements.review_reason as reason, container_movements.reviewed_at, container_movements.reviewed_by");
+    }
+
+    /**
+     * A price agreement a driver created in the app; like a movement, the moment the server received it is its date.
+     */
+    private function selectCustomerAgreement(): Builder
+    {
+        return DB::table('customer_agreements')
+            ->leftJoin('drivers', 'drivers.user_id', '=', 'customer_agreements.created_by')
+            ->where('customer_agreements.needs_review', true)
+            ->selectRaw("'customer_agreement' as type, customer_agreements.id, drivers.id as driver_id, customer_agreements.customer_id, customer_agreements.created_at as occurred_at, customer_agreements.review_reason as reason, customer_agreements.reviewed_at, customer_agreements.reviewed_by");
     }
 }
