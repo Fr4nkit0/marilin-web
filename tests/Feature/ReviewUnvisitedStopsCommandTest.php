@@ -8,7 +8,7 @@ use App\Models\Driver;
 use App\Models\Route;
 use App\Models\RouteStop;
 use App\Models\Visit;
-use App\Services\Sync\ReviewReason;
+use App\Review\ReviewReason;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 

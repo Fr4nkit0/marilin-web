@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Services\Sync;
+namespace App\Review;
 
 /**
  * Why a record the app uploaded was accepted but left for the admin to review (ADR 0001).
@@ -14,6 +14,16 @@ enum ReviewReason: string
     case UnvisitedRescheduledStop = 'Rescheduled stop ended its day without a visit.';
     case UnvisitedStop = 'Stop ended its day without a visit.';
     case DriverAgreement = 'Agreement created by a driver.';
+
+    /**
+     * The columns that mark a record for review, or leave it clean when there is no reason: the one rule every writer of those columns follows.
+     *
+     * @return array{needs_review: bool, review_reason: string|null}
+     */
+    public static function columns(?self $reason): array
+    {
+        return ['needs_review' => $reason !== null, 'review_reason' => $reason?->value];
+    }
 
     /**
      * What the admin reads in the review inbox; the backing value is what gets stored.

@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Review\Reviewable;
+use App\Review\ReviewSource;
 use Database\Factories\ContainerMovementFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,11 +16,16 @@ class ContainerMovement extends Model
     /** @use HasFactory<ContainerMovementFactory> */
     use HasFactory;
 
+    use Reviewable;
+
+    public static function reviewSource(): ReviewSource
+    {
+        return ReviewSource::userColumn('container_movement', 'created_at', 'created_by');
+    }
+
     protected function casts(): array
     {
         return [
-            'needs_review' => 'boolean',
-            'reviewed_at' => 'datetime',
             'quantity' => 'integer',
             'direction' => 'integer',
             'enabled' => 'boolean',

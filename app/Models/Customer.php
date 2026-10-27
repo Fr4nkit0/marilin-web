@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Review\Reviewable;
+use App\Review\ReviewSource;
 use Database\Factories\CustomerFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -16,13 +18,18 @@ class Customer extends Model
     /** @use HasFactory<CustomerFactory> */
     use HasFactory;
 
+    use Reviewable;
+
+    public static function reviewSource(): ReviewSource
+    {
+        return ReviewSource::customer('customer', 'updated_at');
+    }
+
     protected function casts(): array
     {
         return [
             'enabled' => 'boolean',
-            'needs_review' => 'boolean',
             'received_at' => 'datetime',
-            'reviewed_at' => 'datetime',
         ];
     }
 

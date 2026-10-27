@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Enums\VisitStatus;
+use App\Review\Reviewable;
+use App\Review\ReviewSource;
 use Database\Factories\VisitFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -16,6 +18,13 @@ class Visit extends Model
     /** @use HasFactory<VisitFactory> */
     use HasFactory;
 
+    use Reviewable;
+
+    public static function reviewSource(): ReviewSource
+    {
+        return ReviewSource::driverColumn('visit', 'arrived_at');
+    }
+
     protected function casts(): array
     {
         return [
@@ -24,8 +33,6 @@ class Visit extends Model
             'longitude' => 'decimal:7',
             'altitude' => 'decimal:7',
             'enabled' => 'boolean',
-            'needs_review' => 'boolean',
-            'reviewed_at' => 'datetime',
         ];
     }
 

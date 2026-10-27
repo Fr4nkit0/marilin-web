@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Review\Reviewable;
+use App\Review\ReviewSource;
 use Database\Factories\CustomerAgreementFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -16,14 +18,19 @@ class CustomerAgreement extends Model
     /** @use HasFactory<CustomerAgreementFactory> */
     use HasFactory;
 
+    use Reviewable;
+
+    public static function reviewSource(): ReviewSource
+    {
+        return ReviewSource::userColumn('customer_agreement', 'created_at', 'created_by');
+    }
+
     protected function casts(): array
     {
         return [
             'unit_price' => 'decimal:2',
             'valid_from' => 'date',
             'valid_to' => 'date',
-            'needs_review' => 'boolean',
-            'reviewed_at' => 'datetime',
         ];
     }
 

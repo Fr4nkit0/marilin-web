@@ -8,7 +8,7 @@ use App\Models\Customer;
 use App\Models\Driver;
 use App\Models\User;
 use App\Models\Visit;
-use App\Services\Sync\ReviewReason;
+use App\Review\ReviewReason;
 use Carbon\CarbonInterface;
 
 /**

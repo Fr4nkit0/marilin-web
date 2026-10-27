@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Enums\SaleStatus;
+use App\Review\Reviewable;
+use App\Review\ReviewSource;
 use Database\Factories\SaleFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -16,11 +18,16 @@ class Sale extends Model
     /** @use HasFactory<SaleFactory> */
     use HasFactory;
 
+    use Reviewable;
+
+    public static function reviewSource(): ReviewSource
+    {
+        return ReviewSource::userColumn('sale', 'date', 'created_by');
+    }
+
     protected function casts(): array
     {
         return [
-            'needs_review' => 'boolean',
-            'reviewed_at' => 'datetime',
             'date' => 'datetime',
             'total' => 'decimal:2',
             'is_credit_sale' => 'boolean',

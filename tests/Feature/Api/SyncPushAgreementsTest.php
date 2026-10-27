@@ -7,7 +7,7 @@ use App\Models\CustomerAgreement;
 use App\Models\Driver;
 use App\Models\Product;
 use App\Models\User;
-use App\Services\Sync\ReviewReason;
+use App\Review\ReviewReason;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;

@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Enums\StopStatus;
 use App\Enums\VisitStatus;
+use App\Review\Reviewable;
+use App\Review\ReviewSource;
 use Database\Factories\RouteStopFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -18,12 +20,17 @@ class RouteStop extends Model
     /** @use HasFactory<RouteStopFactory> */
     use HasFactory;
 
+    use Reviewable;
+
+    public static function reviewSource(): ReviewSource
+    {
+        return ReviewSource::route('route_stop');
+    }
+
     protected function casts(): array
     {
         return [
             'enabled' => 'boolean',
-            'needs_review' => 'boolean',
-            'reviewed_at' => 'datetime',
         ];
     }
 

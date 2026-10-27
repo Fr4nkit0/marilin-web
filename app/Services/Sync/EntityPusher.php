@@ -7,6 +7,8 @@ namespace App\Services\Sync;
 use App\Models\Customer;
 use App\Models\Driver;
 use App\Models\User;
+use App\Review\Reviewable;
+use App\Review\ReviewReason;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\QueryException;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -110,9 +112,8 @@ abstract class EntityPusher
      */
     protected function pendingReason(Model $record): ?string
     {
-        return $record->getAttribute('needs_review') && $record->getAttribute('reviewed_at') === null
-            ? $record->getAttribute('review_reason')
-            : null;
+        /** @var Reviewable&Model $record */
+        return $record->pendingReviewReason();
     }
 
     /**
@@ -122,7 +123,7 @@ abstract class EntityPusher
      */
     protected function reviewAttributes(?ReviewReason $reason): array
     {
-        return ['needs_review' => $reason !== null, 'review_reason' => $reason?->value];
+        return ReviewReason::columns($reason);
     }
 
     /**

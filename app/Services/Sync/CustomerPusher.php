@@ -12,6 +12,7 @@ use App\Operations\CustomerAddressDetails;
 use App\Operations\CustomerEdit;
 use App\Operations\CustomerIntake;
 use App\Operations\CustomerRegistration;
+use App\Review\ReviewReason;
 use App\Support\ClientTime;
 use Illuminate\Support\Carbon;
 
@@ -42,12 +43,12 @@ class CustomerPusher extends EntityPusher
      */
     private function flagForReviewIfForeign(Customer $customer, Driver $driver): void
     {
-        if ($customer->driver_id === $driver->id || $customer->needs_review || $customer->reviewed_at !== null) {
+        if ($customer->driver_id === $driver->id || ! $customer->canBeFlagged()) {
             return;
         }
 
         $customer->timestamps = false;
-        $customer->forceFill($this->reviewAttributes(ReviewReason::ForeignCustomer))->save();
+        $customer->flag(ReviewReason::ForeignCustomer);
     }
 
     /**

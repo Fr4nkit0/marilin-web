@@ -14,6 +14,7 @@ use App\Models\Route;
 use App\Models\Sale;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Review\ReviewReason;
 use App\Services\CustomerLedger;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -51,8 +52,7 @@ class StreetOperation
                 'notes' => $input->notes,
                 'created_by' => $input->recordedBy->id,
                 'enabled' => true,
-                'needs_review' => $input->reviewReason !== null,
-                'review_reason' => $input->reviewReason?->value,
+                ...ReviewReason::columns($input->reviewReason),
             ]);
 
             foreach ($input->lines as $line) {
@@ -87,8 +87,7 @@ class StreetOperation
                 'received_by' => $input->receivedBy->id,
                 'paid_at' => $input->paidAt,
                 'status' => PaymentStatus::Confirmed->value,
-                'needs_review' => $input->reviewReason !== null,
-                'review_reason' => $input->reviewReason?->value,
+                ...ReviewReason::columns($input->reviewReason),
             ]);
 
             $this->ledger->bookPayment($input->customer, $payment, $input->receivedBy);
@@ -113,8 +112,7 @@ class StreetOperation
                 'direction' => $direction,
                 'created_by' => $input->recordedBy->id,
                 'enabled' => true,
-                'needs_review' => $input->reviewReason !== null,
-                'review_reason' => $input->reviewReason?->value,
+                ...ReviewReason::columns($input->reviewReason),
             ]);
 
             // Guarantees the row exists so the lock below always has something to lock when two first movements race.

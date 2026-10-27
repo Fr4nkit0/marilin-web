@@ -21,7 +21,7 @@ use App\Operations\RecordPayment;
 use App\Operations\RecordSale;
 use App\Operations\SaleLine;
 use App\Operations\StreetOperation;
-use App\Services\Sync\ReviewReason;
+use App\Review\ReviewReason;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 

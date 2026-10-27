@@ -8,7 +8,7 @@ use App\Enums\ContainerMovementType;
 use App\Models\Customer;
 use App\Models\User;
 use App\Models\Visit;
-use App\Services\Sync\ReviewReason;
+use App\Review\ReviewReason;
 
 final readonly class MoveContainers
 {
