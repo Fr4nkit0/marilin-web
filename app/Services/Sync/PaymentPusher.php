@@ -50,7 +50,7 @@ class PaymentPusher extends EntityPusher
             customer: $customer,
             visit: $visit,
             sale: $sale,
-            paymentMethodId: $record['payment_method_id'],
+            paymentMethodId: (int) $record['payment_method_id'],
             amount: $record['amount'],
             paidAt: ClientTime::parse($record['paid_at']),
             receivedBy: $user,

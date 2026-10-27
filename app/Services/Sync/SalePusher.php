@@ -65,9 +65,10 @@ class SalePusher extends EntityPusher
             visit: $visit,
             driver: $driver,
             date: ClientTime::parse($record['date']),
-            lines: array_map(fn (array $detail, int $index): SaleLine => new SaleLine(
-                $detail['product_id'],
-                $detail['quantity'],
+            // Validation accepts numeric strings and keyed details, so the adapter casts what the module types strictly.
+            lines: array_map(fn (array $detail, int|string $index): SaleLine => new SaleLine(
+                (int) $detail['product_id'],
+                (int) $detail['quantity'],
                 $detail['unit_price'],
                 $agreements[$index],
             ), $record['details'], array_keys($record['details'])),

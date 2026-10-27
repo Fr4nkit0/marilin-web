@@ -336,3 +336,20 @@ test('push rejects a sale line agreement uuid that matches nothing', function ()
 
     expect($result['status'])->toBe('rejected')->and(Sale::query()->count())->toBe(0);
 });
+
+test('push still accepts numeric-string ids and quantities on sales and payments, as before the street operation', function (): void {
+    $sale = salePayload([
+        'total' => 1400,
+        'details' => ['first' => ['product_id' => (string) $this->water->id, 'quantity' => '2', 'unit_price' => 700]],
+    ]);
+    $payment = paymentPayload(['payment_method_id' => (string) PaymentMethod::factory()->create()->id]);
+
+    $response = push(['sales' => [$sale], 'payments' => [$payment]]);
+
+    $response->assertOk()
+        ->assertJsonPath('data.sales.0.status', 'accepted')
+        ->assertJsonPath('data.payments.0.status', 'accepted');
+
+    expect((float) $this->waterStock->fresh()->current_quantity)->toBe(18.0)
+        ->and(Sale::query()->where('client_uuid', $sale['uuid'])->firstOrFail()->details()->firstOrFail()->quantity)->toBe(2);
+});

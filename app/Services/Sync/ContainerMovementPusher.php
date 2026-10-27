@@ -45,9 +45,9 @@ class ContainerMovementPusher extends EntityPusher
 
         $movement = $this->operation->moveContainers(new MoveContainers(
             customer: $customer,
-            containerTypeId: $record['container_type_id'],
+            containerTypeId: (int) $record['container_type_id'],
             type: ContainerMovementType::from($record['movement_type']),
-            quantity: $record['quantity'],
+            quantity: (int) $record['quantity'],
             visit: $visit,
             recordedBy: $user,
             clientUuid: $record['uuid'],
