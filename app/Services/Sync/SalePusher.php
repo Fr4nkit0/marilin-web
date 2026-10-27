@@ -7,17 +7,24 @@ namespace App\Services\Sync;
 use App\Models\Customer;
 use App\Models\CustomerAgreement;
 use App\Models\Driver;
+use App\Models\Product;
 use App\Models\Sale;
 use App\Models\User;
 use App\Models\Visit;
+use App\Operations\PriceResolver;
 use App\Operations\RecordSale;
 use App\Operations\SaleLine;
 use App\Operations\StreetOperation;
+use App\Review\ReviewReason;
 use App\Support\ClientTime;
+use Illuminate\Support\Carbon;
 
 class SalePusher extends EntityPusher
 {
-    public function __construct(private readonly StreetOperation $operation) {}
+    public function __construct(
+        private readonly StreetOperation $operation,
+        private readonly PriceResolver $prices,
+    ) {}
 
     protected function rules(): array
     {
@@ -58,13 +65,15 @@ class SalePusher extends EntityPusher
             return $agreement;
         }, $record['details']);
 
-        $reason = $this->reviewReasonForCustomer($customer, $driver);
+        $date = ClientTime::parse($record['date']);
+        $reason = $this->reviewReasonForCustomer($customer, $driver)
+            ?? ($this->chargesAnotherPrice($customer, $record['details'], $date) ? ReviewReason::PriceMismatch : null);
 
         $sale = $this->operation->recordSale(new RecordSale(
             customer: $customer,
             visit: $visit,
             driver: $driver,
-            date: ClientTime::parse($record['date']),
+            date: $date,
             // Validation accepts numeric strings and keyed details, so the adapter casts what the module types strictly.
             lines: array_map(fn (array $detail, int|string $index): SaleLine => new SaleLine(
                 (int) $detail['product_id'],
@@ -81,6 +90,34 @@ class SalePusher extends EntityPusher
         ));
 
         return $this->accepted($record['uuid'], $sale->id, $reason?->value);
+    }
+
+    /**
+     * Accept-and-mark (ADR 0001): the sale keeps the prices the app sent, but a line that is not charged what the server resolves for that customer, product and day (agreement valid that day, else list price) needs the admin's eyes.
+     *
+     * @param  array<int|string, array<string, mixed>>  $details
+     */
+    private function chargesAnotherPrice(Customer $customer, array $details, Carbon $date): bool
+    {
+        $products = Product::query()->whereIn('id', array_map(fn (array $detail): int => (int) $detail['product_id'], $details))->get()->keyBy('id');
+
+        foreach ($details as $detail) {
+            $expected = $this->prices->priceFor($customer, $products[(int) $detail['product_id']], $date)->unitPrice;
+
+            if ($this->twoDecimals($detail['unit_price']) !== $this->twoDecimals($expected)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Validation accepts any numeric input (numeric strings, exponent notation), so it is normalized before comparing.
+     */
+    private function twoDecimals(string|int|float $amount): string
+    {
+        return number_format((float) $amount, 2, '.', '');
     }
 
     /**

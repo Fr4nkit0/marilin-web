@@ -55,6 +55,16 @@ class CustomerAgreement extends Model
     }
 
     /**
+     * The one validity rule: an agreement sets the price on a day from valid_from through valid_to, both included,
+     * and with no valid_to it never ends. scopeActive() is this same rule in SQL; the tests pin both together.
+     */
+    public function isActiveOn(string $date): bool
+    {
+        return $this->valid_from->toDateString() <= $date
+            && ($this->valid_to === null || $this->valid_to->toDateString() >= $date);
+    }
+
+    /**
      * Whether the agreement sets the price on the given day, has not started yet, or is over.
      *
      * @return 'active'|'upcoming'|'ended'
@@ -62,9 +72,9 @@ class CustomerAgreement extends Model
     public function statusOn(string $date): string
     {
         return match (true) {
+            $this->isActiveOn($date) => 'active',
             $this->valid_to !== null && $this->valid_to->toDateString() < $date => 'ended',
-            $this->valid_from->toDateString() > $date => 'upcoming',
-            default => 'active',
+            default => 'upcoming',
         };
     }
 
@@ -85,6 +95,9 @@ class CustomerAgreement extends Model
         $this->update(['valid_to' => now()->subDay()->toDateString()]);
     }
 
+    /**
+     * The validity rule of isActiveOn() as a query.
+     */
     public function scopeActive($query, $date = null)
     {
         $date = $date ?? now()->toDateString();

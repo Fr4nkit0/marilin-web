@@ -36,8 +36,8 @@ beforeEach(function (): void {
         'date' => '2026-10-22',
         'status' => 'IN_PROGRESS',
     ]);
-    $this->water = Product::factory()->create(['enabled' => true]);
-    $this->soda = Product::factory()->create(['enabled' => true]);
+    $this->water = Product::factory()->create(['enabled' => true, 'price' => 700]);
+    $this->soda = Product::factory()->create(['enabled' => true, 'price' => 400.50]);
     $this->waterStock = RouteInventory::query()->create([
         'route_id' => $this->route->id,
         'product_id' => $this->water->id,

@@ -16,6 +16,7 @@ use App\Models\Route;
 use App\Models\RouteInventory;
 use App\Models\Sale;
 use App\Models\User;
+use App\Operations\StreetOperation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -184,6 +185,8 @@ test('invalid payments return validation errors and write nothing', function (ar
     'amount zero' => [fn () => ['amount' => 0, 'payment_method_id' => 1], 'amount'],
     'negative amount' => [fn () => ['amount' => -5, 'payment_method_id' => 1], 'amount'],
     'unknown method' => [fn () => ['amount' => 10, 'payment_method_id' => 999999], 'payment_method_id'],
+    'zero with decimals' => [fn () => ['amount' => '0.00', 'payment_method_id' => 1], 'amount'],
+    'three decimals' => [fn () => ['amount' => '10.001', 'payment_method_id' => 1], 'amount'],
 ]);
 
 test('a disabled payment method is rejected', function (): void {
@@ -235,4 +238,49 @@ test('the customer page exposes the home operations only to the admin, with reso
     $this->actingAs($this->driverUser)
         ->get(route('customers.show', $this->customer))
         ->assertInertia(fn (Assert $page) => $page->where('canRecordAtHome', false)->where('homeProducts', [])->where('paymentMethods', [])->where('containerTypes', []));
+});
+
+test('a guest is redirected to login on both home operations and nothing is written', function (): void {
+    $this->post(route('customers.home-sales.store', $this->customer), homeSale())->assertRedirect(route('login'));
+    $this->post(route('customers.home-payments.store', $this->customer), ['amount' => 100, 'payment_method_id' => $this->cash->id])->assertRedirect(route('login'));
+
+    nothingWasWritten();
+});
+
+test('an agreement of another customer, another product or a future one never sets the price', function (): void {
+    $other = Customer::factory()->create();
+    CustomerAgreement::factory()->create(['customer_id' => $other->id, 'product_id' => $this->bidon->id, 'unit_price' => 1, 'valid_from' => '2026-10-01', 'valid_to' => null]);
+    CustomerAgreement::factory()->create(['customer_id' => $this->customer->id, 'product_id' => $this->soda->id, 'unit_price' => 2, 'valid_from' => '2026-10-01', 'valid_to' => null]);
+    CustomerAgreement::factory()->create(['customer_id' => $this->customer->id, 'product_id' => $this->bidon->id, 'unit_price' => 3, 'valid_from' => '2026-10-23', 'valid_to' => null]);
+
+    $this->actingAs($this->admin)->post(route('customers.home-sales.store', $this->customer), homeSale(['lines' => [['product_id' => $this->bidon->id, 'quantity' => 1]]]));
+
+    $line = Sale::query()->with('details')->sole()->details->sole();
+    expect((float) $line->unit_price)->toBe(6500.0)
+        ->and($line->customer_agreement_id)->toBeNull();
+});
+
+test('with several valid agreements the home sale uses the most recent valid_from, then the highest id', function (): void {
+    $attributes = ['customer_id' => $this->customer->id, 'product_id' => $this->bidon->id, 'valid_to' => null];
+    CustomerAgreement::factory()->create([...$attributes, 'unit_price' => 5000, 'valid_from' => '2026-10-15']);
+    CustomerAgreement::factory()->create([...$attributes, 'unit_price' => 4000, 'valid_from' => '2026-10-01']);
+    $winner = CustomerAgreement::factory()->create([...$attributes, 'unit_price' => 4500, 'valid_from' => '2026-10-15']);
+
+    $this->actingAs($this->admin)->post(route('customers.home-sales.store', $this->customer), homeSale(['lines' => [['product_id' => $this->bidon->id, 'quantity' => 1]]]));
+
+    $line = Sale::query()->with('details')->sole()->details->sole();
+    expect((float) $line->unit_price)->toBe(4500.0)
+        ->and($line->customer_agreement_id)->toBe($winner->id);
+});
+
+test('a failing container line rolls back the home sale and its ledger entry', function (): void {
+    $this->partialMock(StreetOperation::class, function ($mock): void {
+        $mock->shouldReceive('moveContainers')->andThrow(new RuntimeException('container failure'));
+    });
+
+    $this->actingAs($this->admin)->post(route('customers.home-sales.store', $this->customer), homeSale([
+        'containers' => [['container_type_id' => $this->container->id, 'type' => 'DELIVERED', 'quantity' => 1]],
+    ]))->assertServerError();
+
+    nothingWasWritten();
 });

@@ -78,3 +78,35 @@ test('agreements of another customer or product are ignored', function (): void 
 
     expect((float) app(PriceResolver::class)->priceFor($this->customer, $this->product, Carbon::parse('2026-10-22'))->unitPrice)->toBe(6500.0);
 });
+
+test('a future agreement never applies', function (): void {
+    agreementOn(['unit_price' => 100, 'valid_from' => '2026-10-23']);
+
+    $resolved = app(PriceResolver::class)->priceFor($this->customer, $this->product, Carbon::parse('2026-10-22'));
+
+    expect((float) $resolved->unitPrice)->toBe(6500.0)
+        ->and($resolved->agreement)->toBeNull();
+});
+
+test('agreements of another customer or product never give their agreement to this one', function (): void {
+    CustomerAgreement::factory()->create(['customer_id' => Customer::factory()->create()->id, 'product_id' => $this->product->id, 'unit_price' => 100, 'valid_from' => '2026-10-01', 'valid_to' => null]);
+
+    expect(app(PriceResolver::class)->priceFor($this->customer, $this->product, Carbon::parse('2026-10-22'))->agreement)->toBeNull();
+});
+
+test('with the same valid_from the highest id wins', function (): void {
+    agreementOn(['unit_price' => 5000, 'valid_from' => '2026-10-01']);
+    $latest = agreementOn(['unit_price' => 4700, 'valid_from' => '2026-10-01']);
+
+    $resolved = app(PriceResolver::class)->priceFor($this->customer, $this->product, Carbon::parse('2026-10-22'));
+
+    expect((float) $resolved->unitPrice)->toBe(4700.0)
+        ->and($resolved->agreement?->id)->toBe($latest->id);
+});
+
+test('an older valid_from loses even with a higher id', function (): void {
+    $newest = agreementOn(['unit_price' => 4800, 'valid_from' => '2026-10-15']);
+    agreementOn(['unit_price' => 5000, 'valid_from' => '2026-10-01']);
+
+    expect(app(PriceResolver::class)->priceFor($this->customer, $this->product, Carbon::parse('2026-10-22'))->agreement?->id)->toBe($newest->id);
+});
