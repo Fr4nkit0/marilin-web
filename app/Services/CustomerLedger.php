@@ -14,6 +14,8 @@ use App\Models\User;
 /**
  * The customer's current account: every sale or payment books one entry and moves the balance with it.
  * A positive balance means the customer owes money.
+ *
+ * @internal Owned by StreetOperation, the only writer of the ledger.
  */
 class CustomerLedger
 {
