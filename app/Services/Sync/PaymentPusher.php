@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Sync;
 
+use App\Enums\PaymentStatus;
 use App\Models\Customer;
 use App\Models\Driver;
 use App\Models\Payment;
@@ -58,7 +59,7 @@ class PaymentPusher extends EntityPusher
             'amount' => $record['amount'],
             'received_by' => $user->id,
             'paid_at' => ClientTime::parse($record['paid_at']),
-            'status' => 'CONFIRMED',
+            'status' => PaymentStatus::Confirmed->value,
             ...$this->reviewAttributes($reason),
         ]);
 

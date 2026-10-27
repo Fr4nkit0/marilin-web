@@ -76,7 +76,7 @@ test('push creates a rescheduled stop in the same route with the chosen time and
         ->and($new->address_id)->toBe($this->address->id)
         ->and($new->is_rescheduled_from)->toBe($this->stop->id)
         ->and(substr((string) $new->scheduled_time, 0, 5))->toBe('16:00')
-        ->and($this->stop->fresh()->effectiveStatus())->toBe('RESCHEDULED');
+        ->and($this->stop->fresh()->effectiveStatus()->value)->toBe('RESCHEDULED');
 });
 
 test('push answers accepted with the same server id and creates nothing when a rescheduled stop is sent twice', function (): void {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Sync;
 
+use App\Enums\VisitStatus;
 use App\Models\Customer;
 use App\Models\Driver;
 use App\Models\RouteStop;
@@ -50,7 +51,7 @@ class VisitPusher extends EntityPusher
             'latitude' => $record['latitude'] ?? null,
             'longitude' => $record['longitude'] ?? null,
             'altitude' => $record['altitude'] ?? null,
-            'status' => 'FINISHED',
+            'status' => VisitStatus::Finished->value,
             'notes' => $record['notes'] ?? null,
             'created_by' => $user->id,
             'enabled' => true,

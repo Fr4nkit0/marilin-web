@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Sync;
 
+use App\Enums\SaleStatus;
 use App\Models\Customer;
 use App\Models\CustomerAgreement;
 use App\Models\Driver;
@@ -66,7 +67,7 @@ class SalePusher extends EntityPusher
             'visit_id' => $visit?->id,
             'date' => ClientTime::parse($record['date']),
             'total' => $record['total'],
-            'status' => 'confirmed',
+            'status' => SaleStatus::Confirmed->value,
             'is_credit_sale' => (bool) ($record['is_credit_sale'] ?? false),
             'notes' => $record['notes'] ?? null,
             'created_by' => $user->id,

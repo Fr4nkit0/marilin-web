@@ -167,7 +167,7 @@ function PaymentsTable({ rows }: { rows: DashboardPaymentRow[] }) {
 }
 
 function StopsTable({ rows }: { rows: DashboardStopRow[] }) {
-    const finished = rows.filter((row) => row.status === 'FINISHED').length;
+    const finished = rows.filter((row) => row.done).length;
 
     return (
         <Table

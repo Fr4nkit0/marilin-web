@@ -32,7 +32,8 @@ export interface DashboardStopRow {
     driver: string | null;
     customer: string | null;
     time: string | null;
-    status: 'PENDING' | 'IN_PROGRESS' | 'FINISHED' | 'RESCHEDULED' | string;
+    status: 'PENDING' | 'IN_PROGRESS' | 'FINISHED' | 'CANCELLED' | 'RESCHEDULED';
+    done: boolean;
 }
 
 export interface DashboardContainerRow {

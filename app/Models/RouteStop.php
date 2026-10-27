@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\StopStatus;
+use App\Enums\VisitStatus;
 use Database\Factories\RouteStopFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -63,13 +65,32 @@ class RouteStop extends Model
     /**
      * Status derived from the stop's visit and its reschedule link.
      */
-    public function effectiveStatus(): string
+    public function effectiveStatus(): StopStatus
     {
         if ($this->rescheduledTo !== null) {
-            return 'RESCHEDULED';
+            return StopStatus::Rescheduled;
         }
 
-        return $this->visit->status ?? 'PENDING';
+        return $this->visit === null ? StopStatus::Pending : StopStatus::from($this->visit->status);
+    }
+
+    /**
+     * "Parada hecha": the visit finished, whatever its outcome (absent included).
+     * A rescheduled stop is not done: the one left to do is the new one.
+     */
+    public function isDone(): bool
+    {
+        return $this->effectiveStatus() === StopStatus::Finished;
+    }
+
+    /**
+     * Stops that are not done, with the same rule as isDone().
+     */
+    public function scopeNotDone($query)
+    {
+        return $query
+            ->whereDoesntHave('rescheduledTo')
+            ->whereDoesntHave('visit', fn ($visit) => $visit->where('status', VisitStatus::Finished->value));
     }
 
     public function scopeEnabled($query)

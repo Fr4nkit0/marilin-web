@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PaymentStatus;
 use Database\Factories\PaymentFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -62,11 +63,11 @@ class Payment extends Model
 
     public function scopeConfirmed($query)
     {
-        return $query->where('status', 'CONFIRMED');
+        return $query->where('status', PaymentStatus::Confirmed->value);
     }
 
     public function scopeCancelled($query)
     {
-        return $query->where('status', 'CANCELLED');
+        return $query->where('status', PaymentStatus::Cancelled->value);
     }
 }

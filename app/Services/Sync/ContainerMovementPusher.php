@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Sync;
 
+use App\Enums\ContainerMovementType;
 use App\Models\ContainerMovement;
 use App\Models\Customer;
 use App\Models\CustomerContainerBalance;
@@ -18,7 +19,7 @@ class ContainerMovementPusher extends EntityPusher
      *
      * @var array<string, int>
      */
-    private const array DIRECTIONS = ['DELIVERED' => 1, 'RETURNED' => -1];
+    private const array DIRECTIONS = [ContainerMovementType::Delivered->value => 1, ContainerMovementType::Returned->value => -1];
 
     protected function rules(): array
     {

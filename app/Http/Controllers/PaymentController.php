@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\PaymentMethodCode;
+use App\Enums\PaymentStatus;
 use App\Models\Payment;
 use App\Models\PaymentMethod;
 use Carbon\Carbon;
@@ -50,17 +52,17 @@ class PaymentController extends Controller
 
         // Calculate totals
         $totalCollected = (float) Payment::when($date, fn ($q) => $q->whereDate('paid_at', $date))
-            ->where('status', 'CONFIRMED')
+            ->where('status', PaymentStatus::Confirmed->value)
             ->sum('amount');
 
         $cashTotal = (float) Payment::when($date, fn ($q) => $q->whereDate('paid_at', $date))
-            ->whereHas('paymentMethod', fn ($q) => $q->where('code', 'CASH'))
-            ->where('status', 'CONFIRMED')
+            ->whereHas('paymentMethod', fn ($q) => $q->where('code', PaymentMethodCode::Cash->value))
+            ->where('status', PaymentStatus::Confirmed->value)
             ->sum('amount');
 
         $transferTotal = (float) Payment::when($date, fn ($q) => $q->whereDate('paid_at', $date))
-            ->whereHas('paymentMethod', fn ($q) => $q->where('code', 'TRANSFER'))
-            ->where('status', 'CONFIRMED')
+            ->whereHas('paymentMethod', fn ($q) => $q->where('code', PaymentMethodCode::Transfer->value))
+            ->where('status', PaymentStatus::Confirmed->value)
             ->sum('amount');
 
         $paymentMethods = PaymentMethod::where('enabled', true)->get();

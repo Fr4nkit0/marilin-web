@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\CashClose;
 
+use App\Enums\ContainerMovementType;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Response;
 use Illuminate\Support\Str;
@@ -19,7 +20,7 @@ class CashCloseExport
 {
     private const array ORIGINS = ['stop' => 'Parada', 'loose' => 'Sin visita'];
 
-    private const array MOVEMENTS = ['DELIVERED' => 'Entregado', 'RETURNED' => 'Devuelto'];
+    private const array MOVEMENTS = [ContainerMovementType::Delivered->value => 'Entregado', ContainerMovementType::Returned->value => 'Devuelto'];
 
     /**
      * @param  array<string, mixed>  $settlement  as built by CashCloseReport::forDriver

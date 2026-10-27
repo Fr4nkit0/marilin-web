@@ -2,6 +2,10 @@
 
 namespace App\Actions;
 
+use App\Enums\ContainerMovementType;
+use App\Enums\PaymentMethodCode;
+use App\Enums\PaymentStatus;
+use App\Enums\RouteStatus;
 use App\Models\ContainerMovement;
 use App\Models\Driver;
 use App\Models\Payment;
@@ -38,19 +42,19 @@ class GetDailyDashboardMetricsAction
 
         // 2. Payments / Collections Breakdown
         $cashPayments = (float) Payment::whereDate('paid_at', $targetDate)
-            ->whereHas('paymentMethod', fn ($q) => $q->where('code', 'CASH'))
-            ->where('status', 'CONFIRMED')
+            ->whereHas('paymentMethod', fn ($q) => $q->where('code', PaymentMethodCode::Cash->value))
+            ->where('status', PaymentStatus::Confirmed->value)
             ->sum('amount');
 
         $transferPayments = (float) Payment::whereDate('paid_at', $targetDate)
-            ->whereHas('paymentMethod', fn ($q) => $q->where('code', 'TRANSFER'))
-            ->where('status', 'CONFIRMED')
+            ->whereHas('paymentMethod', fn ($q) => $q->where('code', PaymentMethodCode::Transfer->value))
+            ->where('status', PaymentStatus::Confirmed->value)
             ->sum('amount');
 
         $totalCollected = $cashPayments + $transferPayments;
 
         // 3. Route progress and stops
-        $routes = DeliveryRoute::with(['stops.visits', 'stops.visit', 'stops.rescheduledTo', 'stops.customer:id,name', 'driver.user'])
+        $routes = DeliveryRoute::with(['stops.visit', 'stops.rescheduledTo', 'stops.customer:id,name', 'driver.user'])
             ->whereDate('date', $targetDate)
             ->get();
         $totalStops = 0;
@@ -60,9 +64,7 @@ class GetDailyDashboardMetricsAction
 
         foreach ($routes as $route) {
             $routeStopsCount = $route->stops->count();
-            $routeCompletedCount = $route->stops->filter(function ($stop) {
-                return $stop->visits->whereIn('status', ['COMPLETED', 'DELIVERED', 'FINISHED'])->isNotEmpty();
-            })->count();
+            $routeCompletedCount = $route->stops->filter(fn (RouteStop $stop) => $stop->isDone())->count();
 
             $totalStops += $routeStopsCount;
             $completedStops += $routeCompletedCount;
@@ -81,11 +83,11 @@ class GetDailyDashboardMetricsAction
 
         // 4. Containers delivered vs returned
         $containersDelivered = (int) ContainerMovement::whereDate('created_at', $targetDate)
-            ->where('movement_type', 'DELIVERED')
+            ->where('movement_type', ContainerMovementType::Delivered->value)
             ->sum('quantity');
 
         $containersReturned = (int) ContainerMovement::whereDate('created_at', $targetDate)
-            ->where('movement_type', 'RETURNED')
+            ->where('movement_type', ContainerMovementType::Returned->value)
             ->sum('quantity');
 
         return [
@@ -126,7 +128,7 @@ class GetDailyDashboardMetricsAction
 
         $onRoute = DeliveryRoute::query()
             ->whereDate('date', Carbon::today()->toDateString())
-            ->where('status', 'IN_PROGRESS')
+            ->where('status', RouteStatus::InProgress->value)
             ->pluck('assigned_driver_id')
             ->flip();
 
@@ -178,8 +180,8 @@ class GetDailyDashboardMetricsAction
             'payments' => Payment::query()
                 ->with(['customer:id,name', 'recipient:id,name', 'paymentMethod:id,code'])
                 ->whereDate('paid_at', $date)
-                ->where('status', 'CONFIRMED')
-                ->whereHas('paymentMethod', fn ($q) => $q->whereIn('code', ['CASH', 'TRANSFER']))
+                ->where('status', PaymentStatus::Confirmed->value)
+                ->whereHas('paymentMethod', fn ($q) => $q->whereIn('code', [PaymentMethodCode::Cash->value, PaymentMethodCode::Transfer->value]))
                 ->orderBy('paid_at')
                 ->orderBy('id')
                 ->get()
@@ -198,7 +200,8 @@ class GetDailyDashboardMetricsAction
                     'driver' => $route->driver?->user?->name,
                     'customer' => $stop->customer?->name,
                     'time' => $stop->scheduled_time === null ? null : substr((string) $stop->scheduled_time, 0, 5),
-                    'status' => $stop->effectiveStatus(),
+                    'status' => $stop->effectiveStatus()->value,
+                    'done' => $stop->isDone(),
                 ]))
                 ->sortBy([['driver', 'asc'], ['time', 'asc'], ['id', 'asc']])
                 ->values()

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Driver;
+use App\Models\RouteStop;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -21,7 +22,7 @@ class DriverController extends Controller
             'user',
             'customers',
             'routes' => fn ($q) => $q->whereDate('date', $date)
-                ->with(['stops.customer.primaryAddress', 'stops.visit', 'inventoryLoads.product', 'inventories.product']),
+                ->with(['stops.customer.primaryAddress', 'stops.visit', 'stops.rescheduledTo', 'inventoryLoads.product', 'inventories.product']),
         ])
             ->where('enabled', true)
             ->get()
@@ -29,9 +30,7 @@ class DriverController extends Controller
                 $todayRoute = $driver->routes->first();
 
                 $totalStops = $todayRoute ? $todayRoute->stops->count() : 0;
-                $completedStops = $todayRoute ? $todayRoute->stops->filter(
-                    fn ($s) => $s->visit && in_array($s->visit->status, ['FINISHED', 'DELIVERED', 'COMPLETED'])
-                )->count() : 0;
+                $completedStops = $todayRoute ? $todayRoute->stops->filter(fn (RouteStop $stop) => $stop->isDone())->count() : 0;
 
                 $progress = $totalStops > 0 ? round(($completedStops / $totalStops) * 100) : 0;
 
@@ -83,6 +82,7 @@ class DriverController extends Controller
             'routes' => fn ($q) => $q->whereDate('date', $date)
                 ->with([
                     'stops.customer.primaryAddress',
+                    'stops.rescheduledTo',
                     'stops.visit.outcome',
                     'stops.visit.payments',
                     'stops.visit.sales',
@@ -93,12 +93,18 @@ class DriverController extends Controller
 
         $currentRoute = $repartidor->routes->first();
 
+        $totalStops = $currentRoute?->stops->count() ?? 0;
+        $completedStops = $currentRoute?->stops->filter(fn (RouteStop $stop) => $stop->isDone())->count() ?? 0;
+
         $formattedRoute = $currentRoute ? [
             'id' => $currentRoute->id,
             'date' => $currentRoute->date?->format('d/m/Y') ?? $date,
             'status' => $currentRoute->status,
             'startedAt' => $currentRoute->started_at?->format('H:i'),
             'completedAt' => $currentRoute->completed_at?->format('H:i'),
+            'totalStops' => $totalStops,
+            'completedStops' => $completedStops,
+            'progressPercent' => $totalStops > 0 ? round(($completedStops / $totalStops) * 100) : 0,
             'totalSalesAmount' => (float) $currentRoute->stops->sum(fn ($s) => $s->visit?->sales->sum('total') ?? 0),
             'totalCollectedAmount' => (float) $currentRoute->stops->sum(fn ($s) => $s->visit?->payments->sum('amount') ?? 0),
             'stops' => $currentRoute->stops->map(fn ($stop) => [
@@ -109,7 +115,8 @@ class DriverController extends Controller
                     'address' => $stop->customer->primaryAddress?->street ?? 'Sin dirección',
                     'phone' => $stop->customer->phone_number,
                 ],
-                'status' => $stop->visit?->status ?? 'PENDING',
+                'status' => $stop->effectiveStatus()->value,
+                'done' => $stop->isDone(),
                 'arrivedAt' => $stop->visit?->arrived_at?->format('H:i'),
                 'salesAmount' => (float) ($stop->visit?->sales->sum('total') ?? 0),
                 'paymentsAmount' => (float) ($stop->visit?->payments->sum('amount') ?? 0),

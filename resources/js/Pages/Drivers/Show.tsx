@@ -19,7 +19,8 @@ interface StopItem {
         address?: string;
         phone?: string;
     };
-    status: string; // 'PENDING', 'IN_PROGRESS', 'FINISHED', 'DELIVERED'
+    status: string; // 'PENDING', 'IN_PROGRESS', 'FINISHED', 'CANCELLED', 'RESCHEDULED'
+    done: boolean;
     arrivedAt?: string;
     salesAmount: number;
     paymentsAmount: number;
@@ -47,6 +48,9 @@ interface Props {
         completedAt?: string;
         totalSalesAmount: number;
         totalCollectedAmount: number;
+        totalStops: number;
+        completedStops: number;
+        progressPercent: number;
         stops: StopItem[];
         inventory: InventoryItem[];
     } | null;
@@ -54,16 +58,9 @@ interface Props {
 }
 
 export default function RepartidorShow({ repartidor, route: deliveryRoute, targetDate }: Props) {
-    const totalStops = deliveryRoute?.stops.length || 0;
-    const completedStops = deliveryRoute?.stops.filter(
-        (s) => s.status === 'FINISHED' || s.status === 'DELIVERED' || s.status === 'COMPLETED'
-    ).length || 0;
-
-    const progressPercent = totalStops > 0 ? roundPercent((completedStops / totalStops) * 100) : 0;
-
-    function roundPercent(val: number) {
-        return Math.round(val);
-    }
+    const totalStops = deliveryRoute?.totalStops ?? 0;
+    const completedStops = deliveryRoute?.completedStops ?? 0;
+    const progressPercent = deliveryRoute?.progressPercent ?? 0;
 
     return (
         <AdminLayout

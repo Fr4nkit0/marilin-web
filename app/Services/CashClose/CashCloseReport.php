@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services\CashClose;
 
+use App\Enums\ContainerMovementType;
+use App\Enums\PaymentMethodCode;
+use App\Enums\PaymentStatus;
 use App\Models\ContainerMovement;
 use App\Models\Driver;
 use App\Models\Payment;
@@ -39,8 +42,8 @@ class CashCloseReport
         $payments = $this->payments($driver, $date);
         $containers = $this->containerMovements($driver, $date);
 
-        $cash = $payments->filter(fn (Payment $payment): bool => $payment->paymentMethod?->code === 'CASH');
-        $transfers = $payments->filter(fn (Payment $payment): bool => $payment->paymentMethod?->code === 'TRANSFER');
+        $cash = $payments->filter(fn (Payment $payment): bool => $payment->paymentMethod?->code === PaymentMethodCode::Cash->value);
+        $transfers = $payments->filter(fn (Payment $payment): bool => $payment->paymentMethod?->code === PaymentMethodCode::Transfer->value);
         $credit = $sales->where('is_credit_sale', true);
 
         $cashAmount = (float) $cash->sum('amount');
@@ -55,8 +58,8 @@ class CashCloseReport
             'transferAmount' => $transferAmount,
             'totalCollected' => $cashAmount + $transferAmount,
             'debtCollected' => (float) $payments->whereNull('sale_id')->sum('amount'),
-            'containersDelivered' => (int) $containers->where('movement_type', 'DELIVERED')->sum('quantity'),
-            'containersReturned' => (int) $containers->where('movement_type', 'RETURNED')->sum('quantity'),
+            'containersDelivered' => (int) $containers->where('movement_type', ContainerMovementType::Delivered->value)->sum('quantity'),
+            'containersReturned' => (int) $containers->where('movement_type', ContainerMovementType::Returned->value)->sum('quantity'),
             // The first load and every reload of a product add up to what the truck took out.
             'stockLoaded' => $route->inventoryLoads
                 ->groupBy('product_id')
@@ -116,7 +119,7 @@ class CashCloseReport
             ->with(['customer:id,name', 'paymentMethod:id,code'])
             ->where(fn (Builder $query) => $this->ownedBy($query, $driver, 'received_by'))
             ->whereDate('paid_at', $date)
-            ->where('status', 'CONFIRMED')
+            ->where('status', PaymentStatus::Confirmed->value)
             ->orderBy('paid_at')
             ->orderBy('id')
             ->get();

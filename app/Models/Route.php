@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\RouteStatus;
 use Database\Factories\RouteFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -52,17 +53,17 @@ class Route extends Model
 
     public function scopePlanned($query)
     {
-        return $query->where('status', 'PLANNED');
+        return $query->where('status', RouteStatus::Planned->value);
     }
 
     public function scopeInProgress($query)
     {
-        return $query->where('status', 'IN_PROGRESS');
+        return $query->where('status', RouteStatus::InProgress->value);
     }
 
     public function scopeCompleted($query)
     {
-        return $query->where('status', 'COMPLETED');
+        return $query->where('status', RouteStatus::Completed->value);
     }
 
     public function scopeEnabled($query)

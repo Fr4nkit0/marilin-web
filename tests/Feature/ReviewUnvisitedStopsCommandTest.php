@@ -43,7 +43,7 @@ function routeStopOn(string $date, string $status = 'IN_PROGRESS', array $attrib
 test('a stop of a past day without a visit goes to the review inbox', function (): void {
     $unvisited = routeStopOn('2026-10-22');
     $visited = routeStopOn('2026-10-22');
-    Visit::factory()->create(['route_stop_id' => $visited->id, 'customer_id' => $this->customer->id, 'driver_id' => $this->driver->id]);
+    Visit::factory()->finished()->create(['route_stop_id' => $visited->id, 'customer_id' => $this->customer->id, 'driver_id' => $this->driver->id]);
     $today = routeStopOn('2026-10-23');
 
     $this->artisan('review:flag-unvisited-stops')->assertSuccessful();
@@ -87,4 +87,34 @@ test('the unvisited stops task is scheduled to run every day', function (): void
 
     expect($event)->not->toBeNull()
         ->and($event->expression)->toMatch('/^\d+ \d+ \* \* \*$/');
+});
+
+test('a stop whose only visit was cancelled or left in progress is flagged, a done one is not', function (): void {
+    $cancelled = routeStopOn('2026-10-22');
+    Visit::factory()->create(['route_stop_id' => $cancelled->id, 'customer_id' => $this->customer->id, 'driver_id' => $this->driver->id, 'status' => 'CANCELLED']);
+    $inProgress = routeStopOn('2026-10-22');
+    Visit::factory()->create(['route_stop_id' => $inProgress->id, 'customer_id' => $this->customer->id, 'driver_id' => $this->driver->id, 'status' => 'IN_PROGRESS']);
+    $done = routeStopOn('2026-10-22');
+    Visit::factory()->create(['route_stop_id' => $done->id, 'customer_id' => $this->customer->id, 'driver_id' => $this->driver->id, 'status' => 'FINISHED']);
+
+    $this->artisan('review:flag-unvisited-stops')->assertSuccessful();
+
+    expect($cancelled->fresh()->needs_review)->toBeTrue()
+        ->and($cancelled->fresh()->review_reason)->toBe(ReviewReason::UnvisitedStop->value)
+        ->and($inProgress->fresh()->needs_review)->toBeTrue()
+        ->and($done->fresh()->needs_review)->toBeFalse();
+});
+
+test('a rescheduled stop with only a cancelled visit is flagged, one with a finished visit is not', function (): void {
+    $original = routeStopOn('2026-10-21');
+    $cancelled = routeStopOn('2026-10-22', attributes: ['is_rescheduled_from' => $original->id]);
+    Visit::factory()->create(['route_stop_id' => $cancelled->id, 'customer_id' => $this->customer->id, 'driver_id' => $this->driver->id, 'status' => 'CANCELLED']);
+    $done = routeStopOn('2026-10-22', attributes: ['is_rescheduled_from' => $original->id]);
+    Visit::factory()->create(['route_stop_id' => $done->id, 'customer_id' => $this->customer->id, 'driver_id' => $this->driver->id, 'status' => 'FINISHED']);
+
+    $this->artisan('review:flag-rescheduled-stops')->assertSuccessful();
+
+    expect($cancelled->fresh()->needs_review)->toBeTrue()
+        ->and($cancelled->fresh()->review_reason)->toBe(ReviewReason::UnvisitedRescheduledStop->value)
+        ->and($done->fresh()->needs_review)->toBeFalse();
 });

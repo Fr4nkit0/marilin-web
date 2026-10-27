@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\VisitStatus;
 use Database\Factories\VisitFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -80,22 +81,22 @@ class Visit extends Model
 
     public function scopePending($query)
     {
-        return $query->where('status', 'PENDING');
+        return $query->where('status', VisitStatus::Pending->value);
     }
 
     public function scopeInProgress($query)
     {
-        return $query->where('status', 'IN_PROGRESS');
+        return $query->where('status', VisitStatus::InProgress->value);
     }
 
     public function scopeFinished($query)
     {
-        return $query->where('status', 'FINISHED');
+        return $query->where('status', VisitStatus::Finished->value);
     }
 
     public function scopeCancelled($query)
     {
-        return $query->where('status', 'CANCELLED');
+        return $query->where('status', VisitStatus::Cancelled->value);
     }
 
     public function scopeEnabled($query)
