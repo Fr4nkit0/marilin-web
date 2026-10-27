@@ -184,7 +184,8 @@ class CustomerController extends Controller
             driverId: isset($validated['repartidor_id']) ? (int) $validated['repartidor_id'] : null,
             address: $this->addressDetails($validated),
             createdBy: $request->user(),
-            initialDebt: (string) ($validated['initial_balance'] ?? '0'),
+            // numeric also accepts forms like 1e2; the ledger works with a fixed two-decimal string.
+            initialDebt: number_format((float) ($validated['initial_balance'] ?? 0), 2, '.', ''),
             initialContainers: [
                 'BIDON_20L' => (int) ($validated['bidon_20l_balance'] ?? 0),
                 'SIFON_2L' => (int) ($validated['sifon_2l_balance'] ?? 0),

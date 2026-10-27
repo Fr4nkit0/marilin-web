@@ -143,3 +143,15 @@ test('the dashboard shows what each driver and the house took in, and the day to
             ->where('metrics.casa.totalSales', 80)
             ->where('metrics.casa.totalCollected', 50));
 });
+
+test('the containers card lists deliveries and returns, not the initial balances of new customers', function (): void {
+    $bidon = ContainerType::factory()->create(['code' => 'BIDON_20L', 'description' => 'Bidón 20L']);
+    ContainerMovement::factory()->create(['container_type_id' => $bidon->id, 'movement_type' => 'ADJUSTMENT', 'direction' => 1, 'quantity' => 3, 'visit_id' => null, 'created_at' => '2026-10-20 09:00:00']);
+    $returned = ContainerMovement::factory()->create(['container_type_id' => $bidon->id, 'movement_type' => 'RETURNED', 'direction' => -1, 'quantity' => 2, 'visit_id' => null, 'created_at' => '2026-10-20 10:00:00']);
+
+    $this->get('/dashboard?date=2026-10-20')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('metrics.details.containers', 1)
+            ->where('metrics.details.containers.0.id', $returned->id));
+});

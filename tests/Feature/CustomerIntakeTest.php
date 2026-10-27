@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Operations\CustomerAddressDetails;
 use App\Operations\CustomerIntake;
 use App\Operations\CustomerRegistration;
+use App\Operations\StreetOperation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -134,4 +135,24 @@ test('editing a customer without address from the web creates the primary addres
     $this->actingAs($this->user)->put(route('customers.update', $customer), webCustomer());
 
     expect($customer->fresh()->primaryAddress->street)->toBe('Mitre 50');
+});
+
+test('an initial debt in scientific notation is booked like any other numeric amount', function (): void {
+    $this->actingAs($this->user)
+        ->post(route('customers.store'), webCustomer(['initial_balance' => '1e2']))
+        ->assertRedirect(route('customers.index'));
+
+    expect((float) CustomerBalance::query()->sole()->current_balance)->toBe(100.0)
+        ->and((float) CustomerAccountEntry::query()->sole()->amount)->toBe(100.0);
+});
+
+test('a failing initial container movement rolls back the customer, its address, entry and balances', function (): void {
+    $this->mock(StreetOperation::class, fn ($mock) => $mock->shouldReceive('moveContainers')->andThrow(new RuntimeException('boom')));
+    $this->actingAs($this->user)->withoutExceptionHandling();
+
+    expect(fn () => $this->post(route('customers.store'), webCustomer(['initial_balance' => '100', 'bidon_20l_balance' => 2])))
+        ->toThrow(RuntimeException::class, 'boom');
+
+    expect([Customer::count(), CustomerAddress::count(), CustomerAccountEntry::count(), CustomerBalance::count(), ContainerMovement::count(), CustomerContainerBalance::count()])
+        ->toBe([0, 0, 0, 0, 0, 0]);
 });

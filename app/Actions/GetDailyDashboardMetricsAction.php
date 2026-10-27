@@ -2,6 +2,7 @@
 
 namespace App\Actions;
 
+use App\Enums\ContainerMovementType;
 use App\Enums\PaymentMethodCode;
 use App\Enums\RouteStatus;
 use App\Models\ContainerMovement;
@@ -191,7 +192,10 @@ class GetDailyDashboardMetricsAction
                 ->sortBy([['driver', 'asc'], ['time', 'asc'], ['id', 'asc']])
                 ->values()
                 ->all(),
+            // Deliveries and returns only, like the card's totals; a new customer's initial balance is an adjustment.
             'containers' => $day->containerMovements
+                ->whereIn('movement_type', [ContainerMovementType::Delivered->value, ContainerMovementType::Returned->value])
+                ->values()
                 ->map(fn (ContainerMovement $movement): array => [
                     'id' => $movement->id,
                     'customer' => $movement->customer?->name,
