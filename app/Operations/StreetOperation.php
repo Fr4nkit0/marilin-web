@@ -26,11 +26,11 @@ use InvalidArgumentException;
 class StreetOperation
 {
     /**
-     * Containers the customer holds go up on a delivery and down on a return.
+     * Containers the customer holds go up on a delivery and down on a return; an adjustment is an initial balance.
      *
      * @var array<string, int>
      */
-    private const array DIRECTIONS = [ContainerMovementType::Delivered->value => 1, ContainerMovementType::Returned->value => -1];
+    private const array DIRECTIONS = [ContainerMovementType::Delivered->value => 1, ContainerMovementType::Returned->value => -1, ContainerMovementType::Adjustment->value => 1];
 
     public function __construct(
         private readonly CustomerLedger $ledger,
