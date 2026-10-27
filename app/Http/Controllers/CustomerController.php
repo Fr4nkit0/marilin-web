@@ -10,7 +10,9 @@ use App\Models\CustomerAgreement;
 use App\Models\CustomerBalance;
 use App\Models\CustomerContainerBalance;
 use App\Models\Driver;
+use App\Models\PaymentMethod;
 use App\Models\Product;
+use App\Operations\PriceResolver;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -79,7 +81,7 @@ class CustomerController extends Controller
     /**
      * Display the 360 view of a customer (Account entries, container balances, agreements, sales).
      */
-    public function show(Customer $customer): Response
+    public function show(Customer $customer, PriceResolver $prices): Response
     {
         $customer->load([
             'primaryAddress',
@@ -129,6 +131,8 @@ class CustomerController extends Controller
                 'status' => $agreement->statusOn($today),
             ]);
 
+        $canRecordAtHome = Gate::allows('manage-agreements');
+
         return Inertia::render('Customers/Show', [
             'customer' => $customer,
             'accountEntries' => $accountEntries,
@@ -137,7 +141,32 @@ class CustomerController extends Controller
             'agreementProducts' => Product::query()->enabled()->orderBy('name')->get(['id', 'name', 'price'])
                 ->map(fn (Product $product): array => ['id' => $product->id, 'name' => $product->name, 'price' => (float) $product->price]),
             'canManageAgreements' => Gate::allows('manage-agreements'),
+            'canRecordAtHome' => $canRecordAtHome,
+            'homeProducts' => $canRecordAtHome ? $this->homeProducts($customer, $prices) : [],
+            'paymentMethods' => $canRecordAtHome ? PaymentMethod::query()->enabled()->orderBy('name')->get(['id', 'name']) : [],
+            'containerTypes' => $canRecordAtHome ? ContainerType::query()->enabled()->orderBy('description')->get(['id', 'description']) : [],
         ]);
+    }
+
+    /**
+     * The products of a sale at home with the price the server will charge today, read-only for the admin.
+     *
+     * @return list<array{id: int, name: string, unitPrice: float, source: 'agreement'|'list'}>
+     */
+    private function homeProducts(Customer $customer, PriceResolver $prices): array
+    {
+        return Product::query()->enabled()->orderBy('name')->get()
+            ->map(function (Product $product) use ($customer, $prices): array {
+                $resolved = $prices->priceFor($customer, $product, now());
+
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'unitPrice' => (float) $resolved->unitPrice,
+                    'source' => $resolved->agreement === null ? 'list' : 'agreement',
+                ];
+            })
+            ->all();
     }
 
     /**
