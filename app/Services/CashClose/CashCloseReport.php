@@ -4,26 +4,25 @@ declare(strict_types=1);
 
 namespace App\Services\CashClose;
 
-use App\Enums\ContainerMovementType;
-use App\Enums\PaymentMethodCode;
-use App\Enums\PaymentStatus;
 use App\Models\ContainerMovement;
 use App\Models\Driver;
 use App\Models\Payment;
 use App\Models\Route as DeliveryRoute;
 use App\Models\Sale;
-use Illuminate\Database\Eloquent\Builder;
+use App\Operations\DailyFigures\DailyFigures;
+use App\Operations\DailyFigures\DayScope;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
 
 /**
  * A driver's day in money and containers, with the records behind each figure.
  *
- * A record belongs to the driver when it was made on one of their visits, or, without a visit
- * (sold or collected from the customer's page in the app), when the driver recorded it.
+ * The figures and ownership rule come from DailyFigures; this class only shapes them for the close.
  */
 class CashCloseReport
 {
+    public function __construct(private readonly DailyFigures $figures) {}
+
     /**
      * @return array<string, mixed>|null null when the driver has no route that day
      */
@@ -38,28 +37,19 @@ class CashCloseReport
             return null;
         }
 
-        $sales = $this->sales($driver, $date);
-        $payments = $this->payments($driver, $date);
-        $containers = $this->containerMovements($driver, $date);
-
-        $cash = $payments->filter(fn (Payment $payment): bool => $payment->paymentMethod?->code === PaymentMethodCode::Cash->value);
-        $transfers = $payments->filter(fn (Payment $payment): bool => $payment->paymentMethod?->code === PaymentMethodCode::Transfer->value);
-        $credit = $sales->where('is_credit_sale', true);
-
-        $cashAmount = (float) $cash->sum('amount');
-        $transferAmount = (float) $transfers->sum('amount');
+        $day = $this->figures->forDay($date, DayScope::driver($driver));
 
         return [
             'routeId' => $route->id,
             'status' => $route->status,
-            'totalSales' => (float) $sales->sum('total'),
-            'creditSales' => (float) $credit->sum('total'),
-            'cashAmount' => $cashAmount,
-            'transferAmount' => $transferAmount,
-            'totalCollected' => $cashAmount + $transferAmount,
-            'debtCollected' => (float) $payments->whereNull('sale_id')->sum('amount'),
-            'containersDelivered' => (int) $containers->where('movement_type', ContainerMovementType::Delivered->value)->sum('quantity'),
-            'containersReturned' => (int) $containers->where('movement_type', ContainerMovementType::Returned->value)->sum('quantity'),
+            'totalSales' => $day->totalSales,
+            'creditSales' => $day->creditSales,
+            'cashAmount' => $day->cashAmount,
+            'transferAmount' => $day->transferAmount,
+            'totalCollected' => $day->totalCollected,
+            'debtCollected' => $day->debtCollected,
+            'containersDelivered' => $day->containersDelivered,
+            'containersReturned' => $day->containersReturned,
             // The first load and every reload of a product add up to what the truck took out.
             'stockLoaded' => $route->inventoryLoads
                 ->groupBy('product_id')
@@ -74,16 +64,16 @@ class CashCloseReport
                 'quantity' => (float) $inventory->current_quantity,
             ]),
             'details' => [
-                'cash' => $this->paymentRows($cash),
-                'transfer' => $this->paymentRows($transfers),
-                'credit' => $credit->map(fn (Sale $sale): array => [
+                'cash' => $this->paymentRows($day->cashPayments),
+                'transfer' => $this->paymentRows($day->transferPayments),
+                'credit' => $day->creditSaleRows->map(fn (Sale $sale): array => [
                     'id' => $sale->id,
                     'customer' => $sale->customer?->name,
                     'at' => $this->minute($sale->date),
                     'amount' => (float) $sale->total,
                     'origin' => $this->origin($sale->visit_id),
                 ])->values()->all(),
-                'containers' => $containers->map(fn (ContainerMovement $movement): array => [
+                'containers' => $day->containerMovements->map(fn (ContainerMovement $movement): array => [
                     'id' => $movement->id,
                     'customer' => $movement->customer?->name,
                     'at' => $this->minute($movement->created_at),
@@ -94,62 +84,6 @@ class CashCloseReport
                 ])->values()->all(),
             ],
         ];
-    }
-
-    /**
-     * @return Collection<int, Sale>
-     */
-    private function sales(Driver $driver, string $date): Collection
-    {
-        return Sale::query()
-            ->with('customer:id,name')
-            ->where(fn (Builder $query) => $this->ownedBy($query, $driver, 'created_by'))
-            ->whereDate('date', $date)
-            ->orderBy('date')
-            ->orderBy('id')
-            ->get();
-    }
-
-    /**
-     * @return Collection<int, Payment>
-     */
-    private function payments(Driver $driver, string $date): Collection
-    {
-        return Payment::query()
-            ->with(['customer:id,name', 'paymentMethod:id,code'])
-            ->where(fn (Builder $query) => $this->ownedBy($query, $driver, 'received_by'))
-            ->whereDate('paid_at', $date)
-            ->where('status', PaymentStatus::Confirmed->value)
-            ->orderBy('paid_at')
-            ->orderBy('id')
-            ->get();
-    }
-
-    /**
-     * @return Collection<int, ContainerMovement>
-     */
-    private function containerMovements(Driver $driver, string $date): Collection
-    {
-        return ContainerMovement::query()
-            ->with(['customer:id,name', 'containerType:id,description'])
-            ->where(fn (Builder $query) => $this->ownedBy($query, $driver, 'created_by'))
-            ->whereDate('created_at', $date)
-            ->orderBy('created_at')
-            ->orderBy('id')
-            ->get();
-    }
-
-    /**
-     * Made on one of the driver's visits, or recorded by the driver without a visit.
-     *
-     * @param  Builder<*>  $query
-     */
-    private function ownedBy(Builder $query, Driver $driver, string $recordedByColumn): void
-    {
-        $query->whereHas('visit', fn (Builder $visit) => $visit->where('driver_id', $driver->id))
-            ->orWhere(fn (Builder $loose) => $loose
-                ->whereNull('visit_id')
-                ->where($recordedByColumn, $driver->user_id));
     }
 
     /**

@@ -5,8 +5,16 @@ export interface RepartidorStatus {
     totalStops: number;
     completedStops: number;
     progressPercent: number;
+    totalSales: number;
+    totalCollected: number;
     startedAt?: string;
     completedAt?: string;
+}
+
+export interface CasaStatus {
+    name: string;
+    totalSales: number;
+    totalCollected: number;
 }
 
 export interface DashboardSaleRow {
@@ -78,6 +86,7 @@ export interface DashboardMetrics {
         containersReturned: number;
     };
     repartidores: RepartidorStatus[];
+    casa: CasaStatus;
     details: DashboardDetails;
     sync: DriverSyncStatus[];
 }

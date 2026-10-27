@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\PaymentMethodCode;
-use App\Enums\PaymentStatus;
 use App\Models\Payment;
 use App\Models\PaymentMethod;
+use App\Operations\DailyFigures\DailyFigures;
+use App\Operations\DailyFigures\DayScope;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -16,7 +16,7 @@ class PaymentController extends Controller
     /**
      * Display a listing of payments and reconciliation status.
      */
-    public function index(Request $request): Response
+    public function index(Request $request, DailyFigures $figures): Response
     {
         $search = $request->query('search');
         $date = $request->query('date', Carbon::today()->toDateString());
@@ -50,20 +50,11 @@ class PaymentController extends Controller
 
         $payments = $query->latest('paid_at')->paginate(15)->withQueryString();
 
-        // Calculate totals
-        $totalCollected = (float) Payment::when($date, fn ($q) => $q->whereDate('paid_at', $date))
-            ->where('status', PaymentStatus::Confirmed->value)
-            ->sum('amount');
-
-        $cashTotal = (float) Payment::when($date, fn ($q) => $q->whereDate('paid_at', $date))
-            ->whereHas('paymentMethod', fn ($q) => $q->where('code', PaymentMethodCode::Cash->value))
-            ->where('status', PaymentStatus::Confirmed->value)
-            ->sum('amount');
-
-        $transferTotal = (float) Payment::when($date, fn ($q) => $q->whereDate('paid_at', $date))
-            ->whereHas('paymentMethod', fn ($q) => $q->where('code', PaymentMethodCode::Transfer->value))
-            ->where('status', PaymentStatus::Confirmed->value)
-            ->sum('amount');
+        // An empty date query parameter arrives as null and falls back to today, so the totals are always one day's.
+        $day = $figures->forDay($date ?: Carbon::today()->toDateString(), DayScope::all());
+        $totalCollected = $day->totalCollected;
+        $cashTotal = $day->cashAmount;
+        $transferTotal = $day->transferAmount;
 
         $paymentMethods = PaymentMethod::where('enabled', true)->get();
 

@@ -2,9 +2,7 @@
 
 namespace App\Actions;
 
-use App\Enums\ContainerMovementType;
 use App\Enums\PaymentMethodCode;
-use App\Enums\PaymentStatus;
 use App\Enums\RouteStatus;
 use App\Models\ContainerMovement;
 use App\Models\Driver;
@@ -13,6 +11,9 @@ use App\Models\Route as DeliveryRoute;
 use App\Models\RouteStop;
 use App\Models\Sale;
 use App\Models\User;
+use App\Operations\DailyFigures\DailyFigures;
+use App\Operations\DailyFigures\DayFigures;
+use App\Operations\DailyFigures\DayScope;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Laravel\Sanctum\PersonalAccessToken;
@@ -24,6 +25,8 @@ class GetDailyDashboardMetricsAction
      */
     private const int STALE_SYNC_MINUTES = 30;
 
+    public function __construct(private readonly DailyFigures $figures) {}
+
     /**
      * Execute the action to get aggregated KPIs for the given date.
      *
@@ -33,25 +36,13 @@ class GetDailyDashboardMetricsAction
     {
         $targetDate = $date ? Carbon::parse($date)->toDateString() : Carbon::today()->toDateString();
 
-        // 1. Total Daily Sales
-        $totalSales = (float) Sale::whereDate('date', $targetDate)->sum('total');
-        $yesterdaySales = (float) Sale::whereDate('date', Carbon::parse($targetDate)->subDay()->toDateString())->sum('total');
+        // 1. Day figures: every driver plus the house (Venta/Cobro en casa)
+        $day = $this->figures->forDay($targetDate, DayScope::all());
+        $totalSales = $day->totalSales;
+        $yesterdaySales = $this->figures->forDay(Carbon::parse($targetDate)->subDay()->toDateString(), DayScope::all())->totalSales;
         $salesDelta = $yesterdaySales > 0
             ? round((($totalSales - $yesterdaySales) / $yesterdaySales) * 100, 1)
             : 0;
-
-        // 2. Payments / Collections Breakdown
-        $cashPayments = (float) Payment::whereDate('paid_at', $targetDate)
-            ->whereHas('paymentMethod', fn ($q) => $q->where('code', PaymentMethodCode::Cash->value))
-            ->where('status', PaymentStatus::Confirmed->value)
-            ->sum('amount');
-
-        $transferPayments = (float) Payment::whereDate('paid_at', $targetDate)
-            ->whereHas('paymentMethod', fn ($q) => $q->where('code', PaymentMethodCode::Transfer->value))
-            ->where('status', PaymentStatus::Confirmed->value)
-            ->sum('amount');
-
-        $totalCollected = $cashPayments + $transferPayments;
 
         // 3. Route progress and stops
         $routes = DeliveryRoute::with(['stops.visit', 'stops.rescheduledTo', 'stops.customer:id,name', 'driver.user'])
@@ -76,37 +67,41 @@ class GetDailyDashboardMetricsAction
                 'totalStops' => $routeStopsCount,
                 'completedStops' => $routeCompletedCount,
                 'progressPercent' => $routeStopsCount > 0 ? round(($routeCompletedCount / $routeStopsCount) * 100) : 0,
+                ...$this->money($route->driver === null ? null : $this->figures->forDay($targetDate, DayScope::driver($route->driver))),
                 'startedAt' => $route->started_at?->format('H:i'),
                 'completedAt' => $route->completed_at?->format('H:i'),
             ];
         }
-
-        // 4. Containers delivered vs returned
-        $containersDelivered = (int) ContainerMovement::whereDate('created_at', $targetDate)
-            ->where('movement_type', ContainerMovementType::Delivered->value)
-            ->sum('quantity');
-
-        $containersReturned = (int) ContainerMovement::whereDate('created_at', $targetDate)
-            ->where('movement_type', ContainerMovementType::Returned->value)
-            ->sum('quantity');
 
         return [
             'date' => $targetDate,
             'kpis' => [
                 'totalSales' => $totalSales,
                 'salesDelta' => $salesDelta,
-                'totalCollected' => $totalCollected,
-                'cashPayments' => $cashPayments,
-                'transferPayments' => $transferPayments,
+                'totalCollected' => $day->totalCollected,
+                'cashPayments' => $day->cashAmount,
+                'transferPayments' => $day->transferAmount,
                 'totalStops' => $totalStops,
                 'completedStops' => $completedStops,
                 'stopsProgressPercent' => $totalStops > 0 ? round(($completedStops / $totalStops) * 100) : 0,
-                'containersDelivered' => $containersDelivered,
-                'containersReturned' => $containersReturned,
+                'containersDelivered' => $day->containersDelivered,
+                'containersReturned' => $day->containersReturned,
             ],
             'repartidores' => $repartidoresStatus,
-            'details' => $this->details($targetDate, $routes),
+            'casa' => ['name' => 'Casa', ...$this->money($this->figures->forDay($targetDate, DayScope::house()))],
+            'details' => $this->details($day, $routes),
             'sync' => $this->syncStatus(),
+        ];
+    }
+
+    /**
+     * @return array{totalSales: float, totalCollected: float}
+     */
+    private function money(?DayFigures $figures): array
+    {
+        return [
+            'totalSales' => $figures?->totalSales ?? 0.0,
+            'totalCollected' => $figures?->totalCollected ?? 0.0,
         ];
     }
 
@@ -157,17 +152,12 @@ class GetDailyDashboardMetricsAction
      * @param  Collection<int, DeliveryRoute>  $routes
      * @return array<string, array<int, array<string, mixed>>>
      */
-    private function details(string $date, Collection $routes): array
+    private function details(DayFigures $day, Collection $routes): array
     {
         $minute = fn ($moment): ?string => $moment === null ? null : Carbon::parse($moment)->format('Y-m-d H:i');
 
         return [
-            'sales' => Sale::query()
-                ->with(['customer:id,name', 'creator:id,name'])
-                ->whereDate('date', $date)
-                ->orderBy('date')
-                ->orderBy('id')
-                ->get()
+            'sales' => $day->sales
                 ->map(fn (Sale $sale): array => [
                     'id' => $sale->id,
                     'customer' => $sale->customer?->name,
@@ -177,14 +167,8 @@ class GetDailyDashboardMetricsAction
                     'credit' => (bool) $sale->is_credit_sale,
                 ])
                 ->all(),
-            'payments' => Payment::query()
-                ->with(['customer:id,name', 'recipient:id,name', 'paymentMethod:id,code'])
-                ->whereDate('paid_at', $date)
-                ->where('status', PaymentStatus::Confirmed->value)
-                ->whereHas('paymentMethod', fn ($q) => $q->whereIn('code', [PaymentMethodCode::Cash->value, PaymentMethodCode::Transfer->value]))
-                ->orderBy('paid_at')
-                ->orderBy('id')
-                ->get()
+            'payments' => $day->payments
+                ->filter(fn (Payment $payment): bool => in_array($payment->paymentMethod?->code, [PaymentMethodCode::Cash->value, PaymentMethodCode::Transfer->value], true))
                 ->map(fn (Payment $payment): array => [
                     'id' => $payment->id,
                     'customer' => $payment->customer?->name,
@@ -193,6 +177,7 @@ class GetDailyDashboardMetricsAction
                     'method' => $payment->paymentMethod?->code,
                     'amount' => (float) $payment->amount,
                 ])
+                ->values()
                 ->all(),
             'stops' => $routes
                 ->flatMap(fn (DeliveryRoute $route) => $route->stops->map(fn (RouteStop $stop): array => [
@@ -206,12 +191,7 @@ class GetDailyDashboardMetricsAction
                 ->sortBy([['driver', 'asc'], ['time', 'asc'], ['id', 'asc']])
                 ->values()
                 ->all(),
-            'containers' => ContainerMovement::query()
-                ->with(['customer:id,name', 'creator:id,name', 'containerType:id,description'])
-                ->whereDate('created_at', $date)
-                ->orderBy('created_at')
-                ->orderBy('id')
-                ->get()
+            'containers' => $day->containerMovements
                 ->map(fn (ContainerMovement $movement): array => [
                     'id' => $movement->id,
                     'customer' => $movement->customer?->name,

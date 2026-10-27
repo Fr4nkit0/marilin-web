@@ -67,6 +67,9 @@ export default function Dashboard({ metrics }: Props) {
         router.visit(route('cash-close.index', { repartidor_id: driverId, date: metrics.date }));
     };
 
+    const formatMoney = (amount: number) =>
+        new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(amount);
+
     const formattedSales = new Intl.NumberFormat('es-AR', {
         style: 'currency',
         currency: 'ARS',
@@ -197,6 +200,12 @@ export default function Dashboard({ metrics }: Props) {
                                     <th className="px-6 py-3 text-xs font-medium text-slate-500 w-1/4">
                                         Estado
                                     </th>
+                                    <th className="px-6 py-3 text-xs font-medium text-slate-500 text-right">
+                                        Vendido
+                                    </th>
+                                    <th className="px-6 py-3 text-xs font-medium text-slate-500 text-right">
+                                        Cobrado
+                                    </th>
                                     <th className="px-6 py-3 text-xs font-medium text-slate-500 w-1/4 text-right">
                                         Acciones
                                     </th>
@@ -205,7 +214,7 @@ export default function Dashboard({ metrics }: Props) {
                             <tbody className="bg-white divide-y divide-gray-100">
                                 {repartidores.length === 0 ? (
                                     <tr>
-                                        <td colSpan={4} className="px-6 py-8 text-center text-sm font-medium text-slate-400">
+                                        <td colSpan={6} className="px-6 py-8 text-center text-sm font-medium text-slate-400">
                                             No hay repartidores activos en este momento.
                                         </td>
                                     </tr>
@@ -249,6 +258,8 @@ export default function Dashboard({ metrics }: Props) {
                                                     )}
                                                 </div>
                                             </td>
+                                            <td className="px-6 py-4 text-right font-medium text-slate-900">{formatMoney(rep.totalSales)}</td>
+                                            <td className="px-6 py-4 text-right font-medium text-slate-900">{formatMoney(rep.totalCollected)}</td>
                                             <td className="px-6 py-4 text-right">
                                                 <Link
                                                     href={route('cash-close.index', { repartidor_id: rep.id, date: metrics.date })}
@@ -262,6 +273,21 @@ export default function Dashboard({ metrics }: Props) {
                                         </tr>
                                     ))
                                 )}
+                                <tr title="Ventas y cobros hechos en la casa, sin repartidor">
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 bg-slate-100 text-slate-700 flex items-center justify-center font-semibold text-xs rounded-full">
+                                                {metrics.casa.name.substring(0, 2).toUpperCase()}
+                                            </div>
+                                            <span className="font-medium text-slate-900">{metrics.casa.name}</span>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 text-xs text-slate-500">Sin ruta</td>
+                                    <td className="px-6 py-4"></td>
+                                    <td className="px-6 py-4 text-right font-medium text-slate-900">{formatMoney(metrics.casa.totalSales)}</td>
+                                    <td className="px-6 py-4 text-right font-medium text-slate-900">{formatMoney(metrics.casa.totalCollected)}</td>
+                                    <td className="px-6 py-4"></td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
