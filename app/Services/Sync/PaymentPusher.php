@@ -12,7 +12,7 @@ use App\Models\User;
 use App\Models\Visit;
 use App\Operations\RecordPayment;
 use App\Operations\StreetOperation;
-use App\Support\ClientTime;
+use App\Shared\ClientTime;
 
 class PaymentPusher extends EntityPusher
 {

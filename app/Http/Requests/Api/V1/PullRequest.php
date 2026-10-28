@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Api\V1;
 
-use App\Support\ClientTime;
+use App\Shared\ClientTime;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Carbon;
 

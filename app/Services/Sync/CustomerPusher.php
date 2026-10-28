@@ -13,7 +13,7 @@ use App\Operations\CustomerEdit;
 use App\Operations\CustomerIntake;
 use App\Operations\CustomerRegistration;
 use App\Review\ReviewReason;
-use App\Support\ClientTime;
+use App\Shared\ClientTime;
 use Illuminate\Support\Carbon;
 
 class CustomerPusher extends EntityPusher

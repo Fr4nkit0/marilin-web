@@ -10,7 +10,7 @@ use App\Models\Driver;
 use App\Models\RouteStop;
 use App\Models\User;
 use App\Models\Visit;
-use App\Support\ClientTime;
+use App\Shared\ClientTime;
 
 class VisitPusher extends EntityPusher
 {
