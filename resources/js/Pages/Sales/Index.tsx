@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import React from 'react';
+import { Head, Link } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { PageHeader, KpiCard, PaymentMethodBadge } from '@/Components/StitchUi';
 import {
@@ -14,6 +14,10 @@ import {
     Clock,
 } from 'lucide-react';
 import { money, time } from '@/lib/format';
+import { useListFilters } from '@/lib/useListFilters';
+import DataTable, { type Column } from '@/ui/DataTable';
+import Pagination from '@/ui/Pagination';
+import type { PaginatedData } from '@/types';
 
 interface SaleDetail {
     id: number;
@@ -52,15 +56,6 @@ interface SaleItem {
     }[];
 }
 
-interface PaginatedData<T> {
-    data: T[];
-    current_page: number;
-    last_page: number;
-    per_page: number;
-    total: number;
-    links: { url: string | null; label: string; active: boolean }[];
-}
-
 interface Props {
     sales: PaginatedData<SaleItem>;
     metrics: {
@@ -79,48 +74,59 @@ interface Props {
 }
 
 export default function SalesIndex({ sales, metrics, filters, repartidores }: Props) {
-    const [search, setSearch] = useState(filters.search || '');
-    const [date, setDate] = useState(filters.date || '');
-    const [repartidorId, setRepartidorId] = useState(filters.repartidor_id || '');
-    const [saleType, setSaleType] = useState(filters.sale_type || 'all');
+    const filter = useListFilters(
+        'sales.index',
+        {
+            search: filters.search || '',
+            date: filters.date || '',
+            repartidor_id: filters.repartidor_id || '',
+            sale_type: filters.sale_type || 'all',
+        },
+        { search: '', date: '', repartidor_id: '', sale_type: 'all' },
+    );
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        router.get(
-            route('sales.index'),
-            {
-                search: search || undefined,
-                date: date || undefined,
-                repartidor_id: repartidorId || undefined,
-                sale_type: saleType !== 'all' ? saleType : undefined,
-            },
-            { preserveState: true, replace: true }
-        );
+        filter.submit();
     };
 
-    const handleFilterChange = (key: string, value: string) => {
-        const newFilters = {
-            search,
-            date: key === 'date' ? value : date,
-            repartidor_id: key === 'repartidor_id' ? value : repartidorId,
-            sale_type: key === 'sale_type' ? value : saleType,
-        };
-
-        if (key === 'date') setDate(value);
-        if (key === 'repartidor_id') setRepartidorId(value);
-        if (key === 'sale_type') setSaleType(value);
-
-        router.get(
-            route('sales.index'),
-            {
-                search: newFilters.search || undefined,
-                date: newFilters.date || undefined,
-                repartidor_id: newFilters.repartidor_id || undefined,
-                sale_type: newFilters.sale_type !== 'all' ? newFilters.sale_type : undefined,
-            },
-            { preserveState: true, replace: true }
-        );
-    };
+    const columns: Column<SaleItem>[] = [
+        { header: 'Fecha / Hora', className: 'text-slate-500 whitespace-nowrap', cell: (sale) => `${time(sale.date)} hs` },
+        {
+            header: 'Cliente',
+            cell: (sale) =>
+                sale.customer ? (
+                    <Link href={route('customers.show', sale.customer.id)} className="font-medium text-slate-900 hover:text-slate-600 transition">
+                        {sale.customer.name}
+                    </Link>
+                ) : (
+                    <span className="text-slate-400 font-medium italic">Consumidor Final</span>
+                ),
+        },
+        { header: 'Repartidor', className: 'text-slate-700', cell: (sale) => sale.visit?.repartidor?.user?.name || '-' },
+        {
+            header: 'Detalle Productos',
+            className: 'text-slate-600',
+            cell: (sale) =>
+                sale.details && sale.details.length > 0 ? (
+                    <div className="space-y-1">
+                        {sale.details.map((d) => (
+                            <div key={d.id} className="text-xs">
+                                {d.quantity}x {d.product?.name}
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <span className="text-slate-400">-</span>
+                ),
+        },
+        {
+            header: 'Tipo / Método',
+            align: 'center',
+            cell: (sale) => <PaymentMethodBadge method={sale.payments?.[0]?.payment_method?.name || (sale.is_credit_sale ? 'Crédito Ruta' : 'Efectivo')} />,
+        },
+        { header: 'Total', align: 'right', className: 'font-semibold text-slate-900', cell: (sale) => money(sale.total) },
+    ];
 
     return (
         <AdminLayout
@@ -172,8 +178,8 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
                         <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                         <input
                             type="text"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
+                            value={filter.values.search}
+                            onChange={(e) => filter.draft('search', e.target.value)}
                             placeholder="Buscar por cliente..."
                             className="w-full pl-9 pr-4 py-2 text-sm font-medium border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent bg-white text-slate-900 placeholder-gray-400 shadow-sm transition-all"
                         />
@@ -183,8 +189,8 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
                     <div className="sm:col-span-3">
                         <input
                             type="date"
-                            value={date}
-                            onChange={(e) => handleFilterChange('date', e.target.value)}
+                            value={filter.values.date}
+                            onChange={(e) => filter.set('date', e.target.value)}
                             style={{ colorScheme: 'light' }}
                             className="w-full py-2 px-3 text-sm font-medium border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent bg-white text-slate-900 shadow-sm transition-all"
                         />
@@ -193,8 +199,8 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
                     {/* Repartidor */}
                     <div className="sm:col-span-3">
                         <select
-                            value={repartidorId}
-                            onChange={(e) => handleFilterChange('repartidor_id', e.target.value)}
+                            value={filter.values.repartidor_id}
+                            onChange={(e) => filter.set('repartidor_id', e.target.value)}
                             className="w-full py-2 px-3 text-sm font-medium border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent bg-white text-slate-900 shadow-sm transition-all"
                         >
                             <option value="">Todos los repartidores</option>
@@ -209,8 +215,8 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
                     {/* Sale Type */}
                     <div className="sm:col-span-2">
                         <select
-                            value={saleType}
-                            onChange={(e) => handleFilterChange('sale_type', e.target.value)}
+                            value={filter.values.sale_type}
+                            onChange={(e) => filter.set('sale_type', e.target.value)}
                             className="w-full py-2 px-3 text-sm font-medium border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent bg-white text-slate-900 shadow-sm transition-all"
                         >
                             <option value="all">Todo tipo</option>
@@ -223,100 +229,8 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
 
             {/* Sales Table */}
             <div className="bg-white border border-gray-200/60 rounded-2xl shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm">
-                        <thead className="bg-slate-50/80 backdrop-blur-md text-slate-500 font-medium text-xs border-b border-gray-200/60">
-                            <tr>
-                                <th className="px-6 py-3.5">Fecha / Hora</th>
-                                <th className="px-6 py-3.5">Cliente</th>
-                                <th className="px-6 py-3.5">Repartidor</th>
-                                <th className="px-6 py-3.5">Detalle Productos</th>
-                                <th className="px-6 py-3.5 text-center">Tipo / Método</th>
-                                <th className="px-6 py-3.5 text-right">Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {sales.data.length === 0 ? (
-                                <tr>
-                                    <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
-                                        No se encontraron ventas con los filtros seleccionados.
-                                    </td>
-                                </tr>
-                            ) : (
-                                sales.data.map((sale) => {
-                                    const paymentMethodName = sale.payments?.[0]?.payment_method?.name || (sale.is_credit_sale ? 'Crédito Ruta' : 'Efectivo');
-                                    return (
-                                        <tr key={sale.id} className="border-b border-gray-50 last:border-0 hover:bg-slate-50/50 transition-colors">
-                                            <td className="px-6 py-4 text-slate-500 whitespace-nowrap">
-                                                {time(sale.date)} hs
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                {sale.customer ? (
-                                                    <Link
-                                                        href={route('customers.show', sale.customer.id)}
-                                                        className="font-medium text-slate-900 hover:text-slate-600 transition"
-                                                    >
-                                                        {sale.customer.name}
-                                                    </Link>
-                                                ) : (
-                                                    <span className="text-slate-400 font-medium italic">Consumidor Final</span>
-                                                )}
-                                            </td>
-                                            <td className="px-6 py-4 text-slate-700">
-                                                {sale.visit?.repartidor?.user?.name || '-'}
-                                            </td>
-                                            <td className="px-6 py-4 text-slate-600">
-                                                {sale.details && sale.details.length > 0 ? (
-                                                    <div className="space-y-1">
-                                                        {sale.details.map((d) => (
-                                                            <div key={d.id} className="text-xs">
-                                                                {d.quantity}x {d.product?.name}
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                ) : (
-                                                    <span className="text-slate-400">-</span>
-                                                )}
-                                            </td>
-                                            <td className="px-6 py-4 text-center">
-                                                <PaymentMethodBadge method={paymentMethodName} />
-                                            </td>
-                                            <td className="px-6 py-4 text-right font-semibold text-slate-900">
-                                                {money(sale.total)}
-                                            </td>
-                                        </tr>
-                                    );
-                                })
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-
-                {/* Pagination */}
-                {sales.last_page > 1 && (
-                    <div className="p-4 flex items-center justify-between text-sm text-slate-500 bg-white border-t border-gray-50">
-                        <span>
-                            Página {sales.current_page} de {sales.last_page} ({sales.total} ventas)
-                        </span>
-                        <div className="flex items-center gap-1">
-                            {sales.links.map((link, idx) => (
-                                <Link
-                                    key={idx}
-                                    href={link.url || '#'}
-                                    preserveState
-                                    className={`px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors ${
-                                        link.active
-                                            ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-                                            : !link.url
-                                            ? 'text-slate-300 border-gray-100 pointer-events-none'
-                                            : 'text-slate-700 border-gray-200/60 hover:bg-slate-50'
-                                    }`}
-                                    dangerouslySetInnerHTML={{ __html: link.label }}
-                                />
-                            ))}
-                        </div>
-                    </div>
-                )}
+                <DataTable columns={columns} rows={sales.data} rowKey={(sale) => sale.id} empty="No se encontraron ventas con los filtros seleccionados." />
+                <Pagination page={sales} noun="ventas" />
             </div>
         </AdminLayout>
     );

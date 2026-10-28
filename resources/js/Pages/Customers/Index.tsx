@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
-import { Head, Link, router, useForm } from '@inertiajs/react';
+import { useListFilters } from '@/lib/useListFilters';
+import Pagination from '@/ui/Pagination';
+import type { PaginatedData } from '@/types';
+import { Head, Link, useForm } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { PageHeader, DebtBadge } from '@/Components/StitchUi';
 import {
@@ -56,15 +59,6 @@ interface CustomerItem {
     container_balances?: ContainerBalance[];
 }
 
-interface PaginatedData<T> {
-    data: T[];
-    current_page: number;
-    last_page: number;
-    per_page: number;
-    total: number;
-    links: { url: string | null; label: string; active: boolean }[];
-}
-
 interface Props {
     customers: PaginatedData<CustomerItem>;
     filters: {
@@ -76,9 +70,11 @@ interface Props {
 }
 
 export default function CustomersIndex({ customers, filters, repartidores }: Props) {
-    const [search, setSearch] = useState(filters.search || '');
-    const [repartidorId, setRepartidorId] = useState(filters.repartidor_id || '');
-    const [debtStatus, setDebtStatus] = useState(filters.debt_status || 'all');
+    const filter = useListFilters(
+        'customers.index',
+        { search: filters.search || '', repartidor_id: filters.repartidor_id || '', debt_status: filters.debt_status || 'all' },
+        { search: '', repartidor_id: '', debt_status: 'all' },
+    );
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [editingCustomer, setEditingCustomer] = useState<CustomerItem | null>(null);
 
@@ -141,36 +137,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        router.get(
-            route('customers.index'),
-            {
-                search,
-                repartidor_id: repartidorId || undefined,
-                debt_status: debtStatus !== 'all' ? debtStatus : undefined,
-            },
-            { preserveState: true, replace: true }
-        );
-    };
-
-    const handleFilterChange = (key: string, value: string) => {
-        const newFilters = {
-            search,
-            repartidor_id: key === 'repartidor_id' ? value : repartidorId,
-            debt_status: key === 'debt_status' ? value : debtStatus,
-        };
-
-        if (key === 'repartidor_id') setRepartidorId(value);
-        if (key === 'debt_status') setDebtStatus(value);
-
-        router.get(
-            route('customers.index'),
-            {
-                search: newFilters.search || undefined,
-                repartidor_id: newFilters.repartidor_id || undefined,
-                debt_status: newFilters.debt_status !== 'all' ? newFilters.debt_status : undefined,
-            },
-            { preserveState: true, replace: true }
-        );
+        filter.submit();
     };
 
     return (
@@ -211,8 +178,8 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                         <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
                         <input
                             type="text"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
+                            value={filter.values.search}
+                            onChange={(e) => filter.draft('search', e.target.value)}
                             placeholder="Buscar por nombre, teléfono o dirección..."
                             className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200/60 bg-white text-slate-900 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 font-medium"
                         />
@@ -221,8 +188,8 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                     {/* Repartidor Filter */}
                     <div className="sm:col-span-3">
                         <select
-                            value={repartidorId}
-                            onChange={(e) => handleFilterChange('repartidor_id', e.target.value)}
+                            value={filter.values.repartidor_id}
+                            onChange={(e) => filter.set('repartidor_id', e.target.value)}
                             className="w-full py-2 px-3 text-sm border border-gray-200/60 bg-white text-slate-900 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 font-medium"
                         >
                             <option value="">Todos los Repartidores</option>
@@ -237,8 +204,8 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                     {/* Debt Filter */}
                     <div className="sm:col-span-3">
                         <select
-                            value={debtStatus}
-                            onChange={(e) => handleFilterChange('debt_status', e.target.value)}
+                            value={filter.values.debt_status}
+                            onChange={(e) => filter.set('debt_status', e.target.value)}
                             className="w-full py-2 px-3 text-sm border border-gray-200/60 bg-white text-slate-900 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 font-medium"
                         >
                             <option value="all">Todos los Estados</option>
@@ -374,31 +341,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                     </table>
                 </div>
 
-                {/* Pagination */}
-                {customers.last_page > 1 && (
-                    <div className="px-6 py-4 border-t border-gray-200 bg-white flex items-center justify-between text-sm font-medium text-slate-500 tracking-wide">
-                        <span>
-                            Página {customers.current_page} de {customers.last_page}
-                        </span>
-                        <div className="flex items-center gap-1">
-                            {customers.links.map((link, idx) => (
-                                <Link
-                                    key={idx}
-                                    href={link.url || '#'}
-                                    preserveState
-                                    className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
-                                        link.active
-                                            ? 'bg-slate-100 text-slate-900'
-                                            : !link.url
-                                            ? 'text-gray-400 pointer-events-none'
-                                            : 'text-gray-600 hover:bg-gray-50'
-                                    }`}
-                                    dangerouslySetInnerHTML={{ __html: link.label }}
-                                />
-                            ))}
-                        </div>
-                    </div>
-                )}
+                <Pagination page={customers} />
             </div>
 
             {/* Modal para Crear Nuevo Cliente */}

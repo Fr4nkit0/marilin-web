@@ -6,6 +6,8 @@ import { CheckCheck } from 'lucide-react';
 import { PaginatedData } from '@/types';
 import { ReviewFilters, ReviewItem, ReviewType } from '@/types/review';
 import { date, dateTime } from '@/lib/format';
+import { useListFilters } from '@/lib/useListFilters';
+import Pagination from '@/ui/Pagination';
 
 interface Props {
     items: PaginatedData<ReviewItem>;
@@ -32,18 +34,17 @@ function formatDate(item: ReviewItem): string {
 }
 
 export default function Index({ items, filters, drivers }: Props) {
-    const applyFilter = (changes: Partial<Record<keyof ReviewFilters, string>>) => {
-        const next: Record<string, string> = {};
-        const merged: Record<string, string | number | null> = { ...filters, ...changes };
-
-        Object.entries(merged).forEach(([key, value]) => {
-            if (value !== null && value !== '' && !(key === 'status' && value === 'pending')) {
-                next[key] = String(value);
-            }
-        });
-
-        router.get(route('review.index'), next, { preserveState: true, replace: true });
-    };
+    const filter = useListFilters(
+        'review.index',
+        {
+            driver_id: filters.driver_id ? String(filters.driver_id) : '',
+            from: filters.from ?? '',
+            to: filters.to ?? '',
+            type: filters.type ?? '',
+            status: filters.status ?? 'pending',
+        },
+        { driver_id: '', from: '', to: '', type: '', status: 'pending' },
+    );
 
     const markReviewed = (item: ReviewItem) => {
         router.patch(route('review.reviewed', { type: item.type, id: item.id }), {}, { preserveScroll: true });
@@ -69,8 +70,8 @@ export default function Index({ items, filters, drivers }: Props) {
                         Repartidor
                         <select
                             className={`${inputClass} mt-1`}
-                            value={filters.driver_id ?? ''}
-                            onChange={(e) => applyFilter({ driver_id: e.target.value })}
+                            value={filter.values.driver_id}
+                            onChange={(e) => filter.set('driver_id', e.target.value)}
                         >
                             <option value="">Todos los repartidores</option>
                             {drivers.map((driver) => (
@@ -86,8 +87,8 @@ export default function Index({ items, filters, drivers }: Props) {
                         <input
                             type="date"
                             className={`${inputClass} mt-1`}
-                            value={filters.from ?? ''}
-                            onChange={(e) => applyFilter({ from: e.target.value })}
+                            value={filter.values.from}
+                            onChange={(e) => filter.set('from', e.target.value)}
                         />
                     </label>
 
@@ -96,8 +97,8 @@ export default function Index({ items, filters, drivers }: Props) {
                         <input
                             type="date"
                             className={`${inputClass} mt-1`}
-                            value={filters.to ?? ''}
-                            onChange={(e) => applyFilter({ to: e.target.value })}
+                            value={filter.values.to}
+                            onChange={(e) => filter.set('to', e.target.value)}
                         />
                     </label>
 
@@ -105,8 +106,8 @@ export default function Index({ items, filters, drivers }: Props) {
                         Tipo
                         <select
                             className={`${inputClass} mt-1`}
-                            value={filters.type ?? ''}
-                            onChange={(e) => applyFilter({ type: e.target.value })}
+                            value={filter.values.type}
+                            onChange={(e) => filter.set('type', e.target.value)}
                         >
                             <option value="">Todos los tipos</option>
                             {(Object.keys(TYPE_LABELS) as ReviewType[]).map((type) => (
@@ -121,8 +122,8 @@ export default function Index({ items, filters, drivers }: Props) {
                         Estado
                         <select
                             className={`${inputClass} mt-1`}
-                            value={filters.status}
-                            onChange={(e) => applyFilter({ status: e.target.value })}
+                            value={filter.values.status}
+                            onChange={(e) => filter.set('status', e.target.value)}
                         >
                             <option value="pending">Pendiente de revisión</option>
                             <option value="reviewed">Revisado</option>
@@ -189,30 +190,7 @@ export default function Index({ items, filters, drivers }: Props) {
                     </table>
                 </div>
 
-                {items.last_page > 1 && (
-                    <div className="px-6 py-4 border-t border-gray-200 bg-white flex items-center justify-between text-sm font-medium text-slate-500 tracking-wide">
-                        <span>
-                            Página {items.current_page} de {items.last_page}
-                        </span>
-                        <div className="flex items-center gap-1">
-                            {items.links.map((link, idx) => (
-                                <Link
-                                    key={idx}
-                                    href={link.url || '#'}
-                                    preserveState
-                                    className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
-                                        link.active
-                                            ? 'bg-slate-100 text-slate-900'
-                                            : !link.url
-                                              ? 'text-gray-400 pointer-events-none'
-                                              : 'text-gray-600 hover:bg-gray-50'
-                                    }`}
-                                    dangerouslySetInnerHTML={{ __html: link.label }}
-                                />
-                            ))}
-                        </div>
-                    </div>
-                )}
+                <Pagination page={items} />
             </div>
         </AdminLayout>
     );

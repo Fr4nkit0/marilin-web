@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
+import { useListFilters } from '@/lib/useListFilters';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { PageHeader, StatusBadge, KpiCard } from '@/Components/StitchUi';
 import TruckLoadModal, { LoadableProduct } from '@/Components/TruckLoadModal';
@@ -115,24 +116,14 @@ export default function RoutesIndex({
     kpis,
 }: Props) {
     const [loadingRoute, setLoadingRoute] = useState<RouteItem | null>(null);
-    const [statusFilter, setStatusFilter] = useState(filters.status || 'all');
-    const [driverFilter, setDriverFilter] = useState(filters.driver_id || '');
-    const [date, setDate] = useState(selectedDate);
+    const filter = useListFilters(
+        'routes.index',
+        { date: selectedDate, status: filters.status || 'all', driver_id: filters.driver_id || '' },
+        { date: '', status: 'all', driver_id: '' },
+    );
     const [expandedRouteId, setExpandedRouteId] = useState<number | null>(
         routes.length > 0 ? routes[0].id : null
     );
-
-    const applyFilters = (newDate?: string, newStatus?: string, newDriver?: string) => {
-        router.get(
-            route('routes.index'),
-            {
-                date: newDate !== undefined ? newDate : date,
-                status: newStatus !== undefined ? newStatus : statusFilter,
-                driver_id: newDriver !== undefined ? newDriver || undefined : driverFilter || undefined,
-            },
-            { preserveState: true, replace: true }
-        );
-    };
 
     const toggleRouteExpand = (id: number) => {
         setExpandedRouteId(expandedRouteId === id ? null : id);
@@ -196,11 +187,8 @@ export default function RoutesIndex({
                             <Calendar className="w-4 h-4 text-slate-400" />
                             <input
                                 type="date"
-                                value={date}
-                                onChange={(e) => {
-                                    setDate(e.target.value);
-                                    applyFilters(e.target.value, statusFilter, driverFilter);
-                                }}
+                                value={filter.values.date}
+                                onChange={(e) => filter.set('date', e.target.value)}
                                 style={{ colorScheme: 'light' }}
                                 className="bg-transparent border-none p-0 text-sm font-medium focus:ring-0 focus:outline-none cursor-pointer text-slate-900"
                             />
@@ -209,11 +197,8 @@ export default function RoutesIndex({
                         {/* Status Filter */}
                         <div className="flex items-center gap-2">
                             <select
-                                value={statusFilter}
-                                onChange={(e) => {
-                                    setStatusFilter(e.target.value);
-                                    applyFilters(date, e.target.value, driverFilter);
-                                }}
+                                value={filter.values.status}
+                                onChange={(e) => filter.set('status', e.target.value)}
                                 className="text-sm font-medium border border-gray-200/60 rounded-lg py-2 pl-3 pr-8 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all shadow-sm"
                             >
                                 <option value="all">Todos los Estados</option>
@@ -225,11 +210,8 @@ export default function RoutesIndex({
 
                         {/* Driver Filter */}
                         <select
-                            value={driverFilter}
-                            onChange={(e) => {
-                                setDriverFilter(e.target.value);
-                                applyFilters(date, statusFilter, e.target.value);
-                            }}
+                            value={filter.values.driver_id}
+                            onChange={(e) => filter.set('driver_id', e.target.value)}
                             className="text-sm font-medium border border-gray-200/60 rounded-lg py-2 pl-3 pr-8 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all shadow-sm"
                         >
                             <option value="">Todos los Choferes</option>
@@ -242,12 +224,8 @@ export default function RoutesIndex({
                     </div>
 
                     <button
-                        onClick={() => {
-                            setDate(new Date().toISOString().split('T')[0]);
-                            setStatusFilter('all');
-                            setDriverFilter('');
-                            applyFilters(new Date().toISOString().split('T')[0], 'all', '');
-                        }}
+                        // No date: the server answers with today in its own time zone.
+                        onClick={() => filter.setMany({ date: '', status: 'all', driver_id: '' })}
                         className="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors"
                     >
                         Limpiar filtros

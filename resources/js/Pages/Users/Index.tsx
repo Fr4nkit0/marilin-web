@@ -1,5 +1,6 @@
 import React, { FormEvent, useState } from 'react';
-import { Head, router } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
+import { useListFilters } from '@/lib/useListFilters';
 import { KeyRound, Pencil, Plus, Power, Search } from 'lucide-react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import DriverAccountFormModal from '@/Components/DriverAccountFormModal';
@@ -19,24 +20,20 @@ const statusOptions: { value: DriverAccountStatusFilter; label: string }[] = [
 ];
 
 export default function Index({ users, filters }: Props) {
-    const [search, setSearch] = useState(filters.search ?? '');
+    const filter = useListFilters(
+        'users.index',
+        { search: filters.search ?? '', status: filters.status ?? '' },
+        { search: '', status: '' },
+        { preserveScroll: true },
+    );
     const [formOpen, setFormOpen] = useState(false);
     const [editing, setEditing] = useState<DriverAccount | null>(null);
     const [passwordFor, setPasswordFor] = useState<DriverAccount | null>(null);
     const [statusFor, setStatusFor] = useState<DriverAccount | null>(null);
 
-    const applyFilters = (next: { search?: string; status?: DriverAccountStatusFilter }) => {
-        const query = { search: next.search ?? search, status: next.status === undefined ? filters.status : next.status };
-        router.get(
-            route('users.index'),
-            Object.fromEntries(Object.entries(query).filter(([, value]) => value)),
-            { preserveState: true, preserveScroll: true, replace: true },
-        );
-    };
-
     const submitSearch = (e: FormEvent) => {
         e.preventDefault();
-        applyFilters({ search });
+        filter.submit();
     };
 
     const openCreate = () => {
@@ -78,8 +75,8 @@ export default function Index({ users, filters }: Props) {
                     <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
                         type="search"
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
+                        value={filter.values.search}
+                        onChange={(e) => filter.draft('search', e.target.value)}
                         placeholder="Buscar por nombre, email o usuario"
                         aria-label="Buscar usuarios"
                         className="w-full py-2 pl-9 pr-3 text-sm border border-gray-200/60 bg-white text-slate-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600"
@@ -90,7 +87,7 @@ export default function Index({ users, filters }: Props) {
                         <button
                             key={option.label}
                             type="button"
-                            onClick={() => applyFilters({ status: option.value })}
+                            onClick={() => filter.set('status', option.value ?? '')}
                             aria-pressed={filters.status === option.value}
                             className={`px-3 py-1.5 rounded-md text-xs font-medium transition cursor-pointer ${
                                 filters.status === option.value
