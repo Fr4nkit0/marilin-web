@@ -44,6 +44,7 @@ Todo agente de IA debe leer y respetar estas directivas antes de sugerir o modif
 - **Entre módulos:** se importan tipos; una página puede componer componentes de otro módulo, un componente no.
 - **Tipos:** `PageProps<T>` y estados como uniones exactas (`StopStatus`, `PaymentStatus`, `RouteStatus`).
 - **Formularios:** `useForm` de `@inertiajs/react` con `ui/Field` y `ui/Button` (`processing`).
+- **Colores neutros por rol:** `bg-canvas`, `bg-canvas-soft`, `bg-surface-1`, `text-ink`, `text-ink-muted`, `border-hairline`… (nunca `bg-white` ni `text-slate-*`): así el modo oscuro llega a todo. Los tintes de estado llevan su variante `dark:`.
 - **Estilo:** DESIGN.md y SURFACE.md; celeste agua (sky-600) para acciones primarias, links, foco y selección.
 
 ---

@@ -371,7 +371,17 @@ Inspired by Notion's pastel property system, product categories use soft tinted 
 - 🟣 **Facturación** → Lavender tint
 
 ### Dark Mode
-All components must support dark mode using Tailwind's `dark:` variant. The dark palette inverts the surface ladder while maintaining the same semantic status colors.
+The web follows the system theme unless the user picks Claro or Oscuro in the user menu (saved in the browser). Components never name a gray: they use the neutral roles below, each a CSS variable with a light and a dark value (`resources/css/app.css`), switched by the `dark` class on `<html>`.
+
+| Token (Tailwind) | Light | Dark |
+|---|---|---|
+| `canvas` (cards, inputs) | `#ffffff` | `#1e293b` |
+| `canvas-soft` (page, table headers) | `#f8fafc` | `#0f172a` |
+| `surface-1/2/3` (subtle fills) | slate 100/200/300 | slate 700/600/500 |
+| `ink` / `ink-secondary` / `ink-muted` / `ink-subtle` | slate 900/700/500/400 | slate 100/300/400/500 |
+| `hairline` / `hairline-strong` | slate 200/300 | slate 700/600 |
+
+Status tints keep their light classes and add a dark variant: `bg-*-500/15`, `text-*-300`, `border-*-500/30`. The sky primary is the same in both themes.
 
 ## Typography
 
