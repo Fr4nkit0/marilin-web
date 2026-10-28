@@ -48,7 +48,7 @@ class UserController extends Controller
                 'created_at' => $user->created_at?->toIso8601String(),
             ]);
 
-        return Inertia::render('Users/Index', [
+        return Inertia::render('Accounts/Users', [
             'users' => $users,
             'filters' => ['search' => $search, 'status' => $status],
         ]);

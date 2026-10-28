@@ -63,7 +63,7 @@ class SaleController extends Controller
             'name' => $r->user?->name ?? 'Repartidor',
         ]);
 
-        return Inertia::render('Sales/Index', [
+        return Inertia::render('Street/Sales/Index', [
             'sales' => $sales,
             'metrics' => [
                 'totalSalesAmount' => $totalSalesAmount,

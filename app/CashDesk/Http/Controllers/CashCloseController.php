@@ -31,7 +31,7 @@ class CashCloseController extends Controller
 
         $settlement = $selectedDriver === null ? null : $report->forDriver($selectedDriver, $date);
 
-        return Inertia::render('CashClose/Index', [
+        return Inertia::render('CashDesk/Index', [
             'repartidores' => $drivers->map(fn ($r) => [
                 'id' => $r->id,
                 'name' => $r->user?->name ?? 'Repartidor',

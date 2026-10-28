@@ -15,7 +15,7 @@ class ProductController extends Controller
 {
     public function index(): Response
     {
-        return Inertia::render('Products/Index', [
+        return Inertia::render('Catalog/Products', [
             'products' => Product::query()
                 ->orderByDesc('enabled')
                 ->orderBy('name')

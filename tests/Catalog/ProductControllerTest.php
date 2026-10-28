@@ -22,7 +22,7 @@ test('the products page lists every product with its list price', function (): v
         ->get(route('products.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('Products/Index')
+            ->component('Catalog/Products')
             ->has('products', 2)
             ->where('products.0.id', $water->id)
             ->where('products.0.price', '1500.00')

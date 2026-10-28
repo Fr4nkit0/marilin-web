@@ -45,7 +45,7 @@ test('the customer page lists each agreement with its price, validity, author an
         ->get(route('customers.show', $this->customer))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('Customers/Show')
+            ->component('Customers/Customers/Show')
             ->where('canManageAgreements', true)
             ->has('agreementProducts', 1)
             ->where('agreementProducts.0', ['id' => $this->bidon->id, 'name' => 'Bidón 20L', 'price' => 6500])

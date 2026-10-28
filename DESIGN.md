@@ -3,18 +3,22 @@ name: Marilin Web Design System
 version: alpha
 description: >
   A logistics and water/soda distribution management system built on a clean,
-  high-contrast light canvas with an indigo primary accent. Designed for two
+  high-contrast light canvas, slate-900 primary actions and an indigo accent. Designed for two
   audiences — office administrators managing routes, customers, and invoices on
   desktop, and delivery drivers confirming stops and inventory on mobile devices
   in truck cabs under direct sunlight.
 
 colors:
   # ── Brand & Primary ──
-  primary: "#4f46e5"
-  primary-hover: "#4338ca"
-  primary-pressed: "#3730a3"
-  primary-soft: "#e0e7ff"
+  # Primary actions are slate-900 (SURFACE.md); indigo is the accent for links, focus and selection.
+  primary: "#0f172a"
+  primary-hover: "#1e293b"
+  primary-pressed: "#020617"
+  primary-soft: "#f1f5f9"
   on-primary: "#ffffff"
+  accent: "#4f46e5"
+  accent-hover: "#4338ca"
+  accent-soft: "#e0e7ff"
   focus-ring: "#4f46e5"
 
   # ── Ink Hierarchy ──
@@ -470,7 +474,7 @@ All buttons show `disabled:opacity-50 disabled:cursor-not-allowed` during form s
 ### Navigation
 - **Segmented Tabs:** Clean text tabs with 2px bottom border on active state. Used for major view switching (Listado, Mapa, Carga, Rendición).
 - **Pill Tabs:** Floating pill toggles inside a `surface-1` container. Active tab renders as elevated white pill. Used for inline data filtering (Todos, Entregados, Ausentes).
-- **Sidebar:** Active item uses a 3px left border indicator in `primary`, not a full background fill.
+- **Sidebar:** Active item uses a 3px left border indicator in `accent` (indigo), not a full background fill.
 
 ### Status Badges
 Follow the **monochrome urgency principle**: most operational states are neutral. Color is reserved for exceptions.
@@ -507,7 +511,7 @@ A prominent search bar (`search-bar` component, 44px, `surface-1` background) in
 - ❌ Use heavy blurred `shadow-lg` or `shadow-xl` — use the stacked shadow scale
 - ❌ Hardcode hex colors directly in components — reference Tailwind theme tokens
 - ❌ Use `alert()`, `confirm()`, or browser-native dialogs — use Headless UI modals
-- ❌ Use the primary indigo color decoratively — reserve it for CTAs and active states only
+- ❌ Use the indigo accent decoratively — reserve it for links, focus and selected states only
 - ❌ Color-code normal operational states (Pagado = green, Pendiente = yellow) — keep them neutral
 - ❌ Use ALL CAPS for headings or button labels (except `eyebrow` / `caption-mono` labels)
 - ❌ Apply `rounded-full` (pill) to standard action buttons — pills are for badges and filter chips

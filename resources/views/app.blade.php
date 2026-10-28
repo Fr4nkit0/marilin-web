@@ -14,7 +14,8 @@
         <!-- Scripts -->
         @routes
         @viteReactRefresh
-        @vite(['resources/js/app.tsx', "resources/js/Pages/{$page['component']}.tsx"])
+        {{-- A page lives in its module (ADR 0003). --}}
+        @vite(['resources/js/app.tsx', "resources/js/modules/{$page['component']}.tsx"])
         @inertiaHead
     </head>
     <body class="font-sans antialiased">

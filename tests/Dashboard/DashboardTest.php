@@ -33,7 +33,7 @@ test('the dashboard shows the requested day and each driver row carries the driv
     $this->get(route('dashboard', ['date' => '2026-10-19']))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('Dashboard')
+            ->component('Dashboard/Index')
             ->where('metrics.date', '2026-10-19')
             ->where('metrics.kpis.totalSales', 1200)
             ->where('metrics.repartidores.0.id', $driver->id)

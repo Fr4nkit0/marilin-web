@@ -15,7 +15,7 @@ class DashboardController extends Controller
         $date = $request->query('date');
         $metrics = $action->execute($date);
 
-        return Inertia::render('Dashboard', [
+        return Inertia::render('Dashboard/Index', [
             'metrics' => $metrics,
         ]);
     }

@@ -56,7 +56,7 @@ El ecosistema **Marilin** se compone de dos piezas fundamentales:
 | **Backend** | [Laravel 12](https://laravel.com) · PHP 8.5 |
 | **Entorno & Contenedores** | [Laravel Sail](https://laravel.com/docs/sail) (Docker & Docker Compose) |
 | **Frontend** | [Inertia.js v2](https://inertiajs.com) · [React 18](https://react.dev) · [TypeScript](https://www.typescriptlang.org) |
-| **Estilos & UI** | [Tailwind CSS v4](https://tailwindcss.com) · Headless UI · Lucide Icons |
+| **Estilos & UI** | [Tailwind CSS v3](https://tailwindcss.com) · Headless UI · Lucide Icons |
 | **Base de Datos** | [PostgreSQL 16](https://www.postgresql.org) |
 | **Caché y Colas** | [Redis](https://redis.io) |
 | **Testing** | [Pest PHP 5](https://pestphp.com) (41 tests unitarios y de integración) |
@@ -164,10 +164,11 @@ marilin-web/
 ├── docs/adr/                     # Decisiones de arquitectura
 ├── resources/
 │   └── js/
-│       ├── Components/           # Componentes UI reutilizables (Tailwind + React)
-│       ├── Layouts/              # Layouts autenticados y públicos
-│       ├── Pages/                # Vistas y páginas de Inertia
-│       └── types/                # Interfaces y tipos TypeScript
+│       ├── modules/              # Espejo de app/: páginas, components/ y types.ts por tema
+│       ├── ui/                   # Design system (Button, Field, DataTable, Badge, Modal…)
+│       ├── lib/                  # format (plata, fechas, estados), useListFilters
+│       ├── layouts/              # AdminLayout y GuestLayout
+│       └── types/                # Tipos globales (PageProps, PaginatedData)
 └── tests/
     ├── <Módulo>/                 # Tests de cada módulo
     ├── Feature/                  # Tests transversales (seeder, API retirada)

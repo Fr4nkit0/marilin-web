@@ -59,7 +59,7 @@ class PaymentController extends Controller
 
         $paymentMethods = PaymentMethod::where('enabled', true)->get();
 
-        return Inertia::render('Payments/Index', [
+        return Inertia::render('Street/Payments/Index', [
             'payments' => $payments,
             'metrics' => [
                 'totalCollected' => $totalCollected,
