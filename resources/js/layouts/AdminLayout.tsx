@@ -1,5 +1,7 @@
 import React, { PropsWithChildren, ReactNode, useState } from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
+import { useTheme } from '@/lib/theme';
+import ThemeSwitch from '@/ui/ThemeSwitch';
 import {
     LayoutDashboard,
     Truck,
@@ -34,6 +36,8 @@ export default function AdminLayout({
     children,
 }: PropsWithChildren<{ header?: ReactNode }>) {
     const user = usePage().props.auth.user;
+    // Applies the saved theme and follows the system while the choice is "system", menu open or not.
+    useTheme();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
     const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -237,6 +241,10 @@ export default function AdminLayout({
                                     >
                                         Mi perfil
                                     </Link>
+                                    <div className="px-4 py-2">
+                                        <p className="text-xs text-slate-500 mb-1.5">Tema</p>
+                                        <ThemeSwitch />
+                                    </div>
                                     <button
                                         type="button"
                                         className="w-full text-left block px-4 py-2 text-sm text-rose-600 hover:bg-rose-50 cursor-pointer"
