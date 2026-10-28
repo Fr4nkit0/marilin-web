@@ -78,7 +78,7 @@ function settlement(): array
     test()->get(route('cash-close.index', ['repartidor_id' => test()->driver->id, 'date' => '2026-10-20']))
         ->assertOk()
         ->assertInertia(function (Assert $page) use (&$settlement): void {
-            $page->component('CashClose/Index');
+            $page->component('CashDesk/Index');
             $settlement = $page->toArray()['props']['settlement'];
         });
 

@@ -2,7 +2,7 @@ import React, { FormEvent, useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
 import { X } from 'lucide-react';
 import Modal from '@/ui/Modal';
-import { HomePaymentMethod } from '@/types/home-operation';
+import { HomePaymentMethod } from '@/modules/Street/types';
 
 interface Props {
     show: boolean;

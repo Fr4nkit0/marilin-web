@@ -4,9 +4,9 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import { DebtBadge, PaymentMethodBadge } from '@/ui/Badge';
 import { PageHeader } from '@/ui/PageHeader';
 import CustomerAgreementFormModal from '@/modules/Customers/Agreements/components/CustomerAgreementFormModal';
-import HomePaymentModal from '@/Components/HomePaymentModal';
-import HomeSaleModal from '@/Components/HomeSaleModal';
-import { HomeContainerType, HomePaymentMethod, HomeProduct } from '@/types/home-operation';
+import HomePaymentModal from '@/modules/Street/Payments/components/HomePaymentModal';
+import HomeSaleModal from '@/modules/Street/Sales/components/HomeSaleModal';
+import { HomeContainerType, HomePaymentMethod, HomeProduct } from '@/modules/Street/types';
 import { AgreementProduct, AgreementStatus, CustomerAgreementRow } from '@/modules/Customers/Agreements/types';
 import {
     ArrowLeft,

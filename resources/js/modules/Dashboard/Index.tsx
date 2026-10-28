@@ -3,8 +3,8 @@ import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { StatusBadge } from '@/ui/Badge';
 import { KpiCard } from '@/ui/KpiCard';
-import DashboardDetailModal from '@/Components/DashboardDetailModal';
-import { DashboardDetailKind, DashboardMetrics, DriverSyncStatus } from '@/types/dashboard';
+import DashboardDetailModal from './components/DashboardDetailModal';
+import { DashboardDetailKind, DashboardMetrics, DriverSyncStatus } from './types';
 import {
     DollarSign,
     MapPin,

@@ -5,7 +5,7 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import { StatusBadge } from '@/ui/Badge';
 import { KpiCard } from '@/ui/KpiCard';
 import { PageHeader } from '@/ui/PageHeader';
-import TruckLoadModal, { LoadableProduct } from '@/Components/TruckLoadModal';
+import RouteStockLoadModal, { LoadableProduct } from '@/modules/Street/RouteStock/components/RouteStockLoadModal';
 import {
     CalendarCheck,
     Truck,
@@ -28,7 +28,7 @@ interface StopItem extends RouteStopRow {
     outcome?: string;
 }
 
-interface TruckStockItem {
+interface RouteStockItem {
     productId: number;
     productName: string;
     loaded: number;
@@ -68,7 +68,7 @@ interface RouteItem {
         pendingStops: number;
         progressPercent: number;
     };
-    truckStock: TruckStockItem[];
+    routeStock: RouteStockItem[];
     loadHistory: LoadHistoryItem[];
     canLoad: boolean;
     currentStock: StockItem[];
@@ -135,7 +135,7 @@ export default function RoutesIndex({
 
             <PageHeader
                 title="Despacho Diario y Gestión de Rutas"
-                description={`Supervisión de paradas, stock en camión y avance de recorridos para la fecha seleccionada.`}
+                description={`Supervisión de paradas, inventario de ruta y avance de recorridos para la fecha seleccionada.`}
             />
 
             {/* Quick Metrics */}
@@ -145,7 +145,7 @@ export default function RoutesIndex({
                     value={kpis.totalRoutes}
                     icon={Truck}
                     variant="primary"
-                    subtitle="Camiones en jornada"
+                    subtitle="Rutas en jornada"
                 />
                 <KpiCard
                     title="Rutas en Curso"
@@ -332,7 +332,7 @@ export default function RoutesIndex({
                                         <div>
                                             <h4 className="text-sm font-semibold text-slate-900 mb-4 flex items-center gap-2">
                                                 <Package className="w-4 h-4 text-slate-500" />
-                                                Carga en Camión
+                                                Inventario de ruta
                                                 {routeItem.canLoad && (
                                                     <button
                                                         type="button"
@@ -344,13 +344,13 @@ export default function RoutesIndex({
                                                     </button>
                                                 )}
                                             </h4>
-                                            {routeItem.truckStock.length === 0 ? (
+                                            {routeItem.routeStock.length === 0 ? (
                                                 <p className="text-sm text-slate-500 mb-4">
                                                     Todavía no se registró ninguna carga para esta ruta.
                                                 </p>
                                             ) : (
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-4">
-                                                    {routeItem.truckStock.map((stock) => (
+                                                    {routeItem.routeStock.map((stock) => (
                                                         <div
                                                             key={stock.productId}
                                                             className="bg-white border border-gray-200/60 rounded-xl p-4 flex items-center justify-between shadow-sm"
@@ -494,7 +494,7 @@ export default function RoutesIndex({
                     })}
                 </div>
             )}
-            <TruckLoadModal
+            <RouteStockLoadModal
                 routeId={loadingRoute?.id ?? null}
                 driverName={loadingRoute?.driver.name ?? ''}
                 isFirstLoad={(loadingRoute?.loadHistory.length ?? 0) === 0}

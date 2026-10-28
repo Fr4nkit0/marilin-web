@@ -2,7 +2,7 @@ import React, { FormEvent, useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
 import { Plus, Trash2, X } from 'lucide-react';
 import Modal from '@/ui/Modal';
-import { HomeContainerType, HomeProduct } from '@/types/home-operation';
+import { HomeContainerType, HomeProduct } from '@/modules/Street/types';
 import { money } from '@/lib/format';
 
 interface Props {

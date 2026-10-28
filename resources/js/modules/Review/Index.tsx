@@ -4,7 +4,7 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import { StatusBadge } from '@/ui/Badge';
 import { CheckCheck } from 'lucide-react';
 import { PaginatedData } from '@/types';
-import { ReviewFilters, ReviewItem, ReviewType } from '@/types/review';
+import { ReviewFilters, ReviewItem, ReviewType } from './types';
 import { date, dateTime } from '@/lib/format';
 import { useListFilters } from '@/lib/useListFilters';
 import Pagination from '@/ui/Pagination';

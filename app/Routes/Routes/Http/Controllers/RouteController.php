@@ -73,7 +73,7 @@ class RouteController extends Controller
                     'progressPercent' => $progress,
                 ],
                 // Every load of the day (the first one and any reload) adds up per product.
-                'truckStock' => $route->inventories->map(fn ($inv) => [
+                'routeStock' => $route->inventories->map(fn ($inv) => [
                     'productId' => $inv->product_id,
                     'productName' => $inv->product?->name ?? 'Producto',
                     'loaded' => (float) $route->inventoryLoads->where('product_id', $inv->product_id)->sum('quantity'),

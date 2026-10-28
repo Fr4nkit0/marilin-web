@@ -71,9 +71,9 @@ test('a mid-day reload adds to what is left in the truck and keeps both loads in
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Routes/Routes/Index')
-            ->where('routes.0.truckStock.0.productName', 'Bidón 20L')
-            ->where('routes.0.truckStock.0.loaded', 80)
-            ->where('routes.0.truckStock.0.current', 32)
+            ->where('routes.0.routeStock.0.productName', 'Bidón 20L')
+            ->where('routes.0.routeStock.0.loaded', 80)
+            ->where('routes.0.routeStock.0.current', 32)
             ->where('routes.0.loadHistory.0.loadedAt', '08:00')
             ->where('routes.0.loadHistory.0.quantity', 60)
             ->where('routes.0.loadHistory.1.loadedAt', '13:10')

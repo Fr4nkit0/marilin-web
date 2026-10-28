@@ -4,8 +4,8 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import { StatusBadge } from '@/ui/Badge';
 import { KpiCard } from '@/ui/KpiCard';
 import { PageHeader } from '@/ui/PageHeader';
-import CashCloseDetailModal from '@/Components/CashCloseDetailModal';
-import { CashCloseDetailKind, SettlementData } from '@/types/cash-close';
+import CashCloseDetailModal from './components/CashCloseDetailModal';
+import { CashCloseDetailKind, SettlementData } from './types';
 import {
     CircleDollarSign,
     DollarSign,
@@ -208,7 +208,7 @@ export default function CashCloseIndex({
                         {/* Inventory Reconciliation Box */}
                         <div className="bg-white border border-gray-200/60 rounded-2xl p-6 shadow-sm">
                             <h3 className="text-base font-semibold text-slate-900 mb-6 flex items-center justify-between">
-                                <span>Control de Stock y Envases en Camión</span>
+                                <span>Inventario de ruta y envases</span>
                                 <Package className="w-5 h-5 text-slate-400" />
                             </h3>
 

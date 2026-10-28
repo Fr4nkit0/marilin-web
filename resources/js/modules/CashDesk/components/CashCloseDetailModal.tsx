@@ -8,7 +8,7 @@ import {
     CashCloseDetails,
     CashCloseOrigin,
     CashClosePaymentRow,
-} from '@/types/cash-close';
+} from '../types';
 import { money } from '@/lib/format';
 
 interface Props {

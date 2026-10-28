@@ -18,7 +18,7 @@ interface Props {
 
 type LoadForm = { quantities: Record<number, string> };
 
-export default function TruckLoadModal({ routeId, driverName, isFirstLoad, products, onClose }: Props) {
+export default function RouteStockLoadModal({ routeId, driverName, isFirstLoad, products, onClose }: Props) {
     const { data, setData, post, processing, errors, reset, clearErrors, transform } = useForm<LoadForm>({
         quantities: {},
     });
@@ -52,7 +52,7 @@ export default function TruckLoadModal({ routeId, driverName, isFirstLoad, produ
                 <div className="flex items-start justify-between gap-4 px-6 pt-6 pb-4 border-b border-gray-100">
                     <div>
                         <h2 className="text-lg font-semibold text-slate-900">
-                            {isFirstLoad ? 'Carga inicial del camión' : 'Recarga del camión'}
+                            {isFirstLoad ? 'Carga inicial del inventario de ruta' : 'Recarga del inventario de ruta'}
                         </h2>
                         <p className="text-sm text-slate-500 mt-1">
                             {driverName}: lo que se carga se suma al stock y llega a la app en la próxima

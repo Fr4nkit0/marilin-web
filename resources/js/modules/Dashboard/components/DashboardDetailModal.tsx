@@ -8,7 +8,7 @@ import {
     DashboardPaymentRow,
     DashboardSaleRow,
     DashboardStopRow,
-} from '@/types/dashboard';
+} from '../types';
 import { money, stopStatusLabel, type StopStatus } from '@/lib/format';
 
 interface Props {
