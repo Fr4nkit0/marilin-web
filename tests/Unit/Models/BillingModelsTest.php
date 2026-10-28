@@ -1,16 +1,16 @@
 <?php
 
-use App\Models\Customer;
-use App\Models\CustomerAccountEntry;
-use App\Models\CustomerAgreement;
-use App\Models\CustomerBalance;
-use App\Models\Payment;
-use App\Models\PaymentMethod;
-use App\Models\Product;
-use App\Models\Sale;
-use App\Models\SaleDetail;
-use App\Models\Transaction;
-use App\Models\User;
+use App\Accounts\Models\User;
+use App\Catalog\Models\PaymentMethod;
+use App\Catalog\Models\Product;
+use App\Customers\Agreements\Models\CustomerAgreement;
+use App\Customers\Customers\Models\Customer;
+use App\Street\Ledger\Models\CustomerAccountEntry;
+use App\Street\Ledger\Models\CustomerBalance;
+use App\Street\Payments\Models\Payment;
+use App\Street\Payments\Models\Transaction;
+use App\Street\Sales\Models\Sale;
+use App\Street\Sales\Models\SaleDetail;
 
 test('customer agreement defines agreed price and active scope', function () {
     $customer = Customer::factory()->create();

@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Middleware\EnsureUserIsEnabled;
+use App\Accounts\Http\Middleware\EnsureUserIsEnabled;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -15,6 +15,10 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+    ->withCommands([
+        __DIR__.'/../app/Routes/Routes/Console/Commands',
+        __DIR__.'/../app/Review/Console/Commands',
+    ])
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
             EnsureUserIsEnabled::class,

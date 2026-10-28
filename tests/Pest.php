@@ -14,9 +14,10 @@ use Tests\TestCase;
 |
 */
 
+// Feature, Unit and one directory per module (tests/<Module>), see ADR 0003.
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
-    ->in('Feature', 'Unit');
+    ->in(...array_map('basename', glob(__DIR__.'/*', GLOB_ONLYDIR)));
 
 /*
 |--------------------------------------------------------------------------

@@ -22,6 +22,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['route_id', 'product_id']);
+            $table->index('updated_at');
         });
     }
 

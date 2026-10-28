@@ -22,6 +22,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['date', 'assigned_driver_id']);
+            $table->index('updated_at');
         });
     }
 

@@ -1,0 +1,28 @@
+<?php
+
+namespace App\Street\Ledger\Database\Factories;
+
+use App\Accounts\Models\User;
+use App\Customers\Customers\Models\Customer;
+use App\Street\Ledger\Models\CustomerBalance;
+use Illuminate\Database\Eloquent\Factories\Factory;
+
+/**
+ * @extends Factory<CustomerBalance>
+ */
+class CustomerBalanceFactory extends Factory
+{
+    protected $model = CustomerBalance::class;
+
+    public function definition(): array
+    {
+        return [
+            'customer_id' => Customer::factory(),
+            'current_balance' => fake()->randomFloat(2, 0, 5000),
+            'last_entry_id' => null,
+            'created_by' => User::factory(),
+            'last_modified_by' => null,
+            'enabled' => true,
+        ];
+    }
+}

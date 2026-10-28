@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Review;
 
-use App\Models\User;
+use App\Accounts\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 

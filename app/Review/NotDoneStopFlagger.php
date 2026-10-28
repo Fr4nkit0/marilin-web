@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Review;
 
-use App\Enums\RouteStatus;
-use App\Models\RouteStop;
+use App\Routes\Routes\Enums\RouteStatus;
+use App\Routes\Routes\Models\RouteStop;
 
 /**
  * The nightly flag: every stop of a past, not cancelled route that ended its day not done is left for the admin (ADR 0001).

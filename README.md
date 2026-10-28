@@ -139,19 +139,29 @@ El proyecto cuenta con una suite completa de pruebas unitarias y de integración
 
 ```
 marilin-web/
-├── app/
-│   ├── Actions/                  # Lógica de negocio transaccional de responsabilidad única
-│   ├── Http/
-│   │   ├── Controllers/          # Controladores de Inertia y APIs
-│   │   ├── Requests/             # FormRequests de validación y autorización
-│   │   └── Resources/            # JsonResources para la API móvil
-│   ├── Models/                   # Modelos Eloquent con relaciones tipadas y casts
-│   └── Policies/                 # Políticas de acceso (Admin vs Repartidor)
+├── app/                          # Un módulo por tema del dominio (ADR 0003)
+│   ├── Accounts/                 # Usuarios, repartidores, login, tokens de la API
+│   ├── Catalog/                  # Productos, tipos de envase, medios de pago
+│   ├── Customers/
+│   │   ├── Customers/            # Cliente, dirección, alta de cliente
+│   │   └── Agreements/           # Acuerdos y precio del acuerdo
+│   ├── Routes/
+│   │   ├── Routes/               # Ruta, parada, generación diaria
+│   │   └── Visits/               # Visita y resultados de visita
+│   ├── Street/                   # StreetOperation: venta, cobro, envases, inventario de ruta
+│   │   ├── Sales/  Payments/  Containers/  RouteStock/  Ledger/
+│   ├── CashDesk/                 # Cifras del día y cierre de caja
+│   ├── Review/                   # Para revisión: bandeja y marcas nocturnas
+│   ├── Sync/                     # Bajada y Subida de la app
+│   ├── Dashboard/                # Pantalla de inicio
+│   ├── Shared/                   # Lo que no es de ningún tema
+│   ├── Http/                     # Controller base y middleware de Inertia
+│   └── Providers/
+│   (cada módulo: Models/ Http/ Enums/ Console/ Database/Factories/ routes.php)
 ├── database/
-│   ├── factories/                # Model Factories para tests y seeds
-│   ├── migrations/               # Migraciones ordenadas por dependencias
+│   ├── migrations/               # Una migración por tabla, en su forma final
 │   └── seeders/                  # DatabaseSeeder con datos realistas
-├── openspec/                     # Especificaciones y tareas SDD (Spec-Driven Development)
+├── docs/adr/                     # Decisiones de arquitectura
 ├── resources/
 │   └── js/
 │       ├── Components/           # Componentes UI reutilizables (Tailwind + React)
@@ -159,8 +169,9 @@ marilin-web/
 │       ├── Pages/                # Vistas y páginas de Inertia
 │       └── types/                # Interfaces y tipos TypeScript
 └── tests/
-    ├── Feature/                  # Tests de integración y endpoints
-    └── Unit/                     # Tests de modelos, relaciones y transacciones
+    ├── <Módulo>/                 # Tests de cada módulo
+    ├── Feature/                  # Tests transversales (seeder, API retirada)
+    └── Unit/                     # Tests de modelos que cruzan módulos
 ```
 
 ---

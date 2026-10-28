@@ -26,7 +26,9 @@ Todo agente de IA debe leer y respetar estas directivas antes de sugerir o modif
 ## 3. Arquitectura y Principios de Diseño
 
 ### 3.1. Filosofía General
-- **Fat Models / Action Classes, Skinny Controllers:** Los controladores de Laravel / Inertia solo manejan validación de entrada (FormRequests), orquestación y retorno de respuestas Inertia (`Inertia::render()`). La lógica de negocio pesada va en Services o Actions (`app/Actions/` o `app/Services/`).
+- **Módulos por tema (ADR 0003):** `app/` se organiza por tema del dominio, no por tipo de clase: `Accounts`, `Catalog`, `Customers`, `Routes`, `Street`, `CashDesk`, `Review`, `Sync`, `Dashboard` y `Shared`. Cada módulo es dueño de sus `Models/`, `Http/` (controllers, requests), `Enums/`, `Console/Commands/`, `Database/Factories/`, `routes.php` y sus tests en `tests/<Módulo>/`. Un módulo grande se divide en subtemas del glosario (un solo nivel), por ejemplo `Street/{Sales,Payments,Containers,RouteStock,Ledger}`; su interfaz de escritura queda en la raíz (`Street/StreetOperation`).
+- **Leer libre, escribir por el dueño:** cualquier módulo puede importar modelos de otro para leer; las escrituras pasan por el módulo dueño. Las migraciones (una por tabla), el seeder y las páginas de Inertia quedan fuera de los módulos.
+- **Skinny Controllers:** los controladores solo validan (FormRequests), llaman al módulo y devuelven `Inertia::render()`; la lógica de negocio vive en el módulo.
 - **Strict Typing:** Tanto en PHP (tipos en métodos y propiedades obligatorios) como en React / TypeScript (interfaces para props y modelos de dominio en `resources/js/types/`).
 - **IDs Autoincrementales:** Usamos IDs enteros estándar (`$table->id()`) con foreign keys explícitas (`$table->foreignId('...')->constrained()`).
 
