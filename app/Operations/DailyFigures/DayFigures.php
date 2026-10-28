@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Operations\DailyFigures;
 
 use App\Catalog\Enums\PaymentMethodCode;
-use App\Enums\ContainerMovementType;
-use App\Models\ContainerMovement;
-use App\Models\Payment;
-use App\Models\Sale;
+use App\Street\Containers\Enums\ContainerMovementType;
+use App\Street\Containers\Models\ContainerMovement;
+use App\Street\Payments\Models\Payment;
+use App\Street\Sales\Models\Sale;
 use Illuminate\Database\Eloquent\Collection;
 
 /**

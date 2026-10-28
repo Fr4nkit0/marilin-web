@@ -3,10 +3,10 @@
 namespace App\Routes\Routes\Models;
 
 use App\Accounts\Models\Driver;
-use App\Models\RouteInventory;
-use App\Models\RouteInventoryLoad;
 use App\Routes\Routes\Database\Factories\RouteFactory;
 use App\Routes\Routes\Enums\RouteStatus;
+use App\Street\RouteStock\Models\RouteInventory;
+use App\Street\RouteStock\Models\RouteInventoryLoad;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

@@ -9,12 +9,12 @@ use App\Customers\Customers\CustomerIntake;
 use App\Customers\Customers\CustomerRegistration;
 use App\Customers\Customers\Models\Customer;
 use App\Customers\Customers\Models\CustomerAddress;
-use App\Enums\ContainerMovementType;
-use App\Models\ContainerMovement;
-use App\Models\CustomerAccountEntry;
-use App\Models\CustomerBalance;
-use App\Models\CustomerContainerBalance;
-use App\Operations\StreetOperation;
+use App\Street\Containers\Enums\ContainerMovementType;
+use App\Street\Containers\Models\ContainerMovement;
+use App\Street\Containers\Models\CustomerContainerBalance;
+use App\Street\Ledger\Models\CustomerAccountEntry;
+use App\Street\Ledger\Models\CustomerBalance;
+use App\Street\StreetOperation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);

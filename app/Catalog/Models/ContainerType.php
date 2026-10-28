@@ -3,8 +3,8 @@
 namespace App\Catalog\Models;
 
 use App\Catalog\Database\Factories\ContainerTypeFactory;
-use App\Models\ContainerMovement;
-use App\Models\CustomerContainerBalance;
+use App\Street\Containers\Models\ContainerMovement;
+use App\Street\Containers\Models\CustomerContainerBalance;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

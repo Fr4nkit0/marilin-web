@@ -7,11 +7,11 @@ namespace App\Services\Sync;
 use App\Accounts\Models\Driver;
 use App\Accounts\Models\User;
 use App\Customers\Customers\Models\Customer;
-use App\Enums\ContainerMovementType;
-use App\Models\ContainerMovement;
-use App\Operations\MoveContainers;
-use App\Operations\StreetOperation;
 use App\Routes\Visits\Models\Visit;
+use App\Street\Containers\Enums\ContainerMovementType;
+use App\Street\Containers\Models\ContainerMovement;
+use App\Street\Containers\MoveContainers;
+use App\Street\StreetOperation;
 
 class ContainerMovementPusher extends EntityPusher
 {

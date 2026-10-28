@@ -13,4 +13,5 @@ Route::middleware('auth')->group(function () {
         Route::post('/customers/{customer}/agreements', [CustomerAgreementController::class, 'store'])->name('customers.agreements.store');
         Route::patch('/customers/{customer}/agreements/{agreement}/end', [CustomerAgreementController::class, 'end'])->name('customers.agreements.end');
     });
+    Route::get('/customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
 });

@@ -3,7 +3,7 @@
 namespace App\Catalog\Models;
 
 use App\Catalog\Database\Factories\PaymentMethodFactory;
-use App\Models\Payment;
+use App\Street\Payments\Models\Payment;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

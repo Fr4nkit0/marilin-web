@@ -12,12 +12,12 @@ use App\Customers\Agreements\Models\CustomerAgreement;
 use App\Customers\Customers\Models\Customer;
 use App\Customers\Customers\Models\CustomerAddress;
 use App\Customers\Customers\Models\CustomerPreference;
-use App\Models\CustomerBalance;
-use App\Models\CustomerContainerBalance;
-use App\Models\RouteInventory;
 use App\Routes\Routes\Models\Route;
 use App\Routes\Routes\Models\RouteStop;
 use App\Routes\Visits\Models\VisitOutcome;
+use App\Street\Containers\Models\CustomerContainerBalance;
+use App\Street\Ledger\Models\CustomerBalance;
+use App\Street\RouteStock\Models\RouteInventory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 

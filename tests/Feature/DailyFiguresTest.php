@@ -6,12 +6,12 @@ use App\Accounts\Models\Driver;
 use App\Accounts\Models\User;
 use App\Catalog\Models\ContainerType;
 use App\Catalog\Models\PaymentMethod;
-use App\Models\ContainerMovement;
-use App\Models\Payment;
-use App\Models\Sale;
 use App\Operations\DailyFigures\DailyFigures;
 use App\Operations\DailyFigures\DayScope;
 use App\Routes\Visits\Models\Visit;
+use App\Street\Containers\Models\ContainerMovement;
+use App\Street\Payments\Models\Payment;
+use App\Street\Sales\Models\Sale;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\CashClose;
 
-use App\Enums\ContainerMovementType;
+use App\Street\Containers\Enums\ContainerMovementType;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Response;
 use Illuminate\Support\Str;

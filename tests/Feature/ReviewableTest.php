@@ -5,14 +5,14 @@ declare(strict_types=1);
 use App\Accounts\Models\User;
 use App\Customers\Agreements\Models\CustomerAgreement;
 use App\Customers\Customers\Models\Customer;
-use App\Models\ContainerMovement;
-use App\Models\Payment;
-use App\Models\Sale;
 use App\Review\Reviewable;
 use App\Review\ReviewReason;
 use App\Routes\Routes\Models\RouteStop;
 use App\Routes\Visits\Models\Visit;
 use App\Services\Review\ReviewInbox;
+use App\Street\Containers\Models\ContainerMovement;
+use App\Street\Payments\Models\Payment;
+use App\Street\Sales\Models\Sale;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 

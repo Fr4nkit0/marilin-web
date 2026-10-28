@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Operations\DailyFigures;
 
-use App\Enums\PaymentStatus;
-use App\Models\ContainerMovement;
-use App\Models\Payment;
-use App\Models\Sale;
+use App\Street\Containers\Models\ContainerMovement;
+use App\Street\Payments\Enums\PaymentStatus;
+use App\Street\Payments\Models\Payment;
+use App\Street\Sales\Models\Sale;
 
 /**
  * The single source of a day's sales, collections and container movements, for the cash close,

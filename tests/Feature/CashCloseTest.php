@@ -7,12 +7,12 @@ use App\Accounts\Models\User;
 use App\Catalog\Models\ContainerType;
 use App\Catalog\Models\PaymentMethod;
 use App\Customers\Customers\Models\Customer;
-use App\Models\ContainerMovement;
-use App\Models\Payment;
-use App\Models\Sale;
 use App\Routes\Routes\Models\Route;
 use App\Routes\Routes\Models\RouteStop;
 use App\Routes\Visits\Models\Visit;
+use App\Street\Containers\Models\ContainerMovement;
+use App\Street\Payments\Models\Payment;
+use App\Street\Sales\Models\Sale;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 

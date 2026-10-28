@@ -9,9 +9,9 @@ use App\Catalog\Models\PaymentMethod;
 use App\Catalog\Models\Product;
 use App\Customers\Customers\Models\Customer;
 use App\Customers\Customers\Models\CustomerAddress;
-use App\Models\RouteInventory;
 use App\Routes\Routes\Models\Route;
 use App\Routes\Routes\Models\RouteStop;
+use App\Street\RouteStock\Models\RouteInventory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 

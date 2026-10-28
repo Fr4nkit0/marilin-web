@@ -10,13 +10,13 @@ use App\Catalog\Models\Product;
 use App\Customers\Agreements\Models\CustomerAgreement;
 use App\Customers\Agreements\PriceResolver;
 use App\Customers\Customers\Models\Customer;
-use App\Models\Sale;
-use App\Operations\RecordSale;
-use App\Operations\SaleLine;
-use App\Operations\StreetOperation;
 use App\Review\ReviewReason;
 use App\Routes\Visits\Models\Visit;
 use App\Shared\ClientTime;
+use App\Street\Sales\Models\Sale;
+use App\Street\Sales\RecordSale;
+use App\Street\Sales\SaleLine;
+use App\Street\StreetOperation;
 use Illuminate\Support\Carbon;
 
 class SalePusher extends EntityPusher

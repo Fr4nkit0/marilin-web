@@ -7,10 +7,10 @@ namespace App\Customers\Customers;
 use App\Catalog\Models\ContainerType;
 use App\Customers\Customers\Models\Customer;
 use App\Customers\Customers\Models\CustomerAddress;
-use App\Enums\ContainerMovementType;
-use App\Operations\MoveContainers;
-use App\Operations\StreetOperation;
-use App\Services\CustomerLedger;
+use App\Street\Containers\Enums\ContainerMovementType;
+use App\Street\Containers\MoveContainers;
+use App\Street\Ledger\CustomerLedger;
+use App\Street\StreetOperation;
 use Illuminate\Support\Facades\DB;
 
 /**

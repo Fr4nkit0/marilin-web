@@ -7,12 +7,12 @@ namespace App\Services\Sync;
 use App\Accounts\Models\Driver;
 use App\Accounts\Models\User;
 use App\Customers\Customers\Models\Customer;
-use App\Models\Payment;
-use App\Models\Sale;
-use App\Operations\RecordPayment;
-use App\Operations\StreetOperation;
 use App\Routes\Visits\Models\Visit;
 use App\Shared\ClientTime;
+use App\Street\Payments\Models\Payment;
+use App\Street\Payments\RecordPayment;
+use App\Street\Sales\Models\Sale;
+use App\Street\StreetOperation;
 
 class PaymentPusher extends EntityPusher
 {
