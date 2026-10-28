@@ -23,6 +23,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['customer_id', 'day_of_week', 'time_window_start']);
+            $table->index('updated_at');
         });
     }
 

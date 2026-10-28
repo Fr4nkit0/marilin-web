@@ -17,6 +17,9 @@ return new class extends Migration
             $table->boolean('triggers_reschedule')->default(false);
             $table->boolean('enabled')->default(true);
             $table->timestamps();
+            $table->string('code', 30)->nullable()->unique();
+
+            $table->index('updated_at');
         });
     }
 

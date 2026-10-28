@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -20,7 +21,12 @@ return new class extends Migration
             $table->decimal('available_quantity', 14, 2)->default(0);
             $table->boolean('enabled')->default(true);
             $table->timestamps();
+            $table->decimal('price', 12, 2)->default(0);
+
+            $table->index('updated_at');
         });
+
+        DB::statement('ALTER TABLE products ADD CONSTRAINT products_price_non_negative CHECK (price >= 0)');
     }
 
     /**

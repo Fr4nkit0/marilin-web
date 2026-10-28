@@ -24,6 +24,11 @@ return new class extends Migration
             $table->foreignId('last_modified_by')->nullable()->constrained('users')->nullOnDelete();
             $table->boolean('enabled')->default(true);
             $table->timestamps();
+            $table->uuid('client_uuid')->nullable()->unique();
+            $table->boolean('needs_review')->default(false);
+            $table->text('review_reason')->nullable();
+            $table->timestamp('reviewed_at')->nullable();
+            $table->foreignId('reviewed_by')->nullable()->constrained('users')->nullOnDelete();
 
             $table->index(['customer_id', 'date']);
             $table->index('visit_id');

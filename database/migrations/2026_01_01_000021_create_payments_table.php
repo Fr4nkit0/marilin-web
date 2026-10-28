@@ -23,6 +23,11 @@ return new class extends Migration
             $table->dateTime('paid_at')->useCurrent();
             $table->string('status', 30)->default('CONFIRMED'); // CONFIRMED, CANCELLED, ANNULLED
             $table->timestamps();
+            $table->uuid('client_uuid')->nullable()->unique();
+            $table->boolean('needs_review')->default(false);
+            $table->text('review_reason')->nullable();
+            $table->timestamp('reviewed_at')->nullable();
+            $table->foreignId('reviewed_by')->nullable()->constrained('users')->nullOnDelete();
 
             $table->index(['customer_id', 'paid_at']);
         });

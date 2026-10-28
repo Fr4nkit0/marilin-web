@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('customer_id')->constrained('customers')->cascadeOnDelete();
             $table->string('street', 200)->nullable();
             $table->string('apartment', 20)->nullable();
-            $table->smallInteger('floor')->nullable();
+            $table->string('floor', 20)->nullable();
             $table->text('visual_reference')->nullable();
             $table->decimal('latitude', 10, 7)->nullable();
             $table->decimal('longitude', 10, 7)->nullable();
@@ -25,8 +25,10 @@ return new class extends Migration
             $table->foreignId('last_modified_by')->nullable()->constrained('users')->nullOnDelete();
             $table->boolean('enabled')->default(true);
             $table->timestamps();
+            $table->string('neighborhood')->nullable();
 
             $table->index(['latitude', 'longitude']);
+            $table->index('updated_at');
         });
     }
 
