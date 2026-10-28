@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Console\Commands;
+namespace App\Routes\Routes\Console\Commands;
 
-use App\Actions\GenerateDailyRoutesAction;
+use App\Routes\Routes\GenerateDailyRoutesAction;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;

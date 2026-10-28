@@ -4,11 +4,11 @@ use App\Accounts\Models\Driver;
 use App\Accounts\Models\User;
 use App\Customers\Customers\Models\Customer;
 use App\Customers\Customers\Models\CustomerAddress;
-use App\Models\Route;
-use App\Models\RouteStop;
-use App\Models\Visit;
-use App\Models\VisitOutcome;
-use App\Models\VisitStatusHistory;
+use App\Routes\Routes\Models\Route;
+use App\Routes\Routes\Models\RouteStop;
+use App\Routes\Visits\Models\Visit;
+use App\Routes\Visits\Models\VisitOutcome;
+use App\Routes\Visits\Models\VisitStatusHistory;
 
 test('route belongs to driver and filters by date and status scopes', function () {
     $driver = Driver::factory()->create();

@@ -8,6 +8,7 @@ use App\Customers\Customers\Models\Customer;
 use App\Enums\PaymentStatus;
 use App\Review\Reviewable;
 use App\Review\ReviewSource;
+use App\Routes\Visits\Models\Visit;
 use Database\Factories\PaymentFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

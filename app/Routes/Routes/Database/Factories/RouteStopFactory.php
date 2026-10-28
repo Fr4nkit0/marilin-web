@@ -1,11 +1,11 @@
 <?php
 
-namespace Database\Factories;
+namespace App\Routes\Routes\Database\Factories;
 
 use App\Customers\Customers\Models\Customer;
 use App\Customers\Customers\Models\CustomerAddress;
-use App\Models\Route;
-use App\Models\RouteStop;
+use App\Routes\Routes\Models\Route;
+use App\Routes\Routes\Models\RouteStop;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

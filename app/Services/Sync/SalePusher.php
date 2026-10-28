@@ -11,11 +11,11 @@ use App\Customers\Agreements\Models\CustomerAgreement;
 use App\Customers\Agreements\PriceResolver;
 use App\Customers\Customers\Models\Customer;
 use App\Models\Sale;
-use App\Models\Visit;
 use App\Operations\RecordSale;
 use App\Operations\SaleLine;
 use App\Operations\StreetOperation;
 use App\Review\ReviewReason;
+use App\Routes\Visits\Models\Visit;
 use App\Shared\ClientTime;
 use Illuminate\Support\Carbon;
 

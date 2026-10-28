@@ -4,7 +4,7 @@ namespace App\Customers\Customers\Models;
 
 use App\Accounts\Models\User;
 use App\Customers\Customers\Database\Factories\CustomerAddressFactory;
-use App\Models\RouteStop;
+use App\Routes\Routes\Models\RouteStop;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

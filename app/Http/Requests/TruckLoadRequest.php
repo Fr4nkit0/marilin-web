@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
-use App\Enums\RouteStatus;
-use App\Models\Route as DeliveryRoute;
+use App\Routes\Routes\Enums\RouteStatus;
+use App\Routes\Routes\Models\Route as DeliveryRoute;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;

@@ -1,8 +1,8 @@
 <?php
 
-namespace Database\Factories;
+namespace App\Routes\Visits\Database\Factories;
 
-use App\Models\VisitOutcome;
+use App\Routes\Visits\Models\VisitOutcome;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

@@ -6,8 +6,8 @@ use App\Accounts\Models\Driver;
 use App\Customers\Customers\Models\Customer;
 use App\Customers\Customers\Models\CustomerAddress;
 use App\Customers\Customers\Models\CustomerPreference;
-use App\Models\Route;
-use App\Models\RouteStop;
+use App\Routes\Routes\Models\Route;
+use App\Routes\Routes\Models\RouteStop;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 

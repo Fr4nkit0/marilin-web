@@ -2,12 +2,10 @@
 
 use App\Http\Controllers\CashCloseController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\DriverController;
 use App\Http\Controllers\HomePaymentController;
 use App\Http\Controllers\HomeSaleController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ReviewInboxController;
-use App\Http\Controllers\RouteController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\TruckLoadController;
 use App\Services\Review\ReviewInbox;
@@ -39,16 +37,8 @@ Route::middleware('auth')->group(function () {
 
     require __DIR__.'/../app/Customers/routes-show.php';
 
-    // Choferes / Drivers
-    Route::get('/drivers', [DriverController::class, 'index'])->name('drivers.index');
-    Route::get('/drivers/{repartidor}', [DriverController::class, 'show'])->name('drivers.show');
+    require __DIR__.'/../app/Routes/routes.php';
 
-    // Redirección de compatibilidad para /repartidores
-    Route::get('/repartidores', fn () => redirect()->route('drivers.index'))->name('repartidores.index');
-    Route::get('/repartidores/{repartidor}', fn ($repartidor) => redirect()->route('drivers.show', $repartidor))->name('repartidores.show');
-
-    // Despacho y Rutas
-    Route::get('/routes', [RouteController::class, 'index'])->name('routes.index');
     Route::post('/routes/{route}/loads', [TruckLoadController::class, 'store'])
         ->middleware('can:load-trucks')
         ->name('routes.loads.store');

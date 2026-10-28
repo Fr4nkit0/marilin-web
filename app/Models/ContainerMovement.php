@@ -7,6 +7,7 @@ use App\Catalog\Models\ContainerType;
 use App\Customers\Customers\Models\Customer;
 use App\Review\Reviewable;
 use App\Review\ReviewSource;
+use App\Routes\Visits\Models\Visit;
 use Database\Factories\ContainerMovementFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

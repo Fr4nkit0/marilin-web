@@ -1,13 +1,13 @@
 <?php
 
-namespace Database\Factories;
+namespace App\Routes\Visits\Database\Factories;
 
 use App\Accounts\Models\Driver;
 use App\Accounts\Models\User;
 use App\Customers\Customers\Models\Customer;
-use App\Models\RouteStop;
-use App\Models\Visit;
-use App\Models\VisitOutcome;
+use App\Routes\Routes\Models\RouteStop;
+use App\Routes\Visits\Models\Visit;
+use App\Routes\Visits\Models\VisitOutcome;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

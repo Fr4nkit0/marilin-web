@@ -9,9 +9,9 @@ use App\Catalog\Models\PaymentMethod;
 use App\Models\ContainerMovement;
 use App\Models\Payment;
 use App\Models\Sale;
-use App\Models\Visit;
 use App\Operations\DailyFigures\DailyFigures;
 use App\Operations\DailyFigures\DayScope;
+use App\Routes\Visits\Models\Visit;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);

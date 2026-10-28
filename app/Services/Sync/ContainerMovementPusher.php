@@ -9,9 +9,9 @@ use App\Accounts\Models\User;
 use App\Customers\Customers\Models\Customer;
 use App\Enums\ContainerMovementType;
 use App\Models\ContainerMovement;
-use App\Models\Visit;
 use App\Operations\MoveContainers;
 use App\Operations\StreetOperation;
+use App\Routes\Visits\Models\Visit;
 
 class ContainerMovementPusher extends EntityPusher
 {

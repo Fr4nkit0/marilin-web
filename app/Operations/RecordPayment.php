@@ -7,8 +7,8 @@ namespace App\Operations;
 use App\Accounts\Models\User;
 use App\Customers\Customers\Models\Customer;
 use App\Models\Sale;
-use App\Models\Visit;
 use App\Review\ReviewReason;
+use App\Routes\Visits\Models\Visit;
 use Carbon\CarbonInterface;
 
 final readonly class RecordPayment

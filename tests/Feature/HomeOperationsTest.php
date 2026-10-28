@@ -13,10 +13,10 @@ use App\Models\CustomerAccountEntry;
 use App\Models\CustomerBalance;
 use App\Models\CustomerContainerBalance;
 use App\Models\Payment;
-use App\Models\Route;
 use App\Models\RouteInventory;
 use App\Models\Sale;
 use App\Operations\StreetOperation;
+use App\Routes\Routes\Models\Route;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 

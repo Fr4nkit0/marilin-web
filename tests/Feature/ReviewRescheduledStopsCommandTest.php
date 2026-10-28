@@ -5,9 +5,9 @@ declare(strict_types=1);
 use App\Accounts\Models\Driver;
 use App\Customers\Customers\Models\Customer;
 use App\Customers\Customers\Models\CustomerAddress;
-use App\Models\Route;
-use App\Models\RouteStop;
-use App\Models\Visit;
+use App\Routes\Routes\Models\Route;
+use App\Routes\Routes\Models\RouteStop;
+use App\Routes\Visits\Models\Visit;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 

@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Models;
+namespace App\Routes\Visits\Models;
 
-use Database\Factories\VisitOutcomeFactory;
+use App\Routes\Visits\Database\Factories\VisitOutcomeFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

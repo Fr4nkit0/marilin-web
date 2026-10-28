@@ -9,10 +9,10 @@ use App\Catalog\Models\PaymentMethod;
 use App\Customers\Customers\Models\Customer;
 use App\Models\ContainerMovement;
 use App\Models\Payment;
-use App\Models\Route;
-use App\Models\RouteStop;
 use App\Models\Sale;
-use App\Models\Visit;
+use App\Routes\Routes\Models\Route;
+use App\Routes\Routes\Models\RouteStop;
+use App\Routes\Visits\Models\Visit;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 

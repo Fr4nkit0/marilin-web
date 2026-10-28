@@ -4,8 +4,8 @@ namespace App\Accounts\Models;
 
 use App\Accounts\Database\Factories\DriverFactory;
 use App\Customers\Customers\Models\Customer;
-use App\Models\Route;
-use App\Models\Visit;
+use App\Routes\Routes\Models\Route;
+use App\Routes\Visits\Models\Visit;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

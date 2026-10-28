@@ -1,10 +1,12 @@
 <?php
 
-namespace App\Models;
+namespace App\Routes\Routes\Models;
 
 use App\Accounts\Models\Driver;
-use App\Enums\RouteStatus;
-use Database\Factories\RouteFactory;
+use App\Models\RouteInventory;
+use App\Models\RouteInventoryLoad;
+use App\Routes\Routes\Database\Factories\RouteFactory;
+use App\Routes\Routes\Enums\RouteStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

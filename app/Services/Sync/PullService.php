@@ -14,10 +14,10 @@ use App\Customers\Customers\Models\CustomerAddress;
 use App\Customers\Customers\Models\CustomerPreference;
 use App\Models\CustomerBalance;
 use App\Models\CustomerContainerBalance;
-use App\Models\Route;
 use App\Models\RouteInventory;
-use App\Models\RouteStop;
-use App\Models\VisitOutcome;
+use App\Routes\Routes\Models\Route;
+use App\Routes\Routes\Models\RouteStop;
+use App\Routes\Visits\Models\VisitOutcome;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 

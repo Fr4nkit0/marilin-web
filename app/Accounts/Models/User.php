@@ -8,7 +8,7 @@ use App\Customers\Customers\Models\Customer;
 use App\Models\CustomerAccountEntry;
 use App\Models\Payment;
 use App\Models\Sale;
-use App\Models\Visit;
+use App\Routes\Visits\Models\Visit;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

@@ -7,6 +7,7 @@ use App\Customers\Customers\Models\Customer;
 use App\Enums\SaleStatus;
 use App\Review\Reviewable;
 use App\Review\ReviewSource;
+use App\Routes\Visits\Models\Visit;
 use Database\Factories\SaleFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

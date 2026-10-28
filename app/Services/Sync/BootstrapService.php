@@ -9,9 +9,9 @@ use App\Catalog\Models\ContainerType;
 use App\Catalog\Models\PaymentMethod;
 use App\Catalog\Models\Product;
 use App\Customers\Customers\Models\Customer;
-use App\Models\Route;
-use App\Models\RouteStop;
-use App\Models\VisitOutcome;
+use App\Routes\Routes\Models\Route;
+use App\Routes\Routes\Models\RouteStop;
+use App\Routes\Visits\Models\VisitOutcome;
 use Illuminate\Database\Eloquent\Collection;
 
 class BootstrapService

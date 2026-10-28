@@ -9,9 +9,9 @@ use App\Accounts\Models\User;
 use App\Customers\Customers\Models\Customer;
 use App\Models\Payment;
 use App\Models\Sale;
-use App\Models\Visit;
 use App\Operations\RecordPayment;
 use App\Operations\StreetOperation;
+use App\Routes\Visits\Models\Visit;
 use App\Shared\ClientTime;
 
 class PaymentPusher extends EntityPusher

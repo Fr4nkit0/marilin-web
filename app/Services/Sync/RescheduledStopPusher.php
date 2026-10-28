@@ -6,7 +6,7 @@ namespace App\Services\Sync;
 
 use App\Accounts\Models\Driver;
 use App\Accounts\Models\User;
-use App\Models\RouteStop;
+use App\Routes\Routes\Models\RouteStop;
 
 /**
  * ADR 0002: the app creates a stop later the same day, in the route of the original stop, linked to it.

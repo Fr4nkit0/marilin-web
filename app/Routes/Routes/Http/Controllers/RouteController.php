@@ -1,12 +1,13 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Routes\Routes\Http\Controllers;
 
 use App\Accounts\Models\Driver;
 use App\Catalog\Models\Product;
-use App\Enums\RouteStatus;
-use App\Models\Route as DeliveryRoute;
-use App\Models\RouteStop;
+use App\Http\Controllers\Controller;
+use App\Routes\Routes\Enums\RouteStatus;
+use App\Routes\Routes\Models\Route as DeliveryRoute;
+use App\Routes\Routes\Models\RouteStop;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

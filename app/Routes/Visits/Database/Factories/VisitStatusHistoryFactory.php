@@ -1,10 +1,10 @@
 <?php
 
-namespace Database\Factories;
+namespace App\Routes\Visits\Database\Factories;
 
 use App\Accounts\Models\User;
-use App\Models\Visit;
-use App\Models\VisitStatusHistory;
+use App\Routes\Visits\Models\Visit;
+use App\Routes\Visits\Models\VisitStatusHistory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

@@ -1,9 +1,9 @@
 <?php
 
-namespace Database\Factories;
+namespace App\Routes\Routes\Database\Factories;
 
 use App\Accounts\Models\Driver;
-use App\Models\Route;
+use App\Routes\Routes\Models\Route;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

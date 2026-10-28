@@ -1,14 +1,18 @@
 <?php
 
-namespace App\Models;
+namespace App\Routes\Visits\Models;
 
 use App\Accounts\Models\Driver;
 use App\Accounts\Models\User;
 use App\Customers\Customers\Models\Customer;
-use App\Enums\VisitStatus;
+use App\Models\ContainerMovement;
+use App\Models\Payment;
+use App\Models\Sale;
 use App\Review\Reviewable;
 use App\Review\ReviewSource;
-use Database\Factories\VisitFactory;
+use App\Routes\Routes\Models\RouteStop;
+use App\Routes\Visits\Database\Factories\VisitFactory;
+use App\Routes\Visits\Enums\VisitStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

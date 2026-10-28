@@ -1,14 +1,15 @@
 <?php
 
-namespace App\Models;
+namespace App\Routes\Routes\Models;
 
 use App\Customers\Customers\Models\Customer;
 use App\Customers\Customers\Models\CustomerAddress;
-use App\Enums\StopStatus;
-use App\Enums\VisitStatus;
 use App\Review\Reviewable;
 use App\Review\ReviewSource;
-use Database\Factories\RouteStopFactory;
+use App\Routes\Routes\Database\Factories\RouteStopFactory;
+use App\Routes\Routes\Enums\StopStatus;
+use App\Routes\Visits\Enums\VisitStatus;
+use App\Routes\Visits\Models\Visit;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Actions;
+namespace App\Routes\Routes;
 
 use App\Accounts\Models\Driver;
 use App\Customers\Customers\Models\Customer;
-use App\Enums\RouteStatus;
+use App\Routes\Routes\Enums\RouteStatus;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;

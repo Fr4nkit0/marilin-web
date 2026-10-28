@@ -7,10 +7,10 @@ namespace App\Services\CashClose;
 use App\Accounts\Models\Driver;
 use App\Models\ContainerMovement;
 use App\Models\Payment;
-use App\Models\Route as DeliveryRoute;
 use App\Models\Sale;
 use App\Operations\DailyFigures\DailyFigures;
 use App\Operations\DailyFigures\DayScope;
+use App\Routes\Routes\Models\Route as DeliveryRoute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
 

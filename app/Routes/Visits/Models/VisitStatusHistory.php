@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Models;
+namespace App\Routes\Visits\Models;
 
 use App\Accounts\Models\User;
-use Database\Factories\VisitStatusHistoryFactory;
+use App\Routes\Visits\Database\Factories\VisitStatusHistoryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

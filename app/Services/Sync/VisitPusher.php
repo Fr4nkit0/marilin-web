@@ -7,9 +7,9 @@ namespace App\Services\Sync;
 use App\Accounts\Models\Driver;
 use App\Accounts\Models\User;
 use App\Customers\Customers\Models\Customer;
-use App\Enums\VisitStatus;
-use App\Models\RouteStop;
-use App\Models\Visit;
+use App\Routes\Routes\Models\RouteStop;
+use App\Routes\Visits\Enums\VisitStatus;
+use App\Routes\Visits\Models\Visit;
 use App\Shared\ClientTime;
 
 class VisitPusher extends EntityPusher

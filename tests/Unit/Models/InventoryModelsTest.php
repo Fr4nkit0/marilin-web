@@ -6,9 +6,9 @@ use App\Catalog\Models\Product;
 use App\Customers\Customers\Models\Customer;
 use App\Models\ContainerMovement;
 use App\Models\CustomerContainerBalance;
-use App\Models\Route;
 use App\Models\RouteInventory;
 use App\Models\RouteInventoryLoad;
+use App\Routes\Routes\Models\Route;
 
 test('container type has products and container movements', function () {
     $containerType = ContainerType::factory()->bidon20L()->create();

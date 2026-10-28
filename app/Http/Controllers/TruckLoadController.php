@@ -7,7 +7,7 @@ namespace App\Http\Controllers;
 use App\Accounts\Models\User;
 use App\Actions\RegisterTruckLoadAction;
 use App\Http\Requests\TruckLoadRequest;
-use App\Models\Route as DeliveryRoute;
+use App\Routes\Routes\Models\Route as DeliveryRoute;
 use Illuminate\Http\RedirectResponse;
 
 class TruckLoadController extends Controller
