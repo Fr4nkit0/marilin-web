@@ -51,7 +51,7 @@ export default function DriverStatusModal({ account, onClose }: Props) {
                     onClick={confirm}
                     disabled={processing}
                     className={`px-4 py-2 rounded-lg text-sm font-medium text-white disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer ${
-                        disabling ? 'bg-red-600 hover:bg-red-500' : 'bg-sky-600 hover:bg-sky-700'
+                        disabling ? 'bg-red-600 hover:bg-red-500' : 'bg-sky-600 hover:bg-sky-700 dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400'
                     }`}
                 >
                     {disabling ? 'Deshabilitar' : 'Habilitar'}

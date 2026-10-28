@@ -46,7 +46,7 @@ export default function ProductPriceRow({ product }: Props) {
                     <button
                         type="submit"
                         disabled={processing || !isDirty}
-                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-sky-600 text-white hover:bg-sky-700 font-medium transition text-xs shadow-sm cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-sky-600 text-white hover:bg-sky-700 font-medium transition text-xs shadow-sm cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
                     >
                         <Save className="w-3.5 h-3.5" />
                         Guardar

@@ -164,7 +164,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                 </div>
                 <button
                     onClick={() => setIsCreateModalOpen(true)}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 transition shadow-sm cursor-pointer"
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 transition shadow-sm cursor-pointer dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
                 >
                     <Plus className="w-4 h-4" />
                     Nuevo Cliente
@@ -172,7 +172,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
             </div>
 
             {/* Filters Bar */}
-            <div className="bg-canvas/80 backdrop-blur-md rounded-2xl p-4 mb-6 shadow-sm border border-hairline/60">
+            <div className="bg-canvas/80 backdrop-blur-md rounded-2xl p-4 mb-6 shadow-sm border border-hairline/60 glass">
                 <form onSubmit={handleSearch} className="grid grid-cols-1 gap-4 sm:grid-cols-12 items-center">
                     {/* Search Input */}
                     <div className="sm:col-span-6 relative">
@@ -218,7 +218,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
             </div>
 
             {/* Customers Table */}
-            <div className="bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden">
+            <div className="bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden glass">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm whitespace-nowrap">
                         <thead className="bg-canvas/80 backdrop-blur-md border-b border-hairline text-ink-muted">
@@ -327,7 +327,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                                     </button>
                                                     <Link
                                                         href={route('customers.show', c.id)}
-                                                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-sky-600 text-white hover:bg-sky-700 font-medium transition text-xs shadow-sm"
+                                                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-sky-600 text-white hover:bg-sky-700 font-medium transition text-xs shadow-sm dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
                                                     >
                                                         <Eye className="w-3.5 h-3.5" />
                                                         Ver Ficha
@@ -355,7 +355,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                     />
 
                     {/* Modal Card */}
-                    <div className="relative bg-canvas rounded-2xl shadow-xl border border-hairline/60 max-w-lg w-full overflow-hidden z-10 my-8">
+                    <div className="relative bg-canvas rounded-2xl shadow-xl border border-hairline/60 max-w-lg w-full overflow-hidden z-10 my-8 glass">
                         <div className="bg-canvas/80 backdrop-blur-md border-b border-hairline p-5 text-ink flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-lg bg-surface-1 text-ink flex items-center justify-center">
@@ -560,7 +560,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className="px-4 py-2 rounded-lg bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 transition shadow-sm cursor-pointer flex items-center gap-2 disabled:opacity-50"
+                                    className="px-4 py-2 rounded-lg bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 transition shadow-sm cursor-pointer flex items-center gap-2 disabled:opacity-50 dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
                                 >
                                     <Save className="w-4 h-4" />
                                     {processing ? 'Guardando...' : 'Guardar Cliente'}
@@ -581,7 +581,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                     />
 
                     {/* Modal Card */}
-                    <div className="relative bg-canvas rounded-2xl shadow-xl border border-hairline/60 max-w-lg w-full overflow-hidden z-10 my-8">
+                    <div className="relative bg-canvas rounded-2xl shadow-xl border border-hairline/60 max-w-lg w-full overflow-hidden z-10 my-8 glass">
                         <div className="bg-canvas/80 backdrop-blur-md border-b border-hairline p-5 text-ink flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-lg bg-surface-1 text-ink flex items-center justify-center">
@@ -739,7 +739,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                 <button
                                     type="submit"
                                     disabled={editForm.processing}
-                                    className="px-4 py-2 rounded-lg bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 transition shadow-sm cursor-pointer flex items-center gap-2 disabled:opacity-50"
+                                    className="px-4 py-2 rounded-lg bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 transition shadow-sm cursor-pointer flex items-center gap-2 disabled:opacity-50 dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
                                 >
                                     <Save className="w-4 h-4" />
                                     {editForm.processing ? 'Guardando...' : 'Guardar Cambios'}

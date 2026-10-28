@@ -41,7 +41,7 @@ export default function Edit({
                                 Actualizá tu nombre y la dirección de correo electrónico con la que ingresás al sistema.
                             </p>
                         </div>
-                        <div className="md:col-span-2 bg-canvas shadow-[0_1px_3px_rgb(0,0,0,0.02)] sm:rounded-2xl border border-hairline/60 overflow-hidden">
+                        <div className="md:col-span-2 bg-canvas shadow-[0_1px_3px_rgb(0,0,0,0.02)] sm:rounded-2xl border border-hairline/60 overflow-hidden glass">
                             <div className="px-6 py-6 sm:p-8">
                                 <UpdateProfileInformationForm
                                     mustVerifyEmail={mustVerifyEmail}
@@ -60,7 +60,7 @@ export default function Edit({
                                 Asegurate de que tu cuenta use una contraseña larga y aleatoria para mantenerte seguro.
                             </p>
                         </div>
-                        <div className="md:col-span-2 bg-canvas shadow-[0_1px_3px_rgb(0,0,0,0.02)] sm:rounded-2xl border border-hairline/60 overflow-hidden">
+                        <div className="md:col-span-2 bg-canvas shadow-[0_1px_3px_rgb(0,0,0,0.02)] sm:rounded-2xl border border-hairline/60 overflow-hidden glass">
                             <div className="px-6 py-6 sm:p-8">
                                 <UpdatePasswordForm className="max-w-xl" />
                             </div>

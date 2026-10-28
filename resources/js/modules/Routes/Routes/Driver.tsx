@@ -83,7 +83,7 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
             </div>
 
             {/* Driver Profile Header Card - Impeccable Cloud */}
-            <div className="bg-canvas/80 backdrop-blur-md rounded-2xl p-6 mb-6 shadow-sm border border-hairline/60">
+            <div className="bg-canvas/80 backdrop-blur-md rounded-2xl p-6 mb-6 shadow-sm border border-hairline/60 glass">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div className="flex items-start gap-4">
                         <div className="w-14 h-14 rounded-lg bg-surface-1 text-ink-secondary shadow-sm flex items-center justify-center text-xl font-medium">
@@ -150,7 +150,7 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
             ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Left: Stops Timeline Table (2 Cols) */}
-                    <div className="lg:col-span-2 bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden">
+                    <div className="lg:col-span-2 bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden glass">
                         <div className="p-5 bg-canvas/80 backdrop-blur-md border-b border-hairline text-ink flex items-center justify-between">
                             <div>
                                 <h2 className="text-lg font-semibold text-ink tracking-wide">
@@ -164,7 +164,7 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
                             <div className="w-48">
                                 <div className="w-full h-2.5 bg-surface-1 rounded-lg overflow-hidden">
                                     <div
-                                        className="h-full bg-sky-600 rounded-lg transition-all duration-300"
+                                        className="h-full bg-sky-600 rounded-lg transition-all duration-300 dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
                                         style={{ width: `${progressPercent}%` }}
                                     />
                                 </div>

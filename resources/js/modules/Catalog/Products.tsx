@@ -21,7 +21,7 @@ export default function Index({ products }: Props) {
                 </p>
             </div>
 
-            <div className="bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden">
+            <div className="bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden glass">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
                         <thead className="bg-canvas/80 backdrop-blur-md border-b border-hairline text-ink-muted">

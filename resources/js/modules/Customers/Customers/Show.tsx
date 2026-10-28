@@ -160,7 +160,7 @@ export default function CustomerShow({
             </div>
 
             {/* Top Customer 360 Header Card */}
-            <div className="bg-canvas/80 backdrop-blur-md rounded-2xl p-6 mb-6 shadow-sm border border-hairline/60 relative overflow-hidden">
+            <div className="bg-canvas/80 backdrop-blur-md rounded-2xl p-6 mb-6 shadow-sm border border-hairline/60 relative overflow-hidden glass">
                 {/* Decorative background subtle gradient or color block if needed, but keeping it white and clean */}
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative z-10">
                     <div className="flex items-start gap-5">
@@ -226,7 +226,7 @@ export default function CustomerShow({
                     <button
                         type="button"
                         onClick={() => setShowHomeSale(true)}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 cursor-pointer"
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 cursor-pointer dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
                     >
                         <Plus className="w-4 h-4" />
                         Venta en casa
@@ -287,7 +287,7 @@ export default function CustomerShow({
 
             {/* TAB 1: Account Entries */}
             {activeTab === 'account' && (
-                <div className="bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden">
+                <div className="bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden glass">
                     <div className="p-5 border-b border-hairline bg-canvas">
                         <h3 className="text-base font-semibold text-ink tracking-wide">
                             Movimientos Contables
@@ -395,7 +395,7 @@ export default function CustomerShow({
                     </div>
 
                     {/* Movement History */}
-                    <div className="md:col-span-2 bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden">
+                    <div className="md:col-span-2 bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden glass">
                         <div className="p-5 border-b border-hairline">
                             <h3 className="text-base font-semibold text-ink tracking-wide">
                                 Historial de Envases
@@ -453,7 +453,7 @@ export default function CustomerShow({
 
             {/* TAB 3: Agreements */}
             {activeTab === 'agreements' && (
-                <div className="bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden">
+                <div className="bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden glass">
                     <div className="p-5 border-b border-hairline flex items-center justify-between gap-4">
                         <div>
                             <h3 className="text-base font-semibold text-ink tracking-wide">
@@ -468,7 +468,7 @@ export default function CustomerShow({
                             <button
                                 type="button"
                                 onClick={() => setShowAgreementForm(true)}
-                                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 cursor-pointer whitespace-nowrap"
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 cursor-pointer whitespace-nowrap dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
                             >
                                 <Plus className="w-4 h-4" />
                                 Nuevo acuerdo

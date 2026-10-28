@@ -161,7 +161,7 @@ export default function Dashboard({ metrics }: Props) {
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 
                 {/* Repartidores En Ruta Table */}
-                <div className="lg:col-span-3 bg-canvas rounded-2xl border border-hairline/60 shadow-sm overflow-hidden">
+                <div className="lg:col-span-3 bg-canvas rounded-2xl border border-hairline/60 shadow-sm overflow-hidden glass">
                     <div className="px-6 py-5 border-b border-hairline flex items-center justify-between">
                         <h2 className="text-base font-semibold text-ink">
                             Repartidores en ruta
@@ -226,7 +226,7 @@ export default function Dashboard({ metrics }: Props) {
                                                     </div>
                                                     <div className="w-24 h-2 bg-surface-1 rounded-full overflow-hidden">
                                                         <div
-                                                            className="h-full bg-sky-600 transition-all duration-300 rounded-full"
+                                                            className="h-full bg-sky-600 transition-all duration-300 rounded-full dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
                                                             style={{ width: `${rep.progressPercent}%` }}
                                                         />
                                                     </div>
@@ -279,14 +279,14 @@ export default function Dashboard({ metrics }: Props) {
 
                 {/* Quick Actions (1 Col) */}
                 <div className="space-y-6">
-                    <div className="bg-canvas rounded-2xl border border-hairline/60 p-6 shadow-sm">
+                    <div className="bg-canvas rounded-2xl border border-hairline/60 p-6 shadow-sm glass">
                         <h3 className="text-sm font-semibold text-ink mb-4">
                             Acciones rápidas
                         </h3>
                         <div className="flex flex-col gap-3">
                             <Link
                                 href={route('routes.index')}
-                                className="w-full flex items-center justify-between px-4 py-2.5 bg-sky-600 hover:bg-sky-700 text-white transition-all rounded-lg text-sm font-medium shadow-[0_1px_2px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.2)] ring-1 ring-inset ring-sky-700/50 cursor-pointer"
+                                className="w-full flex items-center justify-between px-4 py-2.5 bg-sky-600 hover:bg-sky-700 text-white transition-all rounded-lg text-sm font-medium shadow-[0_1px_2px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.2)] ring-1 ring-inset ring-sky-700/50 cursor-pointer dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
                             >
                                 <span className="flex items-center gap-2">
                                     <Truck className="w-4 h-4 text-ink-subtle" strokeWidth={2} />
@@ -308,7 +308,7 @@ export default function Dashboard({ metrics }: Props) {
                     </div>
 
                     {/* App sync status per driver */}
-                    <div className="bg-canvas rounded-2xl border border-hairline/60 p-6 shadow-sm">
+                    <div className="bg-canvas rounded-2xl border border-hairline/60 p-6 shadow-sm glass">
                         <div className="flex items-center justify-between mb-3">
                             <span className="text-sm font-semibold text-ink">Sistema</span>
                             <div

@@ -100,7 +100,7 @@ export default function RepartidoresIndex({ repartidores, filters }: Props) {
             </div>
 
             {/* Search Filter - Impeccable Cloud */}
-            <div className="bg-canvas/80 backdrop-blur-md rounded-2xl p-4 mb-6 shadow-sm border border-hairline/60">
+            <div className="bg-canvas/80 backdrop-blur-md rounded-2xl p-4 mb-6 shadow-sm border border-hairline/60 glass">
                 <form onSubmit={handleSearch} className="relative">
                     <Search className="w-5 h-5 text-ink-subtle absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
@@ -178,7 +178,7 @@ export default function RepartidoresIndex({ repartidores, filters }: Props) {
                                                         </div>
                                                         <div className="w-full h-2 bg-surface-1 rounded-lg overflow-hidden">
                                                             <div
-                                                                className="h-full bg-sky-600 transition-all duration-300 rounded-lg"
+                                                                className="h-full bg-sky-600 transition-all duration-300 rounded-lg dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
                                                                 style={{ width: `${progress}%` }}
                                                             />
                                                         </div>
@@ -212,7 +212,7 @@ export default function RepartidoresIndex({ repartidores, filters }: Props) {
                                             <td className="px-6 py-4 text-right">
                                                 <Link
                                                     href={route('drivers.show', rep.id)}
-                                                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-sky-600 text-white hover:bg-sky-700 font-medium text-sm transition-colors shadow-sm"
+                                                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-sky-600 text-white hover:bg-sky-700 font-medium text-sm transition-colors shadow-sm dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
                                                 >
                                                     Ver Detalle
                                                     <ArrowUpRight className="w-4 h-4" />

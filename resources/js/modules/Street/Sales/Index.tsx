@@ -173,7 +173,7 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
             </div>
 
             {/* Filters */}
-            <div className="bg-canvas border border-hairline/60 rounded-2xl p-4 mb-6 shadow-sm">
+            <div className="bg-canvas border border-hairline/60 rounded-2xl p-4 mb-6 shadow-sm glass">
                 <form onSubmit={handleSearch} className="grid grid-cols-1 gap-3 sm:grid-cols-12 items-center">
                     {/* Search */}
                     <div className="sm:col-span-4 relative">
@@ -230,7 +230,7 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
             </div>
 
             {/* Sales Table */}
-            <div className="bg-canvas border border-hairline/60 rounded-2xl shadow-sm overflow-hidden">
+            <div className="bg-canvas border border-hairline/60 rounded-2xl shadow-sm overflow-hidden glass">
                 <DataTable columns={columns} rows={sales.data} rowKey={(sale) => sale.id} empty="No se encontraron ventas con los filtros seleccionados." />
                 <Pagination page={sales} noun="ventas" />
             </div>

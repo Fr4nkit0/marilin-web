@@ -19,18 +19,39 @@
         --color-hairline-strong: 203 213 225;
     }
 
+    /* Near-black neutral dark (S7): no blue tint, so the water-blue accent and the glow stand out. */
     .dark {
         color-scheme: dark;
-        --color-canvas: 30 41 59;
-        --color-canvas-soft: 15 23 42;
-        --color-surface-1: 51 65 85;
-        --color-surface-2: 71 85 105;
-        --color-surface-3: 100 116 139;
-        --color-ink: 241 245 249;
-        --color-ink-secondary: 203 213 225;
-        --color-ink-muted: 148 163 184;
-        --color-ink-subtle: 100 116 139;
-        --color-hairline: 51 65 85;
-        --color-hairline-strong: 71 85 105;
+        --color-canvas: 21 24 29;
+        --color-canvas-soft: 11 13 16;
+        --color-surface-1: 29 33 39;
+        --color-surface-2: 38 43 51;
+        --color-surface-3: 53 59 69;
+        --color-ink: 244 245 247;
+        --color-ink-secondary: 201 205 212;
+        --color-ink-muted: 139 146 156;
+        --color-ink-subtle: 94 101 112;
+        --color-hairline: 38 43 51;
+        --color-hairline-strong: 53 59 69;
+    }
+
+    /* Soft water-blue glow behind the frosted panels, fixed so it does not scroll. */
+    .dark body {
+        background-color: rgb(11 13 16);
+        background-image:
+            radial-gradient(40rem 30rem at 12% -5%, rgb(14 165 233 / 0.16), transparent 60%),
+            radial-gradient(36rem 28rem at 95% 15%, rgb(34 211 238 / 0.10), transparent 60%),
+            radial-gradient(44rem 34rem at 60% 110%, rgb(14 165 233 / 0.10), transparent 60%);
+        background-attachment: fixed;
+    }
+}
+
+/* Frosted glass for what floats over the page (cards, header, menus, modals): dark theme only. */
+@layer components {
+    .dark .glass {
+        background-color: rgb(255 255 255 / 0.045);
+        border-color: rgb(255 255 255 / 0.08);
+        @apply backdrop-blur-lg backdrop-saturate-150;
+        box-shadow: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 8px 32px rgb(0 0 0 / 0.35);
     }
 }

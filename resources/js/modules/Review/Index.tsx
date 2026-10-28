@@ -64,7 +64,7 @@ export default function Index({ items, filters, drivers }: Props) {
             </div>
 
             {/* Filters */}
-            <div className="bg-canvas/80 backdrop-blur-md rounded-2xl p-4 mb-6 shadow-sm border border-hairline/60">
+            <div className="bg-canvas/80 backdrop-blur-md rounded-2xl p-4 mb-6 shadow-sm border border-hairline/60 glass">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-12 items-end">
                     <label className="sm:col-span-3 text-xs font-medium text-ink-muted">
                         Repartidor
@@ -134,7 +134,7 @@ export default function Index({ items, filters, drivers }: Props) {
             </div>
 
             {/* List */}
-            <div className="bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden">
+            <div className="bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden glass">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
                         <thead className="bg-canvas/80 backdrop-blur-md border-b border-hairline text-ink-muted">
@@ -176,7 +176,7 @@ export default function Index({ items, filters, drivers }: Props) {
                                                 <button
                                                     type="button"
                                                     onClick={() => markReviewed(item)}
-                                                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-sky-600 text-white hover:bg-sky-700 font-medium transition text-xs shadow-sm cursor-pointer"
+                                                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-sky-600 text-white hover:bg-sky-700 font-medium transition text-xs shadow-sm cursor-pointer dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
                                                 >
                                                     <CheckCheck className="w-3.5 h-3.5" />
                                                     Marcar como revisado

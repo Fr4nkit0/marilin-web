@@ -171,7 +171,7 @@ export default function RoutesIndex({
             </div>
 
             {/* Filters Bar - Premium SaaS Style */}
-            <div className="bg-canvas border border-hairline/60 rounded-2xl p-4 mb-6 shadow-sm">
+            <div className="bg-canvas border border-hairline/60 rounded-2xl p-4 mb-6 shadow-sm glass">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                     <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
                         {/* Date Picker */}
@@ -227,7 +227,7 @@ export default function RoutesIndex({
 
             {/* Routes List */}
             {routes.length === 0 ? (
-                <div className="bg-canvas border border-hairline/60 rounded-2xl p-12 text-center shadow-sm">
+                <div className="bg-canvas border border-hairline/60 rounded-2xl p-12 text-center shadow-sm glass">
                     <Truck className="w-12 h-12 text-ink-subtle mx-auto mb-4" />
                     <h3 className="text-lg font-semibold text-ink">No hay rutas asignadas para esta fecha</h3>
                     <p className="text-sm text-ink-muted mt-2">
@@ -242,7 +242,7 @@ export default function RoutesIndex({
                         return (
                             <div
                                 key={routeItem.id}
-                                className="bg-canvas border border-hairline/60 rounded-2xl shadow-sm overflow-hidden transition-all duration-200"
+                                className="bg-canvas border border-hairline/60 rounded-2xl shadow-sm overflow-hidden transition-all duration-200 glass"
                             >
                                 {/* Route Summary Header Card */}
                                 <div
@@ -251,7 +251,7 @@ export default function RoutesIndex({
                                 >
                                     {/* Left: Driver & Status */}
                                     <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 rounded-full bg-sky-600 text-white flex items-center justify-center font-medium text-lg shadow-sm">
+                                        <div className="w-10 h-10 rounded-full bg-sky-600 text-white flex items-center justify-center font-medium text-lg shadow-sm dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400">
                                             {routeItem.driver.name.charAt(0)}
                                         </div>
                                         <div>
@@ -295,8 +295,8 @@ export default function RoutesIndex({
                                             <div
                                                 className={`h-full rounded-full transition-all duration-300 ${
                                                     routeItem.stats.progressPercent === 100
-                                                        ? 'bg-sky-600'
-                                                        : 'bg-sky-600'
+                                                        ? 'bg-sky-600 dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400'
+                                                        : 'bg-sky-600 dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400'
                                                 }`}
                                                 style={{ width: `${routeItem.stats.progressPercent}%` }}
                                             />
@@ -337,7 +337,7 @@ export default function RoutesIndex({
                                                     <button
                                                         type="button"
                                                         onClick={() => setLoadingRoute(routeItem)}
-                                                        className="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs font-medium shadow-sm cursor-pointer"
+                                                        className="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs font-medium shadow-sm cursor-pointer dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
                                                     >
                                                         <PackagePlus className="w-3.5 h-3.5" />
                                                         {routeItem.loadHistory.length === 0 ? 'Registrar carga inicial' : 'Registrar recarga'}
@@ -353,7 +353,7 @@ export default function RoutesIndex({
                                                     {routeItem.routeStock.map((stock) => (
                                                         <div
                                                             key={stock.productId}
-                                                            className="bg-canvas border border-hairline/60 rounded-xl p-4 flex items-center justify-between shadow-sm"
+                                                            className="bg-canvas border border-hairline/60 rounded-xl p-4 flex items-center justify-between shadow-sm glass"
                                                         >
                                                             <div>
                                                                 <p className="text-sm font-medium text-ink">
@@ -375,7 +375,7 @@ export default function RoutesIndex({
                                             )}
 
                                             {routeItem.loadHistory.length > 0 && (
-                                                <div className="bg-canvas border border-hairline/60 rounded-xl shadow-sm overflow-hidden">
+                                                <div className="bg-canvas border border-hairline/60 rounded-xl shadow-sm overflow-hidden glass">
                                                     <table className="w-full text-left text-sm">
                                                         <thead className="border-b border-hairline text-ink-muted">
                                                             <tr>
@@ -417,7 +417,7 @@ export default function RoutesIndex({
                                                 Hoja de Ruta y Paradas ({routeItem.stops.length})
                                             </h4>
 
-                                            <div className="bg-canvas border border-hairline/60 rounded-xl overflow-hidden shadow-sm">
+                                            <div className="bg-canvas border border-hairline/60 rounded-xl overflow-hidden shadow-sm glass">
                                                 <table className="w-full text-left text-sm">
                                                     <thead className="bg-canvas-soft/80 backdrop-blur-md text-ink-muted font-medium text-xs border-b border-hairline/60">
                                                         <tr>

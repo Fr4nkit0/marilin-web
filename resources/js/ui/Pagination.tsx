@@ -28,7 +28,7 @@ export default function Pagination({ page, noun }: Props) {
                         aria-current={link.active ? 'page' : undefined}
                         className={`px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors ${
                             link.active
-                                ? 'bg-sky-600 text-white border-sky-600 shadow-sm'
+                                ? 'bg-sky-600 text-white border-sky-600 shadow-sm dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400'
                                 : !link.url
                                   ? 'text-ink-subtle border-hairline pointer-events-none'
                                   : 'text-ink-secondary border-hairline/60 hover:bg-canvas-soft'

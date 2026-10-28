@@ -63,7 +63,7 @@ export default function Index({ users, filters }: Props) {
                 <button
                     type="button"
                     onClick={openCreate}
-                    className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 cursor-pointer"
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 cursor-pointer dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
                 >
                     <Plus className="w-4 h-4" />
                     Nuevo repartidor
@@ -101,7 +101,7 @@ export default function Index({ users, filters }: Props) {
                 </div>
             </div>
 
-            <div className="bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden">
+            <div className="bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden glass">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
                         <thead className="bg-canvas/80 backdrop-blur-md border-b border-hairline text-ink-muted">
