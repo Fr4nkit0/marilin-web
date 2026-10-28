@@ -3,6 +3,7 @@ import { useForm } from '@inertiajs/react';
 import { Plus, Trash2, X } from 'lucide-react';
 import Modal from '@/Components/Modal';
 import { HomeContainerType, HomeProduct } from '@/types/home-operation';
+import { money } from '@/lib/format';
 
 interface Props {
     show: boolean;
@@ -25,7 +26,6 @@ type HomeSaleForm = {
 const inputClass =
     'w-full py-2 px-3 text-sm border border-gray-200/60 bg-white text-slate-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600';
 
-const money = (value: number) => `$${value.toLocaleString('es-AR')}`;
 
 export default function HomeSaleModal({ show, customerId, customerName, products, containerTypes, onClose }: Props) {
     const { data, setData, post, processing, errors, reset, clearErrors, transform } = useForm<HomeSaleForm>({

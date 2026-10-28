@@ -22,6 +22,7 @@ import {
     CreditCard,
     Truck,
 } from 'lucide-react';
+import { money } from '@/lib/format';
 
 interface Props {
     customer: {
@@ -209,7 +210,7 @@ export default function CustomerShow({
                                 Saldo Actual
                             </span>
                             <p className={`text-3xl font-semibold tracking-tight ${hasDebt ? 'text-red-600' : 'text-emerald-600'}`}>
-                                ${Math.abs(balanceNum).toLocaleString('es-AR')}
+                                {money(Math.abs(balanceNum))}
                             </p>
                             <span className="text-xs font-medium text-slate-400 mt-1 block tracking-wide">
                                 {hasDebt ? 'Deuda pendiente' : 'Al día / Sin saldo'}
@@ -344,7 +345,7 @@ export default function CustomerShow({
                                                         isDebit ? 'text-red-600' : 'text-emerald-600'
                                                     }`}
                                                 >
-                                                    {isDebit ? '+' : '-'}${entry.amount.toLocaleString('es-AR')}
+                                                    {isDebit ? '+' : '-'}{money(entry.amount)}
                                                 </td>
                                             </tr>
                                         );
@@ -499,7 +500,7 @@ export default function CustomerShow({
                                                 {agreement.product ?? 'Producto'}
                                             </td>
                                             <td className="px-5 py-3 text-right font-semibold text-slate-900">
-                                                ${agreement.unitPrice.toLocaleString('es-AR')}
+                                                {money(agreement.unitPrice)}
                                             </td>
                                             <td className="px-5 py-3 text-slate-600 whitespace-nowrap">
                                                 {formatDay(agreement.validFrom)} →{' '}

@@ -10,6 +10,7 @@ import {
     Package,
     Calendar,
 } from 'lucide-react';
+import { money } from '@/lib/format';
 
 interface StopItem {
     id: number;
@@ -130,7 +131,7 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
                                     Ventas Hoy
                                 </span>
                                 <p className="text-xl font-semibold text-slate-900 mt-0.5">
-                                    ${deliveryRoute.totalSalesAmount.toLocaleString('es-AR')}
+                                    {money(deliveryRoute.totalSalesAmount)}
                                 </p>
                             </div>
                             <div>
@@ -138,7 +139,7 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
                                     Cobranza en Mano
                                 </span>
                                 <p className="text-xl font-medium text-emerald-600 mt-0.5">
-                                    ${deliveryRoute.totalCollectedAmount.toLocaleString('es-AR')}
+                                    {money(deliveryRoute.totalCollectedAmount)}
                                 </p>
                             </div>
                         </div>
@@ -232,11 +233,11 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
                                                 {stop.salesAmount > 0 || stop.paymentsAmount > 0 ? (
                                                     <div>
                                                         <p className="font-semibold text-slate-900">
-                                                            +${stop.salesAmount.toLocaleString('es-AR')}
+                                                            +{money(stop.salesAmount)}
                                                         </p>
                                                         {stop.paymentsAmount > 0 && (
                                                             <p className="text-xs font-medium text-emerald-600 mt-0.5">
-                                                                Cobrado: ${stop.paymentsAmount.toLocaleString('es-AR')}
+                                                                Cobrado: {money(stop.paymentsAmount)}
                                                             </p>
                                                         )}
                                                     </div>

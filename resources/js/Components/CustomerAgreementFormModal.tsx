@@ -3,6 +3,7 @@ import { useForm } from '@inertiajs/react';
 import { X } from 'lucide-react';
 import Modal from '@/Components/Modal';
 import { AgreementProduct } from '@/types/agreement';
+import { money } from '@/lib/format';
 
 interface Props {
     show: boolean;
@@ -108,7 +109,7 @@ export default function CustomerAgreementFormModal({ show, customerId, customerN
                         />
                         {listPrice !== undefined && (
                             <p className="text-xs text-slate-500 mt-1">
-                                Precio de lista: ${listPrice.toLocaleString('es-AR')}
+                                Precio de lista: {money(listPrice)}
                             </p>
                         )}
                         {errors.unit_price && <p className="text-sm text-red-600 mt-1">{errors.unit_price}</p>}

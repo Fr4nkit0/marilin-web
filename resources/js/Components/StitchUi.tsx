@@ -1,5 +1,6 @@
 import React, { ReactNode } from 'react';
 import { LucideIcon, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { money } from '@/lib/format';
 
 export type StatusVariant = 'en_ruta' | 'finalizado' | 'pendiente' | 'parado' | 'cancelado' | 'sin_actividad' | 'en_progreso';
 
@@ -76,7 +77,7 @@ export function DebtBadge({ hasDebt, balance, className = '' }: DebtBadgeProps) 
             <span
                 className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border border-rose-200/60 bg-rose-50 text-rose-700 ${className}`}
             >
-                Con deuda {balance ? `($${Number(balance).toLocaleString('es-AR')})` : ''}
+                Con deuda {balance ? `(${money(balance)})` : ''}
             </span>
         );
     }

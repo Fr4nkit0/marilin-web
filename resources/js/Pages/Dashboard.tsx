@@ -17,6 +17,7 @@ import {
     CheckCircle2,
     RefreshCw,
 } from 'lucide-react';
+import { money } from '@/lib/format';
 
 const REFRESH_EVERY_MS = 30_000;
 
@@ -67,21 +68,6 @@ export default function Dashboard({ metrics }: Props) {
         router.visit(route('cash-close.index', { repartidor_id: driverId, date: metrics.date }));
     };
 
-    const formatMoney = (amount: number) =>
-        new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(amount);
-
-    const formattedSales = new Intl.NumberFormat('es-AR', {
-        style: 'currency',
-        currency: 'ARS',
-        maximumFractionDigits: 0,
-    }).format(kpis.totalSales);
-
-    const formattedCollected = new Intl.NumberFormat('es-AR', {
-        style: 'currency',
-        currency: 'ARS',
-        maximumFractionDigits: 0,
-    }).format(kpis.totalCollected);
-
     return (
         <AdminLayout
             header={
@@ -131,7 +117,7 @@ export default function Dashboard({ metrics }: Props) {
                 <KpiCard
                     title="Ventas del Día"
                     onClick={() => setOpenDetail('sales')}
-                    value={formattedSales}
+                    value={money(kpis.totalSales)}
                     icon={DollarSign}
                     variant="primary"
                     trend={{
@@ -144,10 +130,10 @@ export default function Dashboard({ metrics }: Props) {
                 <KpiCard
                     title="Cobranza Recaudada"
                     onClick={() => setOpenDetail('payments')}
-                    value={formattedCollected}
+                    value={money(kpis.totalCollected)}
                     icon={CircleDollarSign}
                     variant="success"
-                    subtitle={`EFE: $${kpis.cashPayments.toLocaleString('es-AR')} | TRF: $${kpis.transferPayments.toLocaleString('es-AR')}`}
+                    subtitle={`EFE: ${money(kpis.cashPayments)} | TRF: ${money(kpis.transferPayments)}`}
                 />
 
                 <KpiCard
@@ -258,8 +244,8 @@ export default function Dashboard({ metrics }: Props) {
                                                     )}
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 text-right font-medium text-slate-900">{formatMoney(rep.totalSales)}</td>
-                                            <td className="px-6 py-4 text-right font-medium text-slate-900">{formatMoney(rep.totalCollected)}</td>
+                                            <td className="px-6 py-4 text-right font-medium text-slate-900">{money(rep.totalSales)}</td>
+                                            <td className="px-6 py-4 text-right font-medium text-slate-900">{money(rep.totalCollected)}</td>
                                             <td className="px-6 py-4 text-right">
                                                 <Link
                                                     href={route('cash-close.index', { repartidor_id: rep.id, date: metrics.date })}
@@ -284,8 +270,8 @@ export default function Dashboard({ metrics }: Props) {
                                     </td>
                                     <td className="px-6 py-4 text-xs text-slate-500">Sin ruta</td>
                                     <td className="px-6 py-4"></td>
-                                    <td className="px-6 py-4 text-right font-medium text-slate-900">{formatMoney(metrics.casa.totalSales)}</td>
-                                    <td className="px-6 py-4 text-right font-medium text-slate-900">{formatMoney(metrics.casa.totalCollected)}</td>
+                                    <td className="px-6 py-4 text-right font-medium text-slate-900">{money(metrics.casa.totalSales)}</td>
+                                    <td className="px-6 py-4 text-right font-medium text-slate-900">{money(metrics.casa.totalCollected)}</td>
                                     <td className="px-6 py-4"></td>
                                 </tr>
                             </tbody>

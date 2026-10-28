@@ -1,0 +1,17 @@
+import { fileURLToPath, URL } from 'node:url';
+import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vitest/config';
+
+// The app shows times in the business's zone; tests pin it so they do not depend on the machine.
+process.env.TZ = 'America/Argentina/Salta';
+
+export default defineConfig({
+    plugins: [react()],
+    resolve: {
+        alias: { '@': fileURLToPath(new URL('./resources/js', import.meta.url)) },
+    },
+    test: {
+        environment: 'jsdom',
+        include: ['resources/js/**/*.test.{ts,tsx}'],
+    },
+});

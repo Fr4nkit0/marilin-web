@@ -5,6 +5,7 @@ import { StatusBadge } from '@/Components/StitchUi';
 import { CheckCheck } from 'lucide-react';
 import { PaginatedData } from '@/types';
 import { ReviewFilters, ReviewItem, ReviewType } from '@/types/review';
+import { date, dateTime } from '@/lib/format';
 
 interface Props {
     items: PaginatedData<ReviewItem>;
@@ -26,12 +27,8 @@ const inputClass =
     'w-full py-2 px-3 text-sm border border-gray-200/60 bg-white text-slate-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 font-medium';
 
 function formatDate(item: ReviewItem): string {
-    const date = new Date(item.occurred_at.replace(' ', 'T'));
-
     // A rescheduled stop belongs to a day, not to a moment of it.
-    return item.type === 'route_stop'
-        ? date.toLocaleDateString('es-AR')
-        : date.toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' });
+    return item.type === 'route_stop' ? date(item.occurred_at) : dateTime(item.occurred_at);
 }
 
 export default function Index({ items, filters, drivers }: Props) {

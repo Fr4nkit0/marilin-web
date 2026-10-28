@@ -9,6 +9,7 @@ import {
     DashboardSaleRow,
     DashboardStopRow,
 } from '@/types/dashboard';
+import { money, stopStatusLabel, type StopStatus } from '@/lib/format';
 
 interface Props {
     kind: DashboardDetailKind | null;
@@ -23,20 +24,17 @@ const TITLES: Record<DashboardDetailKind, { title: string; description: string }
     containers: { title: 'Movimiento de envases', description: 'Envases entregados y retirados en el día.' },
 };
 
-const STOP_STATUS: Record<string, { label: string; style: string }> = {
-    PENDING: { label: 'Pendiente', style: 'bg-slate-50 text-slate-600 border-gray-200/60' },
-    IN_PROGRESS: { label: 'En curso', style: 'bg-blue-50 text-blue-700 border-blue-200/60' },
-    FINISHED: { label: 'Terminada', style: 'bg-emerald-50 text-emerald-700 border-emerald-200/60' },
-    RESCHEDULED: { label: 'Reprogramada', style: 'bg-amber-50 text-amber-700 border-amber-200/60' },
-    CANCELLED: { label: 'Cancelada', style: 'bg-rose-50 text-rose-700 border-rose-200/60' },
+const STOP_STATUS_STYLE: Record<StopStatus, string> = {
+    PENDING: 'bg-slate-50 text-slate-600 border-gray-200/60',
+    IN_PROGRESS: 'bg-blue-50 text-blue-700 border-blue-200/60',
+    FINISHED: 'bg-emerald-50 text-emerald-700 border-emerald-200/60',
+    RESCHEDULED: 'bg-amber-50 text-amber-700 border-amber-200/60',
+    CANCELLED: 'bg-rose-50 text-rose-700 border-rose-200/60',
 };
 
 const thClass = 'px-4 py-3 text-xs font-medium text-slate-900 tracking-wide';
 const tdClass = 'px-4 py-3 text-slate-700';
 
-function money(amount: number): string {
-    return `$${amount.toLocaleString('es-AR')}`;
-}
 
 function time(at: string | null): string {
     return at ? at.slice(11, 16) : '—';
@@ -185,7 +183,7 @@ function StopsTable({ rows }: { rows: DashboardStopRow[] }) {
                 <EmptyRow colSpan={4} />
             ) : (
                 rows.map((row) => {
-                    const status = STOP_STATUS[row.status] ?? { label: row.status, style: STOP_STATUS.PENDING.style };
+                    const status = { label: stopStatusLabel(row.status), style: STOP_STATUS_STYLE[row.status] };
 
                     return (
                         <tr key={row.id}>

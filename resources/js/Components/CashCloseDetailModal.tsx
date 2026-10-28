@@ -9,6 +9,7 @@ import {
     CashCloseOrigin,
     CashClosePaymentRow,
 } from '@/types/cash-close';
+import { money } from '@/lib/format';
 
 interface Props {
     kind: CashCloseDetailKind | null;
@@ -31,9 +32,6 @@ const ORIGIN_LABELS: Record<CashCloseOrigin, string> = {
 const thClass = 'px-4 py-3 text-xs font-medium text-slate-900 tracking-wide';
 const tdClass = 'px-4 py-3 text-slate-700';
 
-function money(amount: number): string {
-    return `$${amount.toLocaleString('es-AR')}`;
-}
 
 function time(at: string | null): string {
     return at ? at.slice(11, 16) : '—';

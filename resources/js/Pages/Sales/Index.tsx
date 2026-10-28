@@ -13,6 +13,7 @@ import {
     User,
     Clock,
 } from 'lucide-react';
+import { money, time } from '@/lib/format';
 
 interface SaleDetail {
     id: number;
@@ -142,21 +143,21 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-6">
                 <KpiCard
                     title="Ventas Totales"
-                    value={`$${metrics.totalSalesAmount.toLocaleString('es-AR')}`}
+                    value={money(metrics.totalSalesAmount)}
                     icon={DollarSign}
                     variant="primary"
                     subtitle={`${metrics.count} operaciones registradas`}
                 />
                 <KpiCard
                     title="Contado / Cobrado"
-                    value={`$${metrics.immediateSalesAmount.toLocaleString('es-AR')}`}
+                    value={money(metrics.immediateSalesAmount)}
                     icon={Receipt}
                     variant="success"
                     subtitle="Efectivo o Transferencias"
                 />
                 <KpiCard
                     title="A Crédito / Cta Cte"
-                    value={`$${metrics.creditSalesAmount.toLocaleString('es-AR')}`}
+                    value={money(metrics.creditSalesAmount)}
                     icon={CreditCard}
                     variant="amber"
                     subtitle="Pendientes de cobro"
@@ -247,7 +248,7 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
                                     return (
                                         <tr key={sale.id} className="border-b border-gray-50 last:border-0 hover:bg-slate-50/50 transition-colors">
                                             <td className="px-6 py-4 text-slate-500 whitespace-nowrap">
-                                                {new Date(sale.date).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })} hs
+                                                {time(sale.date)} hs
                                             </td>
                                             <td className="px-6 py-4">
                                                 {sale.customer ? (
@@ -281,7 +282,7 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
                                                 <PaymentMethodBadge method={paymentMethodName} />
                                             </td>
                                             <td className="px-6 py-4 text-right font-semibold text-slate-900">
-                                                ${Number(sale.total).toLocaleString('es-AR')}
+                                                {money(sale.total)}
                                             </td>
                                         </tr>
                                     );

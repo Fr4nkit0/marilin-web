@@ -17,6 +17,7 @@ import {
     FileText,
     FileSpreadsheet,
 } from 'lucide-react';
+import { money } from '@/lib/format';
 
 interface Props {
     repartidores: { id: number; name: string }[];
@@ -142,7 +143,7 @@ export default function CashCloseIndex({
                         <KpiCard
                             title="Total Rendición Efectivo"
                             onClick={() => setOpenDetail('cash')}
-                            value={`$${settlement.cashAmount.toLocaleString('es-AR')}`}
+                            value={money(settlement.cashAmount)}
                             icon={DollarSign}
                             variant="primary"
                             subtitle="Dinero físico a ingresar en tesorería"
@@ -150,7 +151,7 @@ export default function CashCloseIndex({
                         <KpiCard
                             title="Transferencias Verificadas"
                             onClick={() => setOpenDetail('transfer')}
-                            value={`$${settlement.transferAmount.toLocaleString('es-AR')}`}
+                            value={money(settlement.transferAmount)}
                             icon={CheckCircle2}
                             variant="success"
                             subtitle="Acreditado en cuenta bancaria"
@@ -158,7 +159,7 @@ export default function CashCloseIndex({
                         <KpiCard
                             title="Ventas a Crédito (Cta Cte)"
                             onClick={() => setOpenDetail('credit')}
-                            value={`$${settlement.creditSales.toLocaleString('es-AR')}`}
+                            value={money(settlement.creditSales)}
                             icon={CircleDollarSign}
                             variant="amber"
                             subtitle="Suma al saldo deudor de clientes"
@@ -185,19 +186,19 @@ export default function CashCloseIndex({
                             <div className="space-y-3 text-sm">
                                 <div className="flex justify-between py-2 border-b border-gray-50 last:border-0">
                                     <span className="text-slate-600 font-medium">Total Ventas Brutas de la Ruta:</span>
-                                    <span className="font-semibold text-slate-900">${settlement.totalSales.toLocaleString('es-AR')}</span>
+                                    <span className="font-semibold text-slate-900">{money(settlement.totalSales)}</span>
                                 </div>
                                 <div className="flex justify-between py-2 border-b border-gray-50 last:border-0">
                                     <span className="text-slate-600 font-medium">Menos: Ventas Fiadas / Crédito:</span>
-                                    <span className="font-semibold text-slate-500">-${settlement.creditSales.toLocaleString('es-AR')}</span>
+                                    <span className="font-semibold text-slate-500">-{money(settlement.creditSales)}</span>
                                 </div>
                                 <div className="flex justify-between py-2 border-b border-gray-50 last:border-0">
                                     <span className="text-slate-600 font-medium">Cobranza de Cuentas Corrientes previas:</span>
-                                    <span className="font-semibold text-slate-900">+${settlement.debtCollected.toLocaleString('es-AR')}</span>
+                                    <span className="font-semibold text-slate-900">+{money(settlement.debtCollected)}</span>
                                 </div>
                                 <div className="flex justify-between items-center py-4 bg-slate-50 border border-gray-100 px-5 rounded-xl mt-4 shadow-sm">
                                     <span className="text-slate-700 font-medium">Efectivo Físico a Entregar:</span>
-                                    <span className="text-slate-900 font-semibold text-lg">${settlement.cashAmount.toLocaleString('es-AR')}</span>
+                                    <span className="text-slate-900 font-semibold text-lg">{money(settlement.cashAmount)}</span>
                                 </div>
                             </div>
                         </div>

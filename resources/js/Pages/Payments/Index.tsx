@@ -12,12 +12,13 @@ import {
     User,
     ArrowUpRight,
 } from 'lucide-react';
+import { money, paymentStatusLabel, time, type PaymentStatus } from '@/lib/format';
 
 interface PaymentItem {
     id: number;
     amount: string | number;
     paid_at: string;
-    status: string; // 'CONFIRMED', 'CANCELLED'
+    status: PaymentStatus;
     customer?: {
         id: number;
         name: string;
@@ -128,21 +129,21 @@ export default function PaymentsIndex({ payments, metrics, filters, paymentMetho
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-6">
                 <KpiCard
                     title="Total Recaudado"
-                    value={`$${metrics.totalCollected.toLocaleString('es-AR')}`}
+                    value={money(metrics.totalCollected)}
                     icon={CircleDollarSign}
                     variant="success"
                     subtitle="Cobranza confirmada hoy"
                 />
                 <KpiCard
                     title="Efectivo en Mano"
-                    value={`$${metrics.cashTotal.toLocaleString('es-AR')}`}
+                    value={money(metrics.cashTotal)}
                     icon={DollarSign}
                     variant="primary"
                     subtitle="A rendir por los repartidores"
                 />
                 <KpiCard
                     title="Transferencias Bancarias"
-                    value={`$${metrics.transferTotal.toLocaleString('es-AR')}`}
+                    value={money(metrics.transferTotal)}
                     icon={CheckCircle2}
                     variant="accent"
                     subtitle="Acreditadas en cuenta"
@@ -231,7 +232,7 @@ export default function PaymentsIndex({ payments, metrics, filters, paymentMetho
                                 payments.data.map((payment) => (
                                     <tr key={payment.id} className="border-b border-gray-50 last:border-0 hover:bg-slate-50/50 transition-colors">
                                         <td className="px-6 py-4 text-slate-500 whitespace-nowrap">
-                                            {payment.paid_at ? new Date(payment.paid_at).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }) : '-'} hs
+                                            {payment.paid_at ? time(payment.paid_at) : '-'} hs
                                         </td>
                                         <td className="px-6 py-4">
                                             {payment.customer ? (
@@ -252,10 +253,10 @@ export default function PaymentsIndex({ payments, metrics, filters, paymentMetho
                                             <PaymentMethodBadge method={payment.payment_method?.name || 'Efectivo'} />
                                         </td>
                                         <td className="px-6 py-4 text-center">
-                                            <StatusBadge status={payment.status === 'CONFIRMED' ? 'FINALIZADO' : 'CANCELADO'} label={payment.status === 'CONFIRMED' ? 'Confirmado' : 'Cancelado'} />
+                                            <StatusBadge status={payment.status === 'CONFIRMED' ? 'FINALIZADO' : 'CANCELADO'} label={paymentStatusLabel(payment.status)} />
                                         </td>
                                         <td className="px-6 py-4 text-right font-semibold text-slate-900">
-                                            +${Number(payment.amount).toLocaleString('es-AR')}
+                                            +{money(payment.amount)}
                                         </td>
                                     </tr>
                                 ))
