@@ -12,21 +12,11 @@ import {
     Calendar,
 } from 'lucide-react';
 import { money } from '@/lib/format';
+import type { RouteStatus, RouteStopRow } from './types';
 
-interface StopItem {
-    id: number;
-    customer: {
-        id: number;
-        name: string;
-        address?: string;
-        phone?: string;
-    };
-    status: string; // 'PENDING', 'IN_PROGRESS', 'FINISHED', 'CANCELLED', 'RESCHEDULED'
-    done: boolean;
-    arrivedAt?: string;
+interface StopItem extends RouteStopRow {
     salesAmount: number;
     paymentsAmount: number;
-    notes?: string;
 }
 
 interface InventoryItem {
@@ -45,7 +35,7 @@ interface Props {
     route?: {
         id: number;
         date: string;
-        status: string;
+        status: RouteStatus;
         startedAt?: string;
         completedAt?: string;
         totalSalesAmount: number;

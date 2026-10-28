@@ -60,7 +60,7 @@ class DriverController extends Controller
                 ];
             });
 
-        return Inertia::render('Drivers/Index', [
+        return Inertia::render('Routes/Routes/Drivers', [
             'repartidores' => $drivers,
             'drivers' => $drivers,
             'filters' => [
@@ -130,7 +130,7 @@ class DriverController extends Controller
             ]),
         ] : null;
 
-        return Inertia::render('Drivers/Show', [
+        return Inertia::render('Routes/Routes/Driver', [
             'repartidor' => [
                 'id' => $repartidor->id,
                 'name' => $repartidor->user?->name ?? 'Sin nombre',

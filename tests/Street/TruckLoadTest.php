@@ -70,7 +70,7 @@ test('a mid-day reload adds to what is left in the truck and keeps both loads in
     $this->get(route('routes.index', ['date' => '2026-10-20']))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('Routes/Index')
+            ->component('Routes/Routes/Index')
             ->where('routes.0.truckStock.0.productName', 'Bidón 20L')
             ->where('routes.0.truckStock.0.loaded', 80)
             ->where('routes.0.truckStock.0.current', 32)

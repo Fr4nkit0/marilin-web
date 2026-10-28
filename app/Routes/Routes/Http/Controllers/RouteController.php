@@ -124,7 +124,7 @@ class RouteController extends Controller
             'name' => $d->user?->name ?? 'Chofer',
         ]);
 
-        return Inertia::render('Routes/Index', [
+        return Inertia::render('Routes/Routes/Index', [
             'routes' => $routes,
             'drivers' => $drivers,
             'products' => Product::query()->where('enabled', true)->orderBy('name')->get(['id', 'name']),

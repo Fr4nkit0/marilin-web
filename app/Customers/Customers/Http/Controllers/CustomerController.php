@@ -70,7 +70,7 @@ class CustomerController extends Controller
             'name' => $r->user?->name ?? 'Sin nombre',
         ]);
 
-        return Inertia::render('Customers/Index', [
+        return Inertia::render('Customers/Customers/Index', [
             'customers' => $customers,
             'filters' => [
                 'search' => $search,
@@ -136,7 +136,7 @@ class CustomerController extends Controller
 
         $canRecordAtHome = Gate::allows('manage-agreements');
 
-        return Inertia::render('Customers/Show', [
+        return Inertia::render('Customers/Customers/Show', [
             'customer' => $customer,
             'accountEntries' => $accountEntries,
             'containerMovements' => $containerMovements,

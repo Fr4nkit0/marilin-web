@@ -16,6 +16,7 @@ import {
     Package,
     Navigation,
 } from 'lucide-react';
+import type { RouteStatus } from './types';
 
 interface RepartidorItem {
     id: number;
@@ -24,7 +25,7 @@ interface RepartidorItem {
     totalCustomers: number;
     currentRoute?: {
         id: number;
-        status: string;
+        status: RouteStatus;
         totalStops: number;
         completedStops: number;
         progressPercent: number;

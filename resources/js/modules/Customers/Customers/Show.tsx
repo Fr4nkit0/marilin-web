@@ -3,11 +3,11 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { DebtBadge, PaymentMethodBadge } from '@/ui/Badge';
 import { PageHeader } from '@/ui/PageHeader';
-import CustomerAgreementFormModal from '@/Components/CustomerAgreementFormModal';
+import CustomerAgreementFormModal from '@/modules/Customers/Agreements/components/CustomerAgreementFormModal';
 import HomePaymentModal from '@/Components/HomePaymentModal';
 import HomeSaleModal from '@/Components/HomeSaleModal';
 import { HomeContainerType, HomePaymentMethod, HomeProduct } from '@/types/home-operation';
-import { AgreementProduct, AgreementStatus, CustomerAgreementRow } from '@/types/agreement';
+import { AgreementProduct, AgreementStatus, CustomerAgreementRow } from '@/modules/Customers/Agreements/types';
 import {
     ArrowLeft,
     Phone,

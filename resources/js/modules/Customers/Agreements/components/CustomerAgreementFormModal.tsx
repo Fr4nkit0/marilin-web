@@ -2,7 +2,7 @@ import React, { FormEvent, useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
 import { X } from 'lucide-react';
 import Modal from '@/ui/Modal';
-import { AgreementProduct } from '@/types/agreement';
+import { AgreementProduct } from '../types';
 import { money } from '@/lib/format';
 
 interface Props {

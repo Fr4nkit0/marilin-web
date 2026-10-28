@@ -21,21 +21,11 @@ import {
     Filter,
     PackagePlus,
 } from 'lucide-react';
+import type { RouteStatus, RouteStopRow } from './types';
 
-interface StopItem {
-    id: number;
+interface StopItem extends RouteStopRow {
     plannedSequence: number;
-    customer: {
-        id: number;
-        name: string;
-        address: string;
-        phone?: string;
-    };
-    status: string;
-    done: boolean;
-    arrivedAt?: string;
     outcome?: string;
-    notes?: string;
 }
 
 interface TruckStockItem {
@@ -62,7 +52,7 @@ interface StockItem {
 
 interface RouteItem {
     id: number;
-    status: string;
+    status: RouteStatus;
     date: string;
     rawDate: string;
     startedAt?: string;
