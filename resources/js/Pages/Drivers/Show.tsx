@@ -1,7 +1,8 @@
 import React from 'react';
 import { Head, Link } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import { PageHeader, StatusBadge } from '@/Components/StitchUi';
+import { StatusBadge } from '@/ui/Badge';
+import { PageHeader } from '@/ui/PageHeader';
 import {
     ArrowLeft,
     Truck,
@@ -173,7 +174,7 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
                             <div className="w-48">
                                 <div className="w-full h-2.5 bg-slate-100 rounded-lg overflow-hidden">
                                     <div
-                                        className="h-full bg-blue-600 rounded-lg transition-all duration-300"
+                                        className="h-full bg-slate-900 rounded-lg transition-all duration-300"
                                         style={{ width: `${progressPercent}%` }}
                                     />
                                 </div>

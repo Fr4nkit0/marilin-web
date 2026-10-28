@@ -16,14 +16,15 @@ interface Props<T> {
     empty: ReactNode;
 }
 
-const ALIGN = { left: '', center: 'text-center', right: 'text-right' } as const;
+// Numbers sit in right-aligned columns and use tabular figures so they line up (DESIGN.md).
+const ALIGN = { left: '', center: 'text-center', right: 'text-right tabular-nums' } as const;
 
 /** A list's table: one header per column, one row per record, and a message when there are none. */
 export default function DataTable<T>({ columns, rows, rowKey, empty }: Props<T>) {
     return (
         <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-                <thead className="bg-slate-50/80 backdrop-blur-md text-slate-500 font-medium text-xs border-b border-gray-200/60">
+                <thead className="bg-slate-50 text-slate-500 font-mono uppercase tracking-wide text-xs border-b border-slate-200">
                     <tr>
                         {columns.map((column, index) => (
                             <th key={index} className={`px-6 py-3.5 ${ALIGN[column.align ?? 'left']}`}>
@@ -41,7 +42,7 @@ export default function DataTable<T>({ columns, rows, rowKey, empty }: Props<T>)
                         </tr>
                     ) : (
                         rows.map((row) => (
-                            <tr key={rowKey(row)} className="border-b border-gray-50 last:border-0 hover:bg-slate-50/50 transition-colors">
+                            <tr key={rowKey(row)} className="border-b border-slate-200 last:border-0 hover:bg-slate-50/60 transition-colors">
                                 {columns.map((column, index) => (
                                     <td key={index} className={`px-6 py-4 ${ALIGN[column.align ?? 'left']} ${column.className ?? ''}`.trim()}>
                                         {column.cell(row)}

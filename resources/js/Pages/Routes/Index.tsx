@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { useListFilters } from '@/lib/useListFilters';
 import AdminLayout from '@/Layouts/AdminLayout';
-import { PageHeader, StatusBadge, KpiCard } from '@/Components/StitchUi';
+import { StatusBadge } from '@/ui/Badge';
+import { KpiCard } from '@/ui/KpiCard';
+import { PageHeader } from '@/ui/PageHeader';
 import TruckLoadModal, { LoadableProduct } from '@/Components/TruckLoadModal';
 import {
     CalendarCheck,
@@ -183,7 +185,7 @@ export default function RoutesIndex({
                 <div className="flex flex-wrap items-center justify-between gap-4">
                     <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
                         {/* Date Picker */}
-                        <div className="flex items-center gap-2 bg-white border border-gray-200/60 rounded-lg px-3 py-2 text-sm text-slate-900 focus-within:ring-2 focus-within:ring-blue-600 focus-within:border-transparent transition-all shadow-sm">
+                        <div className="flex items-center gap-2 bg-white border border-gray-200/60 rounded-lg px-3 py-2 text-sm text-slate-900 focus-within:ring-2 focus-within:ring-indigo-600 focus-within:border-transparent transition-all shadow-sm">
                             <Calendar className="w-4 h-4 text-slate-400" />
                             <input
                                 type="date"
@@ -199,7 +201,7 @@ export default function RoutesIndex({
                             <select
                                 value={filter.values.status}
                                 onChange={(e) => filter.set('status', e.target.value)}
-                                className="text-sm font-medium border border-gray-200/60 rounded-lg py-2 pl-3 pr-8 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all shadow-sm"
+                                className="text-sm font-medium border border-gray-200/60 rounded-lg py-2 pl-3 pr-8 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all shadow-sm"
                             >
                                 <option value="all">Todos los Estados</option>
                                 <option value="IN_PROGRESS">En Curso</option>
@@ -212,7 +214,7 @@ export default function RoutesIndex({
                         <select
                             value={filter.values.driver_id}
                             onChange={(e) => filter.set('driver_id', e.target.value)}
-                            className="text-sm font-medium border border-gray-200/60 rounded-lg py-2 pl-3 pr-8 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all shadow-sm"
+                            className="text-sm font-medium border border-gray-200/60 rounded-lg py-2 pl-3 pr-8 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all shadow-sm"
                         >
                             <option value="">Todos los Choferes</option>
                             {drivers.map((drv) => (
@@ -259,7 +261,7 @@ export default function RoutesIndex({
                                 >
                                     {/* Left: Driver & Status */}
                                     <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-medium text-lg shadow-sm">
+                                        <div className="w-10 h-10 rounded-full bg-slate-900 text-white flex items-center justify-center font-medium text-lg shadow-sm">
                                             {routeItem.driver.name.charAt(0)}
                                         </div>
                                         <div>
@@ -303,8 +305,8 @@ export default function RoutesIndex({
                                             <div
                                                 className={`h-full rounded-full transition-all duration-300 ${
                                                     routeItem.stats.progressPercent === 100
-                                                        ? 'bg-blue-600'
-                                                        : 'bg-blue-600'
+                                                        ? 'bg-slate-900'
+                                                        : 'bg-slate-900'
                                                 }`}
                                                 style={{ width: `${routeItem.stats.progressPercent}%` }}
                                             />
@@ -345,7 +347,7 @@ export default function RoutesIndex({
                                                     <button
                                                         type="button"
                                                         onClick={() => setLoadingRoute(routeItem)}
-                                                        className="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium shadow-sm cursor-pointer"
+                                                        className="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium shadow-sm cursor-pointer"
                                                     >
                                                         <PackagePlus className="w-3.5 h-3.5" />
                                                         {routeItem.loadHistory.length === 0 ? 'Registrar carga inicial' : 'Registrar recarga'}

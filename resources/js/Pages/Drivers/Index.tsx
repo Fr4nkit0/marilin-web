@@ -2,7 +2,9 @@ import React from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { useListFilters } from '@/lib/useListFilters';
 import AdminLayout from '@/Layouts/AdminLayout';
-import { PageHeader, StatusBadge, KpiCard } from '@/Components/StitchUi';
+import { StatusBadge } from '@/ui/Badge';
+import { KpiCard } from '@/ui/KpiCard';
+import { PageHeader } from '@/ui/PageHeader';
 import {
     Search,
     Truck,
@@ -105,7 +107,7 @@ export default function RepartidoresIndex({ repartidores, filters }: Props) {
                         value={filter.values.search}
                         onChange={(e) => filter.draft('search', e.target.value)}
                         placeholder="Buscar por nombre de chofer o email..."
-                        className="w-full pl-10 pr-4 py-2.5 text-sm bg-white border border-gray-200 text-slate-900 font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 placeholder-gray-400"
+                        className="w-full pl-10 pr-4 py-2.5 text-sm bg-white border border-gray-200 text-slate-900 font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-slate-900 placeholder-gray-400"
                     />
                 </form>
             </div>
@@ -175,7 +177,7 @@ export default function RepartidoresIndex({ repartidores, filters }: Props) {
                                                         </div>
                                                         <div className="w-full h-2 bg-slate-100 rounded-lg overflow-hidden">
                                                             <div
-                                                                className="h-full bg-blue-600 transition-all duration-300 rounded-lg"
+                                                                className="h-full bg-slate-900 transition-all duration-300 rounded-lg"
                                                                 style={{ width: `${progress}%` }}
                                                             />
                                                         </div>
@@ -209,7 +211,7 @@ export default function RepartidoresIndex({ repartidores, filters }: Props) {
                                             <td className="px-6 py-4 text-right">
                                                 <Link
                                                     href={route('drivers.show', rep.id)}
-                                                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-blue-600 text-white hover:bg-blue-700 font-medium text-sm transition-colors shadow-sm"
+                                                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-slate-900 text-white hover:bg-slate-800 font-medium text-sm transition-colors shadow-sm"
                                                 >
                                                     Ver Detalle
                                                     <ArrowUpRight className="w-4 h-4" />

@@ -1,7 +1,7 @@
 import React, { FormEvent, useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
 import { Plus, Trash2, X } from 'lucide-react';
-import Modal from '@/Components/Modal';
+import Modal from '@/ui/Modal';
 import { HomeContainerType, HomeProduct } from '@/types/home-operation';
 import { money } from '@/lib/format';
 
@@ -24,7 +24,7 @@ type HomeSaleForm = {
 };
 
 const inputClass =
-    'w-full py-2 px-3 text-sm border border-gray-200/60 bg-white text-slate-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600';
+    'w-full py-2 px-3 text-sm border border-gray-200/60 bg-white text-slate-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-slate-900';
 
 
 export default function HomeSaleModal({ show, customerId, customerName, products, containerTypes, onClose }: Props) {
@@ -140,7 +140,7 @@ export default function HomeSaleModal({ show, customerId, customerName, products
                                         { container_type_id: '', type: 'DELIVERED', quantity: '' },
                                     ])
                                 }
-                                className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-500 cursor-pointer"
+                                className="inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-500 cursor-pointer"
                             >
                                 <Plus className="w-4 h-4" />
                                 Agregar
@@ -225,7 +225,7 @@ export default function HomeSaleModal({ show, customerId, customerName, products
                     <button
                         type="submit"
                         disabled={processing || total <= 0}
-                        className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                        className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                     >
                         Registrar venta
                     </button>

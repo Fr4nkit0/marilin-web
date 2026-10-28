@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 import { X } from 'lucide-react';
-import Modal from '@/Components/Modal';
+import Modal from '@/ui/Modal';
 import {
     DashboardContainerRow,
     DashboardDetailKind,
@@ -26,7 +26,7 @@ const TITLES: Record<DashboardDetailKind, { title: string; description: string }
 
 const STOP_STATUS_STYLE: Record<StopStatus, string> = {
     PENDING: 'bg-slate-50 text-slate-600 border-gray-200/60',
-    IN_PROGRESS: 'bg-blue-50 text-blue-700 border-blue-200/60',
+    IN_PROGRESS: 'bg-indigo-50 text-indigo-700 border-indigo-200/60',
     FINISHED: 'bg-emerald-50 text-emerald-700 border-emerald-200/60',
     RESCHEDULED: 'bg-amber-50 text-amber-700 border-amber-200/60',
     CANCELLED: 'bg-rose-50 text-rose-700 border-rose-200/60',

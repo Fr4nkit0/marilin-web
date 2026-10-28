@@ -52,7 +52,7 @@ export default function Login({
                         type="email"
                         name="email"
                         value={data.email}
-                        className="mt-2 block w-full transition-all border-gray-200 focus:border-blue-500 focus:ring-blue-500 rounded-lg shadow-sm"
+                        className="mt-2 block w-full transition-all border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 rounded-lg shadow-sm"
                         autoComplete="username"
                         isFocused={true}
                         onChange={(e) => setData('email', e.target.value)}
@@ -68,7 +68,7 @@ export default function Login({
                         {canResetPassword && (
                             <Link
                                 href={route('password.request')}
-                                className="text-sm font-medium text-blue-600 hover:text-blue-500 transition-colors"
+                                className="text-sm font-medium text-indigo-600 hover:text-indigo-500 transition-colors"
                             >
                                 ¿Olvidaste tu contraseña?
                             </Link>
@@ -80,7 +80,7 @@ export default function Login({
                         type="password"
                         name="password"
                         value={data.password}
-                        className="mt-2 block w-full transition-all border-gray-200 focus:border-blue-500 focus:ring-blue-500 rounded-lg shadow-sm"
+                        className="mt-2 block w-full transition-all border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 rounded-lg shadow-sm"
                         autoComplete="current-password"
                         onChange={(e) => setData('password', e.target.value)}
                         placeholder="••••••••"
@@ -100,7 +100,7 @@ export default function Login({
                                     (e.target.checked || false) as false,
                                 )
                             }
-                            className="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500 cursor-pointer"
+                            className="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500 cursor-pointer"
                         />
                         <span className="text-sm text-slate-600 group-hover:text-slate-900 transition-colors">
                             Recordarme

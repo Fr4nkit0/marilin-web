@@ -1,7 +1,7 @@
 import React, { FormEvent, useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
 import { Package, X } from 'lucide-react';
-import Modal from '@/Components/Modal';
+import Modal from '@/ui/Modal';
 
 export interface LoadableProduct {
     id: number;
@@ -85,7 +85,7 @@ export default function TruckLoadModal({ routeId, driverName, isFirstLoad, produ
                                 value={data.quantities[product.id] ?? ''}
                                 onChange={(e) => setData('quantities', { ...data.quantities, [product.id]: e.target.value })}
                                 aria-label={`Unidades de ${product.name}`}
-                                className="w-28 py-2 px-3 text-sm text-right border border-gray-200/60 bg-white text-slate-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 font-medium"
+                                className="w-28 py-2 px-3 text-sm text-right border border-gray-200/60 bg-white text-slate-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-slate-900 font-medium"
                             />
                         </label>
                     ))}
@@ -110,7 +110,7 @@ export default function TruckLoadModal({ routeId, driverName, isFirstLoad, produ
                     <button
                         type="submit"
                         disabled={processing || nothingFilled}
-                        className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                        className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                     >
                         Registrar carga
                     </button>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { X } from 'lucide-react';
-import Modal from '@/Components/Modal';
+import Modal from '@/ui/Modal';
 import {
     CashCloseContainerRow,
     CashCloseCreditRow,
@@ -40,7 +40,7 @@ function time(at: string | null): string {
 function OriginBadge({ origin }: { origin: CashCloseOrigin }) {
     const style =
         origin === 'stop'
-            ? 'bg-blue-50 text-blue-700 border-blue-200/60'
+            ? 'bg-indigo-50 text-indigo-700 border-indigo-200/60'
             : 'bg-slate-50 text-slate-600 border-gray-200/60';
 
     return (

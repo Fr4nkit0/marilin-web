@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import {
-    KpiCard,
-    StatusBadge,
-} from '@/Components/StitchUi';
+import { StatusBadge } from '@/ui/Badge';
+import { KpiCard } from '@/ui/KpiCard';
 import DashboardDetailModal from '@/Components/DashboardDetailModal';
 import { DashboardDetailKind, DashboardMetrics, DriverSyncStatus } from '@/types/dashboard';
 import {
@@ -100,7 +98,7 @@ export default function Dashboard({ metrics }: Props) {
                         onChange={(e) => showDay(e.target.value)}
                         aria-label="Día del resumen"
                         style={{ colorScheme: 'light' }}
-                        className="py-2 px-3 text-sm font-medium border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent bg-white text-slate-900 shadow-sm"
+                        className="py-2 px-3 text-sm font-medium border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent bg-white text-slate-900 shadow-sm"
                     />
                     <button
                         onClick={() => router.reload({ only: ['metrics'] })}
@@ -228,7 +226,7 @@ export default function Dashboard({ metrics }: Props) {
                                                     </div>
                                                     <div className="w-24 h-2 bg-slate-100 rounded-full overflow-hidden">
                                                         <div
-                                                            className="h-full bg-blue-600 transition-all duration-300 rounded-full"
+                                                            className="h-full bg-slate-900 transition-all duration-300 rounded-full"
                                                             style={{ width: `${rep.progressPercent}%` }}
                                                         />
                                                     </div>
@@ -288,13 +286,13 @@ export default function Dashboard({ metrics }: Props) {
                         <div className="flex flex-col gap-3">
                             <Link
                                 href={route('routes.index')}
-                                className="w-full flex items-center justify-between px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white transition-all rounded-lg text-sm font-medium shadow-[0_1px_2px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.2)] ring-1 ring-inset ring-blue-700/50 cursor-pointer"
+                                className="w-full flex items-center justify-between px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white transition-all rounded-lg text-sm font-medium shadow-[0_1px_2px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.2)] ring-1 ring-inset ring-indigo-700/50 cursor-pointer"
                             >
                                 <span className="flex items-center gap-2">
-                                    <Truck className="w-4 h-4 text-blue-100" strokeWidth={2} />
+                                    <Truck className="w-4 h-4 text-slate-300" strokeWidth={2} />
                                     Asignar ruta
                                 </span>
-                                <ArrowRight className="w-4 h-4 text-blue-200" strokeWidth={2} />
+                                <ArrowRight className="w-4 h-4 text-slate-400" strokeWidth={2} />
                             </Link>
                             <Link
                                 href={route('cash-close.index', { date: metrics.date })}

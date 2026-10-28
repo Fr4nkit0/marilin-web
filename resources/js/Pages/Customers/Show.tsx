@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import { PageHeader, DebtBadge, PaymentMethodBadge } from '@/Components/StitchUi';
+import { DebtBadge, PaymentMethodBadge } from '@/ui/Badge';
+import { PageHeader } from '@/ui/PageHeader';
 import CustomerAgreementFormModal from '@/Components/CustomerAgreementFormModal';
 import HomePaymentModal from '@/Components/HomePaymentModal';
 import HomeSaleModal from '@/Components/HomeSaleModal';
@@ -90,7 +91,7 @@ interface Props {
 
 const AGREEMENT_STATUS: Record<AgreementStatus, { label: string; className: string }> = {
     active: { label: 'Vigente', className: 'bg-emerald-50 text-emerald-700' },
-    upcoming: { label: 'Futuro', className: 'bg-blue-50 text-blue-700' },
+    upcoming: { label: 'Futuro', className: 'bg-indigo-50 text-indigo-700' },
     ended: { label: 'Finalizado', className: 'bg-slate-100 text-slate-500' },
 };
 
@@ -225,7 +226,7 @@ export default function CustomerShow({
                     <button
                         type="button"
                         onClick={() => setShowHomeSale(true)}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-500 cursor-pointer"
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-slate-900 hover:bg-slate-800 cursor-pointer"
                     >
                         <Plus className="w-4 h-4" />
                         Venta en casa
@@ -247,7 +248,7 @@ export default function CustomerShow({
                     onClick={() => setActiveTab('account')}
                     className={`pb-3 text-sm font-medium tracking-wide transition-colors border-b-4 ${
                         activeTab === 'account'
-                            ? 'border-blue-600 text-slate-900'
+                            ? 'border-slate-900 text-slate-900'
                             : 'border-transparent text-slate-500 hover:text-slate-900 hover:border-gray-200/60'
                     }`}
                 >
@@ -260,7 +261,7 @@ export default function CustomerShow({
                     onClick={() => setActiveTab('containers')}
                     className={`pb-3 text-sm font-medium tracking-wide transition-colors border-b-4 ${
                         activeTab === 'containers'
-                            ? 'border-blue-600 text-slate-900'
+                            ? 'border-slate-900 text-slate-900'
                             : 'border-transparent text-slate-500 hover:text-slate-900 hover:border-gray-200/60'
                     }`}
                 >
@@ -273,7 +274,7 @@ export default function CustomerShow({
                     onClick={() => setActiveTab('agreements')}
                     className={`pb-3 text-sm font-medium tracking-wide transition-colors border-b-4 ${
                         activeTab === 'agreements'
-                            ? 'border-blue-600 text-slate-900'
+                            ? 'border-slate-900 text-slate-900'
                             : 'border-transparent text-slate-500 hover:text-slate-900 hover:border-gray-200/60'
                     }`}
                 >
@@ -467,7 +468,7 @@ export default function CustomerShow({
                             <button
                                 type="button"
                                 onClick={() => setShowAgreementForm(true)}
-                                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-500 cursor-pointer whitespace-nowrap"
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-slate-900 hover:bg-slate-800 cursor-pointer whitespace-nowrap"
                             >
                                 <Plus className="w-4 h-4" />
                                 Nuevo acuerdo
