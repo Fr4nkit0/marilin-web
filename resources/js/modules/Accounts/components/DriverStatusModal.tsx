@@ -29,20 +29,20 @@ export default function DriverStatusModal({ account, onClose }: Props) {
     return (
         <Modal show={account !== null} onClose={onClose} maxWidth="md">
             <div className="px-6 pt-6 pb-4">
-                <h2 className="text-lg font-semibold text-slate-900">
+                <h2 className="text-lg font-semibold text-ink">
                     {disabling ? '¿Deshabilitar la cuenta?' : '¿Habilitar la cuenta?'}
                 </h2>
-                <p className="text-sm text-slate-500 mt-2">
+                <p className="text-sm text-ink-muted mt-2">
                     {disabling
                         ? `${account?.name} no va a poder entrar a la app ni al panel, y se cierran sus sesiones abiertas. Sus ventas, visitas y cobros se conservan.`
                         : `${account?.name} va a poder volver a entrar con su contraseña.`}
                 </p>
             </div>
-            <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-100 bg-slate-50/50">
+            <div className="flex justify-end gap-2 px-6 py-4 border-t border-hairline bg-canvas-soft/50">
                 <button
                     type="button"
                     onClick={onClose}
-                    className="px-4 py-2 rounded-lg text-sm font-medium text-slate-700 bg-white ring-1 ring-inset ring-slate-200/80 hover:bg-slate-50 cursor-pointer"
+                    className="px-4 py-2 rounded-lg text-sm font-medium text-ink-secondary bg-canvas ring-1 ring-inset ring-hairline/80 hover:bg-canvas-soft cursor-pointer"
                 >
                     Cancelar
                 </button>

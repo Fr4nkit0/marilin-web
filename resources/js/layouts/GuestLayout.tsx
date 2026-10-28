@@ -8,11 +8,11 @@ export default function Guest({ children }: PropsWithChildren) {
     useTheme();
 
     return (
-        <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 px-4 sm:px-6 lg:px-8">
+        <div className="flex min-h-screen flex-col items-center justify-center bg-canvas-soft px-4 sm:px-6 lg:px-8">
             <div className="w-full max-w-md">
 
 
-                <div className="bg-white px-8 py-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] sm:rounded-2xl border border-gray-200/60 w-full">
+                <div className="bg-canvas px-8 py-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] sm:rounded-2xl border border-hairline/60 w-full">
                     {children}
                 </div>
 

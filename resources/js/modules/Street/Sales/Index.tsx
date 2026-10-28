@@ -93,22 +93,22 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
     };
 
     const columns: Column<SaleItem>[] = [
-        { header: 'Fecha / Hora', className: 'text-slate-500 whitespace-nowrap', cell: (sale) => `${time(sale.date)} hs` },
+        { header: 'Fecha / Hora', className: 'text-ink-muted whitespace-nowrap', cell: (sale) => `${time(sale.date)} hs` },
         {
             header: 'Cliente',
             cell: (sale) =>
                 sale.customer ? (
-                    <Link href={route('customers.show', sale.customer.id)} className="font-medium text-slate-900 hover:text-slate-600 transition">
+                    <Link href={route('customers.show', sale.customer.id)} className="font-medium text-ink hover:text-ink-secondary transition">
                         {sale.customer.name}
                     </Link>
                 ) : (
-                    <span className="text-slate-400 font-medium italic">Consumidor Final</span>
+                    <span className="text-ink-subtle font-medium italic">Consumidor Final</span>
                 ),
         },
-        { header: 'Repartidor', className: 'text-slate-700', cell: (sale) => sale.visit?.repartidor?.user?.name || '-' },
+        { header: 'Repartidor', className: 'text-ink-secondary', cell: (sale) => sale.visit?.repartidor?.user?.name || '-' },
         {
             header: 'Detalle Productos',
-            className: 'text-slate-600',
+            className: 'text-ink-secondary',
             cell: (sale) =>
                 sale.details && sale.details.length > 0 ? (
                     <div className="space-y-1">
@@ -119,7 +119,7 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
                         ))}
                     </div>
                 ) : (
-                    <span className="text-slate-400">-</span>
+                    <span className="text-ink-subtle">-</span>
                 ),
         },
         {
@@ -127,14 +127,14 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
             align: 'center',
             cell: (sale) => <PaymentMethodBadge method={sale.payments?.[0]?.payment_method?.name || (sale.is_credit_sale ? 'Crédito Ruta' : 'Efectivo')} />,
         },
-        { header: 'Total', align: 'right', className: 'font-semibold text-slate-900', cell: (sale) => money(sale.total) },
+        { header: 'Total', align: 'right', className: 'font-semibold text-ink', cell: (sale) => money(sale.total) },
     ];
 
     return (
         <AdminLayout
             header={
                 <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-slate-500">
+                    <span className="text-sm font-medium text-ink-muted">
                         Facturación
                     </span>
                 </div>
@@ -173,17 +173,17 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
             </div>
 
             {/* Filters */}
-            <div className="bg-white border border-gray-200/60 rounded-2xl p-4 mb-6 shadow-sm">
+            <div className="bg-canvas border border-hairline/60 rounded-2xl p-4 mb-6 shadow-sm">
                 <form onSubmit={handleSearch} className="grid grid-cols-1 gap-3 sm:grid-cols-12 items-center">
                     {/* Search */}
                     <div className="sm:col-span-4 relative">
-                        <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <Search className="w-4 h-4 text-ink-subtle absolute left-3 top-1/2 -translate-y-1/2" />
                         <input
                             type="text"
                             value={filter.values.search}
                             onChange={(e) => filter.draft('search', e.target.value)}
                             placeholder="Buscar por cliente..."
-                            className="w-full pl-9 pr-4 py-2 text-sm font-medium border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-white text-slate-900 placeholder-gray-400 shadow-sm transition-all"
+                            className="w-full pl-9 pr-4 py-2 text-sm font-medium border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-canvas text-ink placeholder-ink-subtle shadow-sm transition-all"
                         />
                     </div>
 
@@ -194,7 +194,7 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
                             value={filter.values.date}
                             onChange={(e) => filter.set('date', e.target.value)}
                             style={{ colorScheme: 'light' }}
-                            className="w-full py-2 px-3 text-sm font-medium border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-white text-slate-900 shadow-sm transition-all"
+                            className="w-full py-2 px-3 text-sm font-medium border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-canvas text-ink shadow-sm transition-all"
                         />
                     </div>
 
@@ -203,7 +203,7 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
                         <select
                             value={filter.values.repartidor_id}
                             onChange={(e) => filter.set('repartidor_id', e.target.value)}
-                            className="w-full py-2 px-3 text-sm font-medium border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-white text-slate-900 shadow-sm transition-all"
+                            className="w-full py-2 px-3 text-sm font-medium border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-canvas text-ink shadow-sm transition-all"
                         >
                             <option value="">Todos los repartidores</option>
                             {repartidores.map((rep) => (
@@ -219,7 +219,7 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
                         <select
                             value={filter.values.sale_type}
                             onChange={(e) => filter.set('sale_type', e.target.value)}
-                            className="w-full py-2 px-3 text-sm font-medium border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-white text-slate-900 shadow-sm transition-all"
+                            className="w-full py-2 px-3 text-sm font-medium border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-canvas text-ink shadow-sm transition-all"
                         >
                             <option value="all">Todo tipo</option>
                             <option value="cash_immediate">Contado</option>
@@ -230,7 +230,7 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
             </div>
 
             {/* Sales Table */}
-            <div className="bg-white border border-gray-200/60 rounded-2xl shadow-sm overflow-hidden">
+            <div className="bg-canvas border border-hairline/60 rounded-2xl shadow-sm overflow-hidden">
                 <DataTable columns={columns} rows={sales.data} rowKey={(sale) => sale.id} empty="No se encontraron ventas con los filtros seleccionados." />
                 <Pagination page={sales} noun="ventas" />
             </div>

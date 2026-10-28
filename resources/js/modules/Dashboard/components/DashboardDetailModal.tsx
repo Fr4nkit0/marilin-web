@@ -25,15 +25,15 @@ const TITLES: Record<DashboardDetailKind, { title: string; description: string }
 };
 
 const STOP_STATUS_STYLE: Record<StopStatus, string> = {
-    PENDING: 'bg-slate-50 text-slate-600 border-gray-200/60',
-    IN_PROGRESS: 'bg-sky-50 text-sky-700 border-sky-200/60',
-    FINISHED: 'bg-emerald-50 text-emerald-700 border-emerald-200/60',
-    RESCHEDULED: 'bg-amber-50 text-amber-700 border-amber-200/60',
-    CANCELLED: 'bg-rose-50 text-rose-700 border-rose-200/60',
+    PENDING: 'bg-canvas-soft text-ink-secondary border-hairline/60',
+    IN_PROGRESS: 'bg-sky-50 dark:bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-200/60 dark:border-sky-500/30',
+    FINISHED: 'bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-200/60 dark:border-emerald-500/30',
+    RESCHEDULED: 'bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-200/60 dark:border-amber-500/30',
+    CANCELLED: 'bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-200/60 dark:border-rose-500/30',
 };
 
-const thClass = 'px-4 py-3 text-xs font-medium text-slate-900 tracking-wide';
-const tdClass = 'px-4 py-3 text-slate-700';
+const thClass = 'px-4 py-3 text-xs font-medium text-ink tracking-wide';
+const tdClass = 'px-4 py-3 text-ink-secondary';
 
 
 function time(at: string | null): string {
@@ -51,9 +51,9 @@ function Badge({ label, style }: { label: string; style: string }) {
 function Table({ head, children, foot }: { head: ReactNode; children: ReactNode; foot?: ReactNode }) {
     return (
         <table className="w-full text-left text-sm">
-            <thead className="border-b border-gray-100">{head}</thead>
-            <tbody className="divide-y divide-gray-50">{children}</tbody>
-            {foot && <tfoot className="border-t border-gray-200">{foot}</tfoot>}
+            <thead className="border-b border-hairline">{head}</thead>
+            <tbody className="divide-y divide-hairline">{children}</tbody>
+            {foot && <tfoot className="border-t border-hairline">{foot}</tfoot>}
         </table>
     );
 }
@@ -61,7 +61,7 @@ function Table({ head, children, foot }: { head: ReactNode; children: ReactNode;
 function EmptyRow({ colSpan }: { colSpan: number }) {
     return (
         <tr>
-            <td colSpan={colSpan} className="px-4 py-8 text-center text-sm text-slate-500">
+            <td colSpan={colSpan} className="px-4 py-8 text-center text-sm text-ink-muted">
                 No hay registros en este día.
             </td>
         </tr>
@@ -71,10 +71,10 @@ function EmptyRow({ colSpan }: { colSpan: number }) {
 function TotalRow({ label, value, colSpan }: { label: string; value: string; colSpan: number }) {
     return (
         <tr>
-            <td colSpan={colSpan} className="px-4 py-3 text-sm font-medium text-slate-600">
+            <td colSpan={colSpan} className="px-4 py-3 text-sm font-medium text-ink-secondary">
                 {label}
             </td>
-            <td className="px-4 py-3 text-right font-semibold text-slate-900 whitespace-nowrap">{value}</td>
+            <td className="px-4 py-3 text-right font-semibold text-ink whitespace-nowrap">{value}</td>
         </tr>
     );
 }
@@ -101,16 +101,16 @@ function SalesTable({ rows }: { rows: DashboardSaleRow[] }) {
                 rows.map((row) => (
                     <tr key={row.id}>
                         <td className={`${tdClass} whitespace-nowrap`}>{time(row.at)}</td>
-                        <td className={`${tdClass} font-medium text-slate-900`}>{row.customer ?? '—'}</td>
+                        <td className={`${tdClass} font-medium text-ink`}>{row.customer ?? '—'}</td>
                         <td className={tdClass}>{row.driver ?? '—'}</td>
                         <td className={tdClass}>
                             {row.credit ? (
-                                <Badge label="Cta Cte" style="bg-amber-50 text-amber-700 border-amber-200/60" />
+                                <Badge label="Cta Cte" style="bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-200/60 dark:border-amber-500/30" />
                             ) : (
-                                <Badge label="Contado" style="bg-emerald-50 text-emerald-700 border-emerald-200/60" />
+                                <Badge label="Contado" style="bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-200/60 dark:border-emerald-500/30" />
                             )}
                         </td>
-                        <td className={`${tdClass} text-right font-semibold text-slate-900`}>{money(row.amount)}</td>
+                        <td className={`${tdClass} text-right font-semibold text-ink`}>{money(row.amount)}</td>
                     </tr>
                 ))
             )}
@@ -147,16 +147,16 @@ function PaymentsTable({ rows }: { rows: DashboardPaymentRow[] }) {
                 rows.map((row) => (
                     <tr key={row.id}>
                         <td className={`${tdClass} whitespace-nowrap`}>{time(row.at)}</td>
-                        <td className={`${tdClass} font-medium text-slate-900`}>{row.customer ?? '—'}</td>
+                        <td className={`${tdClass} font-medium text-ink`}>{row.customer ?? '—'}</td>
                         <td className={tdClass}>{row.driver ?? '—'}</td>
                         <td className={tdClass}>
                             {row.method === 'CASH' ? (
-                                <Badge label="Efectivo" style="bg-emerald-50 text-emerald-700 border-emerald-200/60" />
+                                <Badge label="Efectivo" style="bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-200/60 dark:border-emerald-500/30" />
                             ) : (
-                                <Badge label="Transferencia" style="bg-sky-50 text-sky-700 border-sky-200/60" />
+                                <Badge label="Transferencia" style="bg-sky-50 dark:bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-200/60 dark:border-sky-500/30" />
                             )}
                         </td>
-                        <td className={`${tdClass} text-right font-semibold text-slate-900`}>{money(row.amount)}</td>
+                        <td className={`${tdClass} text-right font-semibold text-ink`}>{money(row.amount)}</td>
                     </tr>
                 ))
             )}
@@ -189,7 +189,7 @@ function StopsTable({ rows }: { rows: DashboardStopRow[] }) {
                         <tr key={row.id}>
                             <td className={tdClass}>{row.driver ?? '—'}</td>
                             <td className={`${tdClass} whitespace-nowrap`}>{row.time ?? '—'}</td>
-                            <td className={`${tdClass} font-medium text-slate-900`}>{row.customer ?? '—'}</td>
+                            <td className={`${tdClass} font-medium text-ink`}>{row.customer ?? '—'}</td>
                             <td className={`${tdClass} text-right`}>
                                 <Badge label={status.label} style={status.style} />
                             </td>
@@ -227,12 +227,12 @@ function ContainersTable({ rows }: { rows: DashboardContainerRow[] }) {
                     return (
                         <tr key={row.id}>
                             <td className={`${tdClass} whitespace-nowrap`}>{time(row.at)}</td>
-                            <td className={`${tdClass} font-medium text-slate-900`}>{row.customer ?? '—'}</td>
+                            <td className={`${tdClass} font-medium text-ink`}>{row.customer ?? '—'}</td>
                             <td className={tdClass}>{row.driver ?? '—'}</td>
                             <td className={tdClass}>{row.container ?? '—'}</td>
                             <td
                                 className={`${tdClass} text-right font-semibold whitespace-nowrap ${
-                                    isDelivered ? 'text-emerald-700' : 'text-orange-700'
+                                    isDelivered ? 'text-emerald-700 dark:text-emerald-300' : 'text-orange-700 dark:text-orange-300'
                                 }`}
                             >
                                 {isDelivered ? `Entregó +${row.quantity}` : `Retiró -${row.quantity}`}
@@ -250,16 +250,16 @@ export default function DashboardDetailModal({ kind, details, onClose }: Props) 
         <Modal show={kind !== null} onClose={onClose} maxWidth="2xl">
             {kind && (
                 <div>
-                    <div className="flex items-start justify-between gap-4 px-6 pt-6 pb-4 border-b border-gray-100">
+                    <div className="flex items-start justify-between gap-4 px-6 pt-6 pb-4 border-b border-hairline">
                         <div>
-                            <h2 className="text-lg font-semibold text-slate-900">{TITLES[kind].title}</h2>
-                            <p className="text-sm text-slate-500 mt-1">{TITLES[kind].description}</p>
+                            <h2 className="text-lg font-semibold text-ink">{TITLES[kind].title}</h2>
+                            <p className="text-sm text-ink-muted mt-1">{TITLES[kind].description}</p>
                         </div>
                         <button
                             type="button"
                             onClick={onClose}
                             aria-label="Cerrar"
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                            className="p-1.5 rounded-lg text-ink-subtle hover:text-ink-secondary hover:bg-surface-1 transition cursor-pointer"
                         >
                             <X className="w-5 h-5" />
                         </button>

@@ -90,9 +90,9 @@ interface Props {
 }
 
 const AGREEMENT_STATUS: Record<AgreementStatus, { label: string; className: string }> = {
-    active: { label: 'Vigente', className: 'bg-emerald-50 text-emerald-700' },
-    upcoming: { label: 'Futuro', className: 'bg-sky-50 text-sky-700' },
-    ended: { label: 'Finalizado', className: 'bg-slate-100 text-slate-500' },
+    active: { label: 'Vigente', className: 'bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' },
+    upcoming: { label: 'Futuro', className: 'bg-sky-50 dark:bg-sky-500/15 text-sky-700 dark:text-sky-300' },
+    ended: { label: 'Finalizado', className: 'bg-surface-1 text-ink-muted' },
 };
 
 const formatDay = (day: string) => day.split('-').reverse().join('/');
@@ -137,12 +137,12 @@ export default function CustomerShow({
                 <div className="flex items-center gap-2 text-sm font-medium">
                     <Link
                         href={route('customers.index')}
-                        className="text-slate-500 hover:text-slate-900 transition-colors"
+                        className="text-ink-muted hover:text-ink transition-colors"
                     >
                         Clientes
                     </Link>
-                    <span className="text-slate-400">/</span>
-                    <span className="text-slate-900">{customer.name}</span>
+                    <span className="text-ink-subtle">/</span>
+                    <span className="text-ink">{customer.name}</span>
                 </div>
             }
         >
@@ -152,7 +152,7 @@ export default function CustomerShow({
             <div className="mb-4">
                 <Link
                     href={route('customers.index')}
-                    className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-900 transition"
+                    className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-muted hover:text-ink transition"
                 >
                     <ArrowLeft className="w-4 h-4" />
                     Volver al listado
@@ -160,30 +160,30 @@ export default function CustomerShow({
             </div>
 
             {/* Top Customer 360 Header Card */}
-            <div className="bg-white/80 backdrop-blur-md rounded-2xl p-6 mb-6 shadow-sm border border-gray-200/60 relative overflow-hidden">
+            <div className="bg-canvas/80 backdrop-blur-md rounded-2xl p-6 mb-6 shadow-sm border border-hairline/60 relative overflow-hidden">
                 {/* Decorative background subtle gradient or color block if needed, but keeping it white and clean */}
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative z-10">
                     <div className="flex items-start gap-5">
-                        <div className="w-16 h-16 rounded-lg bg-slate-100 text-slate-900 flex items-center justify-center text-2xl font-medium">
+                        <div className="w-16 h-16 rounded-lg bg-surface-1 text-ink flex items-center justify-center text-2xl font-medium">
                             {customer.name.charAt(0).toUpperCase()}
                         </div>
                         <div>
                             <div className="flex items-center gap-3">
-                                <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">
+                                <h1 className="text-2xl font-semibold text-ink tracking-tight">
                                     {customer.name}
                                 </h1>
                                 <DebtBadge hasDebt={hasDebt} balance={balanceNum} />
                             </div>
-                            <div className="flex flex-wrap items-center gap-5 text-sm font-medium text-slate-500 mt-2 tracking-wide">
+                            <div className="flex flex-wrap items-center gap-5 text-sm font-medium text-ink-muted mt-2 tracking-wide">
                                 {customer.phone_number && (
                                     <div className="flex items-center gap-1.5">
-                                        <Phone className="w-4 h-4 text-slate-400" />
+                                        <Phone className="w-4 h-4 text-ink-subtle" />
                                         <span>{customer.phone_number}</span>
                                     </div>
                                 )}
                                 {customer.primary_address && (
                                     <div className="flex items-center gap-1.5">
-                                        <MapPin className="w-4 h-4 text-slate-400" />
+                                        <MapPin className="w-4 h-4 text-ink-subtle" />
                                         <span>
                                             {customer.primary_address.street}
                                             {customer.primary_address.floor && ` (Piso ${customer.primary_address.floor})`}
@@ -194,9 +194,9 @@ export default function CustomerShow({
                                 )}
                                 {(customer.driver?.user || customer.repartidor?.user) && (
                                     <div className="flex items-center gap-1.5">
-                                        <Truck className="w-4 h-4 text-slate-400" />
+                                        <Truck className="w-4 h-4 text-ink-subtle" />
                                         <span>
-                                            Repartidor: <strong className="text-slate-900 font-medium">{customer.driver?.user?.name || customer.repartidor?.user?.name}</strong>
+                                            Repartidor: <strong className="text-ink font-medium">{customer.driver?.user?.name || customer.repartidor?.user?.name}</strong>
                                         </span>
                                     </div>
                                 )}
@@ -207,13 +207,13 @@ export default function CustomerShow({
                     {/* Quick Stats on Right */}
                     <div className="flex items-center gap-4 border-t border-slate-700 md:border-t-0 md:border-l border-slate-700 md:pl-6 pt-4 md:pt-0">
                         <div className="text-right">
-                            <span className="text-xs font-medium text-slate-400 block mb-1 tracking-wide">
+                            <span className="text-xs font-medium text-ink-subtle block mb-1 tracking-wide">
                                 Saldo Actual
                             </span>
-                            <p className={`text-3xl font-semibold tracking-tight ${hasDebt ? 'text-red-600' : 'text-emerald-600'}`}>
+                            <p className={`text-3xl font-semibold tracking-tight ${hasDebt ? 'text-red-600 dark:text-red-300' : 'text-emerald-600 dark:text-emerald-300'}`}>
                                 {money(Math.abs(balanceNum))}
                             </p>
-                            <span className="text-xs font-medium text-slate-400 mt-1 block tracking-wide">
+                            <span className="text-xs font-medium text-ink-subtle mt-1 block tracking-wide">
                                 {hasDebt ? 'Deuda pendiente' : 'Al día / Sin saldo'}
                             </span>
                         </div>
@@ -234,7 +234,7 @@ export default function CustomerShow({
                     <button
                         type="button"
                         onClick={() => setShowHomePayment(true)}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-slate-700 bg-white ring-1 ring-inset ring-slate-200/80 hover:bg-slate-50 cursor-pointer"
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-ink-secondary bg-canvas ring-1 ring-inset ring-hairline/80 hover:bg-canvas-soft cursor-pointer"
                     >
                         <CircleDollarSign className="w-4 h-4" />
                         Cobro en casa
@@ -243,13 +243,13 @@ export default function CustomerShow({
             )}
 
             {/* Content Tabs Navigation */}
-            <div className="flex items-center gap-6 mb-6 border-b border-gray-100">
+            <div className="flex items-center gap-6 mb-6 border-b border-hairline">
                 <button
                     onClick={() => setActiveTab('account')}
                     className={`pb-3 text-sm font-medium tracking-wide transition-colors border-b-4 ${
                         activeTab === 'account'
-                            ? 'border-sky-600 text-slate-900'
-                            : 'border-transparent text-slate-500 hover:text-slate-900 hover:border-gray-200/60'
+                            ? 'border-sky-600 text-ink'
+                            : 'border-transparent text-ink-muted hover:text-ink hover:border-hairline/60'
                     }`}
                 >
                     <span className="flex items-center gap-2">
@@ -261,8 +261,8 @@ export default function CustomerShow({
                     onClick={() => setActiveTab('containers')}
                     className={`pb-3 text-sm font-medium tracking-wide transition-colors border-b-4 ${
                         activeTab === 'containers'
-                            ? 'border-sky-600 text-slate-900'
-                            : 'border-transparent text-slate-500 hover:text-slate-900 hover:border-gray-200/60'
+                            ? 'border-sky-600 text-ink'
+                            : 'border-transparent text-ink-muted hover:text-ink hover:border-hairline/60'
                     }`}
                 >
                     <span className="flex items-center gap-2">
@@ -274,8 +274,8 @@ export default function CustomerShow({
                     onClick={() => setActiveTab('agreements')}
                     className={`pb-3 text-sm font-medium tracking-wide transition-colors border-b-4 ${
                         activeTab === 'agreements'
-                            ? 'border-sky-600 text-slate-900'
-                            : 'border-transparent text-slate-500 hover:text-slate-900 hover:border-gray-200/60'
+                            ? 'border-sky-600 text-ink'
+                            : 'border-transparent text-ink-muted hover:text-ink hover:border-hairline/60'
                     }`}
                 >
                     <span className="flex items-center gap-2">
@@ -287,28 +287,28 @@ export default function CustomerShow({
 
             {/* TAB 1: Account Entries */}
             {activeTab === 'account' && (
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-200/60 overflow-hidden">
-                    <div className="p-5 border-b border-gray-100 bg-white">
-                        <h3 className="text-base font-semibold text-slate-900 tracking-wide">
+                <div className="bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden">
+                    <div className="p-5 border-b border-hairline bg-canvas">
+                        <h3 className="text-base font-semibold text-ink tracking-wide">
                             Movimientos Contables
                         </h3>
                     </div>
 
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm whitespace-nowrap">
-                            <thead className="bg-gray-50 border-b border-gray-100">
+                            <thead className="bg-canvas-soft border-b border-hairline">
                                 <tr>
-                                    <th className="px-6 py-4 text-xs font-medium text-slate-500 tracking-wide">Fecha y Hora</th>
-                                    <th className="px-6 py-4 text-xs font-medium text-slate-500 tracking-wide">Concepto</th>
-                                    <th className="px-6 py-4 text-xs font-medium text-slate-500 tracking-wide text-center">Tipo</th>
-                                    <th className="px-6 py-4 text-xs font-medium text-slate-500 tracking-wide text-center">Método</th>
-                                    <th className="px-6 py-4 text-xs font-medium text-slate-500 tracking-wide text-right">Monto</th>
+                                    <th className="px-6 py-4 text-xs font-medium text-ink-muted tracking-wide">Fecha y Hora</th>
+                                    <th className="px-6 py-4 text-xs font-medium text-ink-muted tracking-wide">Concepto</th>
+                                    <th className="px-6 py-4 text-xs font-medium text-ink-muted tracking-wide text-center">Tipo</th>
+                                    <th className="px-6 py-4 text-xs font-medium text-ink-muted tracking-wide text-center">Método</th>
+                                    <th className="px-6 py-4 text-xs font-medium text-ink-muted tracking-wide text-right">Monto</th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white">
+                            <tbody className="bg-canvas">
                                 {accountEntries.length === 0 ? (
                                     <tr>
-                                        <td colSpan={5} className="px-6 py-8 text-center text-slate-500 text-sm">
+                                        <td colSpan={5} className="px-6 py-8 text-center text-ink-muted text-sm">
                                             No hay movimientos registrados.
                                         </td>
                                     </tr>
@@ -316,19 +316,19 @@ export default function CustomerShow({
                                     accountEntries.map((entry) => {
                                         const isDebit = entry.direction === 1; // Sale / increase debt
                                         return (
-                                            <tr key={entry.id} className="hover:bg-slate-50 transition-colors">
-                                                <td className="px-6 py-4 text-gray-600">
+                                            <tr key={entry.id} className="hover:bg-canvas-soft transition-colors">
+                                                <td className="px-6 py-4 text-ink-secondary">
                                                     {entry.createdAt}
                                                 </td>
-                                                <td className="px-6 py-4 font-medium text-slate-900">
+                                                <td className="px-6 py-4 font-medium text-ink">
                                                     {entry.description || (isDebit ? 'Venta de productos' : 'Cobranza')}
                                                 </td>
                                                 <td className="px-6 py-4 text-center">
                                                     <span
                                                         className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
                                                             isDebit
-                                                                ? 'bg-slate-100 text-slate-700'
-                                                                : 'bg-slate-100 text-gray-700'
+                                                                ? 'bg-surface-1 text-ink-secondary'
+                                                                : 'bg-surface-1 text-ink-secondary'
                                                         }`}
                                                     >
                                                         {entry.entryType}
@@ -338,12 +338,12 @@ export default function CustomerShow({
                                                     {entry.paymentMethod ? (
                                                         <PaymentMethodBadge method={entry.paymentMethod} />
                                                     ) : (
-                                                        <span className="text-slate-400">-</span>
+                                                        <span className="text-ink-subtle">-</span>
                                                     )}
                                                 </td>
                                                 <td
                                                     className={`px-6 py-4 text-right font-medium text-sm ${
-                                                        isDebit ? 'text-red-600' : 'text-emerald-600'
+                                                        isDebit ? 'text-red-600 dark:text-red-300' : 'text-emerald-600 dark:text-emerald-300'
                                                     }`}
                                                 >
                                                     {isDebit ? '+' : '-'}{money(entry.amount)}
@@ -363,82 +363,82 @@ export default function CustomerShow({
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {/* Container Cards */}
                     <div className="md:col-span-1 space-y-4">
-                        <h3 className="text-sm font-semibold text-slate-900 mb-3 border-b border-gray-100 pb-2">
+                        <h3 className="text-sm font-semibold text-ink mb-3 border-b border-hairline pb-2">
                             Envases en Posesión
                         </h3>
                         {customer.container_balances?.map((cb) => (
                             <div
                                 key={cb.id}
-                                className="bg-white rounded-lg border border-gray-200 p-5 shadow-sm flex items-center justify-between"
+                                className="bg-canvas rounded-lg border border-hairline p-5 shadow-sm flex items-center justify-between"
                             >
                                 <div className="flex items-center gap-4">
-                                    <div className="p-2.5 rounded-lg bg-slate-100 text-slate-900">
+                                    <div className="p-2.5 rounded-lg bg-surface-1 text-ink">
                                         <Package className="w-6 h-6" />
                                     </div>
                                     <div>
-                                        <p className="text-sm font-semibold text-slate-900">
+                                        <p className="text-sm font-semibold text-ink">
                                             {cb.container_type?.name || 'Envase'}
                                         </p>
-                                        <p className="text-xs text-slate-500 mt-0.5">
+                                        <p className="text-xs text-ink-muted mt-0.5">
                                             Capacidad: {cb.container_type?.capacity_liters || 20}L
                                         </p>
                                     </div>
                                 </div>
-                                <span className="text-2xl font-medium text-slate-900">
+                                <span className="text-2xl font-medium text-ink">
                                     {cb.balance}
                                 </span>
                             </div>
                         ))}
                         {(!customer.container_balances || customer.container_balances.length === 0) && (
-                            <p className="text-sm text-slate-500 italic">El cliente no posee envases en comodato.</p>
+                            <p className="text-sm text-ink-muted italic">El cliente no posee envases en comodato.</p>
                         )}
                     </div>
 
                     {/* Movement History */}
-                    <div className="md:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-200/60 overflow-hidden">
-                        <div className="p-5 border-b border-gray-100">
-                            <h3 className="text-base font-semibold text-slate-900 tracking-wide">
+                    <div className="md:col-span-2 bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden">
+                        <div className="p-5 border-b border-hairline">
+                            <h3 className="text-base font-semibold text-ink tracking-wide">
                                 Historial de Envases
                             </h3>
                         </div>
                         <div className="overflow-x-auto">
                             <table className="w-full text-left text-sm whitespace-nowrap">
-                                <thead className="bg-gray-50 border-b border-gray-100">
+                                <thead className="bg-canvas-soft border-b border-hairline">
                                     <tr>
-                                        <th className="px-6 py-4 text-xs font-medium text-slate-500 tracking-wide">Fecha</th>
-                                        <th className="px-6 py-4 text-xs font-medium text-slate-500 tracking-wide">Envase</th>
-                                        <th className="px-6 py-4 text-xs font-medium text-slate-500 tracking-wide text-center">Operación</th>
-                                        <th className="px-6 py-4 text-xs font-medium text-slate-500 tracking-wide text-right">Cantidad</th>
+                                        <th className="px-6 py-4 text-xs font-medium text-ink-muted tracking-wide">Fecha</th>
+                                        <th className="px-6 py-4 text-xs font-medium text-ink-muted tracking-wide">Envase</th>
+                                        <th className="px-6 py-4 text-xs font-medium text-ink-muted tracking-wide text-center">Operación</th>
+                                        <th className="px-6 py-4 text-xs font-medium text-ink-muted tracking-wide text-right">Cantidad</th>
                                     </tr>
                                 </thead>
-                                <tbody className="bg-white">
+                                <tbody className="bg-canvas">
                                     {containerMovements.length === 0 ? (
                                         <tr>
-                                            <td colSpan={4} className="px-6 py-8 text-center text-slate-500 text-sm">
+                                            <td colSpan={4} className="px-6 py-8 text-center text-ink-muted text-sm">
                                                 Sin movimientos recientes.
                                             </td>
                                         </tr>
                                     ) : (
                                         containerMovements.map((cm) => (
-                                            <tr key={cm.id} className="hover:bg-slate-50 transition-colors">
-                                                <td className="px-6 py-4 text-gray-600">
+                                            <tr key={cm.id} className="hover:bg-canvas-soft transition-colors">
+                                                <td className="px-6 py-4 text-ink-secondary">
                                                     {cm.created_at}
                                                 </td>
-                                                <td className="px-6 py-4 font-medium text-slate-900">
+                                                <td className="px-6 py-4 font-medium text-ink">
                                                     {cm.container_type?.name}
                                                 </td>
                                                 <td className="px-6 py-4 text-center">
                                                     <span
                                                         className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
                                                             cm.type === 'DELIVERED'
-                                                                ? 'bg-slate-100 text-slate-700'
-                                                                : 'bg-slate-100 text-gray-700'
+                                                                ? 'bg-surface-1 text-ink-secondary'
+                                                                : 'bg-surface-1 text-ink-secondary'
                                                         }`}
                                                     >
                                                         {cm.type === 'DELIVERED' ? 'Entregado' : 'Devuelto'}
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-4 text-right font-medium text-slate-900">
+                                                <td className="px-6 py-4 text-right font-medium text-ink">
                                                     {cm.quantity} unid.
                                                 </td>
                                             </tr>
@@ -453,13 +453,13 @@ export default function CustomerShow({
 
             {/* TAB 3: Agreements */}
             {activeTab === 'agreements' && (
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-200/60 overflow-hidden">
-                    <div className="p-5 border-b border-gray-100 flex items-center justify-between gap-4">
+                <div className="bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden">
+                    <div className="p-5 border-b border-hairline flex items-center justify-between gap-4">
                         <div>
-                            <h3 className="text-base font-semibold text-slate-900 tracking-wide">
+                            <h3 className="text-base font-semibold text-ink tracking-wide">
                                 Acuerdos de Precios
                             </h3>
-                            <p className="text-xs text-slate-500 mt-1">
+                            <p className="text-xs text-ink-muted mt-1">
                                 Para cambiar un precio, finalizá el acuerdo y creá uno nuevo: las ventas ya hechas
                                 conservan el precio que usaron.
                             </p>
@@ -477,14 +477,14 @@ export default function CustomerShow({
                     </div>
 
                     {pageErrors.agreement && (
-                        <p className="mx-5 mt-4 text-sm text-red-600">{pageErrors.agreement}</p>
+                        <p className="mx-5 mt-4 text-sm text-red-600 dark:text-red-300">{pageErrors.agreement}</p>
                     )}
 
                     {agreements.length > 0 ? (
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm">
                                 <thead>
-                                    <tr className="text-left text-xs font-medium text-slate-500 border-b border-gray-100">
+                                    <tr className="text-left text-xs font-medium text-ink-muted border-b border-hairline">
                                         <th className="px-5 py-3">Producto</th>
                                         <th className="px-5 py-3 text-right">Precio acordado</th>
                                         <th className="px-5 py-3">Vigencia</th>
@@ -496,14 +496,14 @@ export default function CustomerShow({
                                 </thead>
                                 <tbody>
                                     {agreements.map((agreement) => (
-                                        <tr key={agreement.id} className="border-b border-gray-50 last:border-0">
-                                            <td className="px-5 py-3 font-medium text-slate-900">
+                                        <tr key={agreement.id} className="border-b border-hairline last:border-0">
+                                            <td className="px-5 py-3 font-medium text-ink">
                                                 {agreement.product ?? 'Producto'}
                                             </td>
-                                            <td className="px-5 py-3 text-right font-semibold text-slate-900">
+                                            <td className="px-5 py-3 text-right font-semibold text-ink">
                                                 {money(agreement.unitPrice)}
                                             </td>
-                                            <td className="px-5 py-3 text-slate-600 whitespace-nowrap">
+                                            <td className="px-5 py-3 text-ink-secondary whitespace-nowrap">
                                                 {formatDay(agreement.validFrom)} →{' '}
                                                 {agreement.validTo ? formatDay(agreement.validTo) : 'sin fin'}
                                             </td>
@@ -514,15 +514,15 @@ export default function CustomerShow({
                                                     {AGREEMENT_STATUS[agreement.status].label}
                                                 </span>
                                             </td>
-                                            <td className="px-5 py-3 text-slate-600">{agreement.reason ?? '—'}</td>
-                                            <td className="px-5 py-3 text-slate-600">{agreement.createdBy ?? '—'}</td>
+                                            <td className="px-5 py-3 text-ink-secondary">{agreement.reason ?? '—'}</td>
+                                            <td className="px-5 py-3 text-ink-secondary">{agreement.createdBy ?? '—'}</td>
                                             {canManageAgreements && (
                                                 <td className="px-5 py-3 text-right">
                                                     {agreement.status !== 'ended' && (
                                                         <button
                                                             type="button"
                                                             onClick={() => endAgreement(agreement)}
-                                                            className="text-sm font-medium text-red-600 hover:text-red-500 cursor-pointer"
+                                                            className="text-sm font-medium text-red-600 dark:text-red-300 hover:text-red-500 cursor-pointer"
                                                         >
                                                             Finalizar
                                                         </button>
@@ -535,7 +535,7 @@ export default function CustomerShow({
                             </table>
                         </div>
                     ) : (
-                        <div className="m-6 text-center py-12 text-slate-500 text-sm border-2 border-dashed border-gray-200 rounded-lg">
+                        <div className="m-6 text-center py-12 text-ink-muted text-sm border-2 border-dashed border-hairline rounded-lg">
                             Sin acuerdos especiales.
                         </div>
                     )}

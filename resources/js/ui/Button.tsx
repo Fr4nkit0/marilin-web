@@ -5,9 +5,9 @@ export type ButtonSize = 'sm' | 'md';
 
 const VARIANT: Record<ButtonVariant, string> = {
     primary: 'bg-sky-600 text-white hover:bg-sky-700 shadow-sm',
-    secondary: 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 shadow-sm',
+    secondary: 'bg-canvas text-ink-secondary border border-hairline hover:bg-canvas-soft shadow-sm',
     danger: 'bg-rose-600 text-white hover:bg-rose-700 shadow-sm',
-    ghost: 'text-slate-600 hover:text-slate-900 hover:bg-slate-100',
+    ghost: 'text-ink-secondary hover:text-ink hover:bg-surface-1',
 };
 
 const SIZE: Record<ButtonSize, string> = {

@@ -31,11 +31,11 @@ export default function UpdateProfileInformation({
         <section className={className}>
             <form onSubmit={submit} className="space-y-6">
                 <div>
-                    <Label htmlFor="name" value="Nombre" className="text-slate-700 font-medium" />
+                    <Label htmlFor="name" value="Nombre" className="text-ink-secondary font-medium" />
 
                     <Input
                         id="name"
-                        className="mt-2 block w-full transition-all border-gray-200 focus:border-sky-500 focus:ring-sky-500 rounded-lg shadow-sm"
+                        className="mt-2 block w-full transition-all border-hairline focus:border-sky-500 focus:ring-sky-500 rounded-lg shadow-sm"
                         value={data.name}
                         onChange={(e) => setData('name', e.target.value)}
                         required
@@ -47,12 +47,12 @@ export default function UpdateProfileInformation({
                 </div>
 
                 <div>
-                    <Label htmlFor="email" value="Correo electrónico" className="text-slate-700 font-medium" />
+                    <Label htmlFor="email" value="Correo electrónico" className="text-ink-secondary font-medium" />
 
                     <Input
                         id="email"
                         type="email"
-                        className="mt-2 block w-full transition-all border-gray-200 focus:border-sky-500 focus:ring-sky-500 rounded-lg shadow-sm"
+                        className="mt-2 block w-full transition-all border-hairline focus:border-sky-500 focus:ring-sky-500 rounded-lg shadow-sm"
                         value={data.email}
                         onChange={(e) => setData('email', e.target.value)}
                         required
@@ -64,20 +64,20 @@ export default function UpdateProfileInformation({
 
                 {mustVerifyEmail && user.email_verified_at === null && (
                     <div>
-                        <p className="mt-2 text-sm text-slate-800">
+                        <p className="mt-2 text-sm text-ink">
                             Tu dirección de correo electrónico no está verificada.
                             <Link
                                 href={route('verification.send')}
                                 method="post"
                                 as="button"
-                                className="rounded-md text-sm text-sky-600 underline hover:text-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 ml-1"
+                                className="rounded-md text-sm text-sky-600 dark:text-sky-300 underline hover:text-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 ml-1"
                             >
                                 Hacé clic acá para reenviar el correo de verificación.
                             </Link>
                         </p>
 
                         {status === 'verification-link-sent' && (
-                            <div className="mt-2 text-sm font-medium text-emerald-600">
+                            <div className="mt-2 text-sm font-medium text-emerald-600 dark:text-emerald-300">
                                 Se ha enviado un nuevo enlace de verificación a tu dirección de correo electrónico.
                             </div>
                         )}
@@ -94,7 +94,7 @@ export default function UpdateProfileInformation({
                         leave="transition ease-in-out"
                         leaveTo="opacity-0"
                     >
-                        <p className="text-sm text-emerald-600 font-medium">
+                        <p className="text-sm text-emerald-600 dark:text-emerald-300 font-medium">
                             Guardado.
                         </p>
                     </Transition>

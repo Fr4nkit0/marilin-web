@@ -65,7 +65,7 @@ export default function CashCloseIndex({
         <AdminLayout
             header={
                 <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-slate-500">
+                    <span className="text-sm font-medium text-ink-muted">
                         Liquidación & Arqueo
                     </span>
                 </div>
@@ -79,15 +79,15 @@ export default function CashCloseIndex({
             />
 
             {/* Drivers Selection Toolbar */}
-            <div className="bg-white border border-gray-200/60 rounded-2xl p-4 mb-6 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="bg-canvas border border-hairline/60 rounded-2xl p-4 mb-6 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-3 w-full sm:w-auto">
-                    <span className="text-sm font-medium text-slate-500 whitespace-nowrap">
+                    <span className="text-sm font-medium text-ink-muted whitespace-nowrap">
                         Chofer:
                     </span>
                     <select
                         value={selectedId}
                         onChange={(e) => handleSelectRepartidor(e.target.value)}
-                        className="py-2 px-3 text-sm font-medium border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-white text-slate-900 shadow-sm transition-all min-w-[200px]"
+                        className="py-2 px-3 text-sm font-medium border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-canvas text-ink shadow-sm transition-all min-w-[200px]"
                     >
                         {repartidores.map((rep) => (
                             <option key={rep.id} value={rep.id}>
@@ -98,7 +98,7 @@ export default function CashCloseIndex({
                 </div>
 
                 <div className="flex items-center gap-3 w-full sm:w-auto">
-                    <span className="text-sm font-medium text-slate-500 whitespace-nowrap">
+                    <span className="text-sm font-medium text-ink-muted whitespace-nowrap">
                         Fecha Jornada:
                     </span>
                     <input
@@ -106,7 +106,7 @@ export default function CashCloseIndex({
                         value={selectedDate}
                         onChange={(e) => handleDateChange(e.target.value)}
                         style={{ colorScheme: 'light' }}
-                        className="py-2 px-3 text-sm font-medium border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-white text-slate-900 shadow-sm transition-all"
+                        className="py-2 px-3 text-sm font-medium border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-canvas text-ink shadow-sm transition-all"
                     />
                 </div>
 
@@ -114,14 +114,14 @@ export default function CashCloseIndex({
                     <div className="flex items-center gap-2 w-full sm:w-auto">
                         <a
                             href={exportUrl('pdf')}
-                            className="inline-flex items-center gap-2 py-2 px-3 text-sm font-medium border border-gray-200/60 rounded-lg bg-white text-slate-700 shadow-sm transition-all hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-sky-600"
+                            className="inline-flex items-center gap-2 py-2 px-3 text-sm font-medium border border-hairline/60 rounded-lg bg-canvas text-ink-secondary shadow-sm transition-all hover:bg-canvas-soft focus:outline-none focus:ring-2 focus:ring-sky-600"
                         >
                             <FileText className="w-4 h-4" aria-hidden="true" />
                             Descargar PDF
                         </a>
                         <a
                             href={exportUrl('xlsx')}
-                            className="inline-flex items-center gap-2 py-2 px-3 text-sm font-medium border border-gray-200/60 rounded-lg bg-white text-slate-700 shadow-sm transition-all hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-sky-600"
+                            className="inline-flex items-center gap-2 py-2 px-3 text-sm font-medium border border-hairline/60 rounded-lg bg-canvas text-ink-secondary shadow-sm transition-all hover:bg-canvas-soft focus:outline-none focus:ring-2 focus:ring-sky-600"
                         >
                             <FileSpreadsheet className="w-4 h-4" aria-hidden="true" />
                             Descargar Excel
@@ -131,11 +131,11 @@ export default function CashCloseIndex({
             </div>
 
             {!settlement ? (
-                <div className="bg-white border border-gray-200/60 rounded-2xl p-12 text-center text-slate-500 shadow-sm">
-                    <AlertCircle className="w-12 h-12 mx-auto text-slate-300 mb-3" />
-                    <h3 className="text-lg font-semibold text-slate-900">Sin ruta para liquidar</h3>
-                    <p className="text-sm text-slate-500 mt-2">
-                        El chofer <strong className="font-medium text-slate-900">{activeRepartidorName}</strong> no tiene una ruta registrada en la fecha {selectedDate}.
+                <div className="bg-canvas border border-hairline/60 rounded-2xl p-12 text-center text-ink-muted shadow-sm">
+                    <AlertCircle className="w-12 h-12 mx-auto text-ink-subtle mb-3" />
+                    <h3 className="text-lg font-semibold text-ink">Sin ruta para liquidar</h3>
+                    <p className="text-sm text-ink-muted mt-2">
+                        El chofer <strong className="font-medium text-ink">{activeRepartidorName}</strong> no tiene una ruta registrada en la fecha {selectedDate}.
                     </p>
                 </div>
             ) : (
@@ -179,42 +179,42 @@ export default function CashCloseIndex({
                     {/* Reconciliation Breakdown: Money & Physical Stock */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {/* Money Reconciliation Box */}
-                        <div className="bg-white border border-gray-200/60 rounded-2xl p-6 shadow-sm">
-                            <h3 className="text-base font-semibold text-slate-900 mb-6 flex items-center justify-between">
+                        <div className="bg-canvas border border-hairline/60 rounded-2xl p-6 shadow-sm">
+                            <h3 className="text-base font-semibold text-ink mb-6 flex items-center justify-between">
                                 <span>Arqueo Monetario de la Jornada</span>
                                 <StatusBadge status={settlement.status} />
                             </h3>
 
                             <div className="space-y-3 text-sm">
-                                <div className="flex justify-between py-2 border-b border-gray-50 last:border-0">
-                                    <span className="text-slate-600 font-medium">Total Ventas Brutas de la Ruta:</span>
-                                    <span className="font-semibold text-slate-900">{money(settlement.totalSales)}</span>
+                                <div className="flex justify-between py-2 border-b border-hairline last:border-0">
+                                    <span className="text-ink-secondary font-medium">Total Ventas Brutas de la Ruta:</span>
+                                    <span className="font-semibold text-ink">{money(settlement.totalSales)}</span>
                                 </div>
-                                <div className="flex justify-between py-2 border-b border-gray-50 last:border-0">
-                                    <span className="text-slate-600 font-medium">Menos: Ventas Fiadas / Crédito:</span>
-                                    <span className="font-semibold text-slate-500">-{money(settlement.creditSales)}</span>
+                                <div className="flex justify-between py-2 border-b border-hairline last:border-0">
+                                    <span className="text-ink-secondary font-medium">Menos: Ventas Fiadas / Crédito:</span>
+                                    <span className="font-semibold text-ink-muted">-{money(settlement.creditSales)}</span>
                                 </div>
-                                <div className="flex justify-between py-2 border-b border-gray-50 last:border-0">
-                                    <span className="text-slate-600 font-medium">Cobranza de Cuentas Corrientes previas:</span>
-                                    <span className="font-semibold text-slate-900">+{money(settlement.debtCollected)}</span>
+                                <div className="flex justify-between py-2 border-b border-hairline last:border-0">
+                                    <span className="text-ink-secondary font-medium">Cobranza de Cuentas Corrientes previas:</span>
+                                    <span className="font-semibold text-ink">+{money(settlement.debtCollected)}</span>
                                 </div>
-                                <div className="flex justify-between items-center py-4 bg-slate-50 border border-gray-100 px-5 rounded-xl mt-4 shadow-sm">
-                                    <span className="text-slate-700 font-medium">Efectivo Físico a Entregar:</span>
-                                    <span className="text-slate-900 font-semibold text-lg">{money(settlement.cashAmount)}</span>
+                                <div className="flex justify-between items-center py-4 bg-canvas-soft border border-hairline px-5 rounded-xl mt-4 shadow-sm">
+                                    <span className="text-ink-secondary font-medium">Efectivo Físico a Entregar:</span>
+                                    <span className="text-ink font-semibold text-lg">{money(settlement.cashAmount)}</span>
                                 </div>
                             </div>
                         </div>
 
                         {/* Inventory Reconciliation Box */}
-                        <div className="bg-white border border-gray-200/60 rounded-2xl p-6 shadow-sm">
-                            <h3 className="text-base font-semibold text-slate-900 mb-6 flex items-center justify-between">
+                        <div className="bg-canvas border border-hairline/60 rounded-2xl p-6 shadow-sm">
+                            <h3 className="text-base font-semibold text-ink mb-6 flex items-center justify-between">
                                 <span>Inventario de ruta y envases</span>
-                                <Package className="w-5 h-5 text-slate-400" />
+                                <Package className="w-5 h-5 text-ink-subtle" />
                             </h3>
 
                             <div className="space-y-3">
                                 {settlement.stockLoaded.length === 0 ? (
-                                    <p className="text-sm text-slate-500 py-4 text-center">
+                                    <p className="text-sm text-ink-muted py-4 text-center">
                                         No hay registros de inventario para esta ruta.
                                     </p>
                                 ) : (
@@ -225,20 +225,20 @@ export default function CashCloseIndex({
                                         return (
                                             <div
                                                 key={idx}
-                                                className="p-4 bg-white border border-gray-200/60 rounded-xl flex items-center justify-between shadow-sm transition-all hover:bg-slate-50/50"
+                                                className="p-4 bg-canvas border border-hairline/60 rounded-xl flex items-center justify-between shadow-sm transition-all hover:bg-canvas-soft/50"
                                             >
                                                 <div>
-                                                    <p className="font-medium text-slate-900 text-sm">{load.product}</p>
-                                                    <p className="text-xs text-slate-500 mt-1">
+                                                    <p className="font-medium text-ink text-sm">{load.product}</p>
+                                                    <p className="text-xs text-ink-muted mt-1">
                                                         Cargado en el día: {load.quantity} unid.
                                                         {load.loads > 1 && ` (${load.loads} cargas)`}
                                                     </p>
                                                 </div>
                                                 <div className="text-right">
-                                                    <p className="font-semibold text-slate-900 text-sm">
+                                                    <p className="font-semibold text-ink text-sm">
                                                         {sold} vendidos
                                                     </p>
-                                                    <p className="text-xs text-slate-500 mt-1">
+                                                    <p className="text-xs text-ink-muted mt-1">
                                                         Vuelven: {remaining} unid.
                                                     </p>
                                                 </div>
