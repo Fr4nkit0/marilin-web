@@ -64,7 +64,7 @@ export default function Index({ items, filters, drivers }: Props) {
             </div>
 
             {/* Filters */}
-            <div className="bg-canvas/80 backdrop-blur-md rounded-2xl p-4 mb-6 shadow-sm border border-hairline/60 glass">
+            <div className="bg-canvas/80 backdrop-blur-md rounded-2xl p-4 mb-6 shadow-sm border border-hairline/60 ">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-12 items-end">
                     <label className="sm:col-span-3 text-xs font-medium text-ink-muted">
                         Repartidor
@@ -134,7 +134,7 @@ export default function Index({ items, filters, drivers }: Props) {
             </div>
 
             {/* List */}
-            <div className="bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden glass">
+            <div className="bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden ">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
                         <thead className="bg-canvas/80 backdrop-blur-md border-b border-hairline text-ink-muted">

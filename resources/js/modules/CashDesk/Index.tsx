@@ -79,7 +79,7 @@ export default function CashCloseIndex({
             />
 
             {/* Drivers Selection Toolbar */}
-            <div className="bg-canvas border border-hairline/60 rounded-2xl p-4 mb-6 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 glass">
+            <div className="bg-canvas border border-hairline/60 rounded-2xl p-4 mb-6 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 ">
                 <div className="flex items-center gap-3 w-full sm:w-auto">
                     <span className="text-sm font-medium text-ink-muted whitespace-nowrap">
                         Chofer:
@@ -131,7 +131,7 @@ export default function CashCloseIndex({
             </div>
 
             {!settlement ? (
-                <div className="bg-canvas border border-hairline/60 rounded-2xl p-12 text-center text-ink-muted shadow-sm glass">
+                <div className="bg-canvas border border-hairline/60 rounded-2xl p-12 text-center text-ink-muted shadow-sm ">
                     <AlertCircle className="w-12 h-12 mx-auto text-ink-subtle mb-3" />
                     <h3 className="text-lg font-semibold text-ink">Sin ruta para liquidar</h3>
                     <p className="text-sm text-ink-muted mt-2">
@@ -179,7 +179,7 @@ export default function CashCloseIndex({
                     {/* Reconciliation Breakdown: Money & Physical Stock */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {/* Money Reconciliation Box */}
-                        <div className="bg-canvas border border-hairline/60 rounded-2xl p-6 shadow-sm glass">
+                        <div className="bg-canvas border border-hairline/60 rounded-2xl p-6 shadow-sm ">
                             <h3 className="text-base font-semibold text-ink mb-6 flex items-center justify-between">
                                 <span>Arqueo Monetario de la Jornada</span>
                                 <StatusBadge status={settlement.status} />
@@ -206,7 +206,7 @@ export default function CashCloseIndex({
                         </div>
 
                         {/* Inventory Reconciliation Box */}
-                        <div className="bg-canvas border border-hairline/60 rounded-2xl p-6 shadow-sm glass">
+                        <div className="bg-canvas border border-hairline/60 rounded-2xl p-6 shadow-sm ">
                             <h3 className="text-base font-semibold text-ink mb-6 flex items-center justify-between">
                                 <span>Inventario de ruta y envases</span>
                                 <Package className="w-5 h-5 text-ink-subtle" />
@@ -225,7 +225,7 @@ export default function CashCloseIndex({
                                         return (
                                             <div
                                                 key={idx}
-                                                className="p-4 bg-canvas border border-hairline/60 rounded-xl flex items-center justify-between shadow-sm transition-all hover:bg-canvas-soft/50 glass"
+                                                className="p-4 bg-canvas border border-hairline/60 rounded-xl flex items-center justify-between shadow-sm transition-all hover:bg-canvas-soft/50 "
                                             >
                                                 <div>
                                                     <p className="font-medium text-ink text-sm">{load.product}</p>

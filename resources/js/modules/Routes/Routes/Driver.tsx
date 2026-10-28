@@ -83,7 +83,7 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
             </div>
 
             {/* Driver Profile Header Card - Impeccable Cloud */}
-            <div className="bg-canvas/80 backdrop-blur-md rounded-2xl p-6 mb-6 shadow-sm border border-hairline/60 glass">
+            <div className="bg-canvas/80 backdrop-blur-md rounded-2xl p-6 mb-6 shadow-sm border border-hairline/60 ">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div className="flex items-start gap-4">
                         <div className="w-14 h-14 rounded-lg bg-surface-1 text-ink-secondary shadow-sm flex items-center justify-center text-xl font-medium">
@@ -150,7 +150,7 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
             ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Left: Stops Timeline Table (2 Cols) */}
-                    <div className="lg:col-span-2 bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden glass">
+                    <div className="lg:col-span-2 bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden ">
                         <div className="p-5 bg-canvas/80 backdrop-blur-md border-b border-hairline text-ink flex items-center justify-between">
                             <div>
                                 <h2 className="text-lg font-semibold text-ink tracking-wide">

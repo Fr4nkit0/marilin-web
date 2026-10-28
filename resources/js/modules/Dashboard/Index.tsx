@@ -161,7 +161,7 @@ export default function Dashboard({ metrics }: Props) {
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 
                 {/* Repartidores En Ruta Table */}
-                <div className="lg:col-span-3 bg-canvas rounded-2xl border border-hairline/60 shadow-sm overflow-hidden glass">
+                <div className="lg:col-span-3 bg-canvas rounded-2xl border border-hairline/60 shadow-sm overflow-hidden ">
                     <div className="px-6 py-5 border-b border-hairline flex items-center justify-between">
                         <h2 className="text-base font-semibold text-ink">
                             Repartidores en ruta
@@ -279,7 +279,7 @@ export default function Dashboard({ metrics }: Props) {
 
                 {/* Quick Actions (1 Col) */}
                 <div className="space-y-6">
-                    <div className="bg-canvas rounded-2xl border border-hairline/60 p-6 shadow-sm glass">
+                    <div className="bg-canvas rounded-2xl border border-hairline/60 p-6 shadow-sm ">
                         <h3 className="text-sm font-semibold text-ink mb-4">
                             Acciones rápidas
                         </h3>
@@ -308,7 +308,7 @@ export default function Dashboard({ metrics }: Props) {
                     </div>
 
                     {/* App sync status per driver */}
-                    <div className="bg-canvas rounded-2xl border border-hairline/60 p-6 shadow-sm glass">
+                    <div className="bg-canvas rounded-2xl border border-hairline/60 p-6 shadow-sm ">
                         <div className="flex items-center justify-between mb-3">
                             <span className="text-sm font-semibold text-ink">Sistema</span>
                             <div

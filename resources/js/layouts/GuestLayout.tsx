@@ -12,7 +12,7 @@ export default function Guest({ children }: PropsWithChildren) {
             <div className="w-full max-w-md">
 
 
-                <div className="bg-canvas px-8 py-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] sm:rounded-2xl border border-hairline/60 w-full glass">
+                <div className="bg-canvas px-8 py-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] sm:rounded-2xl border border-hairline/60 w-full ">
                     {children}
                 </div>
 

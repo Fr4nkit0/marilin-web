@@ -45,13 +45,3 @@
         background-attachment: fixed;
     }
 }
-
-/* Frosted glass for what floats over the page (cards, header, menus, modals): dark theme only. */
-@layer components {
-    .dark .glass {
-        background-color: rgb(255 255 255 / 0.045);
-        border-color: rgb(255 255 255 / 0.08);
-        @apply backdrop-blur-lg backdrop-saturate-150;
-        box-shadow: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 8px 32px rgb(0 0 0 / 0.35);
-    }
-}

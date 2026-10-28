@@ -171,7 +171,7 @@ export default function RoutesIndex({
             </div>
 
             {/* Filters Bar - Premium SaaS Style */}
-            <div className="bg-canvas border border-hairline/60 rounded-2xl p-4 mb-6 shadow-sm glass">
+            <div className="bg-canvas border border-hairline/60 rounded-2xl p-4 mb-6 shadow-sm ">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                     <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
                         {/* Date Picker */}
@@ -227,7 +227,7 @@ export default function RoutesIndex({
 
             {/* Routes List */}
             {routes.length === 0 ? (
-                <div className="bg-canvas border border-hairline/60 rounded-2xl p-12 text-center shadow-sm glass">
+                <div className="bg-canvas border border-hairline/60 rounded-2xl p-12 text-center shadow-sm ">
                     <Truck className="w-12 h-12 text-ink-subtle mx-auto mb-4" />
                     <h3 className="text-lg font-semibold text-ink">No hay rutas asignadas para esta fecha</h3>
                     <p className="text-sm text-ink-muted mt-2">
@@ -242,7 +242,7 @@ export default function RoutesIndex({
                         return (
                             <div
                                 key={routeItem.id}
-                                className="bg-canvas border border-hairline/60 rounded-2xl shadow-sm overflow-hidden transition-all duration-200 glass"
+                                className="bg-canvas border border-hairline/60 rounded-2xl shadow-sm overflow-hidden transition-all duration-200 "
                             >
                                 {/* Route Summary Header Card */}
                                 <div
@@ -353,7 +353,7 @@ export default function RoutesIndex({
                                                     {routeItem.routeStock.map((stock) => (
                                                         <div
                                                             key={stock.productId}
-                                                            className="bg-canvas border border-hairline/60 rounded-xl p-4 flex items-center justify-between shadow-sm glass"
+                                                            className="bg-canvas border border-hairline/60 rounded-xl p-4 flex items-center justify-between shadow-sm "
                                                         >
                                                             <div>
                                                                 <p className="text-sm font-medium text-ink">
@@ -375,7 +375,7 @@ export default function RoutesIndex({
                                             )}
 
                                             {routeItem.loadHistory.length > 0 && (
-                                                <div className="bg-canvas border border-hairline/60 rounded-xl shadow-sm overflow-hidden glass">
+                                                <div className="bg-canvas border border-hairline/60 rounded-xl shadow-sm overflow-hidden ">
                                                     <table className="w-full text-left text-sm">
                                                         <thead className="border-b border-hairline text-ink-muted">
                                                             <tr>
@@ -417,7 +417,7 @@ export default function RoutesIndex({
                                                 Hoja de Ruta y Paradas ({routeItem.stops.length})
                                             </h4>
 
-                                            <div className="bg-canvas border border-hairline/60 rounded-xl overflow-hidden shadow-sm glass">
+                                            <div className="bg-canvas border border-hairline/60 rounded-xl overflow-hidden shadow-sm ">
                                                 <table className="w-full text-left text-sm">
                                                     <thead className="bg-canvas-soft/80 backdrop-blur-md text-ink-muted font-medium text-xs border-b border-hairline/60">
                                                         <tr>

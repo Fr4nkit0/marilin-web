@@ -172,7 +172,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
             </div>
 
             {/* Filters Bar */}
-            <div className="bg-canvas/80 backdrop-blur-md rounded-2xl p-4 mb-6 shadow-sm border border-hairline/60 glass">
+            <div className="bg-canvas/80 backdrop-blur-md rounded-2xl p-4 mb-6 shadow-sm border border-hairline/60 ">
                 <form onSubmit={handleSearch} className="grid grid-cols-1 gap-4 sm:grid-cols-12 items-center">
                     {/* Search Input */}
                     <div className="sm:col-span-6 relative">
@@ -218,7 +218,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
             </div>
 
             {/* Customers Table */}
-            <div className="bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden glass">
+            <div className="bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden ">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm whitespace-nowrap">
                         <thead className="bg-canvas/80 backdrop-blur-md border-b border-hairline text-ink-muted">
@@ -350,12 +350,12 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
                     {/* Backdrop */}
                     <div
-                        className="fixed inset-0 bg-gray-900/80 backdrop-blur-none transition-opacity"
+                        className="fixed inset-0 bg-gray-900/80 dark:bg-black/70 backdrop-blur-none transition-opacity"
                         onClick={() => setIsCreateModalOpen(false)}
                     />
 
                     {/* Modal Card */}
-                    <div className="relative bg-canvas rounded-2xl shadow-xl border border-hairline/60 max-w-lg w-full overflow-hidden z-10 my-8 glass">
+                    <div className="relative bg-canvas rounded-2xl shadow-xl border border-hairline/60 max-w-lg w-full overflow-hidden z-10 my-8 ">
                         <div className="bg-canvas/80 backdrop-blur-md border-b border-hairline p-5 text-ink flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-lg bg-surface-1 text-ink flex items-center justify-center">
@@ -576,12 +576,12 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
                     {/* Backdrop */}
                     <div
-                        className="fixed inset-0 bg-gray-900/80 backdrop-blur-none transition-opacity"
+                        className="fixed inset-0 bg-gray-900/80 dark:bg-black/70 backdrop-blur-none transition-opacity"
                         onClick={() => setEditingCustomer(null)}
                     />
 
                     {/* Modal Card */}
-                    <div className="relative bg-canvas rounded-2xl shadow-xl border border-hairline/60 max-w-lg w-full overflow-hidden z-10 my-8 glass">
+                    <div className="relative bg-canvas rounded-2xl shadow-xl border border-hairline/60 max-w-lg w-full overflow-hidden z-10 my-8 ">
                         <div className="bg-canvas/80 backdrop-blur-md border-b border-hairline p-5 text-ink flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-lg bg-surface-1 text-ink flex items-center justify-center">

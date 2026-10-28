@@ -1,7 +1,7 @@
 import { forwardRef, type InputHTMLAttributes, type LabelHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
 
 const CONTROL =
-    'w-full h-10 px-3 rounded-md border border-hairline bg-canvas text-sm text-ink placeholder-ink-subtle shadow-sm ' +
+    'w-full h-10 px-3 rounded-md border border-hairline bg-canvas dark:bg-canvas-soft text-sm text-ink placeholder-ink-subtle shadow-sm ' +
     'focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 disabled:bg-canvas-soft disabled:text-ink-muted';
 
 const INVALID = 'border-rose-400 focus:ring-rose-600/20 focus:border-rose-600';

@@ -381,7 +381,7 @@ The web follows the system theme unless the user picks Claro or Oscuro in the us
 | `ink` / `ink-secondary` / `ink-muted` / `ink-subtle` | slate 900/700/500/400 | `#f4f5f7` / `#c9cdd4` / `#8b929c` / `#5e6570` |
 | `hairline` / `hairline-strong` | slate 200/300 | `#262b33` / `#353b45` |
 
-The dark theme is a near-black neutral (no blue tint) with a soft sky/cyan glow fixed behind the page. What floats over it — cards, the header, the sidebar, menus and modals — carries the `glass` class: in dark it is frosted glass (white 4.5 %, white 8 % border, 16px backdrop blur); in light it does nothing. Tables and long lists stay solid. Primary buttons are sky-600 in light and a sky-500 → cyan-500 gradient in dark. Status tints keep their light classes and add a dark variant: `bg-*-500/15`, `text-*-300`, `border-*-500/30`.
+The dark theme is a near-black neutral (no blue tint) with a soft sky/cyan glow fixed behind the page. Cards, menus and modals are solid `canvas` (#15181d) — frosted glass was tried and dropped: menus and modals let the content behind them through. Modal backdrops are black in dark; inputs sit on `canvas-soft`, recessed into the card. Primary buttons are sky-600 in light and a sky-500 → cyan-500 gradient in dark. Status tints keep their light classes and add a dark variant: `bg-*-500/15`, `text-*-300`, `border-*-500/30`.
 
 ## Typography
 
