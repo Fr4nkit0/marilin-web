@@ -2,8 +2,8 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import { PageProps } from '@/types';
 import { Head } from '@inertiajs/react';
 
-import UpdatePasswordForm from './Partials/UpdatePasswordForm';
-import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm';
+import UpdatePasswordForm from './components/UpdatePasswordForm';
+import UpdateProfileInformationForm from './components/UpdateProfileInformationForm';
 
 export default function Edit({
     mustVerifyEmail,

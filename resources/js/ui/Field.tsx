@@ -1,4 +1,4 @@
-import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react';
+import { forwardRef, type InputHTMLAttributes, type LabelHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
 
 const CONTROL =
     'w-full h-10 px-3 rounded-md border border-slate-200 bg-white text-sm text-slate-900 placeholder-slate-400 shadow-sm ' +
@@ -18,20 +18,44 @@ interface FieldProps {
 export function Field({ label, htmlFor, error, hint, children }: FieldProps) {
     return (
         <div className="space-y-1.5">
-            <label htmlFor={htmlFor} className="block text-sm font-medium text-slate-700">
-                {label}
-            </label>
+            <Label htmlFor={htmlFor}>{label}</Label>
             {children}
             {hint && !error ? <p className="text-xs text-slate-500">{hint}</p> : null}
-            {error ? <p className="text-xs text-rose-600">{error}</p> : null}
+            <FieldError message={error} />
         </div>
     );
 }
 
 type Invalid = { invalid?: boolean };
 
-export function Input({ invalid, className = '', ...rest }: InputHTMLAttributes<HTMLInputElement> & Invalid) {
-    return <input aria-invalid={invalid || undefined} className={`${CONTROL} ${invalid ? INVALID : ''} ${className}`.trim()} {...rest} />;
+export function Label({ value, className = '', children, ...rest }: LabelHTMLAttributes<HTMLLabelElement> & { value?: ReactNode }) {
+    return (
+        <label className={`block text-sm font-medium text-slate-700 ${className}`.trim()} {...rest}>
+            {value ?? children}
+        </label>
+    );
+}
+
+/** A validation message under a control; nothing when there is no message. */
+export function FieldError({ message, className = '' }: { message?: string; className?: string }) {
+    return message ? <p className={`text-xs text-rose-600 ${className}`.trim()}>{message}</p> : null;
+}
+
+export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement> & Invalid>(function Input(
+    { invalid, className = '', ...rest },
+    ref,
+) {
+    return <input ref={ref} aria-invalid={invalid || undefined} className={`${CONTROL} ${invalid ? INVALID : ''} ${className}`.trim()} {...rest} />;
+});
+
+export function Checkbox({ className = '', ...rest }: InputHTMLAttributes<HTMLInputElement>) {
+    return (
+        <input
+            type="checkbox"
+            className={`h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600 ${className}`.trim()}
+            {...rest}
+        />
+    );
 }
 
 export function Select({ invalid, className = '', ...rest }: SelectHTMLAttributes<HTMLSelectElement> & Invalid) {

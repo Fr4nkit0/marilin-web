@@ -50,7 +50,7 @@ test('the users page lists only driver accounts, never admins', function (): voi
         ->get(route('users.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('Users/Index')
+            ->component('Accounts/Users')
             ->has('users', 2)
             ->where('users.0.id', $off->id)
             ->where('users.0.enabled', false)

@@ -1,8 +1,8 @@
 import React from 'react';
 import { Head } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import ProductPriceRow from '@/Components/ProductPriceRow';
-import { ProductItem } from '@/types/product';
+import ProductPriceRow from './components/ProductPriceRow';
+import { ProductItem } from '@/modules/Catalog/types';
 
 interface Props {
     products: ProductItem[];

@@ -1,11 +1,8 @@
-import Checkbox from '@/Components/Checkbox';
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
+import Button from '@/ui/Button';
+import { Checkbox, FieldError, Input, Label } from '@/ui/Field';
 
 export default function Login({
     status,
@@ -45,26 +42,26 @@ export default function Login({
 
             <form onSubmit={submit} className="space-y-6">
                 <div>
-                    <InputLabel htmlFor="email" value="Correo electrónico" className="text-slate-700 font-medium" />
+                    <Label htmlFor="email" value="Correo electrónico" className="text-slate-700 font-medium" />
 
-                    <TextInput
+                    <Input
                         id="email"
                         type="email"
                         name="email"
                         value={data.email}
                         className="mt-2 block w-full transition-all border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 rounded-lg shadow-sm"
                         autoComplete="username"
-                        isFocused={true}
+                        autoFocus
                         onChange={(e) => setData('email', e.target.value)}
                         placeholder="ejemplo@marilin.com"
                     />
 
-                    <InputError message={errors.email} className="mt-2" />
+                    <FieldError message={errors.email} className="mt-2" />
                 </div>
 
                 <div>
                     <div className="flex items-center justify-between">
-                        <InputLabel htmlFor="password" value="Contraseña" className="text-slate-700 font-medium" />
+                        <Label htmlFor="password" value="Contraseña" className="text-slate-700 font-medium" />
                         {canResetPassword && (
                             <Link
                                 href={route('password.request')}
@@ -75,7 +72,7 @@ export default function Login({
                         )}
                     </div>
 
-                    <TextInput
+                    <Input
                         id="password"
                         type="password"
                         name="password"
@@ -86,7 +83,7 @@ export default function Login({
                         placeholder="••••••••"
                     />
 
-                    <InputError message={errors.password} className="mt-2" />
+                    <FieldError message={errors.password} className="mt-2" />
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -108,9 +105,9 @@ export default function Login({
                     </label>
                 </div>
 
-                <PrimaryButton className="w-full justify-center py-3 text-base" disabled={processing}>
+                <Button type="submit" className="w-full justify-center py-3 text-base" processing={processing}>
                     Iniciar sesión
-                </PrimaryButton>
+                </Button>
             </form>
         </GuestLayout>
     );

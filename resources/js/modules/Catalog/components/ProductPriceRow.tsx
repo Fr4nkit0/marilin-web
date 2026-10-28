@@ -2,7 +2,7 @@ import React from 'react';
 import { useForm } from '@inertiajs/react';
 import { Save } from 'lucide-react';
 import { StatusBadge } from '@/ui/Badge';
-import { ProductItem } from '@/types/product';
+import { ProductItem } from '@/modules/Catalog/types';
 
 interface Props {
     product: ProductItem;

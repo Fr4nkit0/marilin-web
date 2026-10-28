@@ -3,10 +3,10 @@ import { Head } from '@inertiajs/react';
 import { useListFilters } from '@/lib/useListFilters';
 import { KeyRound, Pencil, Plus, Power, Search } from 'lucide-react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import DriverAccountFormModal from '@/Components/DriverAccountFormModal';
-import DriverPasswordModal from '@/Components/DriverPasswordModal';
-import DriverStatusModal from '@/Components/DriverStatusModal';
-import { DriverAccount, DriverAccountStatusFilter } from '@/types/user-account';
+import DriverAccountFormModal from './components/DriverAccountFormModal';
+import DriverPasswordModal from './components/DriverPasswordModal';
+import DriverStatusModal from './components/DriverStatusModal';
+import { DriverAccount, DriverAccountStatusFilter } from '@/modules/Accounts/types';
 
 interface Props {
     users: DriverAccount[];

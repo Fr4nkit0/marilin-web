@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { router } from '@inertiajs/react';
 import Modal from '@/ui/Modal';
-import { DriverAccount } from '@/types/user-account';
+import { DriverAccount } from '@/modules/Accounts/types';
 
 interface Props {
     account: DriverAccount | null;

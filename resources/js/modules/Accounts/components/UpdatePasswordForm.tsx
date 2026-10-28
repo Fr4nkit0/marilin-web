@@ -1,10 +1,8 @@
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
 import { Transition } from '@headlessui/react';
 import { useForm } from '@inertiajs/react';
 import { FormEventHandler, useRef } from 'react';
+import Button from '@/ui/Button';
+import { FieldError, Input, Label } from '@/ui/Field';
 
 export default function UpdatePasswordForm({
     className = '',
@@ -52,13 +50,13 @@ export default function UpdatePasswordForm({
         <section className={className}>
             <form onSubmit={updatePassword} className="space-y-6">
                 <div>
-                    <InputLabel
+                    <Label
                         htmlFor="current_password"
                         value="Contraseña actual"
                         className="text-slate-700 font-medium"
                     />
 
-                    <TextInput
+                    <Input
                         id="current_password"
                         ref={currentPasswordInput}
                         value={data.current_password}
@@ -70,16 +68,16 @@ export default function UpdatePasswordForm({
                         autoComplete="current-password"
                     />
 
-                    <InputError
+                    <FieldError
                         message={errors.current_password}
                         className="mt-2"
                     />
                 </div>
 
                 <div>
-                    <InputLabel htmlFor="password" value="Nueva contraseña" className="text-slate-700 font-medium" />
+                    <Label htmlFor="password" value="Nueva contraseña" className="text-slate-700 font-medium" />
 
-                    <TextInput
+                    <Input
                         id="password"
                         ref={passwordInput}
                         value={data.password}
@@ -89,17 +87,17 @@ export default function UpdatePasswordForm({
                         autoComplete="new-password"
                     />
 
-                    <InputError message={errors.password} className="mt-2" />
+                    <FieldError message={errors.password} className="mt-2" />
                 </div>
 
                 <div>
-                    <InputLabel
+                    <Label
                         htmlFor="password_confirmation"
                         value="Confirmar contraseña"
                         className="text-slate-700 font-medium"
                     />
 
-                    <TextInput
+                    <Input
                         id="password_confirmation"
                         value={data.password_confirmation}
                         onChange={(e) =>
@@ -110,14 +108,14 @@ export default function UpdatePasswordForm({
                         autoComplete="new-password"
                     />
 
-                    <InputError
+                    <FieldError
                         message={errors.password_confirmation}
                         className="mt-2"
                     />
                 </div>
 
                 <div className="flex items-center gap-4">
-                    <PrimaryButton disabled={processing}>Guardar</PrimaryButton>
+                    <Button type="submit" processing={processing}>Guardar</Button>
 
                     <Transition
                         show={recentlySuccessful}

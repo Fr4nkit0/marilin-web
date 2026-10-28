@@ -1,10 +1,8 @@
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
 import { Transition } from '@headlessui/react';
 import { Link, useForm, usePage } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
+import Button from '@/ui/Button';
+import { FieldError, Input, Label } from '@/ui/Field';
 
 export default function UpdateProfileInformation({
     mustVerifyEmail,
@@ -33,25 +31,25 @@ export default function UpdateProfileInformation({
         <section className={className}>
             <form onSubmit={submit} className="space-y-6">
                 <div>
-                    <InputLabel htmlFor="name" value="Nombre" className="text-slate-700 font-medium" />
+                    <Label htmlFor="name" value="Nombre" className="text-slate-700 font-medium" />
 
-                    <TextInput
+                    <Input
                         id="name"
                         className="mt-2 block w-full transition-all border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 rounded-lg shadow-sm"
                         value={data.name}
                         onChange={(e) => setData('name', e.target.value)}
                         required
-                        isFocused
+                        autoFocus
                         autoComplete="name"
                     />
 
-                    <InputError className="mt-2" message={errors.name} />
+                    <FieldError className="mt-2" message={errors.name} />
                 </div>
 
                 <div>
-                    <InputLabel htmlFor="email" value="Correo electrónico" className="text-slate-700 font-medium" />
+                    <Label htmlFor="email" value="Correo electrónico" className="text-slate-700 font-medium" />
 
-                    <TextInput
+                    <Input
                         id="email"
                         type="email"
                         className="mt-2 block w-full transition-all border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 rounded-lg shadow-sm"
@@ -61,7 +59,7 @@ export default function UpdateProfileInformation({
                         autoComplete="username"
                     />
 
-                    <InputError className="mt-2" message={errors.email} />
+                    <FieldError className="mt-2" message={errors.email} />
                 </div>
 
                 {mustVerifyEmail && user.email_verified_at === null && (
@@ -87,7 +85,7 @@ export default function UpdateProfileInformation({
                 )}
 
                 <div className="flex items-center gap-4">
-                    <PrimaryButton disabled={processing}>Guardar</PrimaryButton>
+                    <Button type="submit" processing={processing}>Guardar</Button>
 
                     <Transition
                         show={recentlySuccessful}

@@ -2,7 +2,7 @@ import React, { FormEvent, useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
 import { X } from 'lucide-react';
 import Modal from '@/ui/Modal';
-import { DriverAccount } from '@/types/user-account';
+import { DriverAccount } from '@/modules/Accounts/types';
 
 interface Props {
     show: boolean;
