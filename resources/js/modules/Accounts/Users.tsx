@@ -63,7 +63,7 @@ export default function Index({ users, filters }: Props) {
                 <button
                     type="button"
                     onClick={openCreate}
-                    className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-slate-900 hover:bg-slate-800 cursor-pointer"
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 cursor-pointer"
                 >
                     <Plus className="w-4 h-4" />
                     Nuevo repartidor
@@ -79,7 +79,7 @@ export default function Index({ users, filters }: Props) {
                         onChange={(e) => filter.draft('search', e.target.value)}
                         placeholder="Buscar por nombre, email o usuario"
                         aria-label="Buscar usuarios"
-                        className="w-full py-2 pl-9 pr-3 text-sm border border-gray-200/60 bg-white text-slate-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-slate-900"
+                        className="w-full py-2 pl-9 pr-3 text-sm border border-gray-200/60 bg-white text-slate-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600"
                     />
                 </form>
                 <div className="flex gap-1 rounded-lg bg-slate-100 p-1" role="group" aria-label="Filtrar por estado">

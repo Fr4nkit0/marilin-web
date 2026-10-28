@@ -19,7 +19,7 @@ export function StatusBadge({ status, label, className = '' }: StatusBadgeProps)
         case 'en_ruta':
         case 'in_progress':
         case 'en_progreso':
-            badgeClass = 'bg-indigo-50 text-indigo-700 border-indigo-200/60';
+            badgeClass = 'bg-sky-50 text-sky-700 border-sky-200/60';
             text = label || 'En ruta';
             break;
         case 'finalizado':

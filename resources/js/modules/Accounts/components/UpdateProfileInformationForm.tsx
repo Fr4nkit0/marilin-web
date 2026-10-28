@@ -35,7 +35,7 @@ export default function UpdateProfileInformation({
 
                     <Input
                         id="name"
-                        className="mt-2 block w-full transition-all border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 rounded-lg shadow-sm"
+                        className="mt-2 block w-full transition-all border-gray-200 focus:border-sky-500 focus:ring-sky-500 rounded-lg shadow-sm"
                         value={data.name}
                         onChange={(e) => setData('name', e.target.value)}
                         required
@@ -52,7 +52,7 @@ export default function UpdateProfileInformation({
                     <Input
                         id="email"
                         type="email"
-                        className="mt-2 block w-full transition-all border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 rounded-lg shadow-sm"
+                        className="mt-2 block w-full transition-all border-gray-200 focus:border-sky-500 focus:ring-sky-500 rounded-lg shadow-sm"
                         value={data.email}
                         onChange={(e) => setData('email', e.target.value)}
                         required
@@ -70,7 +70,7 @@ export default function UpdateProfileInformation({
                                 href={route('verification.send')}
                                 method="post"
                                 as="button"
-                                className="rounded-md text-sm text-indigo-600 underline hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ml-1"
+                                className="rounded-md text-sm text-sky-600 underline hover:text-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 ml-1"
                             >
                                 Hacé clic acá para reenviar el correo de verificación.
                             </Link>

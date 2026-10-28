@@ -38,7 +38,7 @@ export default function ProductPriceRow({ product }: Props) {
                                 value={data.price}
                                 onChange={(e) => setData('price', e.target.value)}
                                 aria-label={`Precio de lista de ${product.name}`}
-                                className="w-36 py-2 pl-7 pr-3 text-sm text-right border border-gray-200/60 bg-white text-slate-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-slate-900 font-medium"
+                                className="w-36 py-2 pl-7 pr-3 text-sm text-right border border-gray-200/60 bg-white text-slate-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 font-medium"
                             />
                         </div>
                         {errors.price && <p className="text-xs text-red-600 mt-1">{errors.price}</p>}
@@ -46,7 +46,7 @@ export default function ProductPriceRow({ product }: Props) {
                     <button
                         type="submit"
                         disabled={processing || !isDirty}
-                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-slate-900 text-white hover:bg-slate-800 font-medium transition text-xs shadow-sm cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-sky-600 text-white hover:bg-sky-700 font-medium transition text-xs shadow-sm cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                         <Save className="w-3.5 h-3.5" />
                         Guardar

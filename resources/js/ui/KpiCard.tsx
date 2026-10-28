@@ -28,7 +28,7 @@ export function KpiCard({
     onClick,
 }: KpiCardProps) {
     const iconColors = {
-        primary: 'bg-indigo-50 text-indigo-600 border border-indigo-100',
+        primary: 'bg-sky-50 text-sky-600 border border-sky-100',
         accent: 'bg-orange-50 text-orange-600 border border-orange-100',
         success: 'bg-emerald-50 text-emerald-600 border border-emerald-100',
         amber: 'bg-amber-50 text-amber-600 border border-amber-100',
@@ -42,7 +42,7 @@ export function KpiCard({
             {...(onClick ? { type: 'button' as const, onClick } : {})}
             className={`bg-white rounded-2xl border border-gray-200/60 p-5 shadow-sm transition-shadow hover:shadow-md ${
                 onClick
-                    ? 'w-full text-left cursor-pointer hover:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-600/30'
+                    ? 'w-full text-left cursor-pointer hover:border-sky-300 focus:outline-none focus:ring-2 focus:ring-sky-600/30'
                     : ''
             } ${className}`}
         >
@@ -80,7 +80,7 @@ export function KpiCard({
             {(subtitle || trend?.label) && (
                 <p className="mt-2 text-xs text-slate-400">{subtitle || trend?.label}</p>
             )}
-            {onClick && <p className="mt-3 text-xs font-medium text-indigo-600">Ver detalle →</p>}
+            {onClick && <p className="mt-3 text-xs font-medium text-sky-600">Ver detalle →</p>}
         </Wrapper>
     );
 }

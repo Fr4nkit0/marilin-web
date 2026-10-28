@@ -10,7 +10,7 @@ interface Props {
 }
 
 const inputClass =
-    'w-full py-2 px-3 text-sm border border-gray-200/60 bg-white text-slate-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-slate-900';
+    'w-full py-2 px-3 text-sm border border-gray-200/60 bg-white text-slate-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600';
 
 export default function DriverPasswordModal({ account, onClose }: Props) {
     const { data, setData, patch, processing, errors, reset, clearErrors } = useForm({
@@ -84,7 +84,7 @@ export default function DriverPasswordModal({ account, onClose }: Props) {
                     <button
                         type="submit"
                         disabled={processing}
-                        className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                        className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                     >
                         Cambiar contraseña
                     </button>

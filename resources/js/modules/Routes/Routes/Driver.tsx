@@ -164,7 +164,7 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
                             <div className="w-48">
                                 <div className="w-full h-2.5 bg-slate-100 rounded-lg overflow-hidden">
                                     <div
-                                        className="h-full bg-slate-900 rounded-lg transition-all duration-300"
+                                        className="h-full bg-sky-600 rounded-lg transition-all duration-300"
                                         style={{ width: `${progressPercent}%` }}
                                     />
                                 </div>

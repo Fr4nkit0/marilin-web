@@ -87,7 +87,7 @@ export default function CashCloseIndex({
                     <select
                         value={selectedId}
                         onChange={(e) => handleSelectRepartidor(e.target.value)}
-                        className="py-2 px-3 text-sm font-medium border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent bg-white text-slate-900 shadow-sm transition-all min-w-[200px]"
+                        className="py-2 px-3 text-sm font-medium border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-white text-slate-900 shadow-sm transition-all min-w-[200px]"
                     >
                         {repartidores.map((rep) => (
                             <option key={rep.id} value={rep.id}>
@@ -106,7 +106,7 @@ export default function CashCloseIndex({
                         value={selectedDate}
                         onChange={(e) => handleDateChange(e.target.value)}
                         style={{ colorScheme: 'light' }}
-                        className="py-2 px-3 text-sm font-medium border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent bg-white text-slate-900 shadow-sm transition-all"
+                        className="py-2 px-3 text-sm font-medium border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-white text-slate-900 shadow-sm transition-all"
                     />
                 </div>
 
@@ -114,14 +114,14 @@ export default function CashCloseIndex({
                     <div className="flex items-center gap-2 w-full sm:w-auto">
                         <a
                             href={exportUrl('pdf')}
-                            className="inline-flex items-center gap-2 py-2 px-3 text-sm font-medium border border-gray-200/60 rounded-lg bg-white text-slate-700 shadow-sm transition-all hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                            className="inline-flex items-center gap-2 py-2 px-3 text-sm font-medium border border-gray-200/60 rounded-lg bg-white text-slate-700 shadow-sm transition-all hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-sky-600"
                         >
                             <FileText className="w-4 h-4" aria-hidden="true" />
                             Descargar PDF
                         </a>
                         <a
                             href={exportUrl('xlsx')}
-                            className="inline-flex items-center gap-2 py-2 px-3 text-sm font-medium border border-gray-200/60 rounded-lg bg-white text-slate-700 shadow-sm transition-all hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                            className="inline-flex items-center gap-2 py-2 px-3 text-sm font-medium border border-gray-200/60 rounded-lg bg-white text-slate-700 shadow-sm transition-all hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-sky-600"
                         >
                             <FileSpreadsheet className="w-4 h-4" aria-hidden="true" />
                             Descargar Excel

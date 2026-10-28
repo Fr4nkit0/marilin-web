@@ -156,7 +156,7 @@ export default function PaymentsIndex({ payments, metrics, filters, paymentMetho
                             value={filter.values.search}
                             onChange={(e) => filter.draft('search', e.target.value)}
                             placeholder="Buscar por cliente..."
-                            className="w-full pl-9 pr-4 py-2 text-sm font-medium border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent bg-white text-slate-900 placeholder-gray-400 shadow-sm transition-all"
+                            className="w-full pl-9 pr-4 py-2 text-sm font-medium border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-white text-slate-900 placeholder-gray-400 shadow-sm transition-all"
                         />
                     </div>
 
@@ -167,7 +167,7 @@ export default function PaymentsIndex({ payments, metrics, filters, paymentMetho
                             value={filter.values.date}
                             onChange={(e) => filter.set('date', e.target.value)}
                             style={{ colorScheme: 'light' }}
-                            className="w-full py-2 px-3 text-sm font-medium border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent bg-white text-slate-900 shadow-sm transition-all"
+                            className="w-full py-2 px-3 text-sm font-medium border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-white text-slate-900 shadow-sm transition-all"
                         />
                     </div>
 
@@ -176,7 +176,7 @@ export default function PaymentsIndex({ payments, metrics, filters, paymentMetho
                         <select
                             value={filter.values.payment_method_id}
                             onChange={(e) => filter.set('payment_method_id', e.target.value)}
-                            className="w-full py-2 px-3 text-sm font-medium border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent bg-white text-slate-900 shadow-sm transition-all"
+                            className="w-full py-2 px-3 text-sm font-medium border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-white text-slate-900 shadow-sm transition-all"
                         >
                             <option value="">Todos los métodos</option>
                             {paymentMethods.map((pm) => (
@@ -192,7 +192,7 @@ export default function PaymentsIndex({ payments, metrics, filters, paymentMetho
                         <select
                             value={filter.values.status}
                             onChange={(e) => filter.set('status', e.target.value)}
-                            className="w-full py-2 px-3 text-sm font-medium border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent bg-white text-slate-900 shadow-sm transition-all"
+                            className="w-full py-2 px-3 text-sm font-medium border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-white text-slate-900 shadow-sm transition-all"
                         >
                             <option value="all">Todos los estados</option>
                             <option value="CONFIRMED">Confirmados</option>

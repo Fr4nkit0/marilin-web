@@ -2,7 +2,7 @@ import { forwardRef, type InputHTMLAttributes, type LabelHTMLAttributes, type Re
 
 const CONTROL =
     'w-full h-10 px-3 rounded-md border border-slate-200 bg-white text-sm text-slate-900 placeholder-slate-400 shadow-sm ' +
-    'focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 disabled:bg-slate-50 disabled:text-slate-500';
+    'focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 disabled:bg-slate-50 disabled:text-slate-500';
 
 const INVALID = 'border-rose-400 focus:ring-rose-600/20 focus:border-rose-600';
 
@@ -52,7 +52,7 @@ export function Checkbox({ className = '', ...rest }: InputHTMLAttributes<HTMLIn
     return (
         <input
             type="checkbox"
-            className={`h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600 ${className}`.trim()}
+            className={`h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-600 ${className}`.trim()}
             {...rest}
         />
     );

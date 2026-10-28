@@ -21,8 +21,8 @@ describe('Button', () => {
         expect(button.getAttribute('aria-busy')).toBe('true');
     });
 
-    it('primary actions are slate-900, the design system primary', () => {
-        expect(buttonClass('primary')).toContain('bg-slate-900');
+    it('primary actions are sky-600, the design system primary', () => {
+        expect(buttonClass('primary')).toContain('bg-sky-600');
         expect(buttonClass('danger')).toContain('bg-rose-600');
         expect(buttonClass('secondary')).toContain('bg-white');
     });
