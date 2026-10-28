@@ -43,7 +43,7 @@ test('the daily task flags a rescheduled stop whose day ended without a visit an
     $original = stopOn('2026-10-22');
     $unvisited = stopOn('2026-10-22', $original);
     $visited = stopOn('2026-10-22', $original);
-    Visit::factory()->create(['route_stop_id' => $visited->id, 'customer_id' => $this->customer->id, 'driver_id' => $this->driver->id]);
+    Visit::factory()->finished()->create(['route_stop_id' => $visited->id, 'customer_id' => $this->customer->id, 'driver_id' => $this->driver->id]);
     $today = stopOn('2026-10-23', $original);
     $notRescheduled = stopOn('2026-10-22');
 

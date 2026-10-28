@@ -8,15 +8,15 @@ use App\Models\Customer;
 use App\Models\Driver;
 use App\Models\Payment;
 use App\Models\Sale;
-use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Visit;
-use App\Services\CustomerLedger;
+use App\Operations\RecordPayment;
+use App\Operations\StreetOperation;
 use App\Support\ClientTime;
 
 class PaymentPusher extends EntityPusher
 {
-    public function __construct(private readonly CustomerLedger $ledger) {}
+    public function __construct(private readonly StreetOperation $operation) {}
 
     protected function rules(): array
     {
@@ -46,23 +46,17 @@ class PaymentPusher extends EntityPusher
 
         $reason = $this->reviewReasonForCustomer($customer, $driver);
 
-        $transaction = Transaction::create(['type' => 'IN', 'amount' => $record['amount']]);
-
-        $payment = Payment::create([
-            'client_uuid' => $record['uuid'],
-            'transaction_id' => $transaction->id,
-            'customer_id' => $customer->id,
-            'visit_id' => $visit?->id,
-            'sale_id' => $sale?->id,
-            'payment_method_id' => $record['payment_method_id'],
-            'amount' => $record['amount'],
-            'received_by' => $user->id,
-            'paid_at' => ClientTime::parse($record['paid_at']),
-            'status' => 'CONFIRMED',
-            ...$this->reviewAttributes($reason),
-        ]);
-
-        $this->ledger->bookPayment($customer, $payment, $user);
+        $payment = $this->operation->recordPayment(new RecordPayment(
+            customer: $customer,
+            visit: $visit,
+            sale: $sale,
+            paymentMethodId: (int) $record['payment_method_id'],
+            amount: $record['amount'],
+            paidAt: ClientTime::parse($record['paid_at']),
+            receivedBy: $user,
+            clientUuid: $record['uuid'],
+            reviewReason: $reason,
+        ));
 
         return $this->accepted($record['uuid'], $payment->id, $reason?->value);
     }

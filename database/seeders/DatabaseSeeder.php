@@ -151,19 +151,6 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // Discontinued product: travels in the pull as disabled and never in the bootstrap.
-        Product::firstOrCreate(
-            ['name' => 'Bidón de Agua 12L'],
-            [
-                'description' => 'Presentación discontinuada',
-                'price' => 1400.00,
-                'requires_container' => true,
-                'container_type_id' => $bidon20L->id,
-                'available_quantity' => 0,
-                'enabled' => false,
-            ]
-        );
-
         // 4. Payment Methods (Standardized Codes)
         $cashMethod = PaymentMethod::firstOrCreate(
             ['code' => 'CASH'],

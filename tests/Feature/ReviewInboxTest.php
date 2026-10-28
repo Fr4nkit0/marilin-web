@@ -14,7 +14,7 @@ use App\Models\RouteStop;
 use App\Models\Sale;
 use App\Models\User;
 use App\Models\Visit;
-use App\Services\Sync\ReviewReason;
+use App\Review\ReviewReason;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;

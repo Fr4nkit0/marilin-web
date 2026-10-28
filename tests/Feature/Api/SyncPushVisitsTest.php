@@ -76,7 +76,7 @@ test('push creates a rescheduled stop in the same route with the chosen time and
         ->and($new->address_id)->toBe($this->address->id)
         ->and($new->is_rescheduled_from)->toBe($this->stop->id)
         ->and(substr((string) $new->scheduled_time, 0, 5))->toBe('16:00')
-        ->and($this->stop->fresh()->effectiveStatus())->toBe('RESCHEDULED');
+        ->and($this->stop->fresh()->effectiveStatus()->value)->toBe('RESCHEDULED');
 });
 
 test('push answers accepted with the same server id and creates nothing when a rescheduled stop is sent twice', function (): void {
@@ -291,3 +291,17 @@ test('push accepts a container movement on a customer of another driver or a dis
         ->and($movement->review_reason)->toBe($reason)
         ->and(CustomerContainerBalance::query()->where('customer_id', $customer->id)->firstOrFail()->balance)->toBe(5);
 })->with(['other driver' => ['other driver'], 'disabled' => ['disabled']]);
+
+test('push still accepts a numeric-string container type and quantity, as before the street operation', function (): void {
+    $this->containerType = ContainerType::factory()->create();
+    $payload = movementPayload(['container_type_id' => (string) $this->containerType->id, 'quantity' => '4']);
+
+    push(['container_movements' => [$payload]])
+        ->assertOk()
+        ->assertJsonPath('data.container_movements.0.status', 'accepted');
+
+    expect(CustomerContainerBalance::query()
+        ->where('customer_id', $this->customer->id)
+        ->where('container_type_id', $this->containerType->id)
+        ->firstOrFail()->balance)->toBe(4);
+});

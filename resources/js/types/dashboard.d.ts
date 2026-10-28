@@ -5,8 +5,16 @@ export interface RepartidorStatus {
     totalStops: number;
     completedStops: number;
     progressPercent: number;
+    totalSales: number;
+    totalCollected: number;
     startedAt?: string;
     completedAt?: string;
+}
+
+export interface CasaStatus {
+    name: string;
+    totalSales: number;
+    totalCollected: number;
 }
 
 export interface DashboardSaleRow {
@@ -32,7 +40,8 @@ export interface DashboardStopRow {
     driver: string | null;
     customer: string | null;
     time: string | null;
-    status: 'PENDING' | 'IN_PROGRESS' | 'FINISHED' | 'RESCHEDULED' | string;
+    status: 'PENDING' | 'IN_PROGRESS' | 'FINISHED' | 'CANCELLED' | 'RESCHEDULED';
+    done: boolean;
 }
 
 export interface DashboardContainerRow {
@@ -77,6 +86,7 @@ export interface DashboardMetrics {
         containersReturned: number;
     };
     repartidores: RepartidorStatus[];
+    casa: CasaStatus;
     details: DashboardDetails;
     sync: DriverSyncStatus[];
 }

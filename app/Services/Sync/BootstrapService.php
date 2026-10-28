@@ -69,7 +69,7 @@ class BootstrapService
                 'address_id' => $stop->address_id,
                 'scheduled_time' => $stop->scheduled_time,
                 'is_rescheduled_from' => $stop->is_rescheduled_from,
-                'status' => $stop->effectiveStatus(),
+                'status' => $stop->effectiveStatus()->value,
                 'enabled' => $stop->enabled,
             ])
             ->all();

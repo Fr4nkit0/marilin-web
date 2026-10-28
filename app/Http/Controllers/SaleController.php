@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Driver;
 use App\Models\Sale;
+use App\Operations\DailyFigures\DailyFigures;
+use App\Operations\DailyFigures\DayScope;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -14,7 +16,7 @@ class SaleController extends Controller
     /**
      * Display a listing of sales with filters (date, repartidor/driver, payment status/method).
      */
-    public function index(Request $request): Response
+    public function index(Request $request, DailyFigures $figures): Response
     {
         $search = $request->query('search');
         $date = $request->query('date', Carbon::today()->toDateString());
@@ -50,15 +52,10 @@ class SaleController extends Controller
 
         $sales = $query->latest('date')->paginate(15)->withQueryString();
 
-        // Calculate summary metrics for the day
-        $totalSalesAmount = (float) Sale::where('enabled', true)
-            ->when($date, fn ($q) => $q->whereDate('date', $date))
-            ->sum('total');
-
-        $creditSalesAmount = (float) Sale::where('enabled', true)
-            ->where('is_credit_sale', true)
-            ->when($date, fn ($q) => $q->whereDate('date', $date))
-            ->sum('total');
+        // An empty date query parameter arrives as null and falls back to today, so the totals are always one day's.
+        $day = $figures->forDay($date ?: Carbon::today()->toDateString(), DayScope::all());
+        $totalSalesAmount = $day->totalSales;
+        $creditSalesAmount = $day->creditSales;
 
         $drivers = Driver::with('user')->get()->map(fn ($r) => [
             'id' => $r->id,

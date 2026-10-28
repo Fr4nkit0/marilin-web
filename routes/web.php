@@ -5,6 +5,8 @@ use App\Http\Controllers\CustomerAgreementController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DriverController;
+use App\Http\Controllers\HomePaymentController;
+use App\Http\Controllers\HomeSaleController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
@@ -43,6 +45,11 @@ Route::middleware('auth')->group(function () {
     Route::middleware('can:manage-agreements')->scopeBindings()->group(function () {
         Route::post('/customers/{customer}/agreements', [CustomerAgreementController::class, 'store'])->name('customers.agreements.store');
         Route::patch('/customers/{customer}/agreements/{agreement}/end', [CustomerAgreementController::class, 'end'])->name('customers.agreements.end');
+    });
+    // Venta/Cobro en casa are recorded by the administrator (the same one who manages agreements, whose price the sale respects).
+    Route::middleware('can:manage-agreements')->group(function () {
+        Route::post('/customers/{customer}/home-sales', [HomeSaleController::class, 'store'])->name('customers.home-sales.store');
+        Route::post('/customers/{customer}/home-payments', [HomePaymentController::class, 'store'])->name('customers.home-payments.store');
     });
     Route::get('/customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
 

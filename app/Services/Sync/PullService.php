@@ -141,7 +141,7 @@ class PullService
 
     private function withEffectiveStatus(RouteStop $stop): RouteStop
     {
-        $stop->setAttribute('status', $stop->effectiveStatus());
+        $stop->setAttribute('status', $stop->effectiveStatus()->value);
         $stop->unsetRelations();
 
         return $stop;

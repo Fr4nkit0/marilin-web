@@ -3,6 +3,9 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { PageHeader, DebtBadge, PaymentMethodBadge } from '@/Components/StitchUi';
 import CustomerAgreementFormModal from '@/Components/CustomerAgreementFormModal';
+import HomePaymentModal from '@/Components/HomePaymentModal';
+import HomeSaleModal from '@/Components/HomeSaleModal';
+import { HomeContainerType, HomePaymentMethod, HomeProduct } from '@/types/home-operation';
 import { AgreementProduct, AgreementStatus, CustomerAgreementRow } from '@/types/agreement';
 import {
     ArrowLeft,
@@ -78,6 +81,10 @@ interface Props {
     agreements: CustomerAgreementRow[];
     agreementProducts: AgreementProduct[];
     canManageAgreements: boolean;
+    canRecordAtHome: boolean;
+    homeProducts: HomeProduct[];
+    paymentMethods: HomePaymentMethod[];
+    containerTypes: HomeContainerType[];
 }
 
 const AGREEMENT_STATUS: Record<AgreementStatus, { label: string; className: string }> = {
@@ -100,9 +107,15 @@ export default function CustomerShow({
     agreements,
     agreementProducts,
     canManageAgreements,
+    canRecordAtHome,
+    homeProducts,
+    paymentMethods,
+    containerTypes,
 }: Props) {
     const [activeTab, setActiveTab] = useState<'account' | 'containers' | 'agreements'>('account');
     const [showAgreementForm, setShowAgreementForm] = useState(false);
+    const [showHomeSale, setShowHomeSale] = useState(false);
+    const [showHomePayment, setShowHomePayment] = useState(false);
     const pageErrors = usePage().props.errors as Record<string, string>;
 
     const endAgreement = (agreement: CustomerAgreementRow) => {
@@ -205,6 +218,27 @@ export default function CustomerShow({
                     </div>
                 </div>
             </div>
+
+            {canRecordAtHome && (
+                <div className="flex flex-wrap items-center gap-3 mb-6">
+                    <button
+                        type="button"
+                        onClick={() => setShowHomeSale(true)}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-500 cursor-pointer"
+                    >
+                        <Plus className="w-4 h-4" />
+                        Venta en casa
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setShowHomePayment(true)}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-slate-700 bg-white ring-1 ring-inset ring-slate-200/80 hover:bg-slate-50 cursor-pointer"
+                    >
+                        <CircleDollarSign className="w-4 h-4" />
+                        Cobro en casa
+                    </button>
+                </div>
+            )}
 
             {/* Content Tabs Navigation */}
             <div className="flex items-center gap-6 mb-6 border-b border-gray-100">
@@ -504,6 +538,26 @@ export default function CustomerShow({
                         </div>
                     )}
                 </div>
+            )}
+
+            {canRecordAtHome && (
+                <>
+                    <HomeSaleModal
+                        show={showHomeSale}
+                        customerId={customer.id}
+                        customerName={customer.name}
+                        products={homeProducts}
+                        containerTypes={containerTypes}
+                        onClose={() => setShowHomeSale(false)}
+                    />
+                    <HomePaymentModal
+                        show={showHomePayment}
+                        customerId={customer.id}
+                        customerName={customer.name}
+                        paymentMethods={paymentMethods}
+                        onClose={() => setShowHomePayment(false)}
+                    />
+                </>
             )}
 
             <CustomerAgreementFormModal

@@ -7,17 +7,24 @@ namespace App\Services\Sync;
 use App\Models\Customer;
 use App\Models\CustomerAgreement;
 use App\Models\Driver;
-use App\Models\Route;
-use App\Models\RouteInventory;
+use App\Models\Product;
 use App\Models\Sale;
 use App\Models\User;
 use App\Models\Visit;
-use App\Services\CustomerLedger;
+use App\Operations\PriceResolver;
+use App\Operations\RecordSale;
+use App\Operations\SaleLine;
+use App\Operations\StreetOperation;
+use App\Review\ReviewReason;
 use App\Support\ClientTime;
+use Illuminate\Support\Carbon;
 
 class SalePusher extends EntityPusher
 {
-    public function __construct(private readonly CustomerLedger $ledger) {}
+    public function __construct(
+        private readonly StreetOperation $operation,
+        private readonly PriceResolver $prices,
+    ) {}
 
     protected function rules(): array
     {
@@ -51,42 +58,66 @@ class SalePusher extends EntityPusher
         $visit = $this->reference(Visit::class, $record, 'visit');
         $this->assertBelongsToCustomer($visit, $customer, 'visit');
 
-        $agreementIds = array_map(function (array $detail) use ($customer): ?int {
+        $agreements = array_map(function (array $detail) use ($customer): ?CustomerAgreement {
             $agreement = $this->reference(CustomerAgreement::class, $detail, 'customer_agreement');
             $this->assertBelongsToCustomer($agreement, $customer, 'customer agreement');
 
-            return $agreement?->id;
+            return $agreement;
         }, $record['details']);
 
-        $reason = $this->reviewReasonForCustomer($customer, $driver);
+        $date = ClientTime::parse($record['date']);
+        $reason = $this->reviewReasonForCustomer($customer, $driver)
+            ?? ($this->chargesAnotherPrice($customer, $record['details'], $date) ? ReviewReason::PriceMismatch : null);
 
-        $sale = Sale::create([
-            'client_uuid' => $record['uuid'],
-            'customer_id' => $customer->id,
-            'visit_id' => $visit?->id,
-            'date' => ClientTime::parse($record['date']),
-            'total' => $record['total'],
-            'status' => 'confirmed',
-            'is_credit_sale' => (bool) ($record['is_credit_sale'] ?? false),
-            'notes' => $record['notes'] ?? null,
-            'created_by' => $user->id,
-            'enabled' => true,
-            ...$this->reviewAttributes($reason),
-        ]);
-
-        foreach ($record['details'] as $index => $detail) {
-            $sale->details()->create([
-                'product_id' => $detail['product_id'],
-                'customer_agreement_id' => $agreementIds[$index],
-                'quantity' => $detail['quantity'],
-                'unit_price' => $detail['unit_price'],
-            ]);
-        }
-
-        $this->ledger->bookSale($customer, $sale, $user);
-        $this->discountInventory($driver, $visit, $sale);
+        $sale = $this->operation->recordSale(new RecordSale(
+            customer: $customer,
+            visit: $visit,
+            driver: $driver,
+            date: $date,
+            // Validation accepts numeric strings and keyed details, so the adapter casts what the module types strictly.
+            lines: array_map(fn (array $detail, int|string $index): SaleLine => new SaleLine(
+                (int) $detail['product_id'],
+                (int) $detail['quantity'],
+                $detail['unit_price'],
+                $agreements[$index],
+            ), $record['details'], array_keys($record['details'])),
+            total: $record['total'],
+            isCreditSale: (bool) ($record['is_credit_sale'] ?? false),
+            notes: $record['notes'] ?? null,
+            recordedBy: $user,
+            clientUuid: $record['uuid'],
+            reviewReason: $reason,
+        ));
 
         return $this->accepted($record['uuid'], $sale->id, $reason?->value);
+    }
+
+    /**
+     * Accept-and-mark (ADR 0001): the sale keeps the prices the app sent, but a line that is not charged what the server resolves for that customer, product and day (agreement valid that day, else list price) needs the admin's eyes.
+     *
+     * @param  array<int|string, array<string, mixed>>  $details
+     */
+    private function chargesAnotherPrice(Customer $customer, array $details, Carbon $date): bool
+    {
+        $products = Product::query()->whereIn('id', array_map(fn (array $detail): int => (int) $detail['product_id'], $details))->get()->keyBy('id');
+
+        foreach ($details as $detail) {
+            $expected = $this->prices->priceFor($customer, $products[(int) $detail['product_id']], $date)->unitPrice;
+
+            if ($this->twoDecimals($detail['unit_price']) !== $this->twoDecimals($expected)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Validation accepts any numeric input (numeric strings, exponent notation), so it is normalized before comparing.
+     */
+    private function twoDecimals(string|int|float $amount): string
+    {
+        return number_format((float) $amount, 2, '.', '');
     }
 
     /**
@@ -103,30 +134,6 @@ class SalePusher extends EntityPusher
 
         if (abs($sum - (float) $record['total']) > 0.005) {
             throw new RejectedRecord('The total does not match the sum of the sale lines.');
-        }
-    }
-
-    /**
-     * Takes the sold quantities out of the route stock: the route of the visit, or else the driver's route of the sale's day.
-     */
-    private function discountInventory(Driver $driver, ?Visit $visit, Sale $sale): void
-    {
-        $routeId = $visit?->routeStop?->route_id
-            ?? Route::query()
-                ->where('assigned_driver_id', $driver->id)
-                ->whereDate('date', $sale->date->toDateString())
-                ->value('id');
-
-        if ($routeId === null) {
-            return;
-        }
-
-        // Product id order, the same a truck load uses, so the two never lock rows in opposite orders.
-        foreach ($sale->details->groupBy('product_id')->sortKeys() as $productId => $details) {
-            RouteInventory::query()
-                ->where('route_id', $routeId)
-                ->where('product_id', $productId)
-                ->decrement('current_quantity', (float) $details->sum('quantity'));
         }
     }
 }

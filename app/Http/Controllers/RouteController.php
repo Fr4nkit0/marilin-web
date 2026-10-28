@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\RouteStatus;
 use App\Models\Driver;
 use App\Models\Product;
 use App\Models\Route as DeliveryRoute;
+use App\Models\RouteStop;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -27,6 +29,7 @@ class RouteController extends Controller
                 'driver.user',
                 'stops.customer.primaryAddress',
                 'stops.visit.outcome',
+                'stops.rescheduledTo',
                 'inventoryLoads' => fn ($query) => $query->orderBy('loaded_at')->orderBy('id'),
                 'inventoryLoads.product',
                 'inventoryLoads.creator',
@@ -45,9 +48,7 @@ class RouteController extends Controller
 
         $routes = $routesQuery->get()->map(function ($route) use ($canLoad) {
             $totalStops = $route->stops->count();
-            $completedStops = $route->stops->filter(
-                fn ($s) => $s->visit && in_array($s->visit->status, ['FINISHED', 'DELIVERED', 'COMPLETED'])
-            )->count();
+            $completedStops = $route->stops->filter(fn (RouteStop $stop) => $stop->isDone())->count();
 
             $pendingStops = $totalStops - $completedStops;
             $progress = $totalStops > 0 ? round(($completedStops / $totalStops) * 100) : 0;
@@ -86,7 +87,7 @@ class RouteController extends Controller
                     'quantity' => (float) $load->quantity,
                     'loadedBy' => $load->creator?->name,
                 ])->values(),
-                'canLoad' => $canLoad && ! in_array($route->status, ['COMPLETED', 'CANCELLED'], true),
+                'canLoad' => $canLoad && ! in_array($route->status, [RouteStatus::Completed->value, RouteStatus::Cancelled->value], true),
                 'currentStock' => $route->inventories->map(fn ($inv) => [
                     'id' => $inv->id,
                     'productName' => $inv->product?->name ?? 'Producto',
@@ -101,7 +102,8 @@ class RouteController extends Controller
                         'address' => $stop->customer?->primaryAddress?->street ?? 'Sin dirección',
                         'phone' => $stop->customer?->phone_number,
                     ],
-                    'status' => $stop->visit?->status ?? 'PENDING',
+                    'status' => $stop->effectiveStatus()->value,
+                    'done' => $stop->isDone(),
                     'arrivedAt' => $stop->visit?->arrived_at?->format('H:i'),
                     'outcome' => $stop->visit?->outcome?->name,
                     'notes' => $stop->visit?->notes,
@@ -111,8 +113,8 @@ class RouteController extends Controller
 
         // Summary KPI Metrics
         $totalRoutes = $routes->count();
-        $inProgressRoutes = $routes->where('status', 'IN_PROGRESS')->count();
-        $completedRoutes = $routes->where('status', 'COMPLETED')->count();
+        $inProgressRoutes = $routes->where('status', RouteStatus::InProgress->value)->count();
+        $completedRoutes = $routes->where('status', RouteStatus::Completed->value)->count();
         $totalPlannedStops = $routes->sum(fn ($r) => $r['stats']['totalStops']);
         $totalCompletedStops = $routes->sum(fn ($r) => $r['stats']['completedStops']);
 

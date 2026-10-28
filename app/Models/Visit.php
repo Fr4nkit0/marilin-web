@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Enums\VisitStatus;
+use App\Review\Reviewable;
+use App\Review\ReviewSource;
 use Database\Factories\VisitFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,6 +18,13 @@ class Visit extends Model
     /** @use HasFactory<VisitFactory> */
     use HasFactory;
 
+    use Reviewable;
+
+    public static function reviewSource(): ReviewSource
+    {
+        return ReviewSource::driverColumn('visit', 'arrived_at');
+    }
+
     protected function casts(): array
     {
         return [
@@ -23,8 +33,6 @@ class Visit extends Model
             'longitude' => 'decimal:7',
             'altitude' => 'decimal:7',
             'enabled' => 'boolean',
-            'needs_review' => 'boolean',
-            'reviewed_at' => 'datetime',
         ];
     }
 
@@ -80,22 +88,22 @@ class Visit extends Model
 
     public function scopePending($query)
     {
-        return $query->where('status', 'PENDING');
+        return $query->where('status', VisitStatus::Pending->value);
     }
 
     public function scopeInProgress($query)
     {
-        return $query->where('status', 'IN_PROGRESS');
+        return $query->where('status', VisitStatus::InProgress->value);
     }
 
     public function scopeFinished($query)
     {
-        return $query->where('status', 'FINISHED');
+        return $query->where('status', VisitStatus::Finished->value);
     }
 
     public function scopeCancelled($query)
     {
-        return $query->where('status', 'CANCELLED');
+        return $query->where('status', VisitStatus::Cancelled->value);
     }
 
     public function scopeEnabled($query)

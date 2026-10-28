@@ -50,11 +50,11 @@ export default function RepartidoresIndex({ repartidores, filters }: Props) {
     };
 
     const activeRoutesCount = repartidores.filter(
-        (r) => r.currentRoute?.status === 'IN_PROGRESS' || r.currentRoute?.status === 'EN_RUTA'
+        (r) => r.currentRoute?.status === 'IN_PROGRESS'
     ).length;
 
     const completedRoutesCount = repartidores.filter(
-        (r) => r.currentRoute?.status === 'COMPLETED' || r.currentRoute?.status === 'FINALIZADO'
+        (r) => r.currentRoute?.status === 'COMPLETED'
     ).length;
 
     return (

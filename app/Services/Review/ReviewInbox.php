@@ -13,32 +13,36 @@ use App\Models\RouteStop;
 use App\Models\Sale;
 use App\Models\User;
 use App\Models\Visit;
-use App\Services\Sync\ReviewReason;
+use App\Review\Reviewable;
+use App\Review\ReviewReason;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use InvalidArgumentException;
 
 /**
- * Everything the app uploaded or the system flagged that waits for an admin's eyes (ADR 0001), across the four kinds of record.
+ * Everything the app uploaded or the system flagged that waits for an admin's eyes (ADR 0001), across every reviewable model.
  */
 class ReviewInbox
 {
     public const array TYPES = ['visit', 'sale', 'payment', 'route_stop', 'customer', 'container_movement', 'customer_agreement'];
 
     /**
-     * @var array<string, class-string<Model>>
+     * The reviewable models, in the order the types are listed. Each one declares its own type, date and driver (Reviewable::reviewSource()).
+     *
+     * @var array<int, class-string<Model&Reviewable>>
      */
     private const array MODELS = [
-        'visit' => Visit::class,
-        'sale' => Sale::class,
-        'payment' => Payment::class,
-        'route_stop' => RouteStop::class,
-        'customer' => Customer::class,
-        'container_movement' => ContainerMovement::class,
-        'customer_agreement' => CustomerAgreement::class,
+        Visit::class,
+        Sale::class,
+        Payment::class,
+        RouteStop::class,
+        Customer::class,
+        ContainerMovement::class,
+        CustomerAgreement::class,
     ];
 
     /**
@@ -61,10 +65,9 @@ class ReviewInbox
      */
     public function markReviewed(string $type, int $id, User $reviewer): void
     {
-        /** @var Model $record */
-        $record = self::MODELS[$type]::query()->where('needs_review', true)->whereNull('reviewed_at')->findOrFail($id);
+        $record = $this->modelOf($type)::query()->pendingReview()->findOrFail($id);
 
-        $record->forceFill(['reviewed_at' => now(), 'reviewed_by' => $reviewer->id])->save();
+        $record->markReviewed($reviewer);
     }
 
     /**
@@ -76,15 +79,7 @@ class ReviewInbox
         $union = null;
 
         foreach ($types as $type) {
-            $query = match ($type) {
-                'visit' => $this->selectVisit(),
-                'sale' => $this->selectSale(),
-                'payment' => $this->selectPayment(),
-                'route_stop' => $this->selectRouteStop(),
-                'customer' => $this->selectCustomer(),
-                'container_movement' => $this->selectContainerMovement(),
-                'customer_agreement' => $this->selectCustomerAgreement(),
-            };
+            $query = $this->modelOf($type)::reviewSource()->select((new ($this->modelOf($type)))->getTable());
             $union = $union === null ? $query : $union->unionAll($query);
         }
 
@@ -113,66 +108,17 @@ class ReviewInbox
             ->withQueryString();
     }
 
-    private function selectVisit(): Builder
-    {
-        return DB::table('visits')
-            ->where('visits.needs_review', true)
-            ->selectRaw("'visit' as type, visits.id, visits.driver_id, visits.customer_id, visits.arrived_at as occurred_at, visits.review_reason as reason, visits.reviewed_at, visits.reviewed_by");
-    }
-
-    private function selectSale(): Builder
-    {
-        return DB::table('sales')
-            ->leftJoin('drivers', 'drivers.user_id', '=', 'sales.created_by')
-            ->where('sales.needs_review', true)
-            ->selectRaw("'sale' as type, sales.id, drivers.id as driver_id, sales.customer_id, sales.date as occurred_at, sales.review_reason as reason, sales.reviewed_at, sales.reviewed_by");
-    }
-
-    private function selectPayment(): Builder
-    {
-        return DB::table('payments')
-            ->leftJoin('drivers', 'drivers.user_id', '=', 'payments.received_by')
-            ->where('payments.needs_review', true)
-            ->selectRaw("'payment' as type, payments.id, drivers.id as driver_id, payments.customer_id, payments.paid_at as occurred_at, payments.review_reason as reason, payments.reviewed_at, payments.reviewed_by");
-    }
-
-    private function selectRouteStop(): Builder
-    {
-        return DB::table('route_stops')
-            ->join('routes', 'routes.id', '=', 'route_stops.route_id')
-            ->where('route_stops.needs_review', true)
-            ->selectRaw("'route_stop' as type, route_stops.id, routes.assigned_driver_id as driver_id, route_stops.customer_id, CAST(routes.date AS timestamp) as occurred_at, route_stops.review_reason as reason, route_stops.reviewed_at, route_stops.reviewed_by");
-    }
-
     /**
-     * A customer the app created or edited that belongs to another driver; the date is the app's modification date.
+     * @return class-string<Model&Reviewable>
      */
-    private function selectCustomer(): Builder
+    private function modelOf(string $type): string
     {
-        return DB::table('customers')
-            ->where('customers.needs_review', true)
-            ->selectRaw("'customer' as type, customers.id, customers.driver_id, customers.id as customer_id, customers.updated_at as occurred_at, customers.review_reason as reason, customers.reviewed_at, customers.reviewed_by");
-    }
+        foreach (self::MODELS as $model) {
+            if ($model::reviewSource()->type === $type) {
+                return $model;
+            }
+        }
 
-    /**
-     * A movement carries no date of the app, so the moment the server received it is its date.
-     */
-    private function selectContainerMovement(): Builder
-    {
-        return DB::table('container_movements')
-            ->leftJoin('drivers', 'drivers.user_id', '=', 'container_movements.created_by')
-            ->where('container_movements.needs_review', true)
-            ->selectRaw("'container_movement' as type, container_movements.id, drivers.id as driver_id, container_movements.customer_id, container_movements.created_at as occurred_at, container_movements.review_reason as reason, container_movements.reviewed_at, container_movements.reviewed_by");
-    }
-
-    /**
-     * A price agreement a driver created in the app; like a movement, the moment the server received it is its date.
-     */
-    private function selectCustomerAgreement(): Builder
-    {
-        return DB::table('customer_agreements')
-            ->leftJoin('drivers', 'drivers.user_id', '=', 'customer_agreements.created_by')
-            ->where('customer_agreements.needs_review', true)
-            ->selectRaw("'customer_agreement' as type, customer_agreements.id, drivers.id as driver_id, customer_agreements.customer_id, customer_agreements.created_at as occurred_at, customer_agreements.review_reason as reason, customer_agreements.reviewed_at, customer_agreements.reviewed_by");
+        throw new InvalidArgumentException("Unknown review type {$type}.");
     }
 }

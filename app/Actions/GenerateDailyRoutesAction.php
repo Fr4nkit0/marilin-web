@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
+use App\Enums\RouteStatus;
 use App\Models\Customer;
 use App\Models\Driver;
 use Carbon\CarbonInterface;
@@ -36,7 +37,7 @@ final class GenerateDailyRoutesAction
                 DB::transaction(function () use ($driver, $date, $stops): void {
                     $route = $driver->routes()->create([
                         'date' => $date->toDateString(),
-                        'status' => 'PLANNED',
+                        'status' => RouteStatus::Planned->value,
                     ]);
 
                     $route->stops()->createMany($stops->all());

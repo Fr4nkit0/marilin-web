@@ -14,6 +14,8 @@ use App\Models\User;
 /**
  * The customer's current account: every sale or payment books one entry and moves the balance with it.
  * A positive balance means the customer owes money.
+ *
+ * @internal Owned by StreetOperation and CustomerIntake, the only writers of the ledger.
  */
 class CustomerLedger
 {
@@ -27,7 +29,22 @@ class CustomerLedger
         return $this->book($customer, 'PAYMENT', -1, (string) $payment->amount, $user, payment: $payment);
     }
 
-    private function book(Customer $customer, string $type, int $direction, string $amount, User $user, ?Sale $sale = null, ?Payment $payment = null): CustomerAccountEntry
+    /**
+     * Opens the account of a new customer: the initial debt is one adjustment entry, none when there is no debt.
+     * The balance row exists either way.
+     */
+    public function openAccount(Customer $customer, string $initialDebt, User $user): void
+    {
+        if (bccomp($initialDebt, '0', 2) > 0) {
+            $this->book($customer, 'ADJUSTMENT', 1, $initialDebt, $user, description: 'Saldo deudor inicial registrado al dar de alta');
+
+            return;
+        }
+
+        $this->ensureBalance($customer, $user);
+    }
+
+    private function book(Customer $customer, string $type, int $direction, string $amount, User $user, ?Sale $sale = null, ?Payment $payment = null, ?string $description = null): CustomerAccountEntry
     {
         $entry = CustomerAccountEntry::create([
             'customer_id' => $customer->id,
@@ -36,18 +53,11 @@ class CustomerLedger
             'amount' => $amount,
             'sale_id' => $sale?->id,
             'payment_id' => $payment?->id,
+            'description' => $description,
             'created_by' => $user->id,
         ]);
 
-        // The row has to exist before the atomic increment so two first entries of a customer cannot race.
-        CustomerBalance::query()->insertOrIgnore([
-            'customer_id' => $customer->id,
-            'current_balance' => 0,
-            'created_by' => $user->id,
-            'enabled' => true,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        $this->ensureBalance($customer, $user);
 
         CustomerBalance::query()
             ->where('customer_id', $customer->id)
@@ -57,5 +67,20 @@ class CustomerLedger
             ]);
 
         return $entry;
+    }
+
+    /**
+     * The row has to exist before the atomic increment so two first entries of a customer cannot race.
+     */
+    private function ensureBalance(Customer $customer, User $user): void
+    {
+        CustomerBalance::query()->insertOrIgnore([
+            'customer_id' => $customer->id,
+            'current_balance' => 0,
+            'created_by' => $user->id,
+            'enabled' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
     }
 }

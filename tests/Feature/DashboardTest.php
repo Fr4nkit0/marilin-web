@@ -113,3 +113,45 @@ test('the system card shows each driver last app sync and flags a route in progr
         ->and($sync['Esteban Benítez'])->toMatchArray(['lastSyncAt' => '2026-10-20T17:15:00-03:00', 'onRoute' => true, 'stale' => true])
         ->and($sync['Carlos Gómez'])->toMatchArray(['lastSyncAt' => null, 'onRoute' => false, 'stale' => false]);
 });
+
+test('the dashboard shows what each driver and the house took in, and the day totals add them all up', function (): void {
+    $driverUser = User::factory()->create(['name' => 'Juan Pérez']);
+    $driver = Driver::factory()->create(['user_id' => $driverUser->id]);
+    $route = Route::factory()->create(['assigned_driver_id' => $driver->id, 'date' => '2026-10-20', 'status' => 'IN_PROGRESS']);
+    $stop = RouteStop::factory()->create(['route_id' => $route->id]);
+    $visit = Visit::factory()->create(['route_stop_id' => $stop->id, 'driver_id' => $driver->id, 'status' => 'FINISHED']);
+    $admin = User::factory()->superUser()->create();
+    $cash = PaymentMethod::factory()->create(['code' => 'CASH', 'name' => 'Efectivo']);
+
+    // On the driver's visit, even if an administrator typed it in.
+    Sale::factory()->create(['visit_id' => $visit->id, 'created_by' => $admin->id, 'date' => '2026-10-20 10:00:00', 'total' => 1000]);
+    // Loose, recorded by the driver.
+    Sale::factory()->create(['visit_id' => null, 'created_by' => $driverUser->id, 'date' => '2026-10-20 11:00:00', 'total' => 200]);
+    // House: loose, recorded by an administrator.
+    Sale::factory()->create(['visit_id' => null, 'created_by' => $admin->id, 'date' => '2026-10-20 12:00:00', 'total' => 80]);
+    Payment::factory()->create(['visit_id' => null, 'received_by' => $admin->id, 'payment_method_id' => $cash->id, 'paid_at' => '2026-10-20 12:05:00', 'amount' => 50, 'status' => 'CONFIRMED']);
+    Payment::factory()->create(['visit_id' => null, 'received_by' => $admin->id, 'payment_method_id' => $cash->id, 'paid_at' => '2026-10-20 12:06:00', 'amount' => 900, 'status' => 'CANCELLED']);
+
+    $this->get(route('dashboard', ['date' => '2026-10-20']))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('metrics.kpis.totalSales', 1280)
+            ->where('metrics.kpis.totalCollected', 50)
+            ->where('metrics.repartidores.0.totalSales', 1200)
+            ->where('metrics.repartidores.0.totalCollected', 0)
+            ->where('metrics.casa.name', 'Casa')
+            ->where('metrics.casa.totalSales', 80)
+            ->where('metrics.casa.totalCollected', 50));
+});
+
+test('the containers card lists deliveries and returns, not the initial balances of new customers', function (): void {
+    $bidon = ContainerType::factory()->create(['code' => 'BIDON_20L', 'description' => 'Bidón 20L']);
+    ContainerMovement::factory()->create(['container_type_id' => $bidon->id, 'movement_type' => 'ADJUSTMENT', 'direction' => 1, 'quantity' => 3, 'visit_id' => null, 'created_at' => '2026-10-20 09:00:00']);
+    $returned = ContainerMovement::factory()->create(['container_type_id' => $bidon->id, 'movement_type' => 'RETURNED', 'direction' => -1, 'quantity' => 2, 'visit_id' => null, 'created_at' => '2026-10-20 10:00:00']);
+
+    $this->get('/dashboard?date=2026-10-20')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('metrics.details.containers', 1)
+            ->where('metrics.details.containers.0.id', $returned->id));
+});

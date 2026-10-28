@@ -5,14 +5,21 @@ declare(strict_types=1);
 namespace App\Services\Sync;
 
 use App\Models\Customer;
-use App\Models\CustomerAddress;
 use App\Models\Driver;
 use App\Models\User;
+use App\Operations\AddressLocation;
+use App\Operations\CustomerAddressDetails;
+use App\Operations\CustomerEdit;
+use App\Operations\CustomerIntake;
+use App\Operations\CustomerRegistration;
+use App\Review\ReviewReason;
 use App\Support\ClientTime;
 use Illuminate\Support\Carbon;
 
 class CustomerPusher extends EntityPusher
 {
+    public function __construct(private readonly CustomerIntake $intake) {}
+
     protected function handle(Driver $driver, User $user, array $record): array
     {
         $customer = $this->find($record);
@@ -36,12 +43,12 @@ class CustomerPusher extends EntityPusher
      */
     private function flagForReviewIfForeign(Customer $customer, Driver $driver): void
     {
-        if ($customer->driver_id === $driver->id || $customer->needs_review || $customer->reviewed_at !== null) {
+        if ($customer->driver_id === $driver->id || ! $customer->canBeFlagged()) {
             return;
         }
 
         $customer->timestamps = false;
-        $customer->forceFill($this->reviewAttributes(ReviewReason::ForeignCustomer))->save();
+        $customer->flag(ReviewReason::ForeignCustomer);
     }
 
     /**
@@ -63,32 +70,16 @@ class CustomerPusher extends EntityPusher
      */
     private function create(Driver $driver, User $user, array $record): Customer
     {
-        $modifiedAt = $this->modifiedAt($record);
-
-        $customer = (new Customer)->forceFill([
-            'driver_id' => $driver->id,
-            'client_uuid' => $record['uuid'],
-            'name' => $record['name'],
-            'phone_number' => $record['phone_number'] ?? null,
-            'created_by' => $user->id,
-            'enabled' => true,
-            'received_at' => now(),
-            'created_at' => $modifiedAt,
-            'updated_at' => $modifiedAt,
-        ]);
-        $customer->save();
-
-        (new CustomerAddress)->forceFill([
-            ...$this->addressAttributes((array) $record['address']),
-            'customer_id' => $customer->id,
-            'is_primary' => true,
-            'created_by' => $user->id,
-            'enabled' => true,
-            'created_at' => $modifiedAt,
-            'updated_at' => $modifiedAt,
-        ])->save();
-
-        return $customer;
+        return $this->intake->register(new CustomerRegistration(
+            name: $record['name'],
+            phoneNumber: $record['phone_number'] ?? null,
+            driverId: $driver->id,
+            address: $this->addressDetails((array) $record['address']),
+            createdBy: $user,
+            clientUuid: $record['uuid'],
+            opensAccount: false,
+            appModifiedAt: $this->modifiedAt($record),
+        ));
     }
 
     /**
@@ -104,29 +95,15 @@ class CustomerPusher extends EntityPusher
             return;
         }
 
-        $customer->timestamps = false;
-        $customer->forceFill([
-            'client_uuid' => $customer->client_uuid ?? $record['uuid'],
-            'name' => $record['name'],
-            'phone_number' => $record['phone_number'] ?? null,
-            'last_modified_by' => $user->id,
-            'updated_at' => $modifiedAt,
-            'received_at' => now(),
-        ])->save();
-
-        $address = $customer->primaryAddress ?? new CustomerAddress([
-            'customer_id' => $customer->id,
-            'is_primary' => true,
-            'created_by' => $user->id,
-            'enabled' => true,
-        ]);
-
-        $address->timestamps = false;
-        $address->forceFill([
-            ...$this->addressAttributes((array) $record['address']),
-            'last_modified_by' => $user->id,
-            'updated_at' => $modifiedAt,
-        ])->save();
+        $this->intake->update($customer, new CustomerEdit(
+            name: $record['name'],
+            phoneNumber: $record['phone_number'] ?? null,
+            address: $this->addressDetails((array) $record['address']),
+            modifiedBy: $user,
+            reassignDriver: false,
+            clientUuid: $record['uuid'],
+            appModifiedAt: $modifiedAt,
+        ));
     }
 
     /**
@@ -141,19 +118,16 @@ class CustomerPusher extends EntityPusher
 
     /**
      * @param  array<string, mixed>  $address
-     * @return array<string, mixed>
      */
-    private function addressAttributes(array $address): array
+    private function addressDetails(array $address): CustomerAddressDetails
     {
-        return [
-            'street' => $address['street'],
-            'apartment' => $address['apartment'] ?? null,
-            'floor' => $address['floor'] ?? null,
-            'visual_reference' => $address['visual_reference'] ?? null,
-            'neighborhood' => $address['neighborhood'] ?? null,
-            'latitude' => $address['latitude'] ?? null,
-            'longitude' => $address['longitude'] ?? null,
-        ];
+        return new CustomerAddressDetails(
+            street: $address['street'],
+            apartment: $address['apartment'] ?? null,
+            floor: $address['floor'] ?? null,
+            visualReference: $address['visual_reference'] ?? null,
+            location: new AddressLocation($address['neighborhood'] ?? null, $address['latitude'] ?? null, $address['longitude'] ?? null),
+        );
     }
 
     /**

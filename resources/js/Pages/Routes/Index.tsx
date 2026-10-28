@@ -29,6 +29,7 @@ interface StopItem {
         phone?: string;
     };
     status: string;
+    done: boolean;
     arrivedAt?: string;
     outcome?: string;
     notes?: string;

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Enums\RouteStatus;
 use App\Models\Route as DeliveryRoute;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -14,7 +15,7 @@ class TruckLoadRequest extends FormRequest
     /**
      * A finished route already went through its cash close; loading it would change a closed day.
      */
-    private const array CLOSED_STATUSES = ['COMPLETED', 'CANCELLED'];
+    private const array CLOSED_STATUSES = [RouteStatus::Completed->value, RouteStatus::Cancelled->value];
 
     public function authorize(): bool
     {

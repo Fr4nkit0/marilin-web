@@ -2,17 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreCustomerRequest;
+use App\Http\Requests\UpdateCustomerRequest;
 use App\Models\ContainerType;
 use App\Models\Customer;
-use App\Models\CustomerAccountEntry;
-use App\Models\CustomerAddress;
 use App\Models\CustomerAgreement;
-use App\Models\CustomerBalance;
-use App\Models\CustomerContainerBalance;
 use App\Models\Driver;
+use App\Models\PaymentMethod;
 use App\Models\Product;
+use App\Operations\CustomerAddressDetails;
+use App\Operations\CustomerEdit;
+use App\Operations\CustomerIntake;
+use App\Operations\CustomerRegistration;
+use App\Operations\PriceResolver;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -79,7 +83,7 @@ class CustomerController extends Controller
     /**
      * Display the 360 view of a customer (Account entries, container balances, agreements, sales).
      */
-    public function show(Customer $customer): Response
+    public function show(Customer $customer, PriceResolver $prices): Response
     {
         $customer->load([
             'primaryAddress',
@@ -129,6 +133,8 @@ class CustomerController extends Controller
                 'status' => $agreement->statusOn($today),
             ]);
 
+        $canRecordAtHome = Gate::allows('manage-agreements');
+
         return Inertia::render('Customers/Show', [
             'customer' => $customer,
             'accountEntries' => $accountEntries,
@@ -137,93 +143,54 @@ class CustomerController extends Controller
             'agreementProducts' => Product::query()->enabled()->orderBy('name')->get(['id', 'name', 'price'])
                 ->map(fn (Product $product): array => ['id' => $product->id, 'name' => $product->name, 'price' => (float) $product->price]),
             'canManageAgreements' => Gate::allows('manage-agreements'),
+            'canRecordAtHome' => $canRecordAtHome,
+            'homeProducts' => $canRecordAtHome ? $this->homeProducts($customer, $prices) : [],
+            'paymentMethods' => $canRecordAtHome ? PaymentMethod::query()->enabled()->orderBy('name')->get(['id', 'name']) : [],
+            'containerTypes' => $canRecordAtHome ? ContainerType::query()->enabled()->orderBy('description')->get(['id', 'description']) : [],
         ]);
+    }
+
+    /**
+     * The products of a sale at home with the price the server will charge today, read-only for the admin.
+     *
+     * @return list<array{id: int, name: string, unitPrice: float, source: 'agreement'|'list'}>
+     */
+    private function homeProducts(Customer $customer, PriceResolver $prices): array
+    {
+        return Product::query()->enabled()->orderBy('name')->get()
+            ->map(function (Product $product) use ($customer, $prices): array {
+                $resolved = $prices->priceFor($customer, $product, now());
+
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'unitPrice' => (float) $resolved->unitPrice,
+                    'source' => $resolved->agreement === null ? 'list' : 'agreement',
+                ];
+            })
+            ->all();
     }
 
     /**
      * Store a newly created customer in storage.
      */
-    public function store(Request $request)
+    public function store(StoreCustomerRequest $request, CustomerIntake $intake): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:200',
-            'phone_number' => 'nullable|string|max:50',
-            'repartidor_id' => 'nullable|exists:drivers,id',
-            'street' => 'required|string|max:200',
-            'apartment' => 'nullable|string|max:20',
-            'floor' => 'nullable|string|max:20',
-            'visual_reference' => 'nullable|string|max:500',
-            'initial_balance' => 'nullable|numeric|min:0',
-            'bidon_20l_balance' => 'nullable|integer|min:0',
-            'sifon_2l_balance' => 'nullable|integer|min:0',
-        ]);
+        $validated = $request->validated();
 
-        DB::transaction(function () use ($validated, $request) {
-            $user = $request->user();
-
-            $customer = Customer::create([
-                'name' => $validated['name'],
-                'phone_number' => $validated['phone_number'] ?? null,
-                'driver_id' => $validated['repartidor_id'] ?? null,
-                'created_by' => $user->id,
-                'enabled' => true,
-            ]);
-
-            // Address
-            CustomerAddress::create([
-                'customer_id' => $customer->id,
-                'street' => $validated['street'],
-                'apartment' => $validated['apartment'] ?? null,
-                'floor' => $validated['floor'] ?? null,
-                'visual_reference' => $validated['visual_reference'] ?? null,
-                'is_primary' => true,
-                'created_by' => $user->id,
-                'enabled' => true,
-            ]);
-
-            // Customer Balance
-            $initialDebt = (float) ($validated['initial_balance'] ?? 0);
-            CustomerBalance::create([
-                'customer_id' => $customer->id,
-                'current_balance' => $initialDebt,
-                'created_by' => $user->id,
-                'enabled' => true,
-            ]);
-
-            if ($initialDebt > 0) {
-                CustomerAccountEntry::create([
-                    'customer_id' => $customer->id,
-                    'entry_type' => 'ADJUSTMENT',
-                    'direction' => 1,
-                    'amount' => $initialDebt,
-                    'description' => 'Saldo deudor inicial registrado al dar de alta',
-                    'created_by' => $user->id,
-                ]);
-            }
-
-            // Container Balances (20L and Sifon)
-            $bidonType = ContainerType::where('code', 'BIDON_20L')->first();
-            if ($bidonType && isset($validated['bidon_20l_balance']) && (int) $validated['bidon_20l_balance'] > 0) {
-                CustomerContainerBalance::create([
-                    'customer_id' => $customer->id,
-                    'container_type_id' => $bidonType->id,
-                    'balance' => (int) $validated['bidon_20l_balance'],
-                    'created_by' => $user->id,
-                    'enabled' => true,
-                ]);
-            }
-
-            $sifonType = ContainerType::where('code', 'SIFON_2L')->first();
-            if ($sifonType && isset($validated['sifon_2l_balance']) && (int) $validated['sifon_2l_balance'] > 0) {
-                CustomerContainerBalance::create([
-                    'customer_id' => $customer->id,
-                    'container_type_id' => $sifonType->id,
-                    'balance' => (int) $validated['sifon_2l_balance'],
-                    'created_by' => $user->id,
-                    'enabled' => true,
-                ]);
-            }
-        });
+        $intake->register(new CustomerRegistration(
+            name: $validated['name'],
+            phoneNumber: $validated['phone_number'] ?? null,
+            driverId: isset($validated['repartidor_id']) ? (int) $validated['repartidor_id'] : null,
+            address: $this->addressDetails($validated),
+            createdBy: $request->user(),
+            // numeric also accepts forms like 1e2; the ledger works with a fixed two-decimal string.
+            initialDebt: number_format((float) ($validated['initial_balance'] ?? 0), 2, '.', ''),
+            initialContainers: [
+                'BIDON_20L' => (int) ($validated['bidon_20l_balance'] ?? 0),
+                'SIFON_2L' => (int) ($validated['sifon_2l_balance'] ?? 0),
+            ],
+        ));
 
         return redirect()->route('customers.index')->with('success', 'Cliente creado exitosamente');
     }
@@ -231,51 +198,31 @@ class CustomerController extends Controller
     /**
      * Update the specified customer in storage.
      */
-    public function update(Request $request, Customer $customer)
+    public function update(UpdateCustomerRequest $request, Customer $customer, CustomerIntake $intake): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:200',
-            'phone_number' => 'nullable|string|max:50',
-            'repartidor_id' => 'nullable|exists:drivers,id',
-            'street' => 'required|string|max:200',
-            'apartment' => 'nullable|string|max:20',
-            'floor' => 'nullable|string|max:20',
-            'visual_reference' => 'nullable|string|max:500',
-        ]);
+        $validated = $request->validated();
 
-        DB::transaction(function () use ($validated, $request, $customer) {
-            $user = $request->user();
-
-            $customer->update([
-                'name' => $validated['name'],
-                'phone_number' => $validated['phone_number'] ?? null,
-                'driver_id' => $validated['repartidor_id'] ?? null,
-            ]);
-
-            // Update or Create Primary Address
-            $primaryAddress = $customer->primaryAddress;
-            if ($primaryAddress) {
-                $primaryAddress->update([
-                    'street' => $validated['street'],
-                    'apartment' => $validated['apartment'] ?? null,
-                    'floor' => $validated['floor'] ?? null,
-                    'visual_reference' => $validated['visual_reference'] ?? null,
-                    'last_modified_by' => $user->id,
-                ]);
-            } else {
-                CustomerAddress::create([
-                    'customer_id' => $customer->id,
-                    'street' => $validated['street'],
-                    'apartment' => $validated['apartment'] ?? null,
-                    'floor' => $validated['floor'] ?? null,
-                    'visual_reference' => $validated['visual_reference'] ?? null,
-                    'is_primary' => true,
-                    'created_by' => $user->id,
-                    'enabled' => true,
-                ]);
-            }
-        });
+        $intake->update($customer, new CustomerEdit(
+            name: $validated['name'],
+            phoneNumber: $validated['phone_number'] ?? null,
+            address: $this->addressDetails($validated),
+            modifiedBy: $request->user(),
+            driverId: isset($validated['repartidor_id']) ? (int) $validated['repartidor_id'] : null,
+        ));
 
         return redirect()->back()->with('success', 'Cliente actualizado exitosamente');
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     */
+    private function addressDetails(array $validated): CustomerAddressDetails
+    {
+        return new CustomerAddressDetails(
+            street: $validated['street'],
+            apartment: $validated['apartment'] ?? null,
+            floor: $validated['floor'] ?? null,
+            visualReference: $validated['visual_reference'] ?? null,
+        );
     }
 }
