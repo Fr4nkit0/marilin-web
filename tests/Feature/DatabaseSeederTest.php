@@ -63,14 +63,13 @@ test('the seeded visit outcomes are absent, refused and reschedule, and only res
     ]);
 });
 
-test('the first pull of Esteban carries the disabled customer and the discontinued product', function (): void {
+test('the first pull of Esteban carries the disabled customer', function (): void {
     $response = $this->withToken(appLogin('esteban.benitez@marilin.com'))->getJson('/api/v1/sync/pull')->assertOk();
 
     $customer = collect($response->json('data.customers'))->firstWhere('name', 'Kiosco Don Ramón');
-    $product = collect($response->json('data.products'))->firstWhere('name', 'Bidón de Agua 12L');
 
     expect($customer['enabled'])->toBeFalse()
-        ->and($product['enabled'])->toBeFalse();
+        ->and(collect($response->json('data.products'))->pluck('name')->all())->not->toContain('Bidón de Agua 12L');
 });
 
 test('credit sales raise the seeded customer balance', function (): void {
