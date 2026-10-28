@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
+use App\Accounts\Models\Driver;
+use App\Accounts\Models\User;
+use App\Catalog\Models\ContainerType;
+use App\Catalog\Models\PaymentMethod;
+use App\Catalog\Models\Product;
 use App\Enums\ContainerMovementType;
-use App\Models\ContainerType;
 use App\Models\Customer;
 use App\Models\CustomerAccountEntry;
 use App\Models\CustomerBalance;
 use App\Models\CustomerContainerBalance;
-use App\Models\Driver;
-use App\Models\PaymentMethod;
-use App\Models\Product;
 use App\Models\Route;
 use App\Models\RouteInventory;
 use App\Models\RouteStop;
-use App\Models\User;
 use App\Models\Visit;
 use App\Operations\MoveContainers;
 use App\Operations\RecordPayment;

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Catalog\Models\Product;
 use Database\Factories\SaleDetailFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

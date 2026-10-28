@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Accounts\Models\User;
+use App\Catalog\Models\Product;
 use Database\Factories\RouteInventoryLoadFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

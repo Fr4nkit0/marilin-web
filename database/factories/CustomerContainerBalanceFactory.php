@@ -2,10 +2,10 @@
 
 namespace Database\Factories;
 
-use App\Models\ContainerType;
+use App\Accounts\Models\User;
+use App\Catalog\Models\ContainerType;
 use App\Models\Customer;
 use App\Models\CustomerContainerBalance;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

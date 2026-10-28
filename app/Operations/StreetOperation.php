@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Operations;
 
+use App\Accounts\Models\User;
 use App\Enums\ContainerMovementType;
 use App\Enums\PaymentStatus;
 use App\Enums\SaleStatus;
@@ -13,7 +14,6 @@ use App\Models\Payment;
 use App\Models\Route;
 use App\Models\Sale;
 use App\Models\Transaction;
-use App\Models\User;
 use App\Review\ReviewReason;
 use App\Services\CustomerLedger;
 use Illuminate\Support\Facades\DB;

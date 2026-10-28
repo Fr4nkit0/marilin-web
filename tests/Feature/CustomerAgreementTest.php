@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Accounts\Models\User;
+use App\Catalog\Models\Product;
 use App\Models\Customer;
 use App\Models\CustomerAgreement;
-use App\Models\Product;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 

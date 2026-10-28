@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Accounts\Models\Driver;
+use App\Accounts\Models\User;
 use App\Review\Reviewable;
 use App\Review\ReviewSource;
 use Database\Factories\CustomerFactory;

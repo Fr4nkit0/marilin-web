@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Driver;
+use App\Accounts\Models\Driver;
 use App\Services\CashClose\CashCloseExport;
 use App\Services\CashClose\CashCloseReport;
 use Carbon\Carbon;

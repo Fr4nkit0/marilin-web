@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Accounts\Models\User;
 use Database\Factories\VisitStatusHistoryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

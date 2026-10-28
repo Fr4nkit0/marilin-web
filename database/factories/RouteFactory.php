@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Models\Driver;
+use App\Accounts\Models\Driver;
 use App\Models\Route;
 use Illuminate\Database\Eloquent\Factories\Factory;
 

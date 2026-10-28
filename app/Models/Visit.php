@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Accounts\Models\Driver;
+use App\Accounts\Models\User;
 use App\Enums\VisitStatus;
 use App\Review\Reviewable;
 use App\Review\ReviewSource;

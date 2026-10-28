@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
+use App\Accounts\Models\Driver;
+use App\Accounts\Models\User;
+use App\Catalog\Models\Product;
 use App\Models\ContainerMovement;
 use App\Models\Customer;
 use App\Models\CustomerAddress;
 use App\Models\CustomerAgreement;
-use App\Models\Driver;
 use App\Models\Payment;
-use App\Models\Product;
 use App\Models\Route;
 use App\Models\RouteStop;
 use App\Models\Sale;
-use App\Models\User;
 use App\Models\Visit;
 use App\Review\ReviewReason;
 use Illuminate\Database\Eloquent\Model;

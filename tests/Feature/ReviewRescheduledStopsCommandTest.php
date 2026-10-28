@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Accounts\Models\Driver;
 use App\Models\Customer;
 use App\Models\CustomerAddress;
-use App\Models\Driver;
 use App\Models\Route;
 use App\Models\RouteStop;
 use App\Models\Visit;

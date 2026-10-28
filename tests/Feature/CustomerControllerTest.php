@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Accounts\Models\User;
 use App\Models\Customer;
 use App\Models\CustomerAddress;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);

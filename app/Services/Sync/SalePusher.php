@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Services\Sync;
 
+use App\Accounts\Models\Driver;
+use App\Accounts\Models\User;
+use App\Catalog\Models\Product;
 use App\Models\Customer;
 use App\Models\CustomerAgreement;
-use App\Models\Driver;
-use App\Models\Product;
 use App\Models\Sale;
-use App\Models\User;
 use App\Models\Visit;
 use App\Operations\PriceResolver;
 use App\Operations\RecordSale;

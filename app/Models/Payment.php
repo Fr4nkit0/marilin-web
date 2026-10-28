@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Accounts\Models\User;
+use App\Catalog\Models\PaymentMethod;
 use App\Enums\PaymentStatus;
 use App\Review\Reviewable;
 use App\Review\ReviewSource;

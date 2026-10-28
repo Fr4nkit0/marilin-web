@@ -2,11 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Accounts\Models\User;
+use App\Catalog\Models\PaymentMethod;
 use App\Models\Customer;
 use App\Models\Payment;
-use App\Models\PaymentMethod;
 use App\Models\Transaction;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
+use App\Accounts\Models\Driver;
+use App\Accounts\Models\User;
 use App\Models\Customer;
 use App\Models\CustomerAddress;
-use App\Models\Driver;
 use App\Models\Route;
 use App\Models\RouteStop;
-use App\Models\User;
 use App\Models\Visit;
 use App\Models\VisitOutcome;
 use Illuminate\Foundation\Testing\RefreshDatabase;

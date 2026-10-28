@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Catalog\Models\Product;
 use App\Models\Customer;
 use App\Models\CustomerAgreement;
-use App\Models\Product;
 use App\Operations\PriceResolver;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;

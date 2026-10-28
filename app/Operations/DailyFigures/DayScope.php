@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Operations\DailyFigures;
 
-use App\Models\Driver;
+use App\Accounts\Models\Driver;
 use Illuminate\Database\Eloquent\Builder;
 
 /**

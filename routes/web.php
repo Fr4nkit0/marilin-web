@@ -8,13 +8,10 @@ use App\Http\Controllers\DriverController;
 use App\Http\Controllers\HomePaymentController;
 use App\Http\Controllers\HomeSaleController;
 use App\Http\Controllers\PaymentController;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReviewInboxController;
 use App\Http\Controllers\RouteController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\TruckLoadController;
-use App\Http\Controllers\UserController;
 use App\Services\Review\ReviewInbox;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -34,10 +31,6 @@ Route::get('/dashboard', DashboardController::class)
     ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-
     // Clientes
     Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
     Route::post('/customers', [CustomerController::class, 'store'])->name('customers.store');
@@ -73,21 +66,6 @@ Route::middleware('auth')->group(function () {
     // Cobros
     Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
 
-    // Productos y precio de lista
-    Route::middleware('can:manage-products')->group(function () {
-        Route::get('/products', [ProductController::class, 'index'])->name('products.index');
-        Route::patch('/products/{product}/price', [ProductController::class, 'updatePrice'])->name('products.price');
-    });
-
-    // Cuentas de repartidores
-    Route::middleware('can:manage-users')->group(function () {
-        Route::get('/users', [UserController::class, 'index'])->name('users.index');
-        Route::post('/users', [UserController::class, 'store'])->name('users.store');
-        Route::patch('/users/{user}', [UserController::class, 'update'])->name('users.update');
-        Route::patch('/users/{user}/password', [UserController::class, 'password'])->name('users.password');
-        Route::patch('/users/{user}/status', [UserController::class, 'status'])->name('users.status');
-    });
-
     // Revisión de lo subido por la app
     Route::get('/review', [ReviewInboxController::class, 'index'])->middleware('can:review-inbox')->name('review.index');
     Route::patch('/review/{type}/{id}', [ReviewInboxController::class, 'markReviewed'])
@@ -103,4 +81,5 @@ Route::middleware('auth')->group(function () {
         ->name('cash-close.export');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__.'/../app/Catalog/routes.php';
+require __DIR__.'/../app/Accounts/routes.php';

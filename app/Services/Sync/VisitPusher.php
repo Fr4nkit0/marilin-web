@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Services\Sync;
 
+use App\Accounts\Models\Driver;
+use App\Accounts\Models\User;
 use App\Enums\VisitStatus;
 use App\Models\Customer;
-use App\Models\Driver;
 use App\Models\RouteStop;
-use App\Models\User;
 use App\Models\Visit;
 use App\Shared\ClientTime;
 

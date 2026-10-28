@@ -2,16 +2,16 @@
 
 namespace App\Actions;
 
+use App\Accounts\Models\Driver;
+use App\Accounts\Models\User;
+use App\Catalog\Enums\PaymentMethodCode;
 use App\Enums\ContainerMovementType;
-use App\Enums\PaymentMethodCode;
 use App\Enums\RouteStatus;
 use App\Models\ContainerMovement;
-use App\Models\Driver;
 use App\Models\Payment;
 use App\Models\Route as DeliveryRoute;
 use App\Models\RouteStop;
 use App\Models\Sale;
-use App\Models\User;
 use App\Operations\DailyFigures\DailyFigures;
 use App\Operations\DailyFigures\DayFigures;
 use App\Operations\DailyFigures\DayScope;

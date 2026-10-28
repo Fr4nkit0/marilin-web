@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Operations;
 
-use App\Models\User;
+use App\Accounts\Models\User;
 use Carbon\CarbonInterface;
 
 final readonly class CustomerRegistration

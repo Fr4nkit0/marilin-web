@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Driver;
+use App\Accounts\Models\Driver;
 use App\Models\RouteStop;
 use Carbon\Carbon;
 use Illuminate\Http\Request;

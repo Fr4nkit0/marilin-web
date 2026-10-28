@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-use App\Models\Driver;
-use App\Models\Product;
+use App\Accounts\Models\Driver;
+use App\Accounts\Models\User;
+use App\Catalog\Models\Product;
 use App\Models\Route;
 use App\Models\RouteInventory;
 use App\Models\RouteInventoryLoad;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Testing\TestResponse;
 use Inertia\Testing\AssertableInertia as Assert;

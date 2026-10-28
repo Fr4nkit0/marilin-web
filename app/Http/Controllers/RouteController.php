@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Accounts\Models\Driver;
+use App\Catalog\Models\Product;
 use App\Enums\RouteStatus;
-use App\Models\Driver;
-use App\Models\Product;
 use App\Models\Route as DeliveryRoute;
 use App\Models\RouteStop;
 use Carbon\Carbon;

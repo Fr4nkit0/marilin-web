@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Middleware\EnsureUserIsEnabled;
+use App\Accounts\Http\Middleware\EnsureUserIsEnabled;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;

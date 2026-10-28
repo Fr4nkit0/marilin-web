@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Accounts\Models\Driver;
+use App\Catalog\Models\ContainerType;
+use App\Catalog\Models\PaymentMethod;
+use App\Catalog\Models\Product;
 use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
-use App\Models\ContainerType;
 use App\Models\Customer;
 use App\Models\CustomerAgreement;
-use App\Models\Driver;
-use App\Models\PaymentMethod;
-use App\Models\Product;
 use App\Operations\CustomerAddressDetails;
 use App\Operations\CustomerEdit;
 use App\Operations\CustomerIntake;

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Accounts\Models\User;
 use App\Models\Customer;
 use App\Models\CustomerAccountEntry;
 use App\Models\CustomerBalance;
 use App\Models\Payment;
 use App\Models\Sale;
-use App\Models\User;
 
 /**
  * The customer's current account: every sale or payment books one entry and moves the balance with it.

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
+use App\Accounts\Models\User;
 use App\Models\Route as DeliveryRoute;
-use App\Models\User;
 use App\Operations\StreetOperation;
 
 class RegisterTruckLoadAction

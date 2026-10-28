@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Accounts\Models\Driver;
+use App\Accounts\Models\User;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\PullRequest;
 use App\Http\Requests\Api\V1\PushRequest;
-use App\Models\Driver;
-use App\Models\User;
 use App\Services\Sync\BootstrapService;
 use App\Services\Sync\PullService;
 use App\Services\Sync\PushService;

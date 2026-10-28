@@ -1,16 +1,16 @@
 <?php
 
+use App\Accounts\Models\User;
+use App\Catalog\Models\PaymentMethod;
+use App\Catalog\Models\Product;
 use App\Models\Customer;
 use App\Models\CustomerAccountEntry;
 use App\Models\CustomerAgreement;
 use App\Models\CustomerBalance;
 use App\Models\Payment;
-use App\Models\PaymentMethod;
-use App\Models\Product;
 use App\Models\Sale;
 use App\Models\SaleDetail;
 use App\Models\Transaction;
-use App\Models\User;
 
 test('customer agreement defines agreed price and active scope', function () {
     $customer = Customer::factory()->create();

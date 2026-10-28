@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
+use App\Accounts\Models\User;
 use App\Models\ContainerMovement;
 use App\Models\Customer;
 use App\Models\CustomerAgreement;
 use App\Models\Payment;
 use App\Models\RouteStop;
 use App\Models\Sale;
-use App\Models\User;
 use App\Models\Visit;
 use App\Review\Reviewable;
 use App\Review\ReviewReason;

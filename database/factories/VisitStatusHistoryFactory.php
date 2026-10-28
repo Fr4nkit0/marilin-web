@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Models\User;
+use App\Accounts\Models\User;
 use App\Models\Visit;
 use App\Models\VisitStatusHistory;
 use Illuminate\Database\Eloquent\Factories\Factory;

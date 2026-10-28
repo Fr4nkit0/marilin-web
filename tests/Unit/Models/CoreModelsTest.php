@@ -1,10 +1,10 @@
 <?php
 
+use App\Accounts\Models\Driver;
+use App\Accounts\Models\User;
 use App\Models\Customer;
 use App\Models\CustomerAddress;
 use App\Models\CustomerPreference;
-use App\Models\Driver;
-use App\Models\User;
 
 test('user model can be created with factory and has correct casts', function () {
     $user = User::factory()->create([

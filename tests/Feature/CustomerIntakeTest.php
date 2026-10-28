@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
+use App\Accounts\Models\User;
+use App\Catalog\Models\ContainerType;
 use App\Enums\ContainerMovementType;
 use App\Models\ContainerMovement;
-use App\Models\ContainerType;
 use App\Models\Customer;
 use App\Models\CustomerAccountEntry;
 use App\Models\CustomerAddress;
 use App\Models\CustomerBalance;
 use App\Models\CustomerContainerBalance;
-use App\Models\User;
 use App\Operations\CustomerAddressDetails;
 use App\Operations\CustomerIntake;
 use App\Operations\CustomerRegistration;

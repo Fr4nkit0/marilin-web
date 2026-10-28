@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Accounts\Models\Driver;
 use App\Enums\RouteStatus;
 use Database\Factories\RouteFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;

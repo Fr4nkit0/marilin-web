@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Operations;
 
+use App\Catalog\Models\ContainerType;
 use App\Enums\ContainerMovementType;
-use App\Models\ContainerType;
 use App\Models\Customer;
 use App\Models\CustomerAddress;
 use App\Services\CustomerLedger;

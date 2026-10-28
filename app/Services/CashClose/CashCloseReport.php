@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services\CashClose;
 
+use App\Accounts\Models\Driver;
 use App\Models\ContainerMovement;
-use App\Models\Driver;
 use App\Models\Payment;
 use App\Models\Route as DeliveryRoute;
 use App\Models\Sale;

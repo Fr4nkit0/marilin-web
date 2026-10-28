@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Driver;
+use App\Accounts\Models\Driver;
 use App\Models\Sale;
 use App\Operations\DailyFigures\DailyFigures;
 use App\Operations\DailyFigures\DayScope;

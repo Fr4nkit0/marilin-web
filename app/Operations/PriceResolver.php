@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Operations;
 
+use App\Catalog\Models\Product;
 use App\Models\Customer;
 use App\Models\CustomerAgreement;
-use App\Models\Product;
 use Carbon\CarbonInterface;
 
 /**

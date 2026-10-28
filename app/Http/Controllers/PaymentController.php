@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Catalog\Models\PaymentMethod;
 use App\Models\Payment;
-use App\Models\PaymentMethod;
 use App\Operations\DailyFigures\DailyFigures;
 use App\Operations\DailyFigures\DayScope;
 use Carbon\Carbon;

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Catalog\Models\Product;
 use App\Enums\ContainerMovementType;
 use App\Http\Requests\StoreHomeSaleRequest;
 use App\Models\Customer;
-use App\Models\Product;
 use App\Operations\MoveContainers;
 use App\Operations\PriceResolver;
 use App\Operations\RecordSale;

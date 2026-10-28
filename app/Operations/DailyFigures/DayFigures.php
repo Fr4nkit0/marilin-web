@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Operations\DailyFigures;
 
+use App\Catalog\Enums\PaymentMethodCode;
 use App\Enums\ContainerMovementType;
-use App\Enums\PaymentMethodCode;
 use App\Models\ContainerMovement;
 use App\Models\Payment;
 use App\Models\Sale;

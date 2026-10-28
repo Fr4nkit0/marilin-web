@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Accounts\Models\Driver;
+use App\Accounts\Models\User;
 use App\Models\Customer;
 use App\Models\CustomerAddress;
-use App\Models\Driver;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;

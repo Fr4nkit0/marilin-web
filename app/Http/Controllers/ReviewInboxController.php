@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Accounts\Models\User;
 use App\Http\Requests\ReviewInboxRequest;
-use App\Models\User;
 use App\Services\Review\ReviewInbox;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
