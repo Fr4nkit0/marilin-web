@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Customers\Customers\Models\Customer;
+use App\Customers\Customers\Models\CustomerAddress;
 use App\Enums\StopStatus;
 use App\Enums\VisitStatus;
 use App\Review\Reviewable;

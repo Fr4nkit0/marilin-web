@@ -6,9 +6,9 @@ namespace App\Services\Review;
 
 use App\Accounts\Models\Driver;
 use App\Accounts\Models\User;
+use App\Customers\Agreements\Models\CustomerAgreement;
+use App\Customers\Customers\Models\Customer;
 use App\Models\ContainerMovement;
-use App\Models\Customer;
-use App\Models\CustomerAgreement;
 use App\Models\Payment;
 use App\Models\RouteStop;
 use App\Models\Sale;

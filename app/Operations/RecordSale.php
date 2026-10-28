@@ -6,7 +6,7 @@ namespace App\Operations;
 
 use App\Accounts\Models\Driver;
 use App\Accounts\Models\User;
-use App\Models\Customer;
+use App\Customers\Customers\Models\Customer;
 use App\Models\Visit;
 use App\Review\ReviewReason;
 use Carbon\CarbonInterface;

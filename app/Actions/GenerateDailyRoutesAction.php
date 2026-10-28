@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Accounts\Models\Driver;
+use App\Customers\Customers\Models\Customer;
 use App\Enums\RouteStatus;
-use App\Models\Customer;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;

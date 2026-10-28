@@ -3,7 +3,7 @@
 namespace App\Accounts\Models;
 
 use App\Accounts\Database\Factories\DriverFactory;
-use App\Models\Customer;
+use App\Customers\Customers\Models\Customer;
 use App\Models\Route;
 use App\Models\Visit;
 use Illuminate\Database\Eloquent\Attributes\Fillable;

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Operations;
 
 use App\Accounts\Models\User;
+use App\Customers\Customers\Models\Customer;
 use App\Enums\ContainerMovementType;
-use App\Models\Customer;
 use App\Models\Visit;
 use App\Review\ReviewReason;
 

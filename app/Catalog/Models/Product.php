@@ -3,7 +3,7 @@
 namespace App\Catalog\Models;
 
 use App\Catalog\Database\Factories\ProductFactory;
-use App\Models\CustomerAgreement;
+use App\Customers\Agreements\Models\CustomerAgreement;
 use App\Models\RouteInventory;
 use App\Models\RouteInventoryLoad;
 use App\Models\SaleDetail;

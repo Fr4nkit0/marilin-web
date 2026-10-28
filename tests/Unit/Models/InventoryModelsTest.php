@@ -3,8 +3,8 @@
 use App\Accounts\Models\User;
 use App\Catalog\Models\ContainerType;
 use App\Catalog\Models\Product;
+use App\Customers\Customers\Models\Customer;
 use App\Models\ContainerMovement;
-use App\Models\Customer;
 use App\Models\CustomerContainerBalance;
 use App\Models\Route;
 use App\Models\RouteInventory;

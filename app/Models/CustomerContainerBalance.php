@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Accounts\Models\User;
 use App\Catalog\Models\ContainerType;
+use App\Customers\Customers\Models\Customer;
 use Database\Factories\CustomerContainerBalanceFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

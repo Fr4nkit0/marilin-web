@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Operations;
 
-use App\Models\CustomerAgreement;
+use App\Customers\Agreements\Models\CustomerAgreement;
 
 final readonly class SaleLine
 {

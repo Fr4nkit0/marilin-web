@@ -4,7 +4,7 @@ namespace Database\Factories;
 
 use App\Accounts\Models\User;
 use App\Catalog\Models\PaymentMethod;
-use App\Models\Customer;
+use App\Customers\Customers\Models\Customer;
 use App\Models\Payment;
 use App\Models\Transaction;
 use Illuminate\Database\Eloquent\Factories\Factory;

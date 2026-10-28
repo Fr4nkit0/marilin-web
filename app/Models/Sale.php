@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Accounts\Models\User;
+use App\Customers\Customers\Models\Customer;
 use App\Enums\SaleStatus;
 use App\Review\Reviewable;
 use App\Review\ReviewSource;

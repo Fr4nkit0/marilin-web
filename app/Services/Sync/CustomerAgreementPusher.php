@@ -6,8 +6,8 @@ namespace App\Services\Sync;
 
 use App\Accounts\Models\Driver;
 use App\Accounts\Models\User;
-use App\Models\Customer;
-use App\Models\CustomerAgreement;
+use App\Customers\Agreements\Models\CustomerAgreement;
+use App\Customers\Customers\Models\Customer;
 use App\Review\ReviewReason;
 
 /**

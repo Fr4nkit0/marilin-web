@@ -2,9 +2,9 @@
 
 use App\Accounts\Models\Driver;
 use App\Accounts\Models\User;
-use App\Models\Customer;
-use App\Models\CustomerAddress;
-use App\Models\CustomerPreference;
+use App\Customers\Customers\Models\Customer;
+use App\Customers\Customers\Models\CustomerAddress;
+use App\Customers\Customers\Models\CustomerPreference;
 
 test('user model can be created with factory and has correct casts', function () {
     $user = User::factory()->create([

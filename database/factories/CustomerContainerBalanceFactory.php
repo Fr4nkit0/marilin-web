@@ -4,7 +4,7 @@ namespace Database\Factories;
 
 use App\Accounts\Models\User;
 use App\Catalog\Models\ContainerType;
-use App\Models\Customer;
+use App\Customers\Customers\Models\Customer;
 use App\Models\CustomerContainerBalance;
 use Illuminate\Database\Eloquent\Factories\Factory;
 

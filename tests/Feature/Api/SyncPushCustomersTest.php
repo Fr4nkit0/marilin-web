@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use App\Accounts\Models\Driver;
 use App\Accounts\Models\User;
-use App\Models\Customer;
-use App\Models\CustomerAddress;
+use App\Customers\Customers\Models\Customer;
+use App\Customers\Customers\Models\CustomerAddress;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;

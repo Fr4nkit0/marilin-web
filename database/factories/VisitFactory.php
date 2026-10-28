@@ -4,7 +4,7 @@ namespace Database\Factories;
 
 use App\Accounts\Models\Driver;
 use App\Accounts\Models\User;
-use App\Models\Customer;
+use App\Customers\Customers\Models\Customer;
 use App\Models\RouteStop;
 use App\Models\Visit;
 use App\Models\VisitOutcome;

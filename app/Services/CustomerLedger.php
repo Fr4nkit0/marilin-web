@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Accounts\Models\User;
-use App\Models\Customer;
+use App\Customers\Customers\Models\Customer;
 use App\Models\CustomerAccountEntry;
 use App\Models\CustomerBalance;
 use App\Models\Payment;

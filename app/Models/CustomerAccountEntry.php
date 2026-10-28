@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Accounts\Models\User;
+use App\Customers\Customers\Models\Customer;
 use Database\Factories\CustomerAccountEntryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

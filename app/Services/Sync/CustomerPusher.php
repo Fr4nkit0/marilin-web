@@ -6,12 +6,12 @@ namespace App\Services\Sync;
 
 use App\Accounts\Models\Driver;
 use App\Accounts\Models\User;
-use App\Models\Customer;
-use App\Operations\AddressLocation;
-use App\Operations\CustomerAddressDetails;
-use App\Operations\CustomerEdit;
-use App\Operations\CustomerIntake;
-use App\Operations\CustomerRegistration;
+use App\Customers\Customers\AddressLocation;
+use App\Customers\Customers\CustomerAddressDetails;
+use App\Customers\Customers\CustomerEdit;
+use App\Customers\Customers\CustomerIntake;
+use App\Customers\Customers\CustomerRegistration;
+use App\Customers\Customers\Models\Customer;
 use App\Review\ReviewReason;
 use App\Shared\ClientTime;
 use Illuminate\Support\Carbon;

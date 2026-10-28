@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use App\Catalog\Models\Product;
-use App\Models\Customer;
-use App\Models\CustomerAgreement;
+use App\Customers\Agreements\Models\CustomerAgreement;
+use App\Customers\Customers\Models\Customer;
 use App\Models\RouteStop;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;

@@ -4,7 +4,7 @@ namespace App\Accounts\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Accounts\Database\Factories\UserFactory;
-use App\Models\Customer;
+use App\Customers\Customers\Models\Customer;
 use App\Models\CustomerAccountEntry;
 use App\Models\Payment;
 use App\Models\Sale;

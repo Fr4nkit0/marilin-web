@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Customers\Customers\Models\Customer;
 use App\Http\Requests\StoreHomePaymentRequest;
-use App\Models\Customer;
 use App\Operations\RecordPayment;
 use App\Operations\StreetOperation;
 use Illuminate\Http\RedirectResponse;

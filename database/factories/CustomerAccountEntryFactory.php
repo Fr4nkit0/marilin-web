@@ -3,7 +3,7 @@
 namespace Database\Factories;
 
 use App\Accounts\Models\User;
-use App\Models\Customer;
+use App\Customers\Customers\Models\Customer;
 use App\Models\CustomerAccountEntry;
 use Illuminate\Database\Eloquent\Factories\Factory;
 

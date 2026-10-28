@@ -6,7 +6,7 @@ namespace App\Services\Sync;
 
 use App\Accounts\Models\Driver;
 use App\Accounts\Models\User;
-use App\Models\Customer;
+use App\Customers\Customers\Models\Customer;
 use App\Review\Reviewable;
 use App\Review\ReviewReason;
 use Illuminate\Database\Eloquent\Model;

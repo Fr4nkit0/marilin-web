@@ -1,8 +1,6 @@
 <?php
 
 use App\Http\Controllers\CashCloseController;
-use App\Http\Controllers\CustomerAgreementController;
-use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DriverController;
 use App\Http\Controllers\HomePaymentController;
@@ -31,20 +29,15 @@ Route::get('/dashboard', DashboardController::class)
     ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
-    // Clientes
-    Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
-    Route::post('/customers', [CustomerController::class, 'store'])->name('customers.store');
-    Route::put('/customers/{customer}', [CustomerController::class, 'update'])->name('customers.update');
-    Route::middleware('can:manage-agreements')->scopeBindings()->group(function () {
-        Route::post('/customers/{customer}/agreements', [CustomerAgreementController::class, 'store'])->name('customers.agreements.store');
-        Route::patch('/customers/{customer}/agreements/{agreement}/end', [CustomerAgreementController::class, 'end'])->name('customers.agreements.end');
-    });
+    require __DIR__.'/../app/Customers/routes.php';
+
     // Venta/Cobro en casa are recorded by the administrator (the same one who manages agreements, whose price the sale respects).
     Route::middleware('can:manage-agreements')->group(function () {
         Route::post('/customers/{customer}/home-sales', [HomeSaleController::class, 'store'])->name('customers.home-sales.store');
         Route::post('/customers/{customer}/home-payments', [HomePaymentController::class, 'store'])->name('customers.home-payments.store');
     });
-    Route::get('/customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
+
+    require __DIR__.'/../app/Customers/routes-show.php';
 
     // Choferes / Drivers
     Route::get('/drivers', [DriverController::class, 'index'])->name('drivers.index');

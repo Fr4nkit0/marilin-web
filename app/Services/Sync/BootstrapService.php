@@ -8,7 +8,7 @@ use App\Accounts\Models\Driver;
 use App\Catalog\Models\ContainerType;
 use App\Catalog\Models\PaymentMethod;
 use App\Catalog\Models\Product;
-use App\Models\Customer;
+use App\Customers\Customers\Models\Customer;
 use App\Models\Route;
 use App\Models\RouteStop;
 use App\Models\VisitOutcome;

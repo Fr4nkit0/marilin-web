@@ -4,8 +4,8 @@ namespace Database\Factories;
 
 use App\Accounts\Models\User;
 use App\Catalog\Models\ContainerType;
+use App\Customers\Customers\Models\Customer;
 use App\Models\ContainerMovement;
-use App\Models\Customer;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

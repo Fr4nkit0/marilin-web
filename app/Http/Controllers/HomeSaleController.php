@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Catalog\Models\Product;
+use App\Customers\Agreements\PriceResolver;
+use App\Customers\Customers\Models\Customer;
 use App\Enums\ContainerMovementType;
 use App\Http\Requests\StoreHomeSaleRequest;
-use App\Models\Customer;
 use App\Operations\MoveContainers;
-use App\Operations\PriceResolver;
 use App\Operations\RecordSale;
 use App\Operations\SaleLine;
 use App\Operations\StreetOperation;
