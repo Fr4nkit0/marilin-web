@@ -164,7 +164,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                 </div>
                 <button
                     onClick={() => setIsCreateModalOpen(true)}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition shadow-sm cursor-pointer"
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 transition shadow-sm cursor-pointer"
                 >
                     <Plus className="w-4 h-4" />
                     Nuevo Cliente
@@ -182,7 +182,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                             value={filter.values.search}
                             onChange={(e) => filter.draft('search', e.target.value)}
                             placeholder="Buscar por nombre, teléfono o dirección..."
-                            className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200/60 bg-white text-slate-900 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-slate-900 font-medium"
+                            className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200/60 bg-white text-slate-900 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 font-medium"
                         />
                     </div>
 
@@ -191,7 +191,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                         <select
                             value={filter.values.repartidor_id}
                             onChange={(e) => filter.set('repartidor_id', e.target.value)}
-                            className="w-full py-2 px-3 text-sm border border-gray-200/60 bg-white text-slate-900 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-slate-900 font-medium"
+                            className="w-full py-2 px-3 text-sm border border-gray-200/60 bg-white text-slate-900 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 font-medium"
                         >
                             <option value="">Todos los Repartidores</option>
                             {repartidores.map((rep) => (
@@ -207,7 +207,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                         <select
                             value={filter.values.debt_status}
                             onChange={(e) => filter.set('debt_status', e.target.value)}
-                            className="w-full py-2 px-3 text-sm border border-gray-200/60 bg-white text-slate-900 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-slate-900 font-medium"
+                            className="w-full py-2 px-3 text-sm border border-gray-200/60 bg-white text-slate-900 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 font-medium"
                         >
                             <option value="all">Todos los Estados</option>
                             <option value="with_debt">Con Deuda Pendiente</option>
@@ -327,7 +327,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                                     </button>
                                                     <Link
                                                         href={route('customers.show', c.id)}
-                                                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-slate-900 text-white hover:bg-slate-800 font-medium transition text-xs shadow-sm"
+                                                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-sky-600 text-white hover:bg-sky-700 font-medium transition text-xs shadow-sm"
                                                     >
                                                         <Eye className="w-3.5 h-3.5" />
                                                         Ver Ficha
@@ -391,7 +391,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                     value={data.name}
                                     onChange={(e) => setData('name', e.target.value)}
                                     placeholder="Ej: Sanatorio Los Lapachos S.A."
-                                    className="w-full px-4 py-2 text-sm border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-slate-900 "
+                                    className="w-full px-4 py-2 text-sm border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                 />
                                 {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name}</p>}
                             </div>
@@ -407,7 +407,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                         value={data.phone_number}
                                         onChange={(e) => setData('phone_number', e.target.value)}
                                         placeholder="Ej: +54 388 422-3000"
-                                        className="w-full px-4 py-2 text-sm border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-slate-900 "
+                                        className="w-full px-4 py-2 text-sm border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                     />
                                     {errors.phone_number && (
                                         <p className="text-sm text-red-600 mt-1">{errors.phone_number}</p>
@@ -421,7 +421,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                     <select
                                         value={data.repartidor_id}
                                         onChange={(e) => setData('repartidor_id', e.target.value)}
-                                        className="w-full px-4 py-2 text-sm border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-slate-900  bg-white"
+                                        className="w-full px-4 py-2 text-sm border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  bg-white"
                                     >
                                         <option value="">Sin Asignar</option>
                                         {repartidores.map((rep) => (
@@ -451,7 +451,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                         value={data.street}
                                         onChange={(e) => setData('street', e.target.value)}
                                         placeholder="Ej: Belgrano 340"
-                                        className="w-full px-4 py-2 text-sm border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-slate-900 "
+                                        className="w-full px-4 py-2 text-sm border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                     />
                                     {errors.street && <p className="text-sm text-red-600 mt-1">{errors.street}</p>}
                                 </div>
@@ -467,7 +467,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                             onChange={(e) => setData('floor', e.target.value)}
                                             maxLength={20}
                                             placeholder="Ej: PB, 3, Local 2"
-                                            className="w-full px-4 py-2 text-sm border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-slate-900 "
+                                            className="w-full px-4 py-2 text-sm border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                         />
                                     </div>
 
@@ -480,7 +480,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                             value={data.apartment}
                                             onChange={(e) => setData('apartment', e.target.value)}
                                             placeholder="Ej: 4B"
-                                            className="w-full px-4 py-2 text-sm border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-slate-900 "
+                                            className="w-full px-4 py-2 text-sm border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                         />
                                     </div>
 
@@ -493,7 +493,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                             value={data.visual_reference}
                                             onChange={(e) => setData('visual_reference', e.target.value)}
                                             placeholder="Ej: Frente a Plaza Belgrano"
-                                            className="w-full px-4 py-2 text-sm border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-slate-900 "
+                                            className="w-full px-4 py-2 text-sm border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                         />
                                     </div>
                                 </div>
@@ -516,7 +516,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                             min="0"
                                             value={data.initial_balance}
                                             onChange={(e) => setData('initial_balance', e.target.value)}
-                                            className="w-full px-4 py-2 text-sm border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-slate-900  font-medium"
+                                            className="w-full px-4 py-2 text-sm border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  font-medium"
                                         />
                                     </div>
 
@@ -529,7 +529,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                             min="0"
                                             value={data.bidon_20l_balance}
                                             onChange={(e) => setData('bidon_20l_balance', e.target.value)}
-                                            className="w-full px-4 py-2 text-sm border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-slate-900  font-medium"
+                                            className="w-full px-4 py-2 text-sm border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  font-medium"
                                         />
                                     </div>
 
@@ -542,7 +542,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                             min="0"
                                             value={data.sifon_2l_balance}
                                             onChange={(e) => setData('sifon_2l_balance', e.target.value)}
-                                            className="w-full px-4 py-2 text-sm border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-slate-900  font-medium"
+                                            className="w-full px-4 py-2 text-sm border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  font-medium"
                                         />
                                     </div>
                                 </div>
@@ -560,7 +560,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition shadow-sm cursor-pointer flex items-center gap-2 disabled:opacity-50"
+                                    className="px-4 py-2 rounded-lg bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 transition shadow-sm cursor-pointer flex items-center gap-2 disabled:opacity-50"
                                 >
                                     <Save className="w-4 h-4" />
                                     {processing ? 'Guardando...' : 'Guardar Cliente'}
@@ -616,7 +616,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                     required
                                     value={editForm.data.name}
                                     onChange={(e) => editForm.setData('name', e.target.value)}
-                                    className="w-full px-4 py-2 text-sm border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-slate-900 "
+                                    className="w-full px-4 py-2 text-sm border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                 />
                                 {editForm.errors.name && (
                                     <p className="text-sm text-red-600 mt-1">{editForm.errors.name}</p>
@@ -634,7 +634,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                         value={editForm.data.phone_number}
                                         onChange={(e) => editForm.setData('phone_number', e.target.value)}
                                         placeholder="Ej: +54 388 422-3000"
-                                        className="w-full px-4 py-2 text-sm border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-slate-900 "
+                                        className="w-full px-4 py-2 text-sm border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                     />
                                     {editForm.errors.phone_number && (
                                         <p className="text-sm text-red-600 mt-1">{editForm.errors.phone_number}</p>
@@ -648,7 +648,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                     <select
                                         value={editForm.data.repartidor_id}
                                         onChange={(e) => editForm.setData('repartidor_id', e.target.value)}
-                                        className="w-full px-4 py-2 text-sm border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-slate-900  bg-white"
+                                        className="w-full px-4 py-2 text-sm border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  bg-white"
                                     >
                                         <option value="">Sin Asignar</option>
                                         {repartidores.map((rep) => (
@@ -677,7 +677,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                         required
                                         value={editForm.data.street}
                                         onChange={(e) => editForm.setData('street', e.target.value)}
-                                        className="w-full px-4 py-2 text-sm border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-slate-900 "
+                                        className="w-full px-4 py-2 text-sm border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                     />
                                     {editForm.errors.street && (
                                         <p className="text-sm text-red-600 mt-1">{editForm.errors.street}</p>
@@ -695,7 +695,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                             onChange={(e) => editForm.setData('floor', e.target.value)}
                                             maxLength={20}
                                             placeholder="Ej: PB, 3, Local 2"
-                                            className="w-full px-4 py-2 text-sm border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-slate-900 "
+                                            className="w-full px-4 py-2 text-sm border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                         />
                                     </div>
 
@@ -708,7 +708,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                             value={editForm.data.apartment}
                                             onChange={(e) => editForm.setData('apartment', e.target.value)}
                                             placeholder="Ej: 4B"
-                                            className="w-full px-4 py-2 text-sm border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-slate-900 "
+                                            className="w-full px-4 py-2 text-sm border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                         />
                                     </div>
 
@@ -721,7 +721,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                             value={editForm.data.visual_reference}
                                             onChange={(e) => editForm.setData('visual_reference', e.target.value)}
                                             placeholder="Ej: Frente a Plaza Belgrano"
-                                            className="w-full px-4 py-2 text-sm border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-slate-900 "
+                                            className="w-full px-4 py-2 text-sm border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                         />
                                     </div>
                                 </div>
@@ -739,7 +739,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                 <button
                                     type="submit"
                                     disabled={editForm.processing}
-                                    className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition shadow-sm cursor-pointer flex items-center gap-2 disabled:opacity-50"
+                                    className="px-4 py-2 rounded-lg bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 transition shadow-sm cursor-pointer flex items-center gap-2 disabled:opacity-50"
                                 >
                                     <Save className="w-4 h-4" />
                                     {editForm.processing ? 'Guardando...' : 'Guardar Cambios'}

@@ -85,7 +85,7 @@ export default function RouteStockLoadModal({ routeId, driverName, isFirstLoad, 
                                 value={data.quantities[product.id] ?? ''}
                                 onChange={(e) => setData('quantities', { ...data.quantities, [product.id]: e.target.value })}
                                 aria-label={`Unidades de ${product.name}`}
-                                className="w-28 py-2 px-3 text-sm text-right border border-gray-200/60 bg-white text-slate-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-slate-900 font-medium"
+                                className="w-28 py-2 px-3 text-sm text-right border border-gray-200/60 bg-white text-slate-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 font-medium"
                             />
                         </label>
                     ))}
@@ -110,7 +110,7 @@ export default function RouteStockLoadModal({ routeId, driverName, isFirstLoad, 
                     <button
                         type="submit"
                         disabled={processing || nothingFilled}
-                        className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                        className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                     >
                         Registrar carga
                     </button>

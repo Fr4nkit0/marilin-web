@@ -3,23 +3,23 @@ name: Marilin Web Design System
 version: alpha
 description: >
   A logistics and water/soda distribution management system built on a clean,
-  high-contrast light canvas, slate-900 primary actions and an indigo accent. Designed for two
+  high-contrast light canvas with a water-blue (sky) primary. Designed for two
   audiences — office administrators managing routes, customers, and invoices on
   desktop, and delivery drivers confirming stops and inventory on mobile devices
   in truck cabs under direct sunlight.
 
 colors:
   # ── Brand & Primary ──
-  # Primary actions are slate-900 (SURFACE.md); indigo is the accent for links, focus and selection.
-  primary: "#0f172a"
-  primary-hover: "#1e293b"
-  primary-pressed: "#020617"
-  primary-soft: "#f1f5f9"
+  # Water blue (Tailwind sky) for primary actions, links, focus and selection (user's choice, 2026-10-28).
+  primary: "#0284c7"
+  primary-hover: "#0369a1"
+  primary-pressed: "#075985"
+  primary-soft: "#e0f2fe"
   on-primary: "#ffffff"
-  accent: "#4f46e5"
-  accent-hover: "#4338ca"
-  accent-soft: "#e0e7ff"
-  focus-ring: "#4f46e5"
+  accent: "#0284c7"
+  accent-hover: "#0369a1"
+  accent-soft: "#e0f2fe"
+  focus-ring: "#0284c7"
 
   # ── Ink Hierarchy ──
   ink: "#0f172a"
@@ -338,7 +338,7 @@ The app runs on **Laravel 12 + Inertia.js v2 (React 18) + Tailwind CSS v4**.
 
 ## Colors
 
-The palette is built on the standard Tailwind CSS v4 slate and indigo scales, ensuring consistent mapping between design tokens and utility classes.
+The palette is built on the standard Tailwind CSS slate and sky scales, ensuring consistent mapping between design tokens and utility classes.
 
 ### Ink Hierarchy
 Text uses a 4-step ink hierarchy — never pure black (`#000000`). The deep navy-slate ink (`#0f172a`) provides high contrast without visual harshness:
@@ -361,7 +361,7 @@ Each semantic status has **three tiers** for flexible application:
 - **Soft** — Light background tint for badges and banners
 - **Deep** — High-contrast text paired with soft backgrounds
 
-The primary brand color (indigo) is **strictly reserved** for primary CTAs, active focus rings, and navigation active states. It is never used decoratively.
+The primary brand color (sky) is **strictly reserved** for primary CTAs, active focus rings, and navigation active states. It is never used decoratively.
 
 ### Product Category Tints
 Inspired by Notion's pastel property system, product categories use soft tinted backgrounds with saturated text for instant visual recognition on truck manifests and packing slips:
@@ -430,7 +430,7 @@ Elevation is communicated through **surface stepping and subtle stacked shadows*
 
 ### Hairline Focus
 - Input borders at rest use `hairline` (`#e2e8f0`).
-- Active focus shifts to a 2px ring in `focus-ring` (indigo), providing clear keyboard navigation visibility.
+- Active focus shifts to a 2px ring in `focus-ring` (sky), providing clear keyboard navigation visibility.
 
 ## Shapes
 
@@ -474,7 +474,7 @@ All buttons show `disabled:opacity-50 disabled:cursor-not-allowed` during form s
 ### Navigation
 - **Segmented Tabs:** Clean text tabs with 2px bottom border on active state. Used for major view switching (Listado, Mapa, Carga, Rendición).
 - **Pill Tabs:** Floating pill toggles inside a `surface-1` container. Active tab renders as elevated white pill. Used for inline data filtering (Todos, Entregados, Ausentes).
-- **Sidebar:** Active item uses a 3px left border indicator in `accent` (indigo), not a full background fill.
+- **Sidebar:** Active item uses a 3px left border indicator in `accent` (sky), not a full background fill.
 
 ### Status Badges
 Follow the **monochrome urgency principle**: most operational states are neutral. Color is reserved for exceptions.
@@ -498,7 +498,7 @@ A prominent search bar (`search-bar` component, 44px, `surface-1` background) in
 - ✅ Use `tabular-nums` on all numeric table columns and financial displays
 - ✅ Use Inertia `<Link>` for all internal navigation (SPA without full reload)
 - ✅ Use Headless UI for dialogs, menus, and dropdowns
-- ✅ Provide `focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500` on all interactive elements
+- ✅ Provide `focus:ring-2 focus:ring-offset-2 focus:ring-sky-500` on all interactive elements
 - ✅ Use semantic Tailwind classes mapped to design tokens — never arbitrary hex values in JSX
 - ✅ Ensure all driver-facing buttons have `min-h-[52px]` on mobile
 - ✅ Use 1px hairline borders for table row separation
@@ -511,7 +511,7 @@ A prominent search bar (`search-bar` component, 44px, `surface-1` background) in
 - ❌ Use heavy blurred `shadow-lg` or `shadow-xl` — use the stacked shadow scale
 - ❌ Hardcode hex colors directly in components — reference Tailwind theme tokens
 - ❌ Use `alert()`, `confirm()`, or browser-native dialogs — use Headless UI modals
-- ❌ Use the indigo accent decoratively — reserve it for links, focus and selected states only
+- ❌ Use the sky accent decoratively — reserve it for links, focus and selected states only
 - ❌ Color-code normal operational states (Pagado = green, Pendiente = yellow) — keep them neutral
 - ❌ Use ALL CAPS for headings or button labels (except `eyebrow` / `caption-mono` labels)
 - ❌ Apply `rounded-full` (pill) to standard action buttons — pills are for badges and filter chips

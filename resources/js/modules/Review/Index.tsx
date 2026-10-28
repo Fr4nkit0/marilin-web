@@ -26,7 +26,7 @@ const TYPE_LABELS: Record<ReviewType, string> = {
 };
 
 const inputClass =
-    'w-full py-2 px-3 text-sm border border-gray-200/60 bg-white text-slate-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-slate-900 font-medium';
+    'w-full py-2 px-3 text-sm border border-gray-200/60 bg-white text-slate-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 font-medium';
 
 function formatDate(item: ReviewItem): string {
     // A rescheduled stop belongs to a day, not to a moment of it.
@@ -176,7 +176,7 @@ export default function Index({ items, filters, drivers }: Props) {
                                                 <button
                                                     type="button"
                                                     onClick={() => markReviewed(item)}
-                                                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-slate-900 text-white hover:bg-slate-800 font-medium transition text-xs shadow-sm cursor-pointer"
+                                                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-sky-600 text-white hover:bg-sky-700 font-medium transition text-xs shadow-sm cursor-pointer"
                                                 >
                                                     <CheckCheck className="w-3.5 h-3.5" />
                                                     Marcar como revisado

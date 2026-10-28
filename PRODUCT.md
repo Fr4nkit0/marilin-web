@@ -43,7 +43,7 @@ A specialized, high-density operational tool tailored specifically for the physi
 
 - Backend scaffolded with Laravel Sail (PostgreSQL, Redis, Mailpit).
 - Existing automated tests (Pest PHP).
-- Tailwind design system with slate-900 primary actions, an indigo accent and Emerald/Rose for status.
+- Tailwind design system with sky-600 (water blue) for primary actions and accents, and Emerald/Rose for status.
 
 ## Product Principles
 

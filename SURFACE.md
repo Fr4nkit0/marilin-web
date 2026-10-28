@@ -23,7 +23,7 @@ A floating, breathable interface that feels like a native app.
 ### 3. Palette
 A pristine, optimistic, and highly professional palette:
 * **Backgrounds:** `#f8fafc` (Slate 50) for the app body, `#ffffff` (White) for floating cards.
-* **Primary Actions:** A sleek, deep brand color like `#0f172a` (Slate 900) for primary buttons (Vercel style), or a vibrant `#4f46e5` (Indigo 600) for Stripe style. We will use a sleek Slate 900 (`bg-slate-900 hover:bg-slate-800 text-white`) for a super premium monochromatic look with blue/indigo accents.
+* **Primary Actions:** Water blue `#0284c7` (Sky 600, hover Sky 700) for primary buttons, links, focus and selection (chosen 2026-10-28 over Slate 900). Previously considered: a sleek, deep brand color like `#0f172a` (Slate 900) for primary buttons (Vercel style), or a vibrant `#4f46e5` (Indigo 600) for Stripe style. We will use a sleek Slate 900 (`bg-slate-900 hover:bg-slate-800 text-white`) for a super premium monochromatic look with blue/indigo accents.
 * **Secondary Actions:** `bg-white text-slate-700 border border-slate-200 hover:bg-slate-50`.
 * **Badges:** Soft pills (`bg-slate-100 text-slate-700 rounded-full`, or `bg-emerald-50 text-emerald-700`).
 

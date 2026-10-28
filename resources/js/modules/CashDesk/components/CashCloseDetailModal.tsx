@@ -40,7 +40,7 @@ function time(at: string | null): string {
 function OriginBadge({ origin }: { origin: CashCloseOrigin }) {
     const style =
         origin === 'stop'
-            ? 'bg-indigo-50 text-indigo-700 border-indigo-200/60'
+            ? 'bg-sky-50 text-sky-700 border-sky-200/60'
             : 'bg-slate-50 text-slate-600 border-gray-200/60';
 
     return (
