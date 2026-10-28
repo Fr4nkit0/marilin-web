@@ -1,5 +1,7 @@
 import React, { PropsWithChildren, ReactNode, useState } from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
+import { useTheme } from '@/lib/theme';
+import ThemeSwitch from '@/ui/ThemeSwitch';
 import {
     LayoutDashboard,
     Truck,
@@ -34,6 +36,8 @@ export default function AdminLayout({
     children,
 }: PropsWithChildren<{ header?: ReactNode }>) {
     const user = usePage().props.auth.user;
+    // Applies the saved theme and follows the system while the choice is "system", menu open or not.
+    useTheme();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
     const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -110,26 +114,26 @@ export default function AdminLayout({
     ];
 
     return (
-        <div className="min-h-screen bg-slate-50 text-slate-900 flex font-sans antialiased">
+        <div className="min-h-screen bg-canvas-soft dark:bg-transparent text-ink flex font-sans antialiased">
             {/* Mobile Sidebar Backdrop */}
             {sidebarOpen && (
                 <div
-                    className="fixed inset-0 z-40 bg-gray-900/40 backdrop-blur-sm lg:hidden"
+                    className="fixed inset-0 z-40 bg-gray-900/40 dark:bg-black/70 backdrop-blur-sm lg:hidden"
                     onClick={() => setSidebarOpen(false)}
                 />
             )}
 
             {/* Sidebar */}
             <aside
-                className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200/60 flex flex-col transition-transform duration-200 ease-in-out lg:translate-x-0 ${
+                className={`fixed inset-y-0 left-0 z-50 w-64 bg-canvas border-r border-hairline/60 flex flex-col transition-transform duration-200 ease-in-out lg:translate-x-0 ${
                     sidebarOpen ? 'translate-x-0' : '-translate-x-full'
                 }`}
             >
                 {/* Brand Logo & Header */}
-                <div className="flex items-center justify-between px-6 bg-white border-b border-gray-200/60 h-16 lg:hidden">
+                <div className="flex items-center justify-between px-6 bg-canvas border-b border-hairline/60 h-16 lg:hidden">
                     <div className="flex-1"></div>
                     <button
-                        className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100"
+                        className="p-1.5 rounded-lg text-ink-muted hover:bg-surface-1"
                         onClick={() => setSidebarOpen(false)}
                     >
                         <X className="w-5 h-5" />
@@ -138,7 +142,7 @@ export default function AdminLayout({
 
                 {/* Navigation Items */}
                 <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-                    <div className="px-3 pb-3 text-xs font-semibold text-slate-500">
+                    <div className="px-3 pb-3 text-xs font-semibold text-ink-muted">
                         Operaciones
                     </div>
                     {navigation.map((item) => {
@@ -149,20 +153,20 @@ export default function AdminLayout({
                                 href={item.href}
                                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
                                     item.active
-                                        ? 'bg-slate-100 text-slate-900 font-medium'
-                                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
+                                        ? 'bg-surface-1 text-ink font-medium'
+                                        : 'text-ink-secondary hover:bg-canvas-soft hover:text-ink font-medium'
                                 }`}
                             >
                                 <Icon
                                     className={`w-5 h-5 ${
-                                        item.active ? 'text-slate-900' : 'text-slate-500 group-hover:text-slate-700'
+                                        item.active ? 'text-ink' : 'text-ink-muted group-hover:text-ink-secondary'
                                     }`}
                                     strokeWidth={2}
                                 />
                                 <span className="flex-1">{item.name}</span>
                                 {item.badge && (
                                     <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
-                                        item.active ? 'bg-sky-50 text-sky-700' : 'bg-slate-100 text-slate-600'
+                                        item.active ? 'bg-sky-50 dark:bg-sky-500/15 text-sky-700 dark:text-sky-300' : 'bg-surface-1 text-ink-secondary'
                                     }`}>
                                         {item.badge}
                                     </span>
@@ -173,19 +177,19 @@ export default function AdminLayout({
                 </nav>
 
                 {/* User Footer */}
-                <div className="p-4 bg-white border-t border-gray-200/60 flex items-center justify-between">
+                <div className="p-4 bg-canvas border-t border-hairline/60 flex items-center justify-between">
                     <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-10 h-10 rounded-full bg-slate-100 border border-gray-200/60 flex items-center justify-center text-sm font-semibold text-slate-700">
+                        <div className="w-10 h-10 rounded-full bg-surface-1 border border-hairline/60 flex items-center justify-center text-sm font-semibold text-ink-secondary">
                             {user.name.charAt(0).toUpperCase()}
                         </div>
                         <div className="min-w-0">
-                            <p className="text-sm font-medium text-slate-900 truncate">{user.name}</p>
-                            <p className="text-xs text-slate-500 truncate">Administrador</p>
+                            <p className="text-sm font-medium text-ink truncate">{user.name}</p>
+                            <p className="text-xs text-ink-muted truncate">Administrador</p>
                         </div>
                     </div>
                     <button
                         onClick={() => setShowLogoutModal(true)}
-                        className="p-2 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition cursor-pointer"
+                        className="p-2 rounded-lg text-ink-muted hover:text-ink hover:bg-surface-1 transition cursor-pointer"
                         title="Cerrar sesión"
                     >
                         <LogOut className="w-5 h-5" strokeWidth={2} />
@@ -196,50 +200,54 @@ export default function AdminLayout({
             {/* Main Area */}
             <div className="flex-1 lg:pl-64 flex flex-col min-w-0">
                 {/* Topbar */}
-                <header className="h-16 bg-white/80 backdrop-blur-md border-b border-gray-200/60 sticky top-0 z-30 flex items-center justify-between px-4 sm:px-6 lg:px-8 shadow-sm">
+                <header className="h-16 bg-canvas/80 backdrop-blur-md border-b border-hairline/60 sticky top-0 z-30 flex items-center justify-between px-4 sm:px-6 lg:px-8 shadow-sm ">
                     <div className="flex items-center gap-3">
                         <button
                             onClick={() => setSidebarOpen(true)}
-                            className="lg:hidden p-2 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                            className="lg:hidden p-2 rounded-lg text-ink-muted hover:bg-surface-1 hover:text-ink"
                         >
                             <Menu className="w-5 h-5" />
                         </button>
-                        <div className="text-slate-900 font-medium text-sm">
+                        <div className="text-ink font-medium text-sm">
                             {header}
                         </div>
                     </div>
 
                     <div className="flex items-center gap-4">
                         {/* Notifications */}
-                        <button className="relative p-2 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition">
+                        <button className="relative p-2 rounded-lg text-ink-muted hover:text-ink hover:bg-surface-1 transition">
                             <Bell className="w-5 h-5" strokeWidth={2} />
                             <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
                         </button>
 
-                        <div className="h-6 w-px bg-slate-200"></div>
+                        <div className="h-6 w-px bg-surface-2"></div>
 
                         {/* User Menu */}
                         <div className="relative">
                             <button
                                 onClick={() => setUserMenuOpen(!userMenuOpen)}
-                                className="flex items-center gap-2 text-sm font-medium text-slate-700 hover:text-slate-900"
+                                className="flex items-center gap-2 text-sm font-medium text-ink-secondary hover:text-ink"
                             >
                                 <span className="hidden sm:inline-block">{user.name}</span>
-                                <ChevronDown className="w-4 h-4 text-slate-500" strokeWidth={2} />
+                                <ChevronDown className="w-4 h-4 text-ink-muted" strokeWidth={2} />
                             </button>
 
                             {userMenuOpen && (
-                                <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200/60 py-1.5 z-50">
+                                <div className="absolute right-0 mt-2 w-48 bg-canvas rounded-xl shadow-lg border border-hairline/60 py-1.5 z-50 ">
                                     <Link
                                         href={route('profile.edit')}
-                                        className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                                        className="block px-4 py-2 text-sm text-ink-secondary hover:bg-canvas-soft"
                                         onClick={() => setUserMenuOpen(false)}
                                     >
                                         Mi perfil
                                     </Link>
+                                    <div className="px-4 py-2">
+                                        <p className="text-xs text-ink-muted mb-1.5">Tema</p>
+                                        <ThemeSwitch />
+                                    </div>
                                     <button
                                         type="button"
-                                        className="w-full text-left block px-4 py-2 text-sm text-rose-600 hover:bg-rose-50 cursor-pointer"
+                                        className="w-full text-left block px-4 py-2 text-sm text-rose-600 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-500/15 cursor-pointer"
                                         onClick={() => {
                                             setUserMenuOpen(false);
                                             setShowLogoutModal(true);
@@ -254,7 +262,7 @@ export default function AdminLayout({
                 </header>
 
                 {/* Page Content */}
-                <main className="flex-1 p-4 sm:p-6 lg:p-8 w-full max-w-none mx-auto bg-slate-50">
+                <main className="flex-1 p-4 sm:p-6 lg:p-8 w-full max-w-none mx-auto bg-canvas-soft">
                     {children}
                 </main>
             </div>
@@ -264,21 +272,21 @@ export default function AdminLayout({
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                     {/* Backdrop */}
                     <div
-                        className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity"
+                        className="fixed inset-0 bg-gray-900/40 dark:bg-black/70 backdrop-blur-sm transition-opacity"
                         onClick={() => setShowLogoutModal(false)}
                     />
 
                     {/* Modal Card */}
-                    <div className="relative bg-white rounded-2xl shadow-xl border border-gray-200/60 max-w-md w-full p-6 overflow-hidden z-10">
+                    <div className="relative bg-canvas rounded-2xl shadow-xl border border-hairline/60 max-w-md w-full p-6 overflow-hidden z-10 ">
                         <div className="flex items-start gap-4">
-                            <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center text-rose-600 shrink-0">
+                            <div className="w-10 h-10 rounded-full bg-rose-100 dark:bg-rose-500/15 flex items-center justify-center text-rose-600 dark:text-rose-300 shrink-0">
                                 <AlertTriangle className="w-5 h-5" strokeWidth={2} />
                             </div>
                             <div className="flex-1 pt-1">
-                                <h3 className="text-lg font-semibold text-slate-900">
+                                <h3 className="text-lg font-semibold text-ink">
                                     Cerrar sesión
                                 </h3>
-                                <p className="mt-2 text-sm text-slate-500">
+                                <p className="mt-2 text-sm text-ink-muted">
                                     Finalizarás tu sesión actual. Deberás ingresar credenciales nuevamente para acceder.
                                 </p>
                             </div>
@@ -289,14 +297,14 @@ export default function AdminLayout({
                             <button
                                 type="button"
                                 onClick={() => setShowLogoutModal(false)}
-                                className="px-4 py-2.5 rounded-lg text-sm font-medium text-slate-700 bg-white border border-gray-200/60 hover:bg-slate-50 transition cursor-pointer"
+                                className="px-4 py-2.5 rounded-lg text-sm font-medium text-ink-secondary bg-canvas border border-hairline/60 hover:bg-canvas-soft transition cursor-pointer"
                             >
                                 Cancelar
                             </button>
                             <button
                                 type="button"
                                 onClick={handleConfirmLogout}
-                                className="px-4 py-2.5 rounded-lg bg-sky-600 text-sm font-medium text-white hover:bg-sky-700 transition shadow-sm cursor-pointer flex items-center gap-2"
+                                className="px-4 py-2.5 rounded-lg bg-sky-600 text-sm font-medium text-white hover:bg-sky-700 transition shadow-sm cursor-pointer flex items-center gap-2 dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
                             >
                                 <LogOut className="w-4 h-4" strokeWidth={2} />
                                 Cerrar sesión

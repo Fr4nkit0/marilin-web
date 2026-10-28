@@ -26,7 +26,7 @@ const TYPE_LABELS: Record<ReviewType, string> = {
 };
 
 const inputClass =
-    'w-full py-2 px-3 text-sm border border-gray-200/60 bg-white text-slate-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 font-medium';
+    'w-full py-2 px-3 text-sm border border-hairline/60 bg-canvas text-ink rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 font-medium';
 
 function formatDate(item: ReviewItem): string {
     // A rescheduled stop belongs to a day, not to a moment of it.
@@ -52,21 +52,21 @@ export default function Index({ items, filters, drivers }: Props) {
 
     return (
         <AdminLayout
-            header={<span className="text-sm font-medium text-slate-500">Revisión</span>}
+            header={<span className="text-sm font-medium text-ink-muted">Revisión</span>}
         >
             <Head title="Revisión - Marilin" />
 
             <div className="mb-6">
-                <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">Bandeja de revisión</h1>
-                <p className="text-sm font-medium text-slate-500 mt-1 tracking-wide">
+                <h1 className="text-2xl font-semibold text-ink tracking-tight">Bandeja de revisión</h1>
+                <p className="text-sm font-medium text-ink-muted mt-1 tracking-wide">
                     {items.total} {items.total === 1 ? 'registro' : 'registros'} con los filtros aplicados.
                 </p>
             </div>
 
             {/* Filters */}
-            <div className="bg-white/80 backdrop-blur-md rounded-2xl p-4 mb-6 shadow-sm border border-gray-200/60">
+            <div className="bg-canvas/80 backdrop-blur-md rounded-2xl p-4 mb-6 shadow-sm border border-hairline/60 ">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-12 items-end">
-                    <label className="sm:col-span-3 text-xs font-medium text-slate-500">
+                    <label className="sm:col-span-3 text-xs font-medium text-ink-muted">
                         Repartidor
                         <select
                             className={`${inputClass} mt-1`}
@@ -82,7 +82,7 @@ export default function Index({ items, filters, drivers }: Props) {
                         </select>
                     </label>
 
-                    <label className="sm:col-span-2 text-xs font-medium text-slate-500">
+                    <label className="sm:col-span-2 text-xs font-medium text-ink-muted">
                         Desde
                         <input
                             type="date"
@@ -92,7 +92,7 @@ export default function Index({ items, filters, drivers }: Props) {
                         />
                     </label>
 
-                    <label className="sm:col-span-2 text-xs font-medium text-slate-500">
+                    <label className="sm:col-span-2 text-xs font-medium text-ink-muted">
                         Hasta
                         <input
                             type="date"
@@ -102,7 +102,7 @@ export default function Index({ items, filters, drivers }: Props) {
                         />
                     </label>
 
-                    <label className="sm:col-span-3 text-xs font-medium text-slate-500">
+                    <label className="sm:col-span-3 text-xs font-medium text-ink-muted">
                         Tipo
                         <select
                             className={`${inputClass} mt-1`}
@@ -118,7 +118,7 @@ export default function Index({ items, filters, drivers }: Props) {
                         </select>
                     </label>
 
-                    <label className="sm:col-span-2 text-xs font-medium text-slate-500">
+                    <label className="sm:col-span-2 text-xs font-medium text-ink-muted">
                         Estado
                         <select
                             className={`${inputClass} mt-1`}
@@ -134,38 +134,38 @@ export default function Index({ items, filters, drivers }: Props) {
             </div>
 
             {/* List */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200/60 overflow-hidden">
+            <div className="bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden ">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
-                        <thead className="bg-white/80 backdrop-blur-md border-b border-gray-100 text-slate-500">
+                        <thead className="bg-canvas/80 backdrop-blur-md border-b border-hairline text-ink-muted">
                             <tr>
-                                <th className="px-6 py-4 text-xs font-medium text-slate-900 tracking-wide">Tipo</th>
-                                <th className="px-6 py-4 text-xs font-medium text-slate-900 tracking-wide">Repartidor</th>
-                                <th className="px-6 py-4 text-xs font-medium text-slate-900 tracking-wide">Cliente</th>
-                                <th className="px-6 py-4 text-xs font-medium text-slate-900 tracking-wide">Fecha</th>
-                                <th className="px-6 py-4 text-xs font-medium text-slate-900 tracking-wide">Motivo</th>
-                                <th className="px-6 py-4 text-xs font-medium text-slate-900 tracking-wide text-right">Estado</th>
+                                <th className="px-6 py-4 text-xs font-medium text-ink tracking-wide">Tipo</th>
+                                <th className="px-6 py-4 text-xs font-medium text-ink tracking-wide">Repartidor</th>
+                                <th className="px-6 py-4 text-xs font-medium text-ink tracking-wide">Cliente</th>
+                                <th className="px-6 py-4 text-xs font-medium text-ink tracking-wide">Fecha</th>
+                                <th className="px-6 py-4 text-xs font-medium text-ink tracking-wide">Motivo</th>
+                                <th className="px-6 py-4 text-xs font-medium text-ink tracking-wide text-right">Estado</th>
                             </tr>
                         </thead>
                         <tbody>
                             {items.data.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-10 text-center text-slate-500 text-sm">
+                                    <td colSpan={6} className="px-6 py-10 text-center text-ink-muted text-sm">
                                         No hay registros con los filtros aplicados.
                                     </td>
                                 </tr>
                             ) : (
                                 items.data.map((item) => (
-                                    <tr key={`${item.type}-${item.id}`} className="hover:bg-slate-50 transition-colors">
-                                        <td className="px-6 py-4 font-medium text-slate-900 whitespace-nowrap">
+                                    <tr key={`${item.type}-${item.id}`} className="hover:bg-canvas-soft transition-colors">
+                                        <td className="px-6 py-4 font-medium text-ink whitespace-nowrap">
                                             {TYPE_LABELS[item.type]}
                                         </td>
-                                        <td className="px-6 py-4 text-slate-700">
-                                            {item.driver ?? <span className="text-gray-400 italic">Sin asignar</span>}
+                                        <td className="px-6 py-4 text-ink-secondary">
+                                            {item.driver ?? <span className="text-ink-subtle italic">Sin asignar</span>}
                                         </td>
-                                        <td className="px-6 py-4 text-slate-700">{item.customer}</td>
-                                        <td className="px-6 py-4 text-slate-700 whitespace-nowrap">{formatDate(item)}</td>
-                                        <td className="px-6 py-4 text-slate-600 max-w-sm">{item.reason}</td>
+                                        <td className="px-6 py-4 text-ink-secondary">{item.customer}</td>
+                                        <td className="px-6 py-4 text-ink-secondary whitespace-nowrap">{formatDate(item)}</td>
+                                        <td className="px-6 py-4 text-ink-secondary max-w-sm">{item.reason}</td>
                                         <td className="px-6 py-4 text-right whitespace-nowrap">
                                             {item.reviewed_at ? (
                                                 <StatusBadge
@@ -176,7 +176,7 @@ export default function Index({ items, filters, drivers }: Props) {
                                                 <button
                                                     type="button"
                                                     onClick={() => markReviewed(item)}
-                                                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-sky-600 text-white hover:bg-sky-700 font-medium transition text-xs shadow-sm cursor-pointer"
+                                                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-sky-600 text-white hover:bg-sky-700 font-medium transition text-xs shadow-sm cursor-pointer dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
                                                 >
                                                     <CheckCheck className="w-3.5 h-3.5" />
                                                     Marcar como revisado

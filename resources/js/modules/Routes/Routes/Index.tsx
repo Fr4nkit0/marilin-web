@@ -125,7 +125,7 @@ export default function RoutesIndex({
         <AdminLayout
             header={
                 <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-slate-500">
+                    <span className="text-sm font-medium text-ink-muted">
                         Logística & Despacho
                     </span>
                 </div>
@@ -171,18 +171,18 @@ export default function RoutesIndex({
             </div>
 
             {/* Filters Bar - Premium SaaS Style */}
-            <div className="bg-white border border-gray-200/60 rounded-2xl p-4 mb-6 shadow-sm">
+            <div className="bg-canvas border border-hairline/60 rounded-2xl p-4 mb-6 shadow-sm ">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                     <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
                         {/* Date Picker */}
-                        <div className="flex items-center gap-2 bg-white border border-gray-200/60 rounded-lg px-3 py-2 text-sm text-slate-900 focus-within:ring-2 focus-within:ring-sky-600 focus-within:border-transparent transition-all shadow-sm">
-                            <Calendar className="w-4 h-4 text-slate-400" />
+                        <div className="flex items-center gap-2 bg-canvas border border-hairline/60 rounded-lg px-3 py-2 text-sm text-ink focus-within:ring-2 focus-within:ring-sky-600 focus-within:border-transparent transition-all shadow-sm">
+                            <Calendar className="w-4 h-4 text-ink-subtle" />
                             <input
                                 type="date"
                                 value={filter.values.date}
                                 onChange={(e) => filter.set('date', e.target.value)}
                                 style={{ colorScheme: 'light' }}
-                                className="bg-transparent border-none p-0 text-sm font-medium focus:ring-0 focus:outline-none cursor-pointer text-slate-900"
+                                className="bg-transparent border-none p-0 text-sm font-medium focus:ring-0 focus:outline-none cursor-pointer text-ink"
                             />
                         </div>
 
@@ -191,7 +191,7 @@ export default function RoutesIndex({
                             <select
                                 value={filter.values.status}
                                 onChange={(e) => filter.set('status', e.target.value)}
-                                className="text-sm font-medium border border-gray-200/60 rounded-lg py-2 pl-3 pr-8 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent transition-all shadow-sm"
+                                className="text-sm font-medium border border-hairline/60 rounded-lg py-2 pl-3 pr-8 bg-canvas text-ink focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent transition-all shadow-sm"
                             >
                                 <option value="all">Todos los Estados</option>
                                 <option value="IN_PROGRESS">En Curso</option>
@@ -204,7 +204,7 @@ export default function RoutesIndex({
                         <select
                             value={filter.values.driver_id}
                             onChange={(e) => filter.set('driver_id', e.target.value)}
-                            className="text-sm font-medium border border-gray-200/60 rounded-lg py-2 pl-3 pr-8 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent transition-all shadow-sm"
+                            className="text-sm font-medium border border-hairline/60 rounded-lg py-2 pl-3 pr-8 bg-canvas text-ink focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent transition-all shadow-sm"
                         >
                             <option value="">Todos los Choferes</option>
                             {drivers.map((drv) => (
@@ -218,7 +218,7 @@ export default function RoutesIndex({
                     <button
                         // No date: the server answers with today in its own time zone.
                         onClick={() => filter.setMany({ date: '', status: 'all', driver_id: '' })}
-                        className="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors"
+                        className="text-sm font-medium text-ink-muted hover:text-ink transition-colors"
                     >
                         Limpiar filtros
                     </button>
@@ -227,10 +227,10 @@ export default function RoutesIndex({
 
             {/* Routes List */}
             {routes.length === 0 ? (
-                <div className="bg-white border border-gray-200/60 rounded-2xl p-12 text-center shadow-sm">
-                    <Truck className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-slate-900">No hay rutas asignadas para esta fecha</h3>
-                    <p className="text-sm text-slate-500 mt-2">
+                <div className="bg-canvas border border-hairline/60 rounded-2xl p-12 text-center shadow-sm ">
+                    <Truck className="w-12 h-12 text-ink-subtle mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-ink">No hay rutas asignadas para esta fecha</h3>
+                    <p className="text-sm text-ink-muted mt-2">
                         Probá seleccionando otra fecha o cambiando los filtros de chofer/estado.
                     </p>
                 </div>
@@ -242,30 +242,30 @@ export default function RoutesIndex({
                         return (
                             <div
                                 key={routeItem.id}
-                                className="bg-white border border-gray-200/60 rounded-2xl shadow-sm overflow-hidden transition-all duration-200"
+                                className="bg-canvas border border-hairline/60 rounded-2xl shadow-sm overflow-hidden transition-all duration-200 "
                             >
                                 {/* Route Summary Header Card */}
                                 <div
                                     onClick={() => toggleRouteExpand(routeItem.id)}
-                                    className="p-5 flex flex-wrap items-center justify-between gap-4 cursor-pointer hover:bg-slate-50/50 transition-colors"
+                                    className="p-5 flex flex-wrap items-center justify-between gap-4 cursor-pointer hover:bg-canvas-soft/50 transition-colors"
                                 >
                                     {/* Left: Driver & Status */}
                                     <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 rounded-full bg-sky-600 text-white flex items-center justify-center font-medium text-lg shadow-sm">
+                                        <div className="w-10 h-10 rounded-full bg-sky-600 text-white flex items-center justify-center font-medium text-lg shadow-sm dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400">
                                             {routeItem.driver.name.charAt(0)}
                                         </div>
                                         <div>
                                             <div className="flex items-center gap-3">
-                                                <h3 className="text-base font-semibold text-slate-900">
+                                                <h3 className="text-base font-semibold text-ink">
                                                     {routeItem.driver.name}
                                                 </h3>
                                                 <StatusBadge status={routeItem.status} />
                                             </div>
-                                            <div className="flex items-center gap-3 text-sm text-slate-500 mt-1">
+                                            <div className="flex items-center gap-3 text-sm text-ink-muted mt-1">
                                                 <span className="font-medium">Ruta #{routeItem.id}</span>
-                                                <span className="text-slate-300">•</span>
+                                                <span className="text-ink-subtle">•</span>
                                                 {routeItem.startedAt ? (
-                                                    <span className="flex items-center gap-1.5 text-slate-600">
+                                                    <span className="flex items-center gap-1.5 text-ink-secondary">
                                                         <Clock className="w-3.5 h-3.5" />
                                                         Salida: {routeItem.startedAt} hs
                                                     </span>
@@ -274,8 +274,8 @@ export default function RoutesIndex({
                                                 )}
                                                 {routeItem.completedAt && (
                                                     <>
-                                                        <span className="text-slate-300">•</span>
-                                                        <span className="text-slate-600">Llegada: {routeItem.completedAt} hs</span>
+                                                        <span className="text-ink-subtle">•</span>
+                                                        <span className="text-ink-secondary">Llegada: {routeItem.completedAt} hs</span>
                                                     </>
                                                 )}
                                             </div>
@@ -284,19 +284,19 @@ export default function RoutesIndex({
 
                                     {/* Middle: Stops Progress */}
                                     <div className="w-full sm:w-64">
-                                        <div className="flex justify-between text-xs font-medium text-slate-500 mb-2">
+                                        <div className="flex justify-between text-xs font-medium text-ink-muted mb-2">
                                             <span>Paradas completadas</span>
-                                            <span className="text-slate-900 font-semibold">
+                                            <span className="text-ink font-semibold">
                                                 {routeItem.stats.completedStops} / {routeItem.stats.totalStops} (
                                                 {routeItem.stats.progressPercent}%)
                                             </span>
                                         </div>
-                                        <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                                        <div className="w-full h-2 bg-surface-1 rounded-full overflow-hidden">
                                             <div
                                                 className={`h-full rounded-full transition-all duration-300 ${
                                                     routeItem.stats.progressPercent === 100
-                                                        ? 'bg-sky-600'
-                                                        : 'bg-sky-600'
+                                                        ? 'bg-sky-600 dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400'
+                                                        : 'bg-sky-600 dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400'
                                                 }`}
                                                 style={{ width: `${routeItem.stats.progressPercent}%` }}
                                             />
@@ -309,13 +309,13 @@ export default function RoutesIndex({
                                             <Link
                                                 href={route('drivers.show', routeItem.driver.id)}
                                                 onClick={(e) => e.stopPropagation()}
-                                                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-white border border-gray-200/60 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-sm"
+                                                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-canvas border border-hairline/60 text-sm font-medium text-ink-secondary hover:bg-canvas-soft transition-colors shadow-sm"
                                             >
                                                 Ver ficha
                                                 <ArrowUpRight className="w-4 h-4" />
                                             </Link>
                                         )}
-                                        <button className="p-2 rounded-full text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-colors">
+                                        <button className="p-2 rounded-full text-ink-subtle hover:text-ink hover:bg-surface-1 transition-colors">
                                             {isExpanded ? (
                                                 <ChevronUp className="w-5 h-5" />
                                             ) : (
@@ -327,17 +327,17 @@ export default function RoutesIndex({
 
                                 {/* Expanded Details: Truck Inventory & Stops Timeline */}
                                 {isExpanded && (
-                                    <div className="bg-slate-50/50 p-6 space-y-8 border-t border-gray-100">
+                                    <div className="bg-canvas-soft/50 p-6 space-y-8 border-t border-hairline">
                                         {/* Truck Inventory Section */}
                                         <div>
-                                            <h4 className="text-sm font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                                                <Package className="w-4 h-4 text-slate-500" />
+                                            <h4 className="text-sm font-semibold text-ink mb-4 flex items-center gap-2">
+                                                <Package className="w-4 h-4 text-ink-muted" />
                                                 Inventario de ruta
                                                 {routeItem.canLoad && (
                                                     <button
                                                         type="button"
                                                         onClick={() => setLoadingRoute(routeItem)}
-                                                        className="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs font-medium shadow-sm cursor-pointer"
+                                                        className="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs font-medium shadow-sm cursor-pointer dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
                                                     >
                                                         <PackagePlus className="w-3.5 h-3.5" />
                                                         {routeItem.loadHistory.length === 0 ? 'Registrar carga inicial' : 'Registrar recarga'}
@@ -345,7 +345,7 @@ export default function RoutesIndex({
                                                 )}
                                             </h4>
                                             {routeItem.routeStock.length === 0 ? (
-                                                <p className="text-sm text-slate-500 mb-4">
+                                                <p className="text-sm text-ink-muted mb-4">
                                                     Todavía no se registró ninguna carga para esta ruta.
                                                 </p>
                                             ) : (
@@ -353,19 +353,19 @@ export default function RoutesIndex({
                                                     {routeItem.routeStock.map((stock) => (
                                                         <div
                                                             key={stock.productId}
-                                                            className="bg-white border border-gray-200/60 rounded-xl p-4 flex items-center justify-between shadow-sm"
+                                                            className="bg-canvas border border-hairline/60 rounded-xl p-4 flex items-center justify-between shadow-sm "
                                                         >
                                                             <div>
-                                                                <p className="text-sm font-medium text-slate-900">
+                                                                <p className="text-sm font-medium text-ink">
                                                                     {stock.productName}
                                                                 </p>
-                                                                <p className="text-xs text-slate-500 mt-1">
+                                                                <p className="text-xs text-ink-muted mt-1">
                                                                     Cargado en el día: {stock.loaded} u.
                                                                 </p>
                                                             </div>
                                                             <div className="text-right">
-                                                                <span className="text-xs text-slate-500">Remanente</span>
-                                                                <p className="text-lg font-semibold text-slate-900">
+                                                                <span className="text-xs text-ink-muted">Remanente</span>
+                                                                <p className="text-lg font-semibold text-ink">
                                                                     {stock.current} u.
                                                                 </p>
                                                             </div>
@@ -375,9 +375,9 @@ export default function RoutesIndex({
                                             )}
 
                                             {routeItem.loadHistory.length > 0 && (
-                                                <div className="bg-white border border-gray-200/60 rounded-xl shadow-sm overflow-hidden">
+                                                <div className="bg-canvas border border-hairline/60 rounded-xl shadow-sm overflow-hidden ">
                                                     <table className="w-full text-left text-sm">
-                                                        <thead className="border-b border-gray-100 text-slate-500">
+                                                        <thead className="border-b border-hairline text-ink-muted">
                                                             <tr>
                                                                 <th className="px-4 py-2.5 text-xs font-medium">Hora</th>
                                                                 <th className="px-4 py-2.5 text-xs font-medium">Carga</th>
@@ -386,20 +386,20 @@ export default function RoutesIndex({
                                                                 <th className="px-4 py-2.5 text-xs font-medium text-right">Unidades</th>
                                                             </tr>
                                                         </thead>
-                                                        <tbody className="divide-y divide-gray-50">
+                                                        <tbody className="divide-y divide-hairline">
                                                             {routeItem.loadHistory.map((load) => (
                                                                 <tr key={load.id}>
-                                                                    <td className="px-4 py-2.5 text-slate-700 whitespace-nowrap">
+                                                                    <td className="px-4 py-2.5 text-ink-secondary whitespace-nowrap">
                                                                         {load.loadedAt ?? '—'}
                                                                     </td>
-                                                                    <td className="px-4 py-2.5 text-slate-700">
+                                                                    <td className="px-4 py-2.5 text-ink-secondary">
                                                                         {load.isInitial ? 'Inicial' : 'Recarga'}
                                                                     </td>
-                                                                    <td className="px-4 py-2.5 font-medium text-slate-900">
+                                                                    <td className="px-4 py-2.5 font-medium text-ink">
                                                                         {load.productName}
                                                                     </td>
-                                                                    <td className="px-4 py-2.5 text-slate-600">{load.loadedBy ?? '—'}</td>
-                                                                    <td className="px-4 py-2.5 text-right font-semibold text-slate-900">
+                                                                    <td className="px-4 py-2.5 text-ink-secondary">{load.loadedBy ?? '—'}</td>
+                                                                    <td className="px-4 py-2.5 text-right font-semibold text-ink">
                                                                         +{load.quantity}
                                                                     </td>
                                                                 </tr>
@@ -412,14 +412,14 @@ export default function RoutesIndex({
 
                                         {/* Stops Table */}
                                         <div>
-                                            <h4 className="text-sm font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                                                <MapPin className="w-4 h-4 text-slate-500" />
+                                            <h4 className="text-sm font-semibold text-ink mb-4 flex items-center gap-2">
+                                                <MapPin className="w-4 h-4 text-ink-muted" />
                                                 Hoja de Ruta y Paradas ({routeItem.stops.length})
                                             </h4>
 
-                                            <div className="bg-white border border-gray-200/60 rounded-xl overflow-hidden shadow-sm">
+                                            <div className="bg-canvas border border-hairline/60 rounded-xl overflow-hidden shadow-sm ">
                                                 <table className="w-full text-left text-sm">
-                                                    <thead className="bg-slate-50/80 backdrop-blur-md text-slate-500 font-medium text-xs border-b border-gray-200/60">
+                                                    <thead className="bg-canvas-soft/80 backdrop-blur-md text-ink-muted font-medium text-xs border-b border-hairline/60">
                                                         <tr>
                                                             <th className="px-6 py-4 text-center w-16">#</th>
                                                             <th className="px-6 py-4">Cliente</th>
@@ -434,7 +434,7 @@ export default function RoutesIndex({
                                                             <tr>
                                                                 <td
                                                                     colSpan={6}
-                                                                    className="px-6 py-8 text-center text-slate-500"
+                                                                    className="px-6 py-8 text-center text-ink-muted"
                                                                 >
                                                                     No hay paradas registradas en esta ruta.
                                                                 </td>
@@ -443,39 +443,39 @@ export default function RoutesIndex({
                                                             routeItem.stops.map((stop, idx) => (
                                                                 <tr
                                                                     key={stop.id}
-                                                                    className="border-b border-gray-50 last:border-0 hover:bg-slate-50/50 transition-colors"
+                                                                    className="border-b border-hairline last:border-0 hover:bg-canvas-soft/50 transition-colors"
                                                                 >
                                                                     <td className="px-6 py-4 text-center">
-                                                                        <span className="inline-flex w-7 h-7 rounded-full bg-slate-100 text-slate-700 items-center justify-center text-xs font-medium">
+                                                                        <span className="inline-flex w-7 h-7 rounded-full bg-surface-1 text-ink-secondary items-center justify-center text-xs font-medium">
                                                                             {idx + 1}
                                                                         </span>
                                                                     </td>
                                                                     <td className="px-6 py-4">
-                                                                        <span className="font-medium text-slate-900 block">
+                                                                        <span className="font-medium text-ink block">
                                                                             {stop.customer.name}
                                                                         </span>
                                                                         {stop.customer.phone && (
-                                                                            <span className="text-xs text-slate-500 mt-0.5 block">
+                                                                            <span className="text-xs text-ink-muted mt-0.5 block">
                                                                                 {stop.customer.phone}
                                                                             </span>
                                                                         )}
                                                                     </td>
-                                                                    <td className="px-6 py-4 text-slate-500">
+                                                                    <td className="px-6 py-4 text-ink-muted">
                                                                         {stop.customer.address}
                                                                     </td>
                                                                     <td className="px-6 py-4">
                                                                         <StatusBadge status={stop.status} />
                                                                     </td>
-                                                                    <td className="px-6 py-4 text-slate-500">
+                                                                    <td className="px-6 py-4 text-ink-muted">
                                                                         {stop.arrivedAt ? `${stop.arrivedAt} hs` : '-'}
                                                                     </td>
-                                                                    <td className="px-6 py-4 text-slate-500">
+                                                                    <td className="px-6 py-4 text-ink-muted">
                                                                         {stop.outcome ? (
-                                                                            <span className="font-medium text-slate-900 text-sm">
+                                                                            <span className="font-medium text-ink text-sm">
                                                                                 {stop.outcome}
                                                                             </span>
                                                                         ) : (
-                                                                            <span className="text-slate-400 italic">
+                                                                            <span className="text-ink-subtle italic">
                                                                                 Sin novedades
                                                                             </span>
                                                                         )}

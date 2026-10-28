@@ -49,12 +49,12 @@ export default function RouteStockLoadModal({ routeId, driverName, isFirstLoad, 
     return (
         <Modal show={routeId !== null} onClose={onClose} maxWidth="md">
             <form onSubmit={submit}>
-                <div className="flex items-start justify-between gap-4 px-6 pt-6 pb-4 border-b border-gray-100">
+                <div className="flex items-start justify-between gap-4 px-6 pt-6 pb-4 border-b border-hairline">
                     <div>
-                        <h2 className="text-lg font-semibold text-slate-900">
+                        <h2 className="text-lg font-semibold text-ink">
                             {isFirstLoad ? 'Carga inicial del inventario de ruta' : 'Recarga del inventario de ruta'}
                         </h2>
-                        <p className="text-sm text-slate-500 mt-1">
+                        <p className="text-sm text-ink-muted mt-1">
                             {driverName}: lo que se carga se suma al stock y llega a la app en la próxima
                             sincronización.
                         </p>
@@ -63,7 +63,7 @@ export default function RouteStockLoadModal({ routeId, driverName, isFirstLoad, 
                         type="button"
                         onClick={onClose}
                         aria-label="Cerrar"
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                        className="p-1.5 rounded-lg text-ink-subtle hover:text-ink-secondary hover:bg-surface-1 transition cursor-pointer"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -72,8 +72,8 @@ export default function RouteStockLoadModal({ routeId, driverName, isFirstLoad, 
                 <div className="px-6 py-5 space-y-3">
                     {products.map((product) => (
                         <label key={product.id} className="flex items-center justify-between gap-4">
-                            <span className="flex items-center gap-2 text-sm font-medium text-slate-900">
-                                <Package className="w-4 h-4 text-slate-400" />
+                            <span className="flex items-center gap-2 text-sm font-medium text-ink">
+                                <Package className="w-4 h-4 text-ink-subtle" />
                                 {product.name}
                             </span>
                             <input
@@ -85,13 +85,13 @@ export default function RouteStockLoadModal({ routeId, driverName, isFirstLoad, 
                                 value={data.quantities[product.id] ?? ''}
                                 onChange={(e) => setData('quantities', { ...data.quantities, [product.id]: e.target.value })}
                                 aria-label={`Unidades de ${product.name}`}
-                                className="w-28 py-2 px-3 text-sm text-right border border-gray-200/60 bg-white text-slate-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 font-medium"
+                                className="w-28 py-2 px-3 text-sm text-right border border-hairline/60 bg-canvas text-ink rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 font-medium"
                             />
                         </label>
                     ))}
 
                     {errorList.length > 0 && (
-                        <ul className="text-sm text-red-600 space-y-1 pt-1">
+                        <ul className="text-sm text-red-600 dark:text-red-300 space-y-1 pt-1">
                             {errorList.map(([field, message]) => (
                                 <li key={field}>{message}</li>
                             ))}
@@ -99,18 +99,18 @@ export default function RouteStockLoadModal({ routeId, driverName, isFirstLoad, 
                     )}
                 </div>
 
-                <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-100 bg-slate-50/50">
+                <div className="flex justify-end gap-2 px-6 py-4 border-t border-hairline bg-canvas-soft/50">
                     <button
                         type="button"
                         onClick={onClose}
-                        className="px-4 py-2 rounded-lg text-sm font-medium text-slate-700 bg-white ring-1 ring-inset ring-slate-200/80 hover:bg-slate-50 cursor-pointer"
+                        className="px-4 py-2 rounded-lg text-sm font-medium text-ink-secondary bg-canvas ring-1 ring-inset ring-hairline/80 hover:bg-canvas-soft cursor-pointer"
                     >
                         Cancelar
                     </button>
                     <button
                         type="submit"
                         disabled={processing || nothingFilled}
-                        className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                        className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
                     >
                         Registrar carga
                     </button>

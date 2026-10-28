@@ -24,7 +24,7 @@ type HomeSaleForm = {
 };
 
 const inputClass =
-    'w-full py-2 px-3 text-sm border border-gray-200/60 bg-white text-slate-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600';
+    'w-full py-2 px-3 text-sm border border-hairline/60 bg-canvas text-ink rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600';
 
 
 export default function HomeSaleModal({ show, customerId, customerName, products, containerTypes, onClose }: Props) {
@@ -72,10 +72,10 @@ export default function HomeSaleModal({ show, customerId, customerName, products
     return (
         <Modal show={show} onClose={onClose} maxWidth="lg">
             <form onSubmit={submit}>
-                <div className="flex items-start justify-between gap-4 px-6 pt-6 pb-4 border-b border-gray-100">
+                <div className="flex items-start justify-between gap-4 px-6 pt-6 pb-4 border-b border-hairline">
                     <div>
-                        <h2 className="text-lg font-semibold text-slate-900">Venta en casa</h2>
-                        <p className="text-sm text-slate-500 mt-1">
+                        <h2 className="text-lg font-semibold text-ink">Venta en casa</h2>
+                        <p className="text-sm text-ink-muted mt-1">
                             {customerName}: no descuenta inventario de ninguna ruta. El precio sale del acuerdo vigente o
                             de la lista y no se puede cambiar acá.
                         </p>
@@ -84,7 +84,7 @@ export default function HomeSaleModal({ show, customerId, customerName, products
                         type="button"
                         onClick={onClose}
                         aria-label="Cerrar"
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                        className="p-1.5 rounded-lg text-ink-subtle hover:text-ink-secondary hover:bg-surface-1 transition cursor-pointer"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -95,8 +95,8 @@ export default function HomeSaleModal({ show, customerId, customerName, products
                         {products.map((product) => (
                             <div key={product.id} className="flex items-center justify-between gap-4">
                                 <div>
-                                    <p className="text-sm font-medium text-slate-900">{product.name}</p>
-                                    <p className="text-xs text-slate-500">
+                                    <p className="text-sm font-medium text-ink">{product.name}</p>
+                                    <p className="text-xs text-ink-muted">
                                         {money(product.unitPrice)} · {product.source === 'agreement' ? 'Acuerdo vigente' : 'Precio de lista'}
                                     </p>
                                 </div>
@@ -112,15 +112,15 @@ export default function HomeSaleModal({ show, customerId, customerName, products
                                 />
                             </div>
                         ))}
-                        {products.length === 0 && <p className="text-sm text-slate-500">No hay productos habilitados.</p>}
+                        {products.length === 0 && <p className="text-sm text-ink-muted">No hay productos habilitados.</p>}
                     </div>
 
-                    <div className="flex items-center justify-between border-t border-gray-100 pt-3">
-                        <span className="text-sm font-medium text-slate-700">Total</span>
-                        <span className="text-lg font-semibold text-slate-900">{money(total)}</span>
+                    <div className="flex items-center justify-between border-t border-hairline pt-3">
+                        <span className="text-sm font-medium text-ink-secondary">Total</span>
+                        <span className="text-lg font-semibold text-ink">{money(total)}</span>
                     </div>
 
-                    <label className="flex items-center gap-2 text-sm text-slate-700">
+                    <label className="flex items-center gap-2 text-sm text-ink-secondary">
                         <input
                             type="checkbox"
                             checked={data.is_credit_sale}
@@ -131,7 +131,7 @@ export default function HomeSaleModal({ show, customerId, customerName, products
 
                     <div>
                         <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium text-slate-700">Envases (opcional)</span>
+                            <span className="text-sm font-medium text-ink-secondary">Envases (opcional)</span>
                             <button
                                 type="button"
                                 onClick={() =>
@@ -140,7 +140,7 @@ export default function HomeSaleModal({ show, customerId, customerName, products
                                         { container_type_id: '', type: 'DELIVERED', quantity: '' },
                                     ])
                                 }
-                                className="inline-flex items-center gap-1 text-sm font-medium text-sky-600 hover:text-sky-500 cursor-pointer"
+                                className="inline-flex items-center gap-1 text-sm font-medium text-sky-600 dark:text-sky-300 hover:text-sky-500 cursor-pointer"
                             >
                                 <Plus className="w-4 h-4" />
                                 Agregar
@@ -184,7 +184,7 @@ export default function HomeSaleModal({ show, customerId, customerName, products
                                     type="button"
                                     aria-label="Quitar envase"
                                     onClick={() => setData('containers', data.containers.filter((_, i) => i !== index))}
-                                    className="p-1.5 text-slate-400 hover:text-red-600 cursor-pointer"
+                                    className="p-1.5 text-ink-subtle hover:text-red-600 dark:hover:text-red-300 cursor-pointer"
                                 >
                                     <Trash2 className="w-4 h-4" />
                                 </button>
@@ -193,7 +193,7 @@ export default function HomeSaleModal({ show, customerId, customerName, products
                     </div>
 
                     <label className="block">
-                        <span className="text-sm font-medium text-slate-700">Notas (opcional)</span>
+                        <span className="text-sm font-medium text-ink-secondary">Notas (opcional)</span>
                         <textarea
                             value={data.notes}
                             maxLength={500}
@@ -206,7 +206,7 @@ export default function HomeSaleModal({ show, customerId, customerName, products
                     {formErrors.length > 0 && (
                         <ul className="space-y-1">
                             {formErrors.map(([key, message]) => (
-                                <li key={key} className="text-sm text-red-600">
+                                <li key={key} className="text-sm text-red-600 dark:text-red-300">
                                     {message}
                                 </li>
                             ))}
@@ -214,18 +214,18 @@ export default function HomeSaleModal({ show, customerId, customerName, products
                     )}
                 </div>
 
-                <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-100 bg-slate-50/50">
+                <div className="flex justify-end gap-2 px-6 py-4 border-t border-hairline bg-canvas-soft/50">
                     <button
                         type="button"
                         onClick={onClose}
-                        className="px-4 py-2 rounded-lg text-sm font-medium text-slate-700 bg-white ring-1 ring-inset ring-slate-200/80 hover:bg-slate-50 cursor-pointer"
+                        className="px-4 py-2 rounded-lg text-sm font-medium text-ink-secondary bg-canvas ring-1 ring-inset ring-hairline/80 hover:bg-canvas-soft cursor-pointer"
                     >
                         Cancelar
                     </button>
                     <button
                         type="submit"
                         disabled={processing || total <= 0}
-                        className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                        className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
                     >
                         Registrar venta
                     </button>

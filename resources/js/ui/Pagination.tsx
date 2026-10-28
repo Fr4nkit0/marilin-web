@@ -14,7 +14,7 @@ export default function Pagination({ page, noun }: Props) {
     }
 
     return (
-        <div className="p-4 flex items-center justify-between text-sm text-slate-500 bg-white border-t border-gray-50">
+        <div className="p-4 flex items-center justify-between text-sm text-ink-muted bg-canvas border-t border-hairline">
             <span>
                 Página {page.current_page} de {page.last_page}
                 {noun ? ` (${page.total} ${noun})` : ''}
@@ -28,10 +28,10 @@ export default function Pagination({ page, noun }: Props) {
                         aria-current={link.active ? 'page' : undefined}
                         className={`px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors ${
                             link.active
-                                ? 'bg-sky-600 text-white border-sky-600 shadow-sm'
+                                ? 'bg-sky-600 text-white border-sky-600 shadow-sm dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400'
                                 : !link.url
-                                  ? 'text-slate-300 border-gray-100 pointer-events-none'
-                                  : 'text-slate-700 border-gray-200/60 hover:bg-slate-50'
+                                  ? 'text-ink-subtle border-hairline pointer-events-none'
+                                  : 'text-ink-secondary border-hairline/60 hover:bg-canvas-soft'
                         }`}
                         // Laravel's labels carry entities such as &laquo;.
                         dangerouslySetInnerHTML={{ __html: link.label }}

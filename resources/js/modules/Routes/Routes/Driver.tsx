@@ -60,12 +60,12 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
                 <div className="flex items-center gap-2 text-sm">
                     <Link
                         href={route('drivers.index')}
-                        className="text-slate-500 hover:text-slate-900 font-medium transition-colors"
+                        className="text-ink-muted hover:text-ink font-medium transition-colors"
                     >
                         Choferes
                     </Link>
-                    <span className="text-slate-400">/</span>
-                    <span className="font-medium text-slate-900">{repartidor.name}</span>
+                    <span className="text-ink-subtle">/</span>
+                    <span className="font-medium text-ink">{repartidor.name}</span>
                 </div>
             }
         >
@@ -75,7 +75,7 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
             <div className="mb-4">
                 <Link
                     href={route('drivers.index')}
-                    className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors"
+                    className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-muted hover:text-ink transition-colors"
                 >
                     <ArrowLeft className="w-4 h-4" />
                     Volver al listado
@@ -83,31 +83,31 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
             </div>
 
             {/* Driver Profile Header Card - Impeccable Cloud */}
-            <div className="bg-white/80 backdrop-blur-md rounded-2xl p-6 mb-6 shadow-sm border border-gray-200/60">
+            <div className="bg-canvas/80 backdrop-blur-md rounded-2xl p-6 mb-6 shadow-sm border border-hairline/60 ">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div className="flex items-start gap-4">
-                        <div className="w-14 h-14 rounded-lg bg-slate-100 text-slate-700 shadow-sm flex items-center justify-center text-xl font-medium">
+                        <div className="w-14 h-14 rounded-lg bg-surface-1 text-ink-secondary shadow-sm flex items-center justify-center text-xl font-medium">
                             {repartidor.name.charAt(0)}
                         </div>
                         <div>
                             <div className="flex items-center gap-3">
-                                <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">
+                                <h1 className="text-2xl font-semibold text-ink tracking-tight">
                                     {repartidor.name}
                                 </h1>
                                 {deliveryRoute && <StatusBadge status={deliveryRoute.status} />}
                             </div>
-                            <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-slate-500 mt-2 tracking-wide">
+                            <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-ink-muted mt-2 tracking-wide">
                                 {repartidor.email && (
                                     <span>{repartidor.email}</span>
                                 )}
-                                <span className="text-gray-300">•</span>
+                                <span className="text-ink-subtle">•</span>
                                 <div className="flex items-center gap-1.5">
-                                    <Users className="w-4 h-4 text-slate-400" />
+                                    <Users className="w-4 h-4 text-ink-subtle" />
                                     <span>{repartidor.totalAssignedCustomers} clientes fijos</span>
                                 </div>
-                                <span className="text-gray-300">•</span>
+                                <span className="text-ink-subtle">•</span>
                                 <div className="flex items-center gap-1.5">
-                                    <Calendar className="w-4 h-4 text-slate-400" />
+                                    <Calendar className="w-4 h-4 text-ink-subtle" />
                                     <span>Fecha: {targetDate}</span>
                                 </div>
                             </div>
@@ -118,18 +118,18 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
                     {deliveryRoute && (
                         <div className="flex items-center gap-8 border-t md:border-t-0 md:border-l border-slate-700 pt-4 md:pt-0 md:pl-8">
                             <div>
-                                <span className="text-xs font-medium text-slate-500 tracking-wide">
+                                <span className="text-xs font-medium text-ink-muted tracking-wide">
                                     Ventas Hoy
                                 </span>
-                                <p className="text-xl font-semibold text-slate-900 mt-0.5">
+                                <p className="text-xl font-semibold text-ink mt-0.5">
                                     {money(deliveryRoute.totalSalesAmount)}
                                 </p>
                             </div>
                             <div>
-                                <span className="text-xs font-medium text-slate-500 tracking-wide">
+                                <span className="text-xs font-medium text-ink-muted tracking-wide">
                                     Cobranza en Mano
                                 </span>
-                                <p className="text-xl font-medium text-emerald-600 mt-0.5">
+                                <p className="text-xl font-medium text-emerald-600 dark:text-emerald-300 mt-0.5">
                                     {money(deliveryRoute.totalCollectedAmount)}
                                 </p>
                             </div>
@@ -140,31 +140,31 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
 
             {/* If no route today */}
             {!deliveryRoute ? (
-                <div className="bg-white rounded-lg border border-gray-200 p-12 text-center shadow-sm">
-                    <Truck className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-                    <h3 className="text-lg font-medium text-slate-900">Sin ruta asignada para hoy</h3>
-                    <p className="text-sm text-slate-500 mt-2">
+                <div className="bg-canvas rounded-lg border border-hairline p-12 text-center shadow-sm">
+                    <Truck className="w-12 h-12 mx-auto text-ink-subtle mb-4" />
+                    <h3 className="text-lg font-medium text-ink">Sin ruta asignada para hoy</h3>
+                    <p className="text-sm text-ink-muted mt-2">
                         El chofer no tiene una hoja de ruta planificada para la fecha seleccionada ({targetDate}).
                     </p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Left: Stops Timeline Table (2 Cols) */}
-                    <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-200/60 overflow-hidden">
-                        <div className="p-5 bg-white/80 backdrop-blur-md border-b border-gray-100 text-slate-900 flex items-center justify-between">
+                    <div className="lg:col-span-2 bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden ">
+                        <div className="p-5 bg-canvas/80 backdrop-blur-md border-b border-hairline text-ink flex items-center justify-between">
                             <div>
-                                <h2 className="text-lg font-semibold text-slate-900 tracking-wide">
+                                <h2 className="text-lg font-semibold text-ink tracking-wide">
                                     Hoja de Ruta & Paradas
                                 </h2>
-                                <p className="text-xs font-medium text-slate-500 mt-1 tracking-wide">
+                                <p className="text-xs font-medium text-ink-muted mt-1 tracking-wide">
                                     {completedStops} de {totalStops} paradas ({progressPercent}%)
                                 </p>
                             </div>
                             {/* Progress bar */}
                             <div className="w-48">
-                                <div className="w-full h-2.5 bg-slate-100 rounded-lg overflow-hidden">
+                                <div className="w-full h-2.5 bg-surface-1 rounded-lg overflow-hidden">
                                     <div
-                                        className="h-full bg-sky-600 rounded-lg transition-all duration-300"
+                                        className="h-full bg-sky-600 rounded-lg transition-all duration-300 dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
                                         style={{ width: `${progressPercent}%` }}
                                     />
                                 </div>
@@ -173,7 +173,7 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
 
                         <div className="overflow-x-auto">
                             <table className="w-full text-left text-sm">
-                                <thead className="bg-gray-50/50 border-b border-gray-100 text-slate-500 font-medium tracking-wide">
+                                <thead className="bg-canvas-soft/50 border-b border-hairline text-ink-muted font-medium tracking-wide">
                                     <tr>
                                         <th className="px-6 py-4"># Parada</th>
                                         <th className="px-6 py-4">Cliente y Dirección</th>
@@ -183,15 +183,15 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
                                 </thead>
                                 <tbody>
                                     {deliveryRoute.stops.map((stop, idx) => (
-                                        <tr key={stop.id} className="hover:bg-gray-50 transition-colors">
+                                        <tr key={stop.id} className="hover:bg-canvas-soft transition-colors">
                                             {/* Stop number & Time */}
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
-                                                    <span className="w-8 h-8 rounded-lg bg-slate-100 text-gray-600 flex items-center justify-center text-sm font-medium">
+                                                    <span className="w-8 h-8 rounded-lg bg-surface-1 text-ink-secondary flex items-center justify-center text-sm font-medium">
                                                         {idx + 1}
                                                     </span>
                                                     {stop.arrivedAt && (
-                                                        <span className="text-xs text-slate-500 font-medium">
+                                                        <span className="text-xs text-ink-muted font-medium">
                                                             {stop.arrivedAt} hs
                                                         </span>
                                                     )}
@@ -202,13 +202,13 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
                                             <td className="px-6 py-4">
                                                 <Link
                                                     href={route('customers.show', stop.customer.id)}
-                                                    className="font-semibold text-slate-900 hover:text-slate-900 transition-colors"
+                                                    className="font-semibold text-ink hover:text-ink transition-colors"
                                                 >
                                                     {stop.customer.name}
                                                 </Link>
                                                 {stop.customer.address && (
-                                                    <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-1">
-                                                        <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                                                    <div className="flex items-center gap-1.5 text-xs text-ink-muted mt-1">
+                                                        <MapPin className="w-3.5 h-3.5 text-ink-subtle" />
                                                         <span>{stop.customer.address}</span>
                                                     </div>
                                                 )}
@@ -223,17 +223,17 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
                                             <td className="px-6 py-4 text-right">
                                                 {stop.salesAmount > 0 || stop.paymentsAmount > 0 ? (
                                                     <div>
-                                                        <p className="font-semibold text-slate-900">
+                                                        <p className="font-semibold text-ink">
                                                             +{money(stop.salesAmount)}
                                                         </p>
                                                         {stop.paymentsAmount > 0 && (
-                                                            <p className="text-xs font-medium text-emerald-600 mt-0.5">
+                                                            <p className="text-xs font-medium text-emerald-600 dark:text-emerald-300 mt-0.5">
                                                                 Cobrado: {money(stop.paymentsAmount)}
                                                             </p>
                                                         )}
                                                     </div>
                                                 ) : (
-                                                    <span className="text-gray-300 font-medium">-</span>
+                                                    <span className="text-ink-subtle font-medium">-</span>
                                                 )}
                                             </td>
                                         </tr>
@@ -245,17 +245,17 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
 
                     {/* Right: Truck Inventory Card (1 Col) */}
                     <div className="space-y-6">
-                        <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-                            <div className="p-5 bg-white/80 backdrop-blur-md border-b border-gray-100 text-slate-900 flex items-center gap-2.5">
-                                <Package className="w-5 h-5 text-slate-400" />
-                                <h3 className="text-base font-semibold text-slate-900 tracking-wide">
+                        <div className="bg-canvas rounded-lg border border-hairline shadow-sm">
+                            <div className="p-5 bg-canvas/80 backdrop-blur-md border-b border-hairline text-ink flex items-center gap-2.5">
+                                <Package className="w-5 h-5 text-ink-subtle" />
+                                <h3 className="text-base font-semibold text-ink tracking-wide">
                                     Carga y Stock
                                 </h3>
                             </div>
 
                             <div className="p-5">
                                 {deliveryRoute.inventory.length === 0 ? (
-                                    <p className="text-sm text-slate-500 text-center py-4">
+                                    <p className="text-sm text-ink-muted text-center py-4">
                                         No hay registros de carga.
                                     </p>
                                 ) : (
@@ -265,11 +265,11 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
                                                 key={inv.id}
                                                 className="flex items-center justify-between pb-3  last:pb-0"
                                             >
-                                                <span className="text-sm font-medium text-gray-700">
+                                                <span className="text-sm font-medium text-ink-secondary">
                                                     {inv.productName}
                                                 </span>
-                                                <span className="text-sm font-semibold text-slate-900">
-                                                    {inv.currentQuantity} <span className="text-xs font-normal text-slate-500 ml-1">unid.</span>
+                                                <span className="text-sm font-semibold text-ink">
+                                                    {inv.currentQuantity} <span className="text-xs font-normal text-ink-muted ml-1">unid.</span>
                                                 </span>
                                             </div>
                                         ))}

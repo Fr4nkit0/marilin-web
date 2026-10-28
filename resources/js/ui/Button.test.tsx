@@ -24,6 +24,6 @@ describe('Button', () => {
     it('primary actions are sky-600, the design system primary', () => {
         expect(buttonClass('primary')).toContain('bg-sky-600');
         expect(buttonClass('danger')).toContain('bg-rose-600');
-        expect(buttonClass('secondary')).toContain('bg-white');
+        expect(buttonClass('secondary')).toContain('bg-canvas');
     });
 });

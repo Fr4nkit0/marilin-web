@@ -79,19 +79,19 @@ export default function PaymentsIndex({ payments, metrics, filters, paymentMetho
     };
 
     const columns: Column<PaymentItem>[] = [
-        { header: 'Hora', className: 'text-slate-500 whitespace-nowrap', cell: (payment) => `${payment.paid_at ? time(payment.paid_at) : '-'} hs` },
+        { header: 'Hora', className: 'text-ink-muted whitespace-nowrap', cell: (payment) => `${payment.paid_at ? time(payment.paid_at) : '-'} hs` },
         {
             header: 'Cliente',
             cell: (payment) =>
                 payment.customer ? (
-                    <Link href={route('customers.show', payment.customer.id)} className="font-medium text-slate-900 hover:text-slate-600 transition">
+                    <Link href={route('customers.show', payment.customer.id)} className="font-medium text-ink hover:text-ink-secondary transition">
                         {payment.customer.name}
                     </Link>
                 ) : (
-                    <span className="text-slate-400 font-medium italic">Cliente sin identificar</span>
+                    <span className="text-ink-subtle font-medium italic">Cliente sin identificar</span>
                 ),
         },
-        { header: 'Cobrado Por', className: 'text-slate-700', cell: (payment) => payment.visit?.repartidor?.user?.name || payment.recipient?.name || 'Administración' },
+        { header: 'Cobrado Por', className: 'text-ink-secondary', cell: (payment) => payment.visit?.repartidor?.user?.name || payment.recipient?.name || 'Administración' },
         { header: 'Método de Pago', align: 'center', cell: (payment) => <PaymentMethodBadge method={payment.payment_method?.name || 'Efectivo'} /> },
         {
             header: 'Estado',
@@ -100,14 +100,14 @@ export default function PaymentsIndex({ payments, metrics, filters, paymentMetho
                 <StatusBadge status={payment.status === 'CONFIRMED' ? 'FINALIZADO' : 'CANCELADO'} label={paymentStatusLabel(payment.status)} />
             ),
         },
-        { header: 'Monto Recaudado', align: 'right', className: 'font-semibold text-slate-900', cell: (payment) => `+${money(payment.amount)}` },
+        { header: 'Monto Recaudado', align: 'right', className: 'font-semibold text-ink', cell: (payment) => `+${money(payment.amount)}` },
     ];
 
     return (
         <AdminLayout
             header={
                 <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-slate-500">
+                    <span className="text-sm font-medium text-ink-muted">
                         Tesorería
                     </span>
                 </div>
@@ -146,17 +146,17 @@ export default function PaymentsIndex({ payments, metrics, filters, paymentMetho
             </div>
 
             {/* Filters */}
-            <div className="bg-white border border-gray-200/60 rounded-2xl p-4 mb-6 shadow-sm">
+            <div className="bg-canvas border border-hairline/60 rounded-2xl p-4 mb-6 shadow-sm ">
                 <form onSubmit={handleSearch} className="grid grid-cols-1 gap-3 sm:grid-cols-12 items-center">
                     {/* Search */}
                     <div className="sm:col-span-4 relative">
-                        <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <Search className="w-4 h-4 text-ink-subtle absolute left-3 top-1/2 -translate-y-1/2" />
                         <input
                             type="text"
                             value={filter.values.search}
                             onChange={(e) => filter.draft('search', e.target.value)}
                             placeholder="Buscar por cliente..."
-                            className="w-full pl-9 pr-4 py-2 text-sm font-medium border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-white text-slate-900 placeholder-gray-400 shadow-sm transition-all"
+                            className="w-full pl-9 pr-4 py-2 text-sm font-medium border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-canvas text-ink placeholder-ink-subtle shadow-sm transition-all"
                         />
                     </div>
 
@@ -167,7 +167,7 @@ export default function PaymentsIndex({ payments, metrics, filters, paymentMetho
                             value={filter.values.date}
                             onChange={(e) => filter.set('date', e.target.value)}
                             style={{ colorScheme: 'light' }}
-                            className="w-full py-2 px-3 text-sm font-medium border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-white text-slate-900 shadow-sm transition-all"
+                            className="w-full py-2 px-3 text-sm font-medium border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-canvas text-ink shadow-sm transition-all"
                         />
                     </div>
 
@@ -176,7 +176,7 @@ export default function PaymentsIndex({ payments, metrics, filters, paymentMetho
                         <select
                             value={filter.values.payment_method_id}
                             onChange={(e) => filter.set('payment_method_id', e.target.value)}
-                            className="w-full py-2 px-3 text-sm font-medium border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-white text-slate-900 shadow-sm transition-all"
+                            className="w-full py-2 px-3 text-sm font-medium border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-canvas text-ink shadow-sm transition-all"
                         >
                             <option value="">Todos los métodos</option>
                             {paymentMethods.map((pm) => (
@@ -192,7 +192,7 @@ export default function PaymentsIndex({ payments, metrics, filters, paymentMetho
                         <select
                             value={filter.values.status}
                             onChange={(e) => filter.set('status', e.target.value)}
-                            className="w-full py-2 px-3 text-sm font-medium border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-white text-slate-900 shadow-sm transition-all"
+                            className="w-full py-2 px-3 text-sm font-medium border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-canvas text-ink shadow-sm transition-all"
                         >
                             <option value="all">Todos los estados</option>
                             <option value="CONFIRMED">Confirmados</option>
@@ -203,7 +203,7 @@ export default function PaymentsIndex({ payments, metrics, filters, paymentMetho
             </div>
 
             {/* Payments Table */}
-            <div className="bg-white border border-gray-200/60 rounded-2xl shadow-sm overflow-hidden">
+            <div className="bg-canvas border border-hairline/60 rounded-2xl shadow-sm overflow-hidden ">
                 <DataTable columns={columns} rows={payments.data} rowKey={(payment) => payment.id} empty="No se registraron cobros con los filtros seleccionados." />
                 <Pagination page={payments} noun="cobros" />
             </div>

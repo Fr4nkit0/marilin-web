@@ -6,6 +6,15 @@
 
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
+        {{-- Before anything paints: the saved theme, or the system's (same rule as resources/js/lib/theme.ts). --}}
+        <script>
+            (function () {
+                var choice = localStorage.getItem('marilin-theme');
+                var dark = choice === 'dark' || (choice !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                document.documentElement.classList.toggle('dark', dark);
+            })();
+        </script>
+
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

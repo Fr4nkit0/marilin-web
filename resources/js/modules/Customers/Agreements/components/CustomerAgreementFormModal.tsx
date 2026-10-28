@@ -23,7 +23,7 @@ type AgreementForm = {
 };
 
 const inputClass =
-    'w-full py-2 px-3 text-sm border border-gray-200/60 bg-white text-slate-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600';
+    'w-full py-2 px-3 text-sm border border-hairline/60 bg-canvas text-ink rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600';
 
 export default function CustomerAgreementFormModal({ show, customerId, customerName, products, today, onClose }: Props) {
     const { data, setData, post, processing, errors, reset, clearErrors, transform } = useForm<AgreementForm>({
@@ -58,10 +58,10 @@ export default function CustomerAgreementFormModal({ show, customerId, customerN
     return (
         <Modal show={show} onClose={onClose} maxWidth="md">
             <form onSubmit={submit}>
-                <div className="flex items-start justify-between gap-4 px-6 pt-6 pb-4 border-b border-gray-100">
+                <div className="flex items-start justify-between gap-4 px-6 pt-6 pb-4 border-b border-hairline">
                     <div>
-                        <h2 className="text-lg font-semibold text-slate-900">Nuevo acuerdo de precio</h2>
-                        <p className="text-sm text-slate-500 mt-1">
+                        <h2 className="text-lg font-semibold text-ink">Nuevo acuerdo de precio</h2>
+                        <p className="text-sm text-ink-muted mt-1">
                             {customerName}: el precio acordado reemplaza al de lista y llega a la app en la próxima
                             sincronización.
                         </p>
@@ -70,7 +70,7 @@ export default function CustomerAgreementFormModal({ show, customerId, customerN
                         type="button"
                         onClick={onClose}
                         aria-label="Cerrar"
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                        className="p-1.5 rounded-lg text-ink-subtle hover:text-ink-secondary hover:bg-surface-1 transition cursor-pointer"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -78,7 +78,7 @@ export default function CustomerAgreementFormModal({ show, customerId, customerN
 
                 <div className="px-6 py-5 space-y-4">
                     <label className="block">
-                        <span className="text-sm font-medium text-slate-700">Producto</span>
+                        <span className="text-sm font-medium text-ink-secondary">Producto</span>
                         <select
                             value={data.product_id}
                             onChange={(e) => setData('product_id', e.target.value)}
@@ -92,11 +92,11 @@ export default function CustomerAgreementFormModal({ show, customerId, customerN
                                 </option>
                             ))}
                         </select>
-                        {errors.product_id && <p className="text-sm text-red-600 mt-1">{errors.product_id}</p>}
+                        {errors.product_id && <p className="text-sm text-red-600 dark:text-red-300 mt-1">{errors.product_id}</p>}
                     </label>
 
                     <label className="block">
-                        <span className="text-sm font-medium text-slate-700">Precio acordado</span>
+                        <span className="text-sm font-medium text-ink-secondary">Precio acordado</span>
                         <input
                             type="number"
                             min="0.01"
@@ -108,16 +108,16 @@ export default function CustomerAgreementFormModal({ show, customerId, customerN
                             required
                         />
                         {listPrice !== undefined && (
-                            <p className="text-xs text-slate-500 mt-1">
+                            <p className="text-xs text-ink-muted mt-1">
                                 Precio de lista: {money(listPrice)}
                             </p>
                         )}
-                        {errors.unit_price && <p className="text-sm text-red-600 mt-1">{errors.unit_price}</p>}
+                        {errors.unit_price && <p className="text-sm text-red-600 dark:text-red-300 mt-1">{errors.unit_price}</p>}
                     </label>
 
                     <div className="grid grid-cols-2 gap-4">
                         <label className="block">
-                            <span className="text-sm font-medium text-slate-700">Desde</span>
+                            <span className="text-sm font-medium text-ink-secondary">Desde</span>
                             <input
                                 type="date"
                                 value={data.valid_from}
@@ -126,10 +126,10 @@ export default function CustomerAgreementFormModal({ show, customerId, customerN
                                 className={`${inputClass} mt-1`}
                                 required
                             />
-                            {errors.valid_from && <p className="text-sm text-red-600 mt-1">{errors.valid_from}</p>}
+                            {errors.valid_from && <p className="text-sm text-red-600 dark:text-red-300 mt-1">{errors.valid_from}</p>}
                         </label>
                         <label className="block">
-                            <span className="text-sm font-medium text-slate-700">Hasta (opcional)</span>
+                            <span className="text-sm font-medium text-ink-secondary">Hasta (opcional)</span>
                             <input
                                 type="date"
                                 value={data.valid_to}
@@ -138,12 +138,12 @@ export default function CustomerAgreementFormModal({ show, customerId, customerN
                                 style={{ colorScheme: 'light' }}
                                 className={`${inputClass} mt-1`}
                             />
-                            {errors.valid_to && <p className="text-sm text-red-600 mt-1">{errors.valid_to}</p>}
+                            {errors.valid_to && <p className="text-sm text-red-600 dark:text-red-300 mt-1">{errors.valid_to}</p>}
                         </label>
                     </div>
 
                     <label className="block">
-                        <span className="text-sm font-medium text-slate-700">Motivo (opcional)</span>
+                        <span className="text-sm font-medium text-ink-secondary">Motivo (opcional)</span>
                         <textarea
                             value={data.reason}
                             maxLength={500}
@@ -151,22 +151,22 @@ export default function CustomerAgreementFormModal({ show, customerId, customerN
                             onChange={(e) => setData('reason', e.target.value)}
                             className={`${inputClass} mt-1`}
                         />
-                        {errors.reason && <p className="text-sm text-red-600 mt-1">{errors.reason}</p>}
+                        {errors.reason && <p className="text-sm text-red-600 dark:text-red-300 mt-1">{errors.reason}</p>}
                     </label>
                 </div>
 
-                <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-100 bg-slate-50/50">
+                <div className="flex justify-end gap-2 px-6 py-4 border-t border-hairline bg-canvas-soft/50">
                     <button
                         type="button"
                         onClick={onClose}
-                        className="px-4 py-2 rounded-lg text-sm font-medium text-slate-700 bg-white ring-1 ring-inset ring-slate-200/80 hover:bg-slate-50 cursor-pointer"
+                        className="px-4 py-2 rounded-lg text-sm font-medium text-ink-secondary bg-canvas ring-1 ring-inset ring-hairline/80 hover:bg-canvas-soft cursor-pointer"
                     >
                         Cancelar
                     </button>
                     <button
                         type="submit"
                         disabled={processing}
-                        className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                        className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
                     >
                         Crear acuerdo
                     </button>

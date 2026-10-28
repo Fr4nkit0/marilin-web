@@ -371,7 +371,17 @@ Inspired by Notion's pastel property system, product categories use soft tinted 
 - 🟣 **Facturación** → Lavender tint
 
 ### Dark Mode
-All components must support dark mode using Tailwind's `dark:` variant. The dark palette inverts the surface ladder while maintaining the same semantic status colors.
+The web follows the system theme unless the user picks Claro or Oscuro in the user menu (saved in the browser). Components never name a gray: they use the neutral roles below, each a CSS variable with a light and a dark value (`resources/css/app.css`), switched by the `dark` class on `<html>`.
+
+| Token (Tailwind) | Light | Dark |
+|---|---|---|
+| `canvas` (cards, inputs) | `#ffffff` | `#15181d` |
+| `canvas-soft` (page, table headers) | `#f8fafc` | `#0b0d10` |
+| `surface-1/2/3` (subtle fills) | slate 100/200/300 | `#1d2127` / `#262b33` / `#353b45` |
+| `ink` / `ink-secondary` / `ink-muted` / `ink-subtle` | slate 900/700/500/400 | `#f4f5f7` / `#c9cdd4` / `#8b929c` / `#5e6570` |
+| `hairline` / `hairline-strong` | slate 200/300 | `#262b33` / `#353b45` |
+
+The dark theme is a near-black neutral (no blue tint) with a soft sky/cyan glow fixed behind the page. Cards, menus and modals are solid `canvas` (#15181d) — frosted glass was tried and dropped: menus and modals let the content behind them through. Modal backdrops are black in dark; inputs sit on `canvas-soft`, recessed into the card. Primary buttons are sky-600 in light and a sky-500 → cyan-500 gradient in dark. Status tints keep their light classes and add a dark variant: `bg-*-500/15`, `text-*-300`, `border-*-500/30`.
 
 ## Typography
 
