@@ -3,9 +3,9 @@
 namespace App\Street\Sales\Http\Controllers;
 
 use App\Accounts\Models\Driver;
+use App\CashDesk\DailyFigures;
+use App\CashDesk\DayScope;
 use App\Http\Controllers\Controller;
-use App\Operations\DailyFigures\DailyFigures;
-use App\Operations\DailyFigures\DayScope;
 use App\Street\Sales\Models\Sale;
 use Carbon\Carbon;
 use Illuminate\Http\Request;

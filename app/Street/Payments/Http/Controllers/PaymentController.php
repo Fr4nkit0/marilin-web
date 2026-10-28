@@ -2,10 +2,10 @@
 
 namespace App\Street\Payments\Http\Controllers;
 
+use App\CashDesk\DailyFigures;
+use App\CashDesk\DayScope;
 use App\Catalog\Models\PaymentMethod;
 use App\Http\Controllers\Controller;
-use App\Operations\DailyFigures\DailyFigures;
-use App\Operations\DailyFigures\DayScope;
 use App\Street\Payments\Models\Payment;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
