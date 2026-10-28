@@ -8,7 +8,7 @@ web
 
 ## Stack
 
-Laravel 12, PHP 8.5, Inertia.js v2 (React 18 + TypeScript), Tailwind CSS v4, Vite, PostgreSQL 16, Redis.
+Laravel 12, PHP 8.5, Inertia.js v2 (React 18 + TypeScript), Tailwind CSS v3, Vite, PostgreSQL 16, Redis.
 
 ## Users
 
@@ -43,7 +43,7 @@ A specialized, high-density operational tool tailored specifically for the physi
 
 - Backend scaffolded with Laravel Sail (PostgreSQL, Redis, Mailpit).
 - Existing automated tests (Pest PHP).
-- Tailwind design system with primary Indigo and Emerald/Rose for status.
+- Tailwind design system with slate-900 primary actions, an indigo accent and Emerald/Rose for status.
 
 ## Product Principles
 

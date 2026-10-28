@@ -3,7 +3,7 @@ import { useListFilters } from '@/lib/useListFilters';
 import Pagination from '@/ui/Pagination';
 import type { PaginatedData } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
-import AdminLayout from '@/Layouts/AdminLayout';
+import AdminLayout from '@/layouts/AdminLayout';
 import { DebtBadge } from '@/ui/Badge';
 import { PageHeader } from '@/ui/PageHeader';
 import {

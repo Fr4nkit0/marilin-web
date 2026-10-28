@@ -1,6 +1,6 @@
 import React from 'react';
 import { Head, Link } from '@inertiajs/react';
-import AdminLayout from '@/Layouts/AdminLayout';
+import AdminLayout from '@/layouts/AdminLayout';
 import { StatusBadge } from '@/ui/Badge';
 import { PageHeader } from '@/ui/PageHeader';
 import {

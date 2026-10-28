@@ -14,11 +14,11 @@ Todo agente de IA debe leer y respetar estas directivas antes de sugerir o modif
 
 ## 2. Stack Tecnológico Core
 - **Backend:** Laravel 12 + PHP 8.5 (en contenedor Docker gestionado por **Laravel Sail**).
-- **Frontend:** Inertia.js v2 + React 18 + TypeScript + Tailwind CSS v4 + Vite.
+- **Frontend:** Inertia.js v2 + React 18 + TypeScript + Tailwind CSS v3 + Vite.
 - **Base de Datos:** PostgreSQL 16 (`pgsql`) con persistencia en volumen Docker.
 - **Cache / Colas:** Redis (`redis`).
 - **Email / SMTP:** Mailpit (`mailpit`).
-- **Testing:** Pest PHP 5 (`./vendor/bin/sail artisan test`).
+- **Testing:** Pest PHP 5 (`./vendor/bin/sail artisan test`) y Vitest para `resources/js/lib` y `resources/js/ui` (`./vendor/bin/sail npm run test`).
 - **Code Quality:** Laravel Pint (`./vendor/bin/sail bin pint`) y TypeScript Type Checking (`npm run build`).
 
 ---
@@ -39,9 +39,12 @@ Todo agente de IA debe leer y respetar estas directivas antes de sugerir o modif
 - **Eager Loading:** Prevenir problemas de N+1 queries usando `with()` en las consultas dirigidas a vistas de Inertia.
 
 ### 3.3. Frontend (Inertia + React + TypeScript)
-- **Componentes:** Separar componentes de presentación puros (Dumb/UI) de los componentes de página (Smart/Layouts).
-- **Tipos de Inertia:** Usar `PageProps<T>` para tipar los datos pasados desde los controladores hacia las páginas de Inertia.
-- **Formularios:** Usar el hook `useForm` de `@inertiajs/react` para envíos con validación y manejo automático de errores.
+- **Módulos espejo del backend (ADR 0003):** `resources/js/modules/<Módulo>[/<Subtema>]/` con sus páginas en la raíz (el nombre de Inertia es su ruta: `Inertia::render('Street/Sales/Index')` → `modules/Street/Sales/Index.tsx`), `components/` y `types.ts`.
+- **Compartido sin dominio:** `ui/` (design system: Button, Field, Input, Select, DataTable, Pagination, Badge, KpiCard, PageHeader, Modal) y `lib/` (`format` para plata, fechas y estados; `useListFilters` para los filtros de los listados). Los módulos dependen de `ui/` y `lib/`, nunca al revés.
+- **Entre módulos:** se importan tipos; una página puede componer componentes de otro módulo, un componente no.
+- **Tipos:** `PageProps<T>` y estados como uniones exactas (`StopStatus`, `PaymentStatus`, `RouteStatus`).
+- **Formularios:** `useForm` de `@inertiajs/react` con `ui/Field` y `ui/Button` (`processing`).
+- **Estilo:** DESIGN.md y SURFACE.md; acciones primarias slate-900, índigo para links, foco y selección.
 
 ---
 

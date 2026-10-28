@@ -50,7 +50,6 @@ return [
     'page_paths' => [
 
         resource_path('js/modules'),
-        resource_path('js/Pages'), // until every page has moved to its module
 
     ],
 
@@ -90,7 +89,6 @@ return [
         'page_paths' => [
 
             resource_path('js/modules'),
-        resource_path('js/Pages'), // until every page has moved to its module
 
         ],
 

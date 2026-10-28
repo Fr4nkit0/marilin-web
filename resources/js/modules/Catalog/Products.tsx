@@ -1,6 +1,6 @@
 import React from 'react';
 import { Head } from '@inertiajs/react';
-import AdminLayout from '@/Layouts/AdminLayout';
+import AdminLayout from '@/layouts/AdminLayout';
 import ProductPriceRow from './components/ProductPriceRow';
 import { ProductItem } from '@/modules/Catalog/types';
 

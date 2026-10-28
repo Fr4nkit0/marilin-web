@@ -21,6 +21,7 @@ test('nobody can create an account by posting to register', function () {
     expect(User::query()->where('email', 'test@example.com')->exists())->toBeFalse();
 });
 
-test('the welcome page does not offer a sign up link', function () {
-    $this->get('/')->assertInertia(fn ($page) => $page->where('canRegister', false));
+test('a guest who opens the home page lands on the login, which offers no sign up', function () {
+    $this->followingRedirects()->get('/')
+        ->assertInertia(fn ($page) => $page->component('Accounts/Login')->missing('canRegister'));
 });

@@ -2,7 +2,7 @@ import React, { FormEvent, useState } from 'react';
 import { Head } from '@inertiajs/react';
 import { useListFilters } from '@/lib/useListFilters';
 import { KeyRound, Pencil, Plus, Power, Search } from 'lucide-react';
-import AdminLayout from '@/Layouts/AdminLayout';
+import AdminLayout from '@/layouts/AdminLayout';
 import DriverAccountFormModal from './components/DriverAccountFormModal';
 import DriverPasswordModal from './components/DriverPasswordModal';
 import DriverStatusModal from './components/DriverStatusModal';

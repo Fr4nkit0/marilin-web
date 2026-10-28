@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import AdminLayout from '@/Layouts/AdminLayout';
+import AdminLayout from '@/layouts/AdminLayout';
 import { DebtBadge, PaymentMethodBadge } from '@/ui/Badge';
 import { PageHeader } from '@/ui/PageHeader';
 import CustomerAgreementFormModal from '@/modules/Customers/Agreements/components/CustomerAgreementFormModal';
