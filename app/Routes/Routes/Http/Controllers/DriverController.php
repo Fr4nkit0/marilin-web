@@ -5,6 +5,8 @@ namespace App\Routes\Routes\Http\Controllers;
 use App\Accounts\Models\Driver;
 use App\Http\Controllers\Controller;
 use App\Routes\Routes\Models\RouteStop;
+use App\Street\Payments\Enums\PaymentStatus;
+use App\Street\Sales\Enums\SaleStatus;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -106,8 +108,8 @@ class DriverController extends Controller
             'totalStops' => $totalStops,
             'completedStops' => $completedStops,
             'progressPercent' => $totalStops > 0 ? round(($completedStops / $totalStops) * 100) : 0,
-            'totalSalesAmount' => (float) $currentRoute->stops->sum(fn ($s) => $s->visit?->sales->sum('total') ?? 0),
-            'totalCollectedAmount' => (float) $currentRoute->stops->sum(fn ($s) => $s->visit?->payments->sum('amount') ?? 0),
+            'totalSalesAmount' => (float) $currentRoute->stops->sum(fn ($s) => $s->visit?->sales->where('status', SaleStatus::Confirmed->value)->sum('total') ?? 0),
+            'totalCollectedAmount' => (float) $currentRoute->stops->sum(fn ($s) => $s->visit?->payments->where('status', PaymentStatus::Confirmed->value)->sum('amount') ?? 0),
             'stops' => $currentRoute->stops->map(fn ($stop) => [
                 'id' => $stop->id,
                 'customer' => [
@@ -119,8 +121,8 @@ class DriverController extends Controller
                 'status' => $stop->effectiveStatus()->value,
                 'done' => $stop->isDone(),
                 'arrivedAt' => $stop->visit?->arrived_at?->format('H:i'),
-                'salesAmount' => (float) ($stop->visit?->sales->sum('total') ?? 0),
-                'paymentsAmount' => (float) ($stop->visit?->payments->sum('amount') ?? 0),
+                'salesAmount' => (float) ($stop->visit?->sales->where('status', SaleStatus::Confirmed->value)->sum('total') ?? 0),
+                'paymentsAmount' => (float) ($stop->visit?->payments->where('status', PaymentStatus::Confirmed->value)->sum('amount') ?? 0),
                 'notes' => $stop->visit?->notes,
             ]),
             'inventory' => $currentRoute->inventories->map(fn ($i) => [

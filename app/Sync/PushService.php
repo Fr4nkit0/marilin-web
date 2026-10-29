@@ -17,6 +17,8 @@ class PushService
         private readonly ContainerMovementPusher $containerMovements,
         private readonly SalePusher $sales,
         private readonly PaymentPusher $payments,
+        private readonly SaleCancellationPusher $saleCancellations,
+        private readonly PaymentCancellationPusher $paymentCancellations,
     ) {}
 
     /**
@@ -34,6 +36,8 @@ class PushService
             'container_movements' => $this->containerMovements,
             'sales' => $this->sales,
             'payments' => $this->payments,
+            'sale_cancellations' => $this->saleCancellations,
+            'payment_cancellations' => $this->paymentCancellations,
         ];
     }
 

@@ -6,6 +6,7 @@ use App\Accounts\Models\User;
 use App\Customers\Customers\Models\Customer;
 use App\Review\Reviewable;
 use App\Review\ReviewSource;
+use App\Routes\Routes\Models\Route;
 use App\Routes\Visits\Models\Visit;
 use App\Street\Ledger\Models\CustomerAccountEntry;
 use App\Street\Payments\Models\Payment;
@@ -17,7 +18,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['client_uuid', 'customer_id', 'visit_id', 'date', 'total', 'status', 'is_credit_sale', 'notes', 'created_by', 'last_modified_by', 'enabled', 'needs_review', 'review_reason'])]
+#[Fillable(['client_uuid', 'customer_id', 'visit_id', 'stock_route_id', 'date', 'total', 'status', 'is_credit_sale', 'notes', 'created_by', 'last_modified_by', 'enabled', 'needs_review', 'review_reason'])]
 class Sale extends Model
 {
     /** @use HasFactory<SaleFactory> */
@@ -48,6 +49,14 @@ class Sale extends Model
     public function visit(): BelongsTo
     {
         return $this->belongsTo(Visit::class);
+    }
+
+    /**
+     * The route the sale discounted its stock from; a cancellation gives it back there.
+     */
+    public function stockRoute(): BelongsTo
+    {
+        return $this->belongsTo(Route::class, 'stock_route_id');
     }
 
     public function details(): HasMany

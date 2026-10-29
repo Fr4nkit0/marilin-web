@@ -96,6 +96,28 @@ test('a sale without a visit discounts the route the driver has on the sale day'
         ->and(routeStockOf($this->soda, $this->route))->toBe(48.0);
 });
 
+test('a sale of a product the route has no inventory row for leaves that row below zero', function (): void {
+    $ice = Product::factory()->create();
+
+    $this->operation->recordSale(new RecordSale(
+        customer: $this->customer,
+        visit: null,
+        driver: $this->driver,
+        date: Carbon::parse('2026-10-20 10:00:00'),
+        lines: [new SaleLine($ice->id, 4, '100.00'), new SaleLine($this->water->id, 1, '100.00')],
+        total: '500.00',
+        isCreditSale: false,
+        notes: null,
+        recordedBy: $this->user,
+    ));
+
+    $row = RouteInventory::query()->where('route_id', $this->route->id)->where('product_id', $ice->id)->sole();
+    expect((float) $row->current_quantity)->toBe(-4.0)
+        ->and($row->enabled)->toBeTrue()
+        ->and($row->created_by)->toBe($this->user->id)
+        ->and(routeStockOf($this->water, $this->route))->toBe(49.0);
+});
+
 test('a sale with no matching route discounts nothing but still books the ledger', function (): void {
     $this->route->update(['date' => '2026-10-19']);
 

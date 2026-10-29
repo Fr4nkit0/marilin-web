@@ -30,6 +30,22 @@ class CustomerLedger
     }
 
     /**
+     * Reverses a cancelled sale: a credit note for its whole total, linked to the sale.
+     */
+    public function bookSaleCancellation(Customer $customer, Sale $sale, User $user, ?string $reason): CustomerAccountEntry
+    {
+        return $this->book($customer, 'CREDIT_NOTE', -1, (string) $sale->total, $user, sale: $sale, description: $this->withReason('Venta anulada por el repartidor', $reason));
+    }
+
+    /**
+     * Reverses a cancelled payment: an adjustment that puts its amount back on the account, linked to the payment.
+     */
+    public function bookPaymentCancellation(Customer $customer, Payment $payment, User $user, ?string $reason): CustomerAccountEntry
+    {
+        return $this->book($customer, 'ADJUSTMENT', 1, (string) $payment->amount, $user, payment: $payment, description: $this->withReason('Cobro anulado por el repartidor', $reason));
+    }
+
+    /**
      * Opens the account of a new customer: the initial debt is one adjustment entry, none when there is no debt.
      * The balance row exists either way.
      */
@@ -67,6 +83,11 @@ class CustomerLedger
             ]);
 
         return $entry;
+    }
+
+    private function withReason(string $description, ?string $reason): string
+    {
+        return $reason === null || trim($reason) === '' ? $description : "{$description}: {$reason}";
     }
 
     /**
