@@ -10,12 +10,16 @@ use App\Catalog\Models\Product;
 use App\Customers\Agreements\Models\CustomerAgreement;
 use App\Customers\Customers\Models\Customer;
 use App\Customers\Customers\Models\CustomerAddress;
+use App\Customers\Neighborhoods\Models\Neighborhood;
 use App\Routes\Routes\Models\Route;
 use App\Routes\Routes\Models\RouteStop;
+use App\Routes\Visits\Models\Visit;
 use App\Routes\Visits\Models\VisitOutcome;
 use App\Street\Containers\Models\CustomerContainerBalance;
 use App\Street\Ledger\Models\CustomerBalance;
 use App\Street\RouteStock\Models\RouteInventory;
+use App\Street\Sales\Models\Sale;
+use App\Street\Sales\Models\SaleDetail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Laravel\Sanctum\Sanctum;
@@ -203,6 +207,71 @@ test('bootstrap orders stops by scheduled time and omits stops of customers no l
     $ids = collect($this->getJson('/api/v1/sync/bootstrap')->assertOk()->json('data.stops'))->pluck('id')->all();
 
     expect($ids)->toBe([$unscheduled->id, $early->id, $late->id]);
+});
+
+test('bootstrap returns the driver visits and sales of today so a reinstalled app can rebuild its done work', function (): void {
+    [$user, $driver, $route] = driverWithToday();
+    Sanctum::actingAs($user, ['*']);
+
+    $customer = Customer::factory()->create(['driver_id' => $driver->id, 'enabled' => true]);
+    $product = Product::factory()->create();
+    $stop = RouteStop::factory()->create(['route_id' => $route->id, 'customer_id' => $customer->id]);
+
+    $visit = Visit::factory()->create([
+        'client_uuid' => '0d8f6a52-8a3b-4f1c-9a43-6f1d2b9c7e01',
+        'driver_id' => $driver->id,
+        'customer_id' => $customer->id,
+        'route_stop_id' => $stop->id,
+        'arrived_at' => now(),
+        'status' => 'FINISHED',
+    ]);
+    $yesterdayVisit = Visit::factory()->create(['driver_id' => $driver->id, 'customer_id' => $customer->id, 'arrived_at' => now()->subDay()]);
+    $otherDriverVisit = Visit::factory()->create(['driver_id' => Driver::factory()->create()->id, 'arrived_at' => now()]);
+
+    $visitSale = Sale::factory()->create([
+        'client_uuid' => '5c2e9b1a-3d4f-4e6a-8b7c-9d0e1f2a3b4c',
+        'customer_id' => $customer->id,
+        'visit_id' => $visit->id,
+        'created_by' => User::factory()->create()->id,
+        'date' => now(),
+    ]);
+    SaleDetail::factory()->create(['sale_id' => $visitSale->id, 'product_id' => $product->id, 'quantity' => 3]);
+    $looseSale = Sale::factory()->create(['customer_id' => $customer->id, 'visit_id' => null, 'created_by' => $user->id, 'date' => now()]);
+    $yesterdaySale = Sale::factory()->create(['customer_id' => $customer->id, 'visit_id' => null, 'created_by' => $user->id, 'date' => now()->subDay()]);
+    $houseSale = Sale::factory()->create(['customer_id' => $customer->id, 'visit_id' => null, 'created_by' => User::factory()->create()->id, 'date' => now()]);
+
+    $response = $this->getJson('/api/v1/sync/bootstrap')->assertOk();
+
+    $visits = collect($response->json('data.visits'));
+    expect($visits->pluck('id')->all())->toBe([$visit->id])
+        ->and($visits[0]['client_uuid'])->toBe('0d8f6a52-8a3b-4f1c-9a43-6f1d2b9c7e01')
+        ->and($visits[0]['route_stop_id'])->toBe($stop->id)
+        ->and($visits->pluck('id'))->not->toContain($yesterdayVisit->id)
+        ->and($visits->pluck('id'))->not->toContain($otherDriverVisit->id);
+
+    $sales = collect($response->json('data.sales'))->keyBy('id');
+    expect($sales->keys()->sort()->values()->all())->toBe(collect([$visitSale->id, $looseSale->id])->sort()->values()->all())
+        ->and($sales[$visitSale->id]['client_uuid'])->toBe('5c2e9b1a-3d4f-4e6a-8b7c-9d0e1f2a3b4c')
+        ->and($sales[$visitSale->id]['details'])->toHaveCount(1)
+        ->and($sales[$visitSale->id]['details'][0]['product_id'])->toBe($product->id)
+        ->and($sales[$visitSale->id]['details'][0]['quantity'])->toBe(3)
+        ->and($sales->keys())->not->toContain($yesterdaySale->id)
+        ->and($sales->keys())->not->toContain($houseSale->id);
+});
+
+test('bootstrap returns the enabled neighborhoods ordered by name', function (): void {
+    [$user] = driverWithToday();
+    Sanctum::actingAs($user, ['*']);
+
+    $tres = Neighborhood::factory()->create(['name' => 'Tres Cerritos']);
+    $centro = Neighborhood::factory()->create(['name' => 'Centro']);
+    Neighborhood::factory()->create(['name' => 'Limache', 'enabled' => false]);
+
+    $neighborhoods = $this->getJson('/api/v1/sync/bootstrap')->assertOk()->json('data.neighborhoods');
+
+    expect(collect($neighborhoods)->map(fn (array $row): array => [$row['id'], $row['name'], $row['enabled']])->all())
+        ->toBe([[$centro->id, 'Centro', true], [$tres->id, 'Tres Cerritos', true]])
+        ->and(array_keys($neighborhoods[0]))->toBe(['id', 'name', 'enabled', 'updated_at']);
 });
 
 test('bootstrap server_time carries the safety margin so the first pull cannot miss a same-second write', function (): void {

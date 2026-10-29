@@ -11,12 +11,16 @@ class PushService
 {
     public function __construct(
         private readonly CustomerPusher $customers,
+        private readonly CustomerAddressPusher $customerAddresses,
+        private readonly CustomerPreferencePusher $customerPreferences,
         private readonly CustomerAgreementPusher $customerAgreements,
         private readonly RescheduledStopPusher $routeStops,
         private readonly VisitPusher $visits,
         private readonly ContainerMovementPusher $containerMovements,
         private readonly SalePusher $sales,
         private readonly PaymentPusher $payments,
+        private readonly SaleCancellationPusher $saleCancellations,
+        private readonly PaymentCancellationPusher $paymentCancellations,
     ) {}
 
     /**
@@ -28,12 +32,16 @@ class PushService
     {
         return [
             'customers' => $this->customers,
+            'customer_addresses' => $this->customerAddresses,
+            'customer_preferences' => $this->customerPreferences,
             'customer_agreements' => $this->customerAgreements,
             'route_stops' => $this->routeStops,
             'visits' => $this->visits,
             'container_movements' => $this->containerMovements,
             'sales' => $this->sales,
             'payments' => $this->payments,
+            'sale_cancellations' => $this->saleCancellations,
+            'payment_cancellations' => $this->paymentCancellations,
         ];
     }
 

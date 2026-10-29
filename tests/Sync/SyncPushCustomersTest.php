@@ -209,7 +209,7 @@ test('push stores the dates sent by the app and records separately when the serv
 });
 
 test('every entity the app can create has a unique client uuid and the generic idempotency table is gone', function (): void {
-    foreach (['customers', 'route_stops', 'visits', 'container_movements', 'sales', 'payments'] as $table) {
+    foreach (['customers', 'customer_addresses', 'customer_preferences', 'route_stops', 'visits', 'container_movements', 'sales', 'payments'] as $table) {
         $unique = collect(Schema::getIndexes($table))
             ->contains(fn (array $index): bool => $index['unique'] && $index['columns'] === ['client_uuid']);
 
@@ -315,4 +315,74 @@ test('push clamps a modification date ahead of the server clock so later server 
 
     expect($stored->updated_at->toIso8601String())->toBe('2026-10-20T15:00:00-03:00')
         ->and($stored->created_at->toIso8601String())->toBe('2026-10-20T15:00:00-03:00');
+});
+
+test('push disables a customer when the app sends enabled false and flags it for review', function (): void {
+    [$customer] = serverCustomer($this->driver, $this->user, null);
+
+    $response = $this->postJson('/api/v1/sync/push', ['customers' => [customerPayload([
+        'server_id' => $customer->id,
+        'enabled' => false,
+        'modified_at' => '2026-10-20T11:00:00-03:00',
+    ])]]);
+
+    $response->assertOk()
+        ->assertJsonPath('data.customers.0.status', 'accepted')
+        ->assertJsonPath('data.customers.0.server_id', $customer->id)
+        ->assertJsonPath('data.customers.0.review_reason', 'Customer disabled by a driver.');
+
+    $customer->refresh();
+    expect($customer->enabled)->toBeFalse()
+        ->and($customer->needs_review)->toBeTrue()
+        ->and($customer->review_reason)->toBe('Customer disabled by a driver.')
+        ->and($customer->updated_at->toIso8601String())->toBe('2026-10-20T11:00:00-03:00');
+});
+
+test('push ignores a disable older than the server version', function (): void {
+    [$customer] = serverCustomer($this->driver, $this->user, null);
+
+    $this->postJson('/api/v1/sync/push', ['customers' => [customerPayload([
+        'server_id' => $customer->id,
+        'enabled' => false,
+        'modified_at' => '2026-10-20T09:00:00-03:00',
+    ])]])->assertOk()
+        ->assertJsonPath('data.customers.0.status', 'accepted')
+        ->assertJsonPath('data.customers.0.review_reason', null);
+
+    $customer->refresh();
+    expect($customer->enabled)->toBeTrue()
+        ->and($customer->needs_review)->toBeFalse();
+});
+
+test('push never re-enables a disabled customer and keeps an edit without enabled as it was', function (): void {
+    [$disabled] = serverCustomer($this->driver, $this->user, null);
+    $disabled->timestamps = false;
+    $disabled->forceFill(['enabled' => false])->save();
+    [$active] = serverCustomer($this->driver, $this->user, null);
+
+    $this->postJson('/api/v1/sync/push', ['customers' => [
+        customerPayload(['server_id' => $disabled->id, 'enabled' => true, 'name' => 'Editado', 'modified_at' => '2026-10-20T11:00:00-03:00']),
+        customerPayload(['server_id' => $active->id, 'name' => 'Sin enabled', 'modified_at' => '2026-10-20T11:00:00-03:00']),
+    ]])->assertOk()
+        ->assertJsonPath('data.customers.0.status', 'accepted')
+        ->assertJsonPath('data.customers.1.status', 'accepted');
+
+    expect($disabled->fresh()->enabled)->toBeFalse()
+        ->and($disabled->fresh()->name)->toBe('Editado')
+        ->and($active->fresh()->enabled)->toBeTrue()
+        ->and($active->fresh()->needs_review)->toBeFalse();
+});
+
+test('push rejects an enabled flag that is not a boolean', function (): void {
+    [$customer] = serverCustomer($this->driver, $this->user, null);
+
+    $this->postJson('/api/v1/sync/push', ['customers' => [customerPayload([
+        'server_id' => $customer->id,
+        'enabled' => 'nope',
+        'modified_at' => '2026-10-20T11:00:00-03:00',
+    ])]])->assertOk()
+        ->assertJsonPath('data.customers.0.status', 'rejected');
+
+    expect($customer->fresh()->enabled)->toBeTrue()
+        ->and($customer->fresh()->name)->toBe('Nombre del servidor');
 });

@@ -11,10 +11,9 @@ use App\Customers\Customers\CustomerAddressDetails;
 use App\Customers\Customers\CustomerEdit;
 use App\Customers\Customers\CustomerIntake;
 use App\Customers\Customers\CustomerRegistration;
+use App\Customers\Customers\InvalidCustomerChange;
 use App\Customers\Customers\Models\Customer;
 use App\Review\ReviewReason;
-use App\Shared\ClientTime;
-use Illuminate\Support\Carbon;
 
 class CustomerPusher extends EntityPusher
 {
@@ -22,47 +21,20 @@ class CustomerPusher extends EntityPusher
 
     protected function handle(Driver $driver, User $user, array $record): array
     {
-        $customer = $this->find($record);
+        $customer = $this->findPushed(Customer::class, $record, 'customer');
 
-        if ($customer === null && isset($record['server_id'])) {
-            throw new RejectedRecord('The server_id does not match any customer.');
-        }
-
-        if ($customer === null) {
-            $customer = $this->create($driver, $user, $record);
-        } else {
-            $this->flagForReviewIfForeign($customer, $driver);
-            $this->edit($customer, $user, $record);
+        try {
+            if ($customer === null) {
+                $customer = $this->create($driver, $user, $record);
+            } else {
+                $this->flagForReviewIfForeign($customer, $driver);
+                $this->edit($customer, $user, $record);
+            }
+        } catch (InvalidCustomerChange $invalid) {
+            throw new RejectedRecord($invalid->getMessage());
         }
 
         return $this->accepted($record['uuid'], $customer->id, $this->pendingReason($customer));
-    }
-
-    /**
-     * Accept-and-mark (ADR 0001): a record on another driver's customer is applied and left for review, even a stale one.
-     */
-    private function flagForReviewIfForeign(Customer $customer, Driver $driver): void
-    {
-        if ($customer->driver_id === $driver->id || ! $customer->canBeFlagged()) {
-            return;
-        }
-
-        $customer->timestamps = false;
-        $customer->flag(ReviewReason::ForeignCustomer);
-    }
-
-    /**
-     * @param  array<string, mixed>  $record
-     */
-    private function find(array $record): ?Customer
-    {
-        $customer = Customer::query()->where('client_uuid', $record['uuid'])->first();
-
-        if ($customer === null && isset($record['server_id'])) {
-            $customer = Customer::query()->find($record['server_id']);
-        }
-
-        return $customer;
     }
 
     /**
@@ -79,6 +51,7 @@ class CustomerPusher extends EntityPusher
             clientUuid: $record['uuid'],
             opensAccount: false,
             appModifiedAt: $this->modifiedAt($record),
+            addressClientUuid: $record['address']['uuid'] ?? null,
         ));
     }
 
@@ -95,6 +68,8 @@ class CustomerPusher extends EntityPusher
             return;
         }
 
+        $disable = ($record['enabled'] ?? null) === false && $customer->enabled;
+
         $this->intake->update($customer, new CustomerEdit(
             name: $record['name'],
             phoneNumber: $record['phone_number'] ?? null,
@@ -103,17 +78,15 @@ class CustomerPusher extends EntityPusher
             reassignDriver: false,
             clientUuid: $record['uuid'],
             appModifiedAt: $modifiedAt,
+            disable: $disable,
+            addressClientUuid: $record['address']['uuid'] ?? null,
         ));
-    }
 
-    /**
-     * The app's clock can run ahead of the server's; a future date would shadow every later server-side edit.
-     *
-     * @param  array<string, mixed>  $record
-     */
-    private function modifiedAt(array $record): Carbon
-    {
-        return ClientTime::parse($record['modified_at'])->min(now());
+        // Accept-and-mark (ADR 0001): the driver's disable applies at once and the admin can enable the customer again.
+        if ($disable) {
+            $customer->timestamps = false;
+            $customer->flag(ReviewReason::DriverDisabledCustomer);
+        }
     }
 
     /**
@@ -156,7 +129,9 @@ class CustomerPusher extends EntityPusher
             'name' => ['required', 'string', 'max:160'],
             'phone_number' => ['nullable', 'string', 'max:20'],
             'modified_at' => ['required', 'date'],
+            'enabled' => ['nullable', 'boolean:strict'],
             'address' => ['required', 'array'],
+            'address.uuid' => ['nullable', 'uuid'],
             'address.street' => ['required', 'string'],
             'address.apartment' => ['nullable', 'string'],
             'address.floor' => ['nullable', 'string', 'max:20'],

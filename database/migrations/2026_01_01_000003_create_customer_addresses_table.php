@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('customer_addresses', function (Blueprint $table) {
             $table->id();
             $table->foreignId('customer_id')->constrained('customers')->cascadeOnDelete();
+            $table->uuid('client_uuid')->nullable()->unique();
             $table->string('street', 200)->nullable();
             $table->string('apartment', 20)->nullable();
             $table->string('floor', 20)->nullable();
@@ -26,6 +27,7 @@ return new class extends Migration
             $table->boolean('enabled')->default(true);
             $table->timestamps();
             $table->string('neighborhood')->nullable();
+            $table->timestamp('received_at')->nullable()->index();
 
             $table->index(['latitude', 'longitude']);
             $table->index('updated_at');

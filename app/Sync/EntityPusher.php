@@ -9,9 +9,11 @@ use App\Accounts\Models\User;
 use App\Customers\Customers\Models\Customer;
 use App\Review\Reviewable;
 use App\Review\ReviewReason;
+use App\Shared\ClientTime;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\QueryException;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
@@ -76,6 +78,16 @@ abstract class EntityPusher
     protected function normalize(array $record): array
     {
         return $record;
+    }
+
+    /**
+     * The app's modification date of a record; the app's clock can run ahead of the server's and a future date would shadow every later edit.
+     *
+     * @param  array<string, mixed>  $record
+     */
+    protected function modifiedAt(array $record): Carbon
+    {
+        return ClientTime::parse($record['modified_at'])->min(now());
     }
 
     /**
@@ -149,6 +161,40 @@ abstract class EntityPusher
             ! $customer->enabled => ReviewReason::DisabledCustomer,
             default => null,
         };
+    }
+
+    /**
+     * The server row an edit of the app points at: by the app's uuid, then by the server id the app learned in a pull.
+     * Returns null for a new record; rejects a server id that points at nothing.
+     *
+     * @template TModel of Model
+     *
+     * @param  class-string<TModel>  $model
+     * @param  array<string, mixed>  $record
+     * @return TModel|null
+     */
+    protected function findPushed(string $model, array $record, string $name): ?Model
+    {
+        $found = $model::query()->where('client_uuid', $record['uuid'])->first();
+
+        if ($found === null && isset($record['server_id'])) {
+            $found = $model::query()->find($record['server_id']) ?? throw new RejectedRecord("The server_id does not match any {$name}.");
+        }
+
+        return $found;
+    }
+
+    /**
+     * Accept-and-mark (ADR 0001): a record on another driver's customer is applied and left for review, even a stale one.
+     */
+    protected function flagForReviewIfForeign(Customer $customer, Driver $driver): void
+    {
+        if ($customer->driver_id === $driver->id || ! $customer->canBeFlagged()) {
+            return;
+        }
+
+        $customer->timestamps = false;
+        $customer->flag(ReviewReason::ForeignCustomer);
     }
 
     /**

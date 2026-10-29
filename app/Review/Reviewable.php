@@ -76,6 +76,14 @@ trait Reviewable
     }
 
     /**
+     * A new event on the record (a driver's cancellation) always reaches the inbox: its reason replaces the earlier one and an earlier review is cleared.
+     */
+    public function reopenReview(ReviewReason $reason): void
+    {
+        $this->forceFill([...ReviewReason::columns($reason), 'reviewed_at' => null, 'reviewed_by' => null])->save();
+    }
+
+    /**
      * The admin looked at the record: who and when are saved, nothing else about the record changes.
      *
      * @throws ModelNotFoundException when the record is not waiting for review (a reviewed one keeps its first reviewer)

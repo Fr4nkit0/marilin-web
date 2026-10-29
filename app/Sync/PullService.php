@@ -12,6 +12,7 @@ use App\Customers\Agreements\Models\CustomerAgreement;
 use App\Customers\Customers\Models\Customer;
 use App\Customers\Customers\Models\CustomerAddress;
 use App\Customers\Customers\Models\CustomerPreference;
+use App\Customers\Neighborhoods\Models\Neighborhood;
 use App\Routes\Routes\Models\Route;
 use App\Routes\Routes\Models\RouteStop;
 use App\Routes\Visits\Models\VisitOutcome;
@@ -34,13 +35,15 @@ class PullService
 
     /**
      * Entities pushed by the app carry the app's own modification date in updated_at, which can be hours old,
-     * so the moment the server received them also puts them in the window. Value: relation to the customer, or null.
+     * so the moment the server received them also puts them in the window. Value: where received_at is read, null for the row itself
+     * or a relation (an address also travels when the customer push edited its customer).
      *
-     * @var array<string, string|null>
+     * @var array<string, array<int, string|null>>
      */
     private const array RECEIVED_AT_SOURCE = [
-        'customers' => null,
-        'customer_addresses' => 'customer',
+        'customers' => [null],
+        'customer_addresses' => [null, 'customer'],
+        'customer_preferences' => [null],
     ];
 
     /**
@@ -63,9 +66,7 @@ class PullService
 
                 $q->where($inWindow);
 
-                if (array_key_exists($name, self::RECEIVED_AT_SOURCE)) {
-                    $relation = self::RECEIVED_AT_SOURCE[$name];
-
+                foreach (self::RECEIVED_AT_SOURCE[$name] ?? [] as $relation) {
                     $relation === null
                         ? $q->orWhere($inColumnWindow('received_at'))
                         : $q->orWhereHas($relation, $inColumnWindow('received_at'));
@@ -136,6 +137,7 @@ class PullService
             'container_types' => ContainerType::query(),
             'payment_methods' => PaymentMethod::query(),
             'visit_outcomes' => VisitOutcome::query(),
+            'neighborhoods' => Neighborhood::query(),
         ];
     }
 

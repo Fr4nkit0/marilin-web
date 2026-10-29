@@ -15,6 +15,8 @@ enum ReviewReason: string
     case UnvisitedStop = 'Stop ended its day without a visit.';
     case DriverAgreement = 'Agreement created by a driver.';
     case PriceMismatch = 'Sale price differs from the agreement or list price.';
+    case DriverDisabledCustomer = 'Customer disabled by a driver.';
+    case DriverCancellation = 'Cancelled by a driver.';
 
     /**
      * The columns that mark a record for review, or leave it clean when there is no reason: the one rule every writer of those columns follows.
@@ -38,6 +40,8 @@ enum ReviewReason: string
             self::UnvisitedStop => 'La parada terminó el día sin visita.',
             self::DriverAgreement => 'Acuerdo de precio creado por el repartidor.',
             self::PriceMismatch => 'Venta con precio distinto al acordado o de lista.',
+            self::DriverDisabledCustomer => 'El repartidor dio de baja al cliente.',
+            self::DriverCancellation => 'Anulado por el repartidor.',
         };
     }
 }

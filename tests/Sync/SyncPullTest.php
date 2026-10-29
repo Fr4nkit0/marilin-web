@@ -8,6 +8,7 @@ use App\Catalog\Models\Product;
 use App\Customers\Agreements\Models\CustomerAgreement;
 use App\Customers\Customers\Models\Customer;
 use App\Customers\Customers\Models\CustomerAddress;
+use App\Customers\Neighborhoods\Models\Neighborhood;
 use App\Routes\Routes\Models\Route;
 use App\Routes\Routes\Models\RouteStop;
 use App\Routes\Visits\Models\Visit;
@@ -267,4 +268,19 @@ test('pull re-sends a customer and its address received after the cursor even wh
     expect(pullIds($response->json(), 'customers'))->toBe([$customer->id])
         ->and(pullIds($response->json(), 'customer_addresses'))->toBe([$address->id])
         ->and(collect($response->json('data.customers'))->pluck('id'))->not->toContain($stale->id);
+});
+
+test('pull returns the neighborhoods changed in the window, disabled ones included', function (): void {
+    $old = Neighborhood::factory()->create(['name' => 'Centro', 'updated_at' => now()->subDays(3)]);
+    $renamed = Neighborhood::factory()->create(['name' => 'Tres Cerritos', 'updated_at' => now()->subMinute()]);
+    $disabled = Neighborhood::factory()->create(['name' => 'Limache', 'enabled' => false, 'updated_at' => now()->subMinute()]);
+
+    $cursor = now()->subHour()->toIso8601String();
+    $response = $this->getJson('/api/v1/sync/pull?cursor='.urlencode($cursor))->assertOk();
+    $rows = collect($response->json('data.neighborhoods'))->keyBy('id');
+
+    expect(pullIds($response->json(), 'neighborhoods'))->toBe([$renamed->id, $disabled->id])
+        ->and($rows[$disabled->id]['name'])->toBe('Limache')
+        ->and($rows[$disabled->id]['enabled'])->toBeFalse()
+        ->and($rows->keys())->not->toContain($old->id);
 });

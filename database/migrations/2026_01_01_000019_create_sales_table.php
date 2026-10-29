@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('customer_id')->constrained('customers')->cascadeOnDelete();
             $table->foreignId('visit_id')->nullable()->constrained('visits')->nullOnDelete();
+            $table->foreignId('stock_route_id')->nullable()->constrained('routes')->nullOnDelete(); // the route the sale discounted stock from
             $table->dateTime('date')->useCurrent();
             $table->decimal('total', 14, 2);
             $table->string('status', 30)->default('confirmed'); // confirmed, cancelled, annulled

@@ -10,6 +10,8 @@ use App\Routes\Routes\Models\Route;
 use App\Routes\Routes\Models\RouteStop;
 use App\Routes\Visits\Models\Visit;
 use App\Routes\Visits\Models\VisitOutcome;
+use App\Street\Payments\Models\Payment;
+use App\Street\Sales\Models\Sale;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -131,4 +133,21 @@ test('the dashboard counts only done stops', function (): void {
             ->where('metrics.kpis.completedStops', 2)
             ->where('metrics.repartidores.0.completedStops', 2)
             ->where('metrics.details.stops', fn ($stops) => collect($stops)->pluck('status')->sort()->values()->all() === ['CANCELLED', 'FINISHED', 'FINISHED', 'IN_PROGRESS', 'PENDING', 'RESCHEDULED']));
+});
+
+test('the driver page money leaves out cancelled sales and payments', function (): void {
+    $stop = stopWithVisit('FINISHED');
+    $visit = $stop->visit;
+    Sale::factory()->create(['visit_id' => $visit->id, 'customer_id' => test()->customer->id, 'total' => 1000, 'status' => 'confirmed']);
+    Sale::factory()->create(['visit_id' => $visit->id, 'customer_id' => test()->customer->id, 'total' => 400, 'status' => 'cancelled']);
+    Payment::factory()->create(['visit_id' => $visit->id, 'customer_id' => test()->customer->id, 'amount' => 300, 'status' => 'CONFIRMED']);
+    Payment::factory()->create(['visit_id' => $visit->id, 'customer_id' => test()->customer->id, 'amount' => 50, 'status' => 'CANCELLED']);
+
+    $this->get(route('drivers.show', ['repartidor' => $this->driver->id, 'date' => '2026-10-20']))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('route.totalSalesAmount', 1000)
+            ->where('route.totalCollectedAmount', 300)
+            ->where('route.stops.0.salesAmount', 1000)
+            ->where('route.stops.0.paymentsAmount', 300));
 });

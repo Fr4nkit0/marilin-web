@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['customer_id', 'day_of_week', 'time_window_start', 'time_window_end', 'created_by', 'last_modified_by', 'enabled'])]
+#[Fillable(['customer_id', 'client_uuid', 'day_of_week', 'time_window_start', 'time_window_end', 'created_by', 'last_modified_by', 'enabled', 'received_at'])]
 class CustomerPreference extends Model
 {
     /** @use HasFactory<CustomerPreferenceFactory> */
@@ -20,6 +20,7 @@ class CustomerPreference extends Model
         return [
             'day_of_week' => 'integer',
             'enabled' => 'boolean',
+            'received_at' => 'datetime',
         ];
     }
 

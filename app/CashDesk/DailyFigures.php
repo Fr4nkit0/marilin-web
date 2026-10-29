@@ -7,11 +7,12 @@ namespace App\CashDesk;
 use App\Street\Containers\Models\ContainerMovement;
 use App\Street\Payments\Enums\PaymentStatus;
 use App\Street\Payments\Models\Payment;
+use App\Street\Sales\Enums\SaleStatus;
 use App\Street\Sales\Models\Sale;
 
 /**
  * The single source of a day's sales, collections and container movements, for the cash close,
- * the dashboard and the Sales and Payments pages.
+ * the dashboard and the Sales and Payments pages. Only confirmed sales and payments count: a cancelled one moved no money.
  */
 class DailyFigures
 {
@@ -21,6 +22,7 @@ class DailyFigures
             ->with(['customer:id,name', 'creator:id,name'])
             ->tap(fn ($query) => $scope->apply($query, 'created_by'))
             ->whereDate('date', $date)
+            ->where('status', SaleStatus::Confirmed->value)
             ->orderBy('date')
             ->orderBy('id')
             ->get();

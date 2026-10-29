@@ -12,11 +12,13 @@ use App\Street\Containers\Models\ContainerMovement;
 use App\Street\Containers\Models\CustomerContainerBalance;
 use App\Street\Containers\MoveContainers;
 use App\Street\Ledger\CustomerLedger;
+use App\Street\Payments\CancelPayment;
 use App\Street\Payments\Enums\PaymentStatus;
 use App\Street\Payments\Models\Payment;
 use App\Street\Payments\Models\Transaction;
 use App\Street\Payments\RecordPayment;
 use App\Street\RouteStock\RouteStock;
+use App\Street\Sales\CancelSale;
 use App\Street\Sales\Enums\SaleStatus;
 use App\Street\Sales\Models\Sale;
 use App\Street\Sales\RecordSale;
@@ -45,10 +47,13 @@ class StreetOperation
     public function recordSale(RecordSale $input): Sale
     {
         return DB::transaction(function () use ($input): Sale {
+            $stockRouteId = $this->routeOfSale($input);
+
             $sale = Sale::create([
                 'client_uuid' => $input->clientUuid,
                 'customer_id' => $input->customer->id,
                 'visit_id' => $input->visit?->id,
+                'stock_route_id' => $stockRouteId,
                 'date' => $input->date,
                 'total' => $input->total,
                 'status' => SaleStatus::Confirmed->value,
@@ -69,7 +74,39 @@ class StreetOperation
             }
 
             $this->ledger->bookSale($input->customer, $sale, $input->recordedBy);
-            $this->discountStock($input, $sale);
+
+            if ($stockRouteId !== null) {
+                $this->stock->discount($stockRouteId, $this->soldQuantities($sale), $input->recordedBy);
+            }
+
+            return $sale;
+        });
+    }
+
+    /**
+     * Cancels a sale: a credit note reverses it on the ledger and its stock goes back to the route it was discounted from
+     * (none when it discounted none). Its payments are left alone. A sale already cancelled is returned as it is, nothing is booked again.
+     */
+    public function cancelSale(CancelSale $input): Sale
+    {
+        return DB::transaction(function () use ($input): Sale {
+            $sale = Sale::query()->whereKey($input->sale->id)->lockForUpdate()->firstOrFail();
+
+            if ($sale->status === SaleStatus::Cancelled->value) {
+                return $sale;
+            }
+
+            $sale->fill(['status' => SaleStatus::Cancelled->value, 'last_modified_by' => $input->cancelledBy->id])->save();
+
+            if ($input->reviewReason !== null) {
+                $sale->reopenReview($input->reviewReason);
+            }
+
+            $this->ledger->bookSaleCancellation($sale->customer, $sale, $input->cancelledBy, $input->reason);
+
+            if ($sale->stock_route_id !== null) {
+                $this->stock->restore($sale->stock_route_id, $this->soldQuantities($sale));
+            }
 
             return $sale;
         });
@@ -95,6 +132,30 @@ class StreetOperation
             ]);
 
             $this->ledger->bookPayment($input->customer, $payment, $input->receivedBy);
+
+            return $payment;
+        });
+    }
+
+    /**
+     * Cancels a payment: an adjustment puts its amount back on the ledger. A payment already cancelled is returned as it is.
+     */
+    public function cancelPayment(CancelPayment $input): Payment
+    {
+        return DB::transaction(function () use ($input): Payment {
+            $payment = Payment::query()->whereKey($input->payment->id)->lockForUpdate()->firstOrFail();
+
+            if ($payment->status === PaymentStatus::Cancelled->value) {
+                return $payment;
+            }
+
+            $payment->fill(['status' => PaymentStatus::Cancelled->value])->save();
+
+            if ($input->reviewReason !== null) {
+                $payment->reopenReview($input->reviewReason);
+            }
+
+            $this->ledger->bookPaymentCancellation($payment->customer, $payment, $input->cancelledBy, $input->reason);
 
             return $payment;
         });
@@ -158,19 +219,22 @@ class StreetOperation
 
     /**
      * The route of the visit or, without visit, the driver's route of the sale's day; none without both.
+     * Stored on the sale, so a cancellation gives back to the route the sale discounted from.
      */
-    private function discountStock(RecordSale $input, Sale $sale): void
+    private function routeOfSale(RecordSale $input): ?int
     {
-        $routeId = $input->visit?->routeStop?->route_id
+        return $input->visit?->routeStop?->route_id
             ?? ($input->driver === null ? null : Route::query()
                 ->where('assigned_driver_id', $input->driver->id)
-                ->whereDate('date', $sale->date->toDateString())
+                ->whereDate('date', $input->date->toDateString())
                 ->value('id'));
+    }
 
-        if ($routeId === null) {
-            return;
-        }
-
-        $this->stock->discount($routeId, $sale->details->groupBy('product_id')->map->sum('quantity')->all());
+    /**
+     * @return array<int, int|float> quantity keyed by product id
+     */
+    private function soldQuantities(Sale $sale): array
+    {
+        return $sale->details->groupBy('product_id')->map->sum('quantity')->all();
     }
 }

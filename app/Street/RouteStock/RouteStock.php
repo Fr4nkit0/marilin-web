@@ -19,9 +19,39 @@ use Illuminate\Support\Facades\DB;
 class RouteStock
 {
     /**
+     * Takes a sale off the route stock. A product the truck does not carry gets its row at zero first,
+     * so the discount always lands (stock may go below zero) and a cancellation has something to give back to.
+     *
      * @param  array<int, int|float>  $quantities  quantity keyed by product id
      */
-    public function discount(int $routeId, array $quantities): void
+    public function discount(int $routeId, array $quantities, User $recordedBy): void
+    {
+        ksort($quantities);
+
+        foreach ($quantities as $productId => $quantity) {
+            RouteInventory::query()->insertOrIgnore([
+                'route_id' => $routeId,
+                'product_id' => $productId,
+                'current_quantity' => 0,
+                'created_by' => $recordedBy->id,
+                'enabled' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            RouteInventory::query()
+                ->where('route_id', $routeId)
+                ->where('product_id', $productId)
+                ->decrement('current_quantity', (float) $quantity);
+        }
+    }
+
+    /**
+     * Gives back what a cancelled sale had discounted.
+     *
+     * @param  array<int, int|float>  $quantities  quantity keyed by product id
+     */
+    public function restore(int $routeId, array $quantities): void
     {
         ksort($quantities);
 
@@ -29,7 +59,7 @@ class RouteStock
             RouteInventory::query()
                 ->where('route_id', $routeId)
                 ->where('product_id', $productId)
-                ->decrement('current_quantity', (float) $quantity);
+                ->increment('current_quantity', (float) $quantity);
         }
     }
 
