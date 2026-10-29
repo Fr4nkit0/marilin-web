@@ -11,6 +11,8 @@ class PushService
 {
     public function __construct(
         private readonly CustomerPusher $customers,
+        private readonly CustomerAddressPusher $customerAddresses,
+        private readonly CustomerPreferencePusher $customerPreferences,
         private readonly CustomerAgreementPusher $customerAgreements,
         private readonly RescheduledStopPusher $routeStops,
         private readonly VisitPusher $visits,
@@ -30,6 +32,8 @@ class PushService
     {
         return [
             'customers' => $this->customers,
+            'customer_addresses' => $this->customerAddresses,
+            'customer_preferences' => $this->customerPreferences,
             'customer_agreements' => $this->customerAgreements,
             'route_stops' => $this->routeStops,
             'visits' => $this->visits,

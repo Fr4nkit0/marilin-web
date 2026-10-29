@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['customer_id', 'street', 'apartment', 'floor', 'visual_reference', 'neighborhood', 'latitude', 'longitude', 'is_primary', 'created_by', 'last_modified_by', 'enabled'])]
+#[Fillable(['customer_id', 'client_uuid', 'street', 'apartment', 'floor', 'visual_reference', 'neighborhood', 'latitude', 'longitude', 'is_primary', 'created_by', 'last_modified_by', 'enabled', 'received_at'])]
 class CustomerAddress extends Model
 {
     /** @use HasFactory<CustomerAddressFactory> */
@@ -25,6 +25,7 @@ class CustomerAddress extends Model
             'longitude' => 'decimal:7',
             'is_primary' => 'boolean',
             'enabled' => 'boolean',
+            'received_at' => 'datetime',
         ];
     }
 

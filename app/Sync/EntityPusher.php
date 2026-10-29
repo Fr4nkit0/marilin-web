@@ -164,6 +164,40 @@ abstract class EntityPusher
     }
 
     /**
+     * The server row an edit of the app points at: by the app's uuid, then by the server id the app learned in a pull.
+     * Returns null for a new record; rejects a server id that points at nothing.
+     *
+     * @template TModel of Model
+     *
+     * @param  class-string<TModel>  $model
+     * @param  array<string, mixed>  $record
+     * @return TModel|null
+     */
+    protected function findPushed(string $model, array $record, string $name): ?Model
+    {
+        $found = $model::query()->where('client_uuid', $record['uuid'])->first();
+
+        if ($found === null && isset($record['server_id'])) {
+            $found = $model::query()->find($record['server_id']) ?? throw new RejectedRecord("The server_id does not match any {$name}.");
+        }
+
+        return $found;
+    }
+
+    /**
+     * Accept-and-mark (ADR 0001): a record on another driver's customer is applied and left for review, even a stale one.
+     */
+    protected function flagForReviewIfForeign(Customer $customer, Driver $driver): void
+    {
+        if ($customer->driver_id === $driver->id || ! $customer->canBeFlagged()) {
+            return;
+        }
+
+        $customer->timestamps = false;
+        $customer->flag(ReviewReason::ForeignCustomer);
+    }
+
+    /**
      * @return array<string, mixed>
      */
     private function rejected(?string $uuid, string $error): array

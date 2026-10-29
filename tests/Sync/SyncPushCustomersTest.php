@@ -209,7 +209,7 @@ test('push stores the dates sent by the app and records separately when the serv
 });
 
 test('every entity the app can create has a unique client uuid and the generic idempotency table is gone', function (): void {
-    foreach (['customers', 'route_stops', 'visits', 'container_movements', 'sales', 'payments'] as $table) {
+    foreach (['customers', 'customer_addresses', 'customer_preferences', 'route_stops', 'visits', 'container_movements', 'sales', 'payments'] as $table) {
         $unique = collect(Schema::getIndexes($table))
             ->contains(fn (array $index): bool => $index['unique'] && $index['columns'] === ['client_uuid']);
 
