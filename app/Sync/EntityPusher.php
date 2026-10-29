@@ -9,9 +9,11 @@ use App\Accounts\Models\User;
 use App\Customers\Customers\Models\Customer;
 use App\Review\Reviewable;
 use App\Review\ReviewReason;
+use App\Shared\ClientTime;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\QueryException;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
@@ -76,6 +78,16 @@ abstract class EntityPusher
     protected function normalize(array $record): array
     {
         return $record;
+    }
+
+    /**
+     * The app's modification date of a record; the app's clock can run ahead of the server's and a future date would shadow every later edit.
+     *
+     * @param  array<string, mixed>  $record
+     */
+    protected function modifiedAt(array $record): Carbon
+    {
+        return ClientTime::parse($record['modified_at'])->min(now());
     }
 
     /**

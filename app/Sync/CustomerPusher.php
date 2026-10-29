@@ -13,8 +13,6 @@ use App\Customers\Customers\CustomerIntake;
 use App\Customers\Customers\CustomerRegistration;
 use App\Customers\Customers\Models\Customer;
 use App\Review\ReviewReason;
-use App\Shared\ClientTime;
-use Illuminate\Support\Carbon;
 
 class CustomerPusher extends EntityPusher
 {
@@ -113,16 +111,6 @@ class CustomerPusher extends EntityPusher
             $customer->timestamps = false;
             $customer->flag(ReviewReason::DriverDisabledCustomer);
         }
-    }
-
-    /**
-     * The app's clock can run ahead of the server's; a future date would shadow every later server-side edit.
-     *
-     * @param  array<string, mixed>  $record
-     */
-    private function modifiedAt(array $record): Carbon
-    {
-        return ClientTime::parse($record['modified_at'])->min(now());
     }
 
     /**

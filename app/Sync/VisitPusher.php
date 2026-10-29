@@ -26,11 +26,20 @@ class VisitPusher extends EntityPusher
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
             'altitude' => ['nullable', 'numeric'],
             'notes' => ['nullable', 'string'],
+            'modified_at' => ['nullable', 'date'],
         ];
     }
 
     protected function handle(Driver $driver, User $user, array $record): array
     {
+        $existing = Visit::query()->where('client_uuid', $record['uuid'])->first();
+
+        if ($existing !== null && isset($record['modified_at'])) {
+            $this->edit($existing, $driver, $user, $record);
+
+            return $this->accepted($record['uuid'], $existing->id, $this->pendingReason($existing));
+        }
+
         if ($replay = $this->alreadyPushed(Visit::class, $record)) {
             return $replay;
         }
@@ -55,9 +64,40 @@ class VisitPusher extends EntityPusher
             'notes' => $record['notes'] ?? null,
             'created_by' => $user->id,
             'enabled' => true,
+            'app_modified_at' => isset($record['modified_at']) ? $this->modifiedAt($record) : null,
             ...$this->reviewAttributes($reason),
         ]);
 
         return $this->accepted($record['uuid'], $visit->id, $reason?->value);
+    }
+
+    /**
+     * Only the outcome and notes of today's own visits can be edited; last write wins by the app's modification date.
+     *
+     * @param  array<string, mixed>  $record
+     */
+    private function edit(Visit $visit, Driver $driver, User $user, array $record): void
+    {
+        if ($visit->driver_id !== $driver->id) {
+            throw new RejectedRecord('The visit belongs to another driver.');
+        }
+
+        $modifiedAt = $this->modifiedAt($record);
+
+        // A stale edit or a replay of the creation changes nothing, whatever day it arrives.
+        if ($visit->app_modified_at !== null && ! $modifiedAt->greaterThan($visit->app_modified_at)) {
+            return;
+        }
+
+        if ($visit->arrived_at->toDateString() !== now()->toDateString()) {
+            throw new RejectedRecord("Only today's visits can be edited.");
+        }
+
+        $visit->update([
+            'outcome_id' => $record['outcome_id'] ?? null,
+            'notes' => $record['notes'] ?? null,
+            'app_modified_at' => $modifiedAt,
+            'last_modified_by' => $user->id,
+        ]);
     }
 }

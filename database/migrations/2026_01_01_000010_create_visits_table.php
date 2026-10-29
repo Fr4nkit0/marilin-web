@@ -28,6 +28,7 @@ return new class extends Migration
             $table->boolean('enabled')->default(true);
             $table->timestamps();
             $table->uuid('client_uuid')->nullable()->unique();
+            $table->timestamp('app_modified_at')->nullable();
             $table->boolean('needs_review')->default(false);
             $table->text('review_reason')->nullable();
             $table->timestamp('reviewed_at')->nullable();

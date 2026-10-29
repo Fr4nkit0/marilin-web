@@ -305,3 +305,179 @@ test('push still accepts a numeric-string container type and quantity, as before
         ->where('container_type_id', $this->containerType->id)
         ->firstOrFail()->balance)->toBe(4);
 });
+
+/**
+ * The visit as the server holds it, to prove a push left it untouched.
+ *
+ * @return array<string, mixed>
+ */
+function visitSnapshot(string $uuid): array
+{
+    return Visit::query()->where('client_uuid', $uuid)->firstOrFail()
+        ->only(['outcome_id', 'notes', 'arrived_at', 'latitude', 'longitude', 'altitude', 'route_stop_id', 'customer_id', 'driver_id', 'app_modified_at', 'last_modified_by', 'updated_at']);
+}
+
+test('push applies a newer visit edit to its outcome and notes only', function (): void {
+    $payload = visitPayload();
+    $created = push(['visits' => [$payload]]);
+    $before = Visit::query()->where('client_uuid', $payload['uuid'])->firstOrFail();
+    $outcome = VisitOutcome::factory()->create();
+
+    $response = push(['visits' => [array_replace($payload, [
+        'modified_at' => '2026-10-22T14:30:00Z',
+        'outcome_id' => $outcome->id,
+        'notes' => 'No estaba, volver a la tarde',
+        'arrived_at' => '2026-10-22T10:00:00Z',
+        'latitude' => -24.1,
+        'longitude' => -65.1,
+        'altitude' => 1.5,
+    ])]]);
+
+    $response->assertOk()
+        ->assertJsonPath('data.visits.0.status', 'accepted')
+        ->assertJsonPath('data.visits.0.server_id', $created->json('data.visits.0.server_id'))
+        ->assertJsonPath('data.visits.0.review_reason', null);
+
+    $visit = $before->fresh();
+
+    expect($visit->outcome_id)->toBe($outcome->id)
+        ->and($visit->notes)->toBe('No estaba, volver a la tarde')
+        ->and($visit->app_modified_at->toIso8601String())->toBe('2026-10-22T11:30:00-03:00')
+        ->and($visit->last_modified_by)->toBe($this->user->id)
+        ->and($visit->arrived_at->toIso8601String())->toBe($before->arrived_at->toIso8601String())
+        ->and($visit->latitude)->toBe($before->latitude)
+        ->and($visit->longitude)->toBe($before->longitude)
+        ->and($visit->altitude)->toBe($before->altitude)
+        ->and($visit->route_stop_id)->toBe($before->route_stop_id)
+        ->and($visit->customer_id)->toBe($before->customer_id)
+        ->and(Visit::query()->count())->toBe(1);
+});
+
+test('push clears the outcome and notes of a visit when a newer edit sends them empty', function (): void {
+    $payload = visitPayload();
+    push(['visits' => [$payload]]);
+
+    push(['visits' => [array_replace($payload, ['modified_at' => '2026-10-22T14:30:00Z', 'outcome_id' => null, 'notes' => null])]])
+        ->assertOk()
+        ->assertJsonPath('data.visits.0.status', 'accepted');
+
+    $visit = Visit::query()->where('client_uuid', $payload['uuid'])->firstOrFail();
+
+    expect($visit->outcome_id)->toBeNull()
+        ->and($visit->notes)->toBeNull();
+});
+
+test('push stores the app modification date of a visit created with modified_at, clamped to the server clock', function (): void {
+    $payload = visitPayload(['modified_at' => '2026-10-23T09:00:00Z']);
+
+    push(['visits' => [$payload]])->assertOk()->assertJsonPath('data.visits.0.status', 'accepted');
+
+    expect(Visit::query()->where('client_uuid', $payload['uuid'])->firstOrFail()->app_modified_at->toIso8601String())
+        ->toBe('2026-10-22T12:00:00-03:00');
+});
+
+test('push ignores a visit edit older than the last one applied but still accepts it', function (): void {
+    $payload = visitPayload(['modified_at' => '2026-10-22T14:30:00Z']);
+    $created = push(['visits' => [$payload]]);
+    $before = visitSnapshot($payload['uuid']);
+
+    $response = push(['visits' => [array_replace($payload, [
+        'modified_at' => '2026-10-22T14:00:00Z',
+        'outcome_id' => VisitOutcome::factory()->create()->id,
+        'notes' => 'Edicion vieja',
+    ])]]);
+
+    $response->assertOk()
+        ->assertJsonPath('data.visits.0.status', 'accepted')
+        ->assertJsonPath('data.visits.0.server_id', $created->json('data.visits.0.server_id'));
+
+    expect(visitSnapshot($payload['uuid']))->toEqual($before);
+});
+
+test('push rejects an edit of a visit that did not arrive today and leaves it unchanged', function (): void {
+    $payload = visitPayload(['arrived_at' => '2026-10-21T15:00:00Z']);
+    push(['visits' => [$payload]])->assertOk()->assertJsonPath('data.visits.0.status', 'accepted');
+    $before = visitSnapshot($payload['uuid']);
+
+    $response = push(['visits' => [array_replace($payload, [
+        'modified_at' => '2026-10-22T14:30:00Z',
+        'outcome_id' => VisitOutcome::factory()->create()->id,
+        'notes' => 'Edicion tardia',
+    ])]]);
+
+    $response->assertOk()
+        ->assertJsonPath('data.visits.0.status', 'rejected')
+        ->assertJsonPath('data.visits.0.server_id', null)
+        ->assertJsonPath('data.visits.0.error', "Only today's visits can be edited.");
+
+    expect(visitSnapshot($payload['uuid']))->toEqual($before);
+});
+
+test('push rejects an edit of a visit of another driver and leaves it unchanged', function (): void {
+    $payload = visitPayload();
+    Visit::factory()->create([
+        'client_uuid' => $payload['uuid'],
+        'customer_id' => $this->customer->id,
+        'driver_id' => Driver::factory()->create(['enabled' => true])->id,
+        'arrived_at' => '2026-10-22 09:00:00',
+        'notes' => 'Original',
+    ]);
+    $before = visitSnapshot($payload['uuid']);
+
+    $response = push(['visits' => [array_replace($payload, ['modified_at' => '2026-10-22T14:30:00Z'])]]);
+
+    $response->assertOk()
+        ->assertJsonPath('data.visits.0.status', 'rejected')
+        ->assertJsonPath('data.visits.0.server_id', null)
+        ->assertJsonPath('data.visits.0.error', 'The visit belongs to another driver.');
+
+    expect(visitSnapshot($payload['uuid']))->toEqual($before);
+});
+
+test('push still treats a re-push of a known visit without modified_at as a replay that changes nothing', function (): void {
+    $payload = visitPayload();
+    $created = push(['visits' => [$payload]]);
+    $before = visitSnapshot($payload['uuid']);
+
+    $response = push(['visits' => [array_replace($payload, [
+        'outcome_id' => VisitOutcome::factory()->create()->id,
+        'notes' => 'Cambio sin fecha',
+    ])]]);
+
+    $response->assertOk()
+        ->assertJsonPath('data.visits.0.status', 'accepted')
+        ->assertJsonPath('data.visits.0.server_id', $created->json('data.visits.0.server_id'));
+
+    expect(visitSnapshot($payload['uuid']))->toEqual($before)
+        ->and(Visit::query()->count())->toBe(1);
+});
+
+test('push rejects a visit edit with an invalid modified_at and leaves the visit unchanged', function (): void {
+    $payload = visitPayload();
+    push(['visits' => [$payload]]);
+    $before = visitSnapshot($payload['uuid']);
+
+    $response = push(['visits' => [array_replace($payload, ['modified_at' => 'not-a-date', 'notes' => 'Invalida'])]]);
+
+    $response->assertOk()
+        ->assertJsonPath('data.visits.0.status', 'rejected')
+        ->assertJsonPath('data.visits.0.server_id', null);
+
+    expect($response->json('data.visits.0.error'))->toContain('modified')
+        ->and(visitSnapshot($payload['uuid']))->toEqual($before);
+});
+
+test('push answers a creation replayed the next day with its modification date as accepted and changes nothing', function (): void {
+    $payload = visitPayload(['modified_at' => '2026-10-22T09:20:00Z']);
+    push(['visits' => [$payload]])->assertOk()->assertJsonPath('data.visits.0.status', 'accepted');
+    $visit = Visit::query()->where('client_uuid', $payload['uuid'])->firstOrFail();
+
+    $this->travelTo('2026-10-23 08:00:00');
+
+    push(['visits' => [$payload]])->assertOk()
+        ->assertJsonPath('data.visits.0.status', 'accepted')
+        ->assertJsonPath('data.visits.0.server_id', $visit->id);
+
+    expect(Visit::query()->count())->toBe(1)
+        ->and($visit->fresh()->notes)->toBe($payload['notes']);
+});
