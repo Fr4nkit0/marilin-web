@@ -115,7 +115,7 @@ export default function RepartidoresIndex({ repartidores, filters }: Props) {
 
             {/* Repartidores Table - Soft Borders, Light Theme */}
             <div className="bg-canvas rounded-lg shadow-sm overflow-hidden border border-hairline/60">
-                <div className="overflow-x-auto">
+                <div className="table-scroll">
                     <table className="w-full text-left text-sm">
                         <thead className="bg-canvas/80 backdrop-blur-md border-b border-hairline text-ink-muted font-medium text-sm tracking-wide">
                             <tr>
@@ -131,7 +131,7 @@ export default function RepartidoresIndex({ repartidores, filters }: Props) {
                             {repartidores.length === 0 ? (
                                 <tr>
                                     <td colSpan={6} className="px-6 py-8 text-center text-ink-muted font-medium">
-                                        No se encontraron choferes registrados.
+                                        <span className="table-empty">No se encontraron choferes registrados.</span>
                                     </td>
                                 </tr>
                             ) : (

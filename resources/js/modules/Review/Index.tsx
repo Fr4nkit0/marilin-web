@@ -135,7 +135,7 @@ export default function Index({ items, filters, drivers }: Props) {
 
             {/* List */}
             <div className="bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden ">
-                <div className="overflow-x-auto">
+                <div className="table-scroll">
                     <table className="w-full text-left text-sm">
                         <thead className="bg-canvas/80 backdrop-blur-md border-b border-hairline text-ink-muted">
                             <tr>
@@ -151,7 +151,7 @@ export default function Index({ items, filters, drivers }: Props) {
                             {items.data.length === 0 ? (
                                 <tr>
                                     <td colSpan={6} className="px-6 py-10 text-center text-ink-muted text-sm">
-                                        No hay registros con los filtros aplicados.
+                                        <span className="table-empty">No hay registros con los filtros aplicados.</span>
                                     </td>
                                 </tr>
                             ) : (

@@ -102,7 +102,7 @@ export default function Index({ users, filters }: Props) {
             </div>
 
             <div className="bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden ">
-                <div className="overflow-x-auto">
+                <div className="table-scroll">
                     <table className="w-full text-left text-sm">
                         <thead className="bg-canvas/80 backdrop-blur-md border-b border-hairline text-ink-muted">
                             <tr>
@@ -119,7 +119,7 @@ export default function Index({ users, filters }: Props) {
                             {users.length === 0 ? (
                                 <tr>
                                     <td colSpan={5} className="px-6 py-10 text-center text-ink-muted text-sm">
-                                        No hay cuentas que coincidan.
+                                        <span className="table-empty">No hay cuentas que coincidan.</span>
                                     </td>
                                 </tr>
                             ) : (

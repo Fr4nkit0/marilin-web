@@ -37,6 +37,8 @@ interface Props {
 
 export default function Dashboard({ metrics }: Props) {
     const { kpis, repartidores } = metrics;
+    // The house row only shows on a day with counter sales or collections.
+    const casaHasActivity = metrics.casa.totalSales > 0 || metrics.casa.totalCollected > 0;
     const [openDetail, setOpenDetail] = useState<DashboardDetailKind | null>(null);
     const [updatedAt, setUpdatedAt] = useState(() => Date.now());
     const [now, setNow] = useState(() => Date.now());
@@ -88,8 +90,9 @@ export default function Dashboard({ metrics }: Props) {
                         Resumen operativo del día: <span className="font-medium text-ink-secondary">{metrics.date}</span>
                     </p>
                 </div>
-                <div className="flex items-center gap-2">
-                    <span className="text-xs text-ink-subtle whitespace-nowrap">
+                {/* On a phone the date and the button share a row and the timestamp drops below them. */}
+                <div className="flex flex-wrap items-center gap-2">
+                    <span className="order-last w-full text-xs text-ink-subtle whitespace-nowrap sm:order-none sm:w-auto">
                         Actualizado {minutesAgo(updatedAt, now)}
                     </span>
                     <input
@@ -171,7 +174,7 @@ export default function Dashboard({ metrics }: Props) {
                         </span>
                     </div>
 
-                    <div className="overflow-x-auto">
+                    <div className="table-scroll">
                         <table className="w-full text-left text-sm whitespace-nowrap">
                             <thead className="bg-canvas-soft/50 border-b border-hairline">
                                 <tr>
@@ -196,10 +199,10 @@ export default function Dashboard({ metrics }: Props) {
                                 </tr>
                             </thead>
                             <tbody className="bg-canvas divide-y divide-hairline">
-                                {repartidores.length === 0 ? (
+                                {repartidores.length === 0 && !casaHasActivity ? (
                                     <tr>
                                         <td colSpan={6} className="px-6 py-8 text-center text-sm font-medium text-ink-subtle">
-                                            No hay repartidores activos en este momento.
+                                            <span className="table-empty">No hay repartidores activos en este momento.</span>
                                         </td>
                                     </tr>
                                 ) : (
@@ -257,6 +260,7 @@ export default function Dashboard({ metrics }: Props) {
                                         </tr>
                                     ))
                                 )}
+                                {casaHasActivity && (
                                 <tr title="Ventas y cobros hechos en la casa, sin repartidor">
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
@@ -272,6 +276,7 @@ export default function Dashboard({ metrics }: Props) {
                                     <td className="px-6 py-4 text-right font-medium text-ink">{money(metrics.casa.totalCollected)}</td>
                                     <td className="px-6 py-4"></td>
                                 </tr>
+                                )}
                             </tbody>
                         </table>
                     </div>

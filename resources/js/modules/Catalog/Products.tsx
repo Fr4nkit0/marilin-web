@@ -22,7 +22,7 @@ export default function Index({ products }: Props) {
             </div>
 
             <div className="bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden ">
-                <div className="overflow-x-auto">
+                <div className="table-scroll">
                     <table className="w-full text-left text-sm">
                         <thead className="bg-canvas/80 backdrop-blur-md border-b border-hairline text-ink-muted">
                             <tr>
@@ -37,7 +37,7 @@ export default function Index({ products }: Props) {
                             {products.length === 0 ? (
                                 <tr>
                                     <td colSpan={3} className="px-6 py-10 text-center text-ink-muted text-sm">
-                                        No hay productos cargados.
+                                        <span className="table-empty">No hay productos cargados.</span>
                                     </td>
                                 </tr>
                             ) : (

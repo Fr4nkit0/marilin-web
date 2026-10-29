@@ -375,7 +375,7 @@ export default function RoutesIndex({
                                             )}
 
                                             {routeItem.loadHistory.length > 0 && (
-                                                <div className="bg-canvas border border-hairline/60 rounded-xl shadow-sm overflow-hidden ">
+                                                <div className="bg-canvas border border-hairline/60 rounded-xl shadow-sm table-scroll">
                                                     <table className="w-full text-left text-sm">
                                                         <thead className="border-b border-hairline text-ink-muted">
                                                             <tr>
@@ -417,7 +417,7 @@ export default function RoutesIndex({
                                                 Hoja de Ruta y Paradas ({routeItem.stops.length})
                                             </h4>
 
-                                            <div className="bg-canvas border border-hairline/60 rounded-xl overflow-hidden shadow-sm ">
+                                            <div className="bg-canvas border border-hairline/60 rounded-xl shadow-sm table-scroll">
                                                 <table className="w-full text-left text-sm">
                                                     <thead className="bg-canvas-soft/80 backdrop-blur-md text-ink-muted font-medium text-xs border-b border-hairline/60">
                                                         <tr>
@@ -436,7 +436,7 @@ export default function RoutesIndex({
                                                                     colSpan={6}
                                                                     className="px-6 py-8 text-center text-ink-muted"
                                                                 >
-                                                                    No hay paradas registradas en esta ruta.
+                                                                    <span className="table-empty">No hay paradas registradas en esta ruta.</span>
                                                                 </td>
                                                             </tr>
                                                         ) : (

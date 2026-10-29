@@ -10,6 +10,12 @@ const columns = [
 ];
 
 describe('DataTable', () => {
+    it('scrolls sideways with a cue when it does not fit', () => {
+        const { container } = render(<DataTable columns={columns} rows={[]} rowKey={(row) => row.id} empty="Sin ventas." />);
+
+        expect((container.firstChild as HTMLElement).className).toContain('table-scroll');
+    });
+
     it('renders one header per column and one row per record', () => {
         render(<DataTable columns={columns} rows={[{ id: 1, name: 'Ana', total: 10 }, { id: 2, name: 'Juan', total: 20 }]} rowKey={(row) => row.id} empty="Sin ventas." />);
 
@@ -22,7 +28,9 @@ describe('DataTable', () => {
     it('says why the list is empty', () => {
         render(<DataTable columns={columns} rows={[]} rowKey={(row) => row.id} empty="Sin ventas." />);
 
-        const cell = screen.getByText('Sin ventas.');
-        expect(cell.getAttribute('colspan')).toBe('2');
+        const message = screen.getByText('Sin ventas.');
+        expect(message.closest('td')?.getAttribute('colspan')).toBe('2');
+        // The message stays inside the visible width when the empty table scrolls sideways.
+        expect(message.className).toContain('table-empty');
     });
 });

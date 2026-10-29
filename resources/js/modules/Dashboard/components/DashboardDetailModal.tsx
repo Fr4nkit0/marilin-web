@@ -50,11 +50,13 @@ function Badge({ label, style }: { label: string; style: string }) {
 
 function Table({ head, children, foot }: { head: ReactNode; children: ReactNode; foot?: ReactNode }) {
     return (
-        <table className="w-full text-left text-sm">
-            <thead className="border-b border-hairline">{head}</thead>
-            <tbody className="divide-y divide-hairline">{children}</tbody>
-            {foot && <tfoot className="border-t border-hairline">{foot}</tfoot>}
-        </table>
+        <div className="table-scroll">
+            <table className="w-full text-left text-sm">
+                <thead className="border-b border-hairline">{head}</thead>
+                <tbody className="divide-y divide-hairline">{children}</tbody>
+                {foot && <tfoot className="border-t border-hairline">{foot}</tfoot>}
+            </table>
+        </div>
     );
 }
 
@@ -62,7 +64,7 @@ function EmptyRow({ colSpan }: { colSpan: number }) {
     return (
         <tr>
             <td colSpan={colSpan} className="px-4 py-8 text-center text-sm text-ink-muted">
-                No hay registros en este día.
+                <span className="table-empty">No hay registros en este día.</span>
             </td>
         </tr>
     );

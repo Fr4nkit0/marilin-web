@@ -294,7 +294,7 @@ export default function CustomerShow({
                         </h3>
                     </div>
 
-                    <div className="overflow-x-auto">
+                    <div className="table-scroll">
                         <table className="w-full text-left text-sm whitespace-nowrap">
                             <thead className="bg-canvas-soft border-b border-hairline">
                                 <tr>
@@ -309,7 +309,7 @@ export default function CustomerShow({
                                 {accountEntries.length === 0 ? (
                                     <tr>
                                         <td colSpan={5} className="px-6 py-8 text-center text-ink-muted text-sm">
-                                            No hay movimientos registrados.
+                                            <span className="table-empty">No hay movimientos registrados.</span>
                                         </td>
                                     </tr>
                                 ) : (
@@ -401,7 +401,7 @@ export default function CustomerShow({
                                 Historial de Envases
                             </h3>
                         </div>
-                        <div className="overflow-x-auto">
+                        <div className="table-scroll">
                             <table className="w-full text-left text-sm whitespace-nowrap">
                                 <thead className="bg-canvas-soft border-b border-hairline">
                                     <tr>
@@ -415,7 +415,7 @@ export default function CustomerShow({
                                     {containerMovements.length === 0 ? (
                                         <tr>
                                             <td colSpan={4} className="px-6 py-8 text-center text-ink-muted text-sm">
-                                                Sin movimientos recientes.
+                                                <span className="table-empty">Sin movimientos recientes.</span>
                                             </td>
                                         </tr>
                                     ) : (
@@ -481,7 +481,7 @@ export default function CustomerShow({
                     )}
 
                     {agreements.length > 0 ? (
-                        <div className="overflow-x-auto">
+                        <div className="table-scroll">
                             <table className="w-full text-sm">
                                 <thead>
                                     <tr className="text-left text-xs font-medium text-ink-muted border-b border-hairline">

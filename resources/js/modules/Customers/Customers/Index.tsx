@@ -219,7 +219,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
 
             {/* Customers Table */}
             <div className="bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden ">
-                <div className="overflow-x-auto">
+                <div className="table-scroll">
                     <table className="w-full text-left text-sm whitespace-nowrap">
                         <thead className="bg-canvas/80 backdrop-blur-md border-b border-hairline text-ink-muted">
                             <tr>
@@ -235,7 +235,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                             {customers.data.length === 0 ? (
                                 <tr>
                                     <td colSpan={6} className="px-6 py-10 text-center text-ink-muted text-sm">
-                                        No se encontraron clientes con los filtros aplicados.
+                                        <span className="table-empty">No se encontraron clientes con los filtros aplicados.</span>
                                     </td>
                                 </tr>
                             ) : (
@@ -265,9 +265,9 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                             {/* Primary Address */}
                                             <td className="px-6 py-4 text-ink-secondary">
                                                 {c.primary_address ? (
-                                                    <div className="flex items-start gap-2 max-w-xs">
+                                                    <div className="flex items-start gap-2 min-w-[14rem] max-w-xs">
                                                         <MapPin className="w-4 h-4 text-ink-subtle shrink-0 mt-0.5" />
-                                                        <span className="truncate whitespace-normal">
+                                                        <span className="whitespace-normal">
                                                             {c.primary_address.street}
                                                             {c.primary_address.floor && (
                                                                 <span className="text-ink-subtle">
@@ -505,7 +505,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                     Condiciones Iniciales
                                 </h4>
 
-                                <div className="grid grid-cols-3 gap-5">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                                     <div>
                                         <label className="block text-sm font-medium text-ink-secondary mb-1.5">
                                             Deuda Inicial ($)

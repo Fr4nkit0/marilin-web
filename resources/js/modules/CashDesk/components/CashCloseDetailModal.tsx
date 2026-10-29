@@ -54,7 +54,7 @@ function EmptyRow({ colSpan }: { colSpan: number }) {
     return (
         <tr>
             <td colSpan={colSpan} className="px-4 py-8 text-center text-sm text-ink-muted">
-                No hay registros en esta jornada.
+                <span className="table-empty">No hay registros en esta jornada.</span>
             </td>
         </tr>
     );
@@ -64,42 +64,44 @@ function PaymentTable({ rows }: { rows: CashClosePaymentRow[] }) {
     const total = rows.reduce((sum, row) => sum + row.amount, 0);
 
     return (
-        <table className="w-full text-left text-sm">
-            <thead className="border-b border-hairline">
-                <tr>
-                    <th className={thClass}>Hora</th>
-                    <th className={thClass}>Cliente</th>
-                    <th className={thClass}>Concepto</th>
-                    <th className={thClass}>Origen</th>
-                    <th className={`${thClass} text-right`}>Monto</th>
-                </tr>
-            </thead>
-            <tbody className="divide-y divide-hairline">
-                {rows.length === 0 ? (
-                    <EmptyRow colSpan={5} />
-                ) : (
-                    rows.map((row) => (
-                        <tr key={row.id}>
-                            <td className={`${tdClass} whitespace-nowrap`}>{time(row.at)}</td>
-                            <td className={`${tdClass} font-medium text-ink`}>{row.customer ?? '—'}</td>
-                            <td className={tdClass}>{row.concept}</td>
-                            <td className={tdClass}>
-                                <OriginBadge origin={row.origin} />
-                            </td>
-                            <td className={`${tdClass} text-right font-semibold text-ink`}>{money(row.amount)}</td>
-                        </tr>
-                    ))
-                )}
-            </tbody>
-            <tfoot className="border-t border-hairline">
-                <tr>
-                    <td colSpan={4} className="px-4 py-3 text-sm font-medium text-ink-secondary">
-                        Total ({rows.length} {rows.length === 1 ? 'cobro' : 'cobros'})
-                    </td>
-                    <td className="px-4 py-3 text-right font-semibold text-ink">{money(total)}</td>
-                </tr>
-            </tfoot>
-        </table>
+        <div className="table-scroll">
+            <table className="w-full text-left text-sm">
+                <thead className="border-b border-hairline">
+                    <tr>
+                        <th className={thClass}>Hora</th>
+                        <th className={thClass}>Cliente</th>
+                        <th className={thClass}>Concepto</th>
+                        <th className={thClass}>Origen</th>
+                        <th className={`${thClass} text-right`}>Monto</th>
+                    </tr>
+                </thead>
+                <tbody className="divide-y divide-hairline">
+                    {rows.length === 0 ? (
+                        <EmptyRow colSpan={5} />
+                    ) : (
+                        rows.map((row) => (
+                            <tr key={row.id}>
+                                <td className={`${tdClass} whitespace-nowrap`}>{time(row.at)}</td>
+                                <td className={`${tdClass} font-medium text-ink`}>{row.customer ?? '—'}</td>
+                                <td className={tdClass}>{row.concept}</td>
+                                <td className={tdClass}>
+                                    <OriginBadge origin={row.origin} />
+                                </td>
+                                <td className={`${tdClass} text-right font-semibold text-ink`}>{money(row.amount)}</td>
+                            </tr>
+                        ))
+                    )}
+                </tbody>
+                <tfoot className="border-t border-hairline">
+                    <tr>
+                        <td colSpan={4} className="px-4 py-3 text-sm font-medium text-ink-secondary">
+                            Total ({rows.length} {rows.length === 1 ? 'cobro' : 'cobros'})
+                        </td>
+                        <td className="px-4 py-3 text-right font-semibold text-ink">{money(total)}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
     );
 }
 
@@ -107,42 +109,44 @@ function CreditTable({ rows }: { rows: CashCloseCreditRow[] }) {
     const total = rows.reduce((sum, row) => sum + row.amount, 0);
 
     return (
-        <table className="w-full text-left text-sm">
-            <thead className="border-b border-hairline">
-                <tr>
-                    <th className={thClass}>Hora</th>
-                    <th className={thClass}>Cliente</th>
-                    <th className={thClass}>Venta</th>
-                    <th className={thClass}>Origen</th>
-                    <th className={`${thClass} text-right`}>Monto</th>
-                </tr>
-            </thead>
-            <tbody className="divide-y divide-hairline">
-                {rows.length === 0 ? (
-                    <EmptyRow colSpan={5} />
-                ) : (
-                    rows.map((row) => (
-                        <tr key={row.id}>
-                            <td className={`${tdClass} whitespace-nowrap`}>{time(row.at)}</td>
-                            <td className={`${tdClass} font-medium text-ink`}>{row.customer ?? '—'}</td>
-                            <td className={tdClass}>#{row.id}</td>
-                            <td className={tdClass}>
-                                <OriginBadge origin={row.origin} />
-                            </td>
-                            <td className={`${tdClass} text-right font-semibold text-ink`}>{money(row.amount)}</td>
-                        </tr>
-                    ))
-                )}
-            </tbody>
-            <tfoot className="border-t border-hairline">
-                <tr>
-                    <td colSpan={4} className="px-4 py-3 text-sm font-medium text-ink-secondary">
-                        Total ({rows.length} {rows.length === 1 ? 'venta' : 'ventas'})
-                    </td>
-                    <td className="px-4 py-3 text-right font-semibold text-ink">{money(total)}</td>
-                </tr>
-            </tfoot>
-        </table>
+        <div className="table-scroll">
+            <table className="w-full text-left text-sm">
+                <thead className="border-b border-hairline">
+                    <tr>
+                        <th className={thClass}>Hora</th>
+                        <th className={thClass}>Cliente</th>
+                        <th className={thClass}>Venta</th>
+                        <th className={thClass}>Origen</th>
+                        <th className={`${thClass} text-right`}>Monto</th>
+                    </tr>
+                </thead>
+                <tbody className="divide-y divide-hairline">
+                    {rows.length === 0 ? (
+                        <EmptyRow colSpan={5} />
+                    ) : (
+                        rows.map((row) => (
+                            <tr key={row.id}>
+                                <td className={`${tdClass} whitespace-nowrap`}>{time(row.at)}</td>
+                                <td className={`${tdClass} font-medium text-ink`}>{row.customer ?? '—'}</td>
+                                <td className={tdClass}>#{row.id}</td>
+                                <td className={tdClass}>
+                                    <OriginBadge origin={row.origin} />
+                                </td>
+                                <td className={`${tdClass} text-right font-semibold text-ink`}>{money(row.amount)}</td>
+                            </tr>
+                        ))
+                    )}
+                </tbody>
+                <tfoot className="border-t border-hairline">
+                    <tr>
+                        <td colSpan={4} className="px-4 py-3 text-sm font-medium text-ink-secondary">
+                            Total ({rows.length} {rows.length === 1 ? 'venta' : 'ventas'})
+                        </td>
+                        <td className="px-4 py-3 text-right font-semibold text-ink">{money(total)}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
     );
 }
 
@@ -151,54 +155,56 @@ function ContainerTable({ rows }: { rows: CashCloseContainerRow[] }) {
     const returned = rows.filter((row) => row.movement === 'RETURNED').reduce((sum, row) => sum + row.quantity, 0);
 
     return (
-        <table className="w-full text-left text-sm">
-            <thead className="border-b border-hairline">
-                <tr>
-                    <th className={thClass}>Hora</th>
-                    <th className={thClass}>Cliente</th>
-                    <th className={thClass}>Envase</th>
-                    <th className={thClass}>Origen</th>
-                    <th className={`${thClass} text-right`}>Cantidad</th>
-                </tr>
-            </thead>
-            <tbody className="divide-y divide-hairline">
-                {rows.length === 0 ? (
-                    <EmptyRow colSpan={5} />
-                ) : (
-                    rows.map((row) => {
-                        const isDelivered = row.movement === 'DELIVERED';
+        <div className="table-scroll">
+            <table className="w-full text-left text-sm">
+                <thead className="border-b border-hairline">
+                    <tr>
+                        <th className={thClass}>Hora</th>
+                        <th className={thClass}>Cliente</th>
+                        <th className={thClass}>Envase</th>
+                        <th className={thClass}>Origen</th>
+                        <th className={`${thClass} text-right`}>Cantidad</th>
+                    </tr>
+                </thead>
+                <tbody className="divide-y divide-hairline">
+                    {rows.length === 0 ? (
+                        <EmptyRow colSpan={5} />
+                    ) : (
+                        rows.map((row) => {
+                            const isDelivered = row.movement === 'DELIVERED';
 
-                        return (
-                            <tr key={row.id}>
-                                <td className={`${tdClass} whitespace-nowrap`}>{time(row.at)}</td>
-                                <td className={`${tdClass} font-medium text-ink`}>{row.customer ?? '—'}</td>
-                                <td className={tdClass}>{row.container ?? '—'}</td>
-                                <td className={tdClass}>
-                                    <OriginBadge origin={row.origin} />
-                                </td>
-                                <td
-                                    className={`${tdClass} text-right font-semibold whitespace-nowrap ${
-                                        isDelivered ? 'text-emerald-700 dark:text-emerald-300' : 'text-orange-700 dark:text-orange-300'
-                                    }`}
-                                >
-                                    {isDelivered ? `Entregó +${row.quantity}` : `Retiró -${row.quantity}`}
-                                </td>
-                            </tr>
-                        );
-                    })
-                )}
-            </tbody>
-            <tfoot className="border-t border-hairline">
-                <tr>
-                    <td colSpan={4} className="px-4 py-3 text-sm font-medium text-ink-secondary">
-                        Entregados / retirados
-                    </td>
-                    <td className="px-4 py-3 text-right font-semibold text-ink whitespace-nowrap">
-                        +{delivered} / -{returned}
-                    </td>
-                </tr>
-            </tfoot>
-        </table>
+                            return (
+                                <tr key={row.id}>
+                                    <td className={`${tdClass} whitespace-nowrap`}>{time(row.at)}</td>
+                                    <td className={`${tdClass} font-medium text-ink`}>{row.customer ?? '—'}</td>
+                                    <td className={tdClass}>{row.container ?? '—'}</td>
+                                    <td className={tdClass}>
+                                        <OriginBadge origin={row.origin} />
+                                    </td>
+                                    <td
+                                        className={`${tdClass} text-right font-semibold whitespace-nowrap ${
+                                            isDelivered ? 'text-emerald-700 dark:text-emerald-300' : 'text-orange-700 dark:text-orange-300'
+                                        }`}
+                                    >
+                                        {isDelivered ? `Entregó +${row.quantity}` : `Retiró -${row.quantity}`}
+                                    </td>
+                                </tr>
+                            );
+                        })
+                    )}
+                </tbody>
+                <tfoot className="border-t border-hairline">
+                    <tr>
+                        <td colSpan={4} className="px-4 py-3 text-sm font-medium text-ink-secondary">
+                            Entregados / retirados
+                        </td>
+                        <td className="px-4 py-3 text-right font-semibold text-ink whitespace-nowrap">
+                            +{delivered} / -{returned}
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
     );
 }
 

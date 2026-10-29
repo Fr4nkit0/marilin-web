@@ -22,8 +22,9 @@ const ALIGN = { left: '', center: 'text-center', right: 'text-right tabular-nums
 /** A list's table: one header per column, one row per record, and a message when there are none. */
 export default function DataTable<T>({ columns, rows, rowKey, empty }: Props<T>) {
     return (
-        <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+        <div className="table-scroll">
+            {/* Cells never wrap: on a narrow screen the table scrolls sideways instead of crushing its text columns. */}
+            <table className="w-full text-left text-sm whitespace-nowrap">
                 <thead className="bg-canvas-soft text-ink-muted font-mono uppercase tracking-wide text-xs border-b border-hairline">
                     <tr>
                         {columns.map((column, index) => (
@@ -37,7 +38,7 @@ export default function DataTable<T>({ columns, rows, rowKey, empty }: Props<T>)
                     {rows.length === 0 ? (
                         <tr>
                             <td colSpan={columns.length} className="px-6 py-8 text-center text-ink-muted">
-                                {empty}
+                                <span className="table-empty">{empty}</span>
                             </td>
                         </tr>
                     ) : (

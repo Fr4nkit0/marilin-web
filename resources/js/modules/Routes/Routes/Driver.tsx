@@ -171,7 +171,7 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
                             </div>
                         </div>
 
-                        <div className="overflow-x-auto">
+                        <div className="table-scroll">
                             <table className="w-full text-left text-sm">
                                 <thead className="bg-canvas-soft/50 border-b border-hairline text-ink-muted font-medium tracking-wide">
                                     <tr>

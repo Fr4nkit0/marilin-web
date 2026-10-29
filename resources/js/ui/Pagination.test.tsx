@@ -43,6 +43,23 @@ describe('Pagination', () => {
         expect(screen.getByText('Siguiente »').getAttribute('href')).toBe('#');
     });
 
+    it('labels the previous and next links in Spanish whatever the server locale', () => {
+        const english = {
+            ...page(3),
+            links: [
+                { url: '/sales?page=1', label: '&laquo; Previous', active: false },
+                { url: '/sales?page=1', label: '1', active: false },
+                { url: '/sales?page=2', label: '2', active: true },
+                { url: '/sales?page=3', label: 'Next &raquo;', active: false },
+            ],
+        };
+        render(<Pagination page={english} />);
+
+        expect(screen.getByText('« Anterior').getAttribute('href')).toBe('/sales?page=1');
+        expect(screen.getByText('Siguiente »').getAttribute('href')).toBe('/sales?page=3');
+        expect(screen.queryByText(/Previous|Next/)).toBeNull();
+    });
+
     it('can leave out the total', () => {
         render(<Pagination page={page(3)} />);
 
