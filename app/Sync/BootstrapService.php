@@ -5,13 +5,16 @@ declare(strict_types=1);
 namespace App\Sync;
 
 use App\Accounts\Models\Driver;
+use App\CashDesk\DayScope;
 use App\Catalog\Models\ContainerType;
 use App\Catalog\Models\PaymentMethod;
 use App\Catalog\Models\Product;
 use App\Customers\Customers\Models\Customer;
 use App\Routes\Routes\Models\Route;
 use App\Routes\Routes\Models\RouteStop;
+use App\Routes\Visits\Models\Visit;
 use App\Routes\Visits\Models\VisitOutcome;
+use App\Street\Sales\Models\Sale;
 use Illuminate\Database\Eloquent\Collection;
 
 class BootstrapService
@@ -31,6 +34,8 @@ class BootstrapService
             'stops' => $route === null ? [] : $this->stops($route),
             'truck_inventory' => $route === null ? [] : $route->inventories()->with('product')->get(),
             'customers' => $this->customers($driver, $today),
+            'visits' => $this->visits($driver, $today),
+            'sales' => $this->sales($driver, $today),
             'products' => Product::query()->where('enabled', true)->get(),
             'container_types' => ContainerType::query()->where('enabled', true)->get(),
             'payment_methods' => PaymentMethod::query()->where('enabled', true)->get(),
@@ -73,6 +78,37 @@ class BootstrapService
                 'enabled' => $stop->enabled,
             ])
             ->all();
+    }
+
+    /**
+     * Today's visits of the driver, so a reinstalled app can rebuild its done work.
+     *
+     * @return Collection<int, Visit>
+     */
+    private function visits(Driver $driver, string $today): Collection
+    {
+        return Visit::query()
+            ->where('driver_id', $driver->id)
+            ->whereDate('arrived_at', $today)
+            ->orderBy('arrived_at')
+            ->orderBy('id')
+            ->get();
+    }
+
+    /**
+     * Today's sales of the driver with the ownership the cash close uses: on the driver's visits, or loose and recorded by the driver.
+     *
+     * @return Collection<int, Sale>
+     */
+    private function sales(Driver $driver, string $today): Collection
+    {
+        return Sale::query()
+            ->with('details')
+            ->tap(fn ($query) => DayScope::driver($driver)->apply($query, 'created_by'))
+            ->whereDate('date', $today)
+            ->orderBy('date')
+            ->orderBy('id')
+            ->get();
     }
 
     /**
