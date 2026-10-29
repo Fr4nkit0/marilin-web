@@ -5,6 +5,8 @@ declare(strict_types=1);
 use App\Catalog\Models\Product;
 use App\Customers\Agreements\Models\CustomerAgreement;
 use App\Customers\Customers\Models\Customer;
+use App\Customers\Customers\Models\CustomerAddress;
+use App\Customers\Neighborhoods\Models\Neighborhood;
 use App\Routes\Routes\Models\RouteStop;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -42,7 +44,7 @@ test('the seeded driver Esteban gets a full day to work from the app', function 
         ->and($customers['Familia Quispe']['addresses'][0]['floor'])->toBe('PB')
         ->and($customers['Familia Quispe']['preferences'])->not->toBeEmpty()
         ->and(collect($customers['Supermercado El Tunal']['agreements']))->toHaveCount(2)
-        ->and(collect($customers['Escuela N° 432 Alto Comedero']['agreements'])->pluck('unit_price')->all())->toBe(['1800.00'])
+        ->and(collect($customers['Escuela N° 4032 Limache']['agreements'])->pluck('unit_price')->all())->toBe(['1800.00'])
         ->and($products->map(fn (array $product): string => $product['price'])->all())->toBe(['Bidón 20L' => '6500.00', 'Sifón 1.5L' => '1500.00'])
         ->and($response->json('data.truck_inventory'))->toHaveCount(2);
 });
@@ -74,7 +76,7 @@ test('the first pull of Esteban carries the disabled customer', function (): voi
 
 test('credit sales raise the seeded customer balance', function (): void {
     $sanatorio = Customer::query()->where('name', 'Sanatorio Nuestra Señora del Rosario')->firstOrFail();
-    $distribuidora = Customer::query()->where('name', 'Distribuidora San Salvador S.R.L.')->firstOrFail();
+    $distribuidora = Customer::query()->where('name', 'Distribuidora del Norte S.R.L.')->firstOrFail();
 
     expect((float) $sanatorio->balance->current_balance)->toBe(45000.0 + 8 * 1900.0)
         ->and((float) $distribuidora->balance->current_balance)->toBe(62000.0 + 15 * 1800.0 + 6 * 1000.0);
@@ -92,4 +94,17 @@ test('running the seeder again does not duplicate stops, agreements, products or
     $this->seed(DatabaseSeeder::class);
 
     expect($counts())->toBe($before);
+});
+
+test('the seeded customers live in Salta capital, in neighborhoods of the catalog', function (): void {
+    $catalog = Neighborhood::query()->pluck('name');
+    $addresses = CustomerAddress::query()->with('customer')->get();
+
+    expect($catalog)->toHaveCount(398)
+        ->and($addresses)->not->toBeEmpty()
+        ->and($addresses->whereNotNull('neighborhood')->pluck('neighborhood')->diff($catalog)->values()->all())->toBe([])
+        ->and($addresses->filter(fn (CustomerAddress $address): bool => collect([$address->street, $address->neighborhood, $address->visual_reference, $address->customer->name])
+            ->contains(fn (?string $text): bool => $text !== null && stripos($text, 'Jujuy') !== false))->pluck('street')->all())->toBe([])
+        ->and($addresses->every(fn (CustomerAddress $address): bool => abs((float) $address->latitude + 24.78) < 0.1 && abs((float) $address->longitude + 65.41) < 0.1))->toBeTrue()
+        ->and(Customer::query()->where('phone_number', 'not like', '+54 387 %')->pluck('name')->all())->toBe([]);
 });
