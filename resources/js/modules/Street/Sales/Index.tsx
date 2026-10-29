@@ -20,6 +20,7 @@ import { useListFilters } from '@/lib/useListFilters';
 import DataTable, { type Column } from '@/ui/DataTable';
 import Pagination from '@/ui/Pagination';
 import type { PaginatedData } from '@/types';
+import { DriverFilterSelect, SalesPaymentsTabs } from '../components/SalesPaymentsNav';
 
 interface SaleDetail {
     id: number;
@@ -44,12 +45,15 @@ interface SaleItem {
         };
     };
     visit?: {
-        repartidor?: {
+        driver?: {
             user?: {
                 name: string;
             };
         };
-    };
+    } | null;
+    creator?: {
+        name: string;
+    } | null;
     details?: SaleDetail[];
     payments?: {
         payment_method?: {
@@ -105,7 +109,7 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
                     <span className="text-ink-subtle font-medium italic">Consumidor Final</span>
                 ),
         },
-        { header: 'Repartidor', className: 'text-ink-secondary', cell: (sale) => sale.visit?.repartidor?.user?.name || '-' },
+        { header: 'Registrada por', className: 'text-ink-secondary', cell: (sale) => sale.visit?.driver?.user?.name || sale.creator?.name || '-' },
         {
             header: 'Detalle Productos',
             className: 'text-ink-secondary',
@@ -135,17 +139,19 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
             header={
                 <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-ink-muted">
-                        Facturación
+                        Ventas y cobros
                     </span>
                 </div>
             }
         >
-            <Head title="Reporte de Ventas - Marilin" />
+            <Head title="Ventas - Marilin" />
 
             <PageHeader
-                title="Reporte de Ventas"
-                description={`Registro de ventas realizadas en calle y mostrador para la fecha ${filters.date}.`}
+                title="Ventas y cobros"
+                description={`Ventas hechas en la calle y en casa el ${filters.date}.`}
             />
+
+            <SalesPaymentsTabs current="sales" filters={{ search: filters.search, date: filters.date, repartidor_id: filters.repartidor_id }} />
 
             {/* Metrics Row */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-6">
@@ -200,18 +206,11 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
 
                     {/* Repartidor */}
                     <div className="sm:col-span-3">
-                        <select
+                        <DriverFilterSelect
                             value={filter.values.repartidor_id}
-                            onChange={(e) => filter.set('repartidor_id', e.target.value)}
-                            className="w-full py-2 px-3 text-sm font-medium border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-canvas text-ink shadow-sm transition-all"
-                        >
-                            <option value="">Todos los repartidores</option>
-                            {repartidores.map((rep) => (
-                                <option key={rep.id} value={rep.id}>
-                                    {rep.name}
-                                </option>
-                            ))}
-                        </select>
+                            onChange={(value) => filter.set('repartidor_id', value)}
+                            drivers={repartidores}
+                        />
                     </div>
 
                     {/* Sale Type */}

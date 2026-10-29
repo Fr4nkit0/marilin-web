@@ -21,13 +21,16 @@ class SaleController extends Controller
     {
         $search = $request->query('search');
         $date = $request->query('date', Carbon::today()->toDateString());
-        $driverId = $request->query('repartidor_id') ?? $request->query('driver_id');
+        $driverFilter = $request->query('repartidor_id') ?? $request->query('driver_id');
+        // The same ownership the cash close uses, so a driver's list adds up to their cash close.
+        $scope = DayScope::fromFilter($driverFilter);
         $saleType = $request->query('sale_type'); // 'all', 'credit', 'cash_immediate'
 
         $query = Sale::query()
             ->with([
                 'customer.primaryAddress',
                 'visit.driver.user',
+                'creator:id,name',
                 'details.product',
                 'payments.paymentMethod',
             ])
@@ -37,9 +40,7 @@ class SaleController extends Controller
             $query->whereDate('date', $date);
         }
 
-        if ($driverId) {
-            $query->whereHas('visit', fn ($q) => $q->where('driver_id', $driverId));
-        }
+        $scope->apply($query, 'created_by');
 
         if ($saleType === 'credit') {
             $query->where('is_credit_sale', true);
@@ -54,7 +55,7 @@ class SaleController extends Controller
         $sales = $query->latest('date')->paginate(15)->withQueryString();
 
         // An empty date query parameter arrives as null and falls back to today, so the totals are always one day's.
-        $day = $figures->forDay($date ?: Carbon::today()->toDateString(), DayScope::all());
+        $day = $figures->forDay($date ?: Carbon::today()->toDateString(), $scope);
         $totalSalesAmount = $day->totalSales;
         $creditSalesAmount = $day->creditSales;
 
@@ -74,7 +75,7 @@ class SaleController extends Controller
             'filters' => [
                 'search' => $search,
                 'date' => $date,
-                'repartidor_id' => $driverId,
+                'repartidor_id' => $driverFilter,
                 'sale_type' => $saleType ?? 'all',
             ],
             'repartidores' => $drivers,

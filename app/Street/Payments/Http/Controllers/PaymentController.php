@@ -2,6 +2,7 @@
 
 namespace App\Street\Payments\Http\Controllers;
 
+use App\Accounts\Models\Driver;
 use App\CashDesk\DailyFigures;
 use App\CashDesk\DayScope;
 use App\Catalog\Models\PaymentMethod;
@@ -21,6 +22,9 @@ class PaymentController extends Controller
     {
         $search = $request->query('search');
         $date = $request->query('date', Carbon::today()->toDateString());
+        $driverFilter = $request->query('repartidor_id');
+        // The same ownership the cash close uses, so a driver's list adds up to their cash close.
+        $scope = DayScope::fromFilter($driverFilter);
         $paymentMethodId = $request->query('payment_method_id');
         $status = $request->query('status'); // 'CONFIRMED', 'CANCELLED', 'all'
 
@@ -37,6 +41,8 @@ class PaymentController extends Controller
             $query->whereDate('paid_at', $date);
         }
 
+        $scope->apply($query, 'received_by');
+
         if ($paymentMethodId) {
             $query->where('payment_method_id', $paymentMethodId);
         }
@@ -52,7 +58,7 @@ class PaymentController extends Controller
         $payments = $query->latest('paid_at')->paginate(15)->withQueryString();
 
         // An empty date query parameter arrives as null and falls back to today, so the totals are always one day's.
-        $day = $figures->forDay($date ?: Carbon::today()->toDateString(), DayScope::all());
+        $day = $figures->forDay($date ?: Carbon::today()->toDateString(), $scope);
         $totalCollected = $day->totalCollected;
         $cashTotal = $day->cashAmount;
         $transferTotal = $day->transferAmount;
@@ -69,10 +75,15 @@ class PaymentController extends Controller
             'filters' => [
                 'search' => $search,
                 'date' => $date,
+                'repartidor_id' => $driverFilter,
                 'payment_method_id' => $paymentMethodId,
                 'status' => $status ?? 'all',
             ],
             'paymentMethods' => $paymentMethods,
+            'repartidores' => Driver::with('user')->get()->map(fn ($r) => [
+                'id' => $r->id,
+                'name' => $r->user?->name ?? 'Repartidor',
+            ]),
         ]);
     }
 }

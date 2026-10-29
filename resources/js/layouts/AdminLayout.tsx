@@ -8,7 +8,6 @@ import {
     Users,
     CalendarCheck,
     Receipt,
-    CircleDollarSign,
     Package,
     SlidersHorizontal,
     Tag,
@@ -72,16 +71,10 @@ export default function AdminLayout({
             active: route().current('routes.*') || false,
         },
         {
-            name: 'Ventas',
+            name: 'Ventas y cobros',
             href: route('sales.index'),
             icon: Receipt,
-            active: route().current('sales.*') || false,
-        },
-        {
-            name: 'Cobros y Caja',
-            href: route('payments.index'),
-            icon: CircleDollarSign,
-            active: route().current('payments.*') || false,
+            active: route().current('sales.*') || route().current('payments.*') || false,
         },
         ...(user.is_super_user
             ? [

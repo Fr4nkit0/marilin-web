@@ -19,6 +19,7 @@ import { useListFilters } from '@/lib/useListFilters';
 import DataTable, { type Column } from '@/ui/DataTable';
 import Pagination from '@/ui/Pagination';
 import type { PaginatedData } from '@/types';
+import { DriverFilterSelect, SalesPaymentsTabs } from '../components/SalesPaymentsNav';
 
 interface PaymentItem {
     id: number;
@@ -37,12 +38,12 @@ interface PaymentItem {
         name: string;
     };
     visit?: {
-        repartidor?: {
+        driver?: {
             user?: {
                 name: string;
             };
         };
-    };
+    } | null;
 }
 
 interface Props {
@@ -55,22 +56,25 @@ interface Props {
     filters: {
         search?: string;
         date: string;
+        repartidor_id?: string;
         payment_method_id?: string;
         status?: string;
     };
     paymentMethods: { id: number; name: string; code: string }[];
+    repartidores: { id: number; name: string }[];
 }
 
-export default function PaymentsIndex({ payments, metrics, filters, paymentMethods }: Props) {
+export default function PaymentsIndex({ payments, metrics, filters, paymentMethods, repartidores }: Props) {
     const filter = useListFilters(
         'payments.index',
         {
             search: filters.search || '',
             date: filters.date || '',
+            repartidor_id: filters.repartidor_id || '',
             payment_method_id: filters.payment_method_id || '',
             status: filters.status || 'all',
         },
-        { search: '', date: '', payment_method_id: '', status: 'all' },
+        { search: '', date: '', repartidor_id: '', payment_method_id: '', status: 'all' },
     );
 
     const handleSearch = (e: React.FormEvent) => {
@@ -91,7 +95,7 @@ export default function PaymentsIndex({ payments, metrics, filters, paymentMetho
                     <span className="text-ink-subtle font-medium italic">Cliente sin identificar</span>
                 ),
         },
-        { header: 'Cobrado Por', className: 'text-ink-secondary', cell: (payment) => payment.visit?.repartidor?.user?.name || payment.recipient?.name || 'Administración' },
+        { header: 'Cobrado Por', className: 'text-ink-secondary', cell: (payment) => payment.visit?.driver?.user?.name || payment.recipient?.name || 'Administración' },
         { header: 'Método de Pago', align: 'center', cell: (payment) => <PaymentMethodBadge method={payment.payment_method?.name || 'Efectivo'} /> },
         {
             header: 'Estado',
@@ -108,17 +112,19 @@ export default function PaymentsIndex({ payments, metrics, filters, paymentMetho
             header={
                 <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-ink-muted">
-                        Tesorería
+                        Ventas y cobros
                     </span>
                 </div>
             }
         >
-            <Head title="Conciliación de Cobros - Marilin" />
+            <Head title="Cobros - Marilin" />
 
             <PageHeader
-                title="Conciliación de Cobros"
-                description={`Registro de pagos recibidos por choferes y transferencias bancarias para ${filters.date}.`}
+                title="Ventas y cobros"
+                description={`Cobros recibidos en la calle y en casa el ${filters.date}, con o sin venta.`}
             />
+
+            <SalesPaymentsTabs current="payments" filters={{ search: filters.search, date: filters.date, repartidor_id: filters.repartidor_id }} />
 
             {/* Metrics */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-6">
@@ -149,7 +155,7 @@ export default function PaymentsIndex({ payments, metrics, filters, paymentMetho
             <div className="bg-canvas border border-hairline/60 rounded-2xl p-4 mb-6 shadow-sm ">
                 <form onSubmit={handleSearch} className="grid grid-cols-1 gap-3 sm:grid-cols-12 items-center">
                     {/* Search */}
-                    <div className="sm:col-span-4 relative">
+                    <div className="sm:col-span-3 relative">
                         <Search className="w-4 h-4 text-ink-subtle absolute left-3 top-1/2 -translate-y-1/2" />
                         <input
                             type="text"
@@ -161,7 +167,7 @@ export default function PaymentsIndex({ payments, metrics, filters, paymentMetho
                     </div>
 
                     {/* Date */}
-                    <div className="sm:col-span-3">
+                    <div className="sm:col-span-2">
                         <input
                             type="date"
                             value={filter.values.date}
@@ -171,8 +177,17 @@ export default function PaymentsIndex({ payments, metrics, filters, paymentMetho
                         />
                     </div>
 
-                    {/* Payment Method */}
+                    {/* Repartidor */}
                     <div className="sm:col-span-3">
+                        <DriverFilterSelect
+                            value={filter.values.repartidor_id}
+                            onChange={(value) => filter.set('repartidor_id', value)}
+                            drivers={repartidores}
+                        />
+                    </div>
+
+                    {/* Payment Method */}
+                    <div className="sm:col-span-2">
                         <select
                             value={filter.values.payment_method_id}
                             onChange={(e) => filter.set('payment_method_id', e.target.value)}

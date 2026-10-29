@@ -6,6 +6,7 @@ namespace App\CashDesk;
 
 use App\Accounts\Models\Driver;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
  * Whose records a day's figures cover: everyone, one driver, or the house (Venta/Cobro en casa).
@@ -16,6 +17,8 @@ use Illuminate\Database\Eloquent\Builder;
  */
 final readonly class DayScope
 {
+    public const HOUSE_FILTER = 'house';
+
     private function __construct(private ?Driver $driver, private bool $house) {}
 
     public static function all(): self
@@ -31,6 +34,20 @@ final readonly class DayScope
     public static function house(): self
     {
         return new self(null, true);
+    }
+
+    /**
+     * The scope a list filter asks for: empty is everyone, 'house' is the house, anything else a driver id.
+     *
+     * @throws ModelNotFoundException when the driver does not exist
+     */
+    public static function fromFilter(?string $filter): self
+    {
+        return match ($filter) {
+            null, '' => self::all(),
+            self::HOUSE_FILTER => self::house(),
+            default => self::driver(Driver::query()->findOrFail((int) $filter)),
+        };
     }
 
     /**
