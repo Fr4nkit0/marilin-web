@@ -12,6 +12,7 @@ use App\Customers\Agreements\Models\CustomerAgreement;
 use App\Customers\Customers\Models\Customer;
 use App\Customers\Customers\Models\CustomerAddress;
 use App\Customers\Customers\Models\CustomerPreference;
+use App\Customers\Neighborhoods\Models\Neighborhood;
 use App\Routes\Routes\Models\Route;
 use App\Routes\Routes\Models\RouteStop;
 use App\Routes\Visits\Models\VisitOutcome;
@@ -136,6 +137,7 @@ class PullService
             'container_types' => ContainerType::query(),
             'payment_methods' => PaymentMethod::query(),
             'visit_outcomes' => VisitOutcome::query(),
+            'neighborhoods' => Neighborhood::query(),
         ];
     }
 

@@ -10,6 +10,7 @@ use App\Catalog\Models\Product;
 use App\Customers\Agreements\Models\CustomerAgreement;
 use App\Customers\Customers\Models\Customer;
 use App\Customers\Customers\Models\CustomerAddress;
+use App\Customers\Neighborhoods\Models\Neighborhood;
 use App\Routes\Routes\Models\Route;
 use App\Routes\Routes\Models\RouteStop;
 use App\Routes\Visits\Models\Visit;
@@ -256,6 +257,21 @@ test('bootstrap returns the driver visits and sales of today so a reinstalled ap
         ->and($sales[$visitSale->id]['details'][0]['quantity'])->toBe(3)
         ->and($sales->keys())->not->toContain($yesterdaySale->id)
         ->and($sales->keys())->not->toContain($houseSale->id);
+});
+
+test('bootstrap returns the enabled neighborhoods ordered by name', function (): void {
+    [$user] = driverWithToday();
+    Sanctum::actingAs($user, ['*']);
+
+    $tres = Neighborhood::factory()->create(['name' => 'Tres Cerritos']);
+    $centro = Neighborhood::factory()->create(['name' => 'Centro']);
+    Neighborhood::factory()->create(['name' => 'Limache', 'enabled' => false]);
+
+    $neighborhoods = $this->getJson('/api/v1/sync/bootstrap')->assertOk()->json('data.neighborhoods');
+
+    expect(collect($neighborhoods)->map(fn (array $row): array => [$row['id'], $row['name'], $row['enabled']])->all())
+        ->toBe([[$centro->id, 'Centro', true], [$tres->id, 'Tres Cerritos', true]])
+        ->and(array_keys($neighborhoods[0]))->toBe(['id', 'name', 'enabled', 'updated_at']);
 });
 
 test('bootstrap server_time carries the safety margin so the first pull cannot miss a same-second write', function (): void {

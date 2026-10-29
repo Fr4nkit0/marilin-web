@@ -10,6 +10,7 @@ use App\Catalog\Models\ContainerType;
 use App\Catalog\Models\PaymentMethod;
 use App\Catalog\Models\Product;
 use App\Customers\Customers\Models\Customer;
+use App\Customers\Neighborhoods\Models\Neighborhood;
 use App\Routes\Routes\Models\Route;
 use App\Routes\Routes\Models\RouteStop;
 use App\Routes\Visits\Models\Visit;
@@ -40,6 +41,7 @@ class BootstrapService
             'container_types' => ContainerType::query()->where('enabled', true)->get(),
             'payment_methods' => PaymentMethod::query()->where('enabled', true)->get(),
             'visit_outcomes' => VisitOutcome::query()->where('enabled', true)->get(),
+            'neighborhoods' => Neighborhood::query()->where('enabled', true)->orderBy('name')->get(['id', 'name', 'enabled', 'updated_at']),
             'server_time' => now()->startOfSecond()->subSeconds((int) config('sync.pull_cursor_margin_seconds'))->toIso8601String(),
         ];
     }
