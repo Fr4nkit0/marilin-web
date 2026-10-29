@@ -95,6 +95,8 @@ class CustomerPusher extends EntityPusher
             return;
         }
 
+        $disable = ($record['enabled'] ?? null) === false && $customer->enabled;
+
         $this->intake->update($customer, new CustomerEdit(
             name: $record['name'],
             phoneNumber: $record['phone_number'] ?? null,
@@ -103,7 +105,14 @@ class CustomerPusher extends EntityPusher
             reassignDriver: false,
             clientUuid: $record['uuid'],
             appModifiedAt: $modifiedAt,
+            disable: $disable,
         ));
+
+        // Accept-and-mark (ADR 0001): the driver's disable applies at once and the admin can enable the customer again.
+        if ($disable) {
+            $customer->timestamps = false;
+            $customer->flag(ReviewReason::DriverDisabledCustomer);
+        }
     }
 
     /**
@@ -156,6 +165,7 @@ class CustomerPusher extends EntityPusher
             'name' => ['required', 'string', 'max:160'],
             'phone_number' => ['nullable', 'string', 'max:20'],
             'modified_at' => ['required', 'date'],
+            'enabled' => ['nullable', 'boolean:strict'],
             'address' => ['required', 'array'],
             'address.street' => ['required', 'string'],
             'address.apartment' => ['nullable', 'string'],

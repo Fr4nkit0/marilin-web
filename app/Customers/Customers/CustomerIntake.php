@@ -75,6 +75,7 @@ class CustomerIntake
                 'phone_number' => $input->phoneNumber,
                 'last_modified_by' => $input->modifiedBy->id,
                 ...($input->reassignDriver ? ['driver_id' => $input->driverId] : []),
+                ...($input->disable ? ['enabled' => false] : []),
                 ...($input->appModifiedAt === null ? [] : ['received_at' => now()]),
                 ...$stamps,
             ])->save();
