@@ -90,8 +90,10 @@ test('the PDF shows the same figures and records as the screen', function (): vo
     $html = view('cash-close.pdf', ['driver' => 'Juan Pérez', 'date' => '2026-10-20', 'settlement' => $settlement])->render();
 
     expect($html)
-        ->toContain('Juan Pérez')
-        ->toContain('2026-10-20')
+        ->toContain('Repartidor: <strong>Juan Pérez</strong>')
+        ->toContain('Fecha: <strong>20/10/2026</strong>')
+        ->not->toContain('2026-10-20')
+        ->toContain('<td>11:00</td>')
         ->toContain('$ 11.500,00') // total sales
         ->toContain('$ 2.000,00') // credit
         ->toContain('$ 6.500,00') // cash
@@ -112,7 +114,7 @@ test('the cash close downloads as an Excel workbook with the summary and one she
 
     expect(array_keys($sheets))->toBe(['Resumen', 'Efectivo', 'Transferencias', 'Fiado', 'Envases', 'Stock'])
         ->and($sheets['Resumen'])->toContain(['Repartidor', 'Juan Pérez'])
-        ->and($sheets['Resumen'])->toContain(['Fecha', '2026-10-20'])
+        ->and($sheets['Resumen'])->toContain(['Fecha', '20/10/2026'])
         ->and($sheets['Resumen'])->toContain(['Ventas totales', 11500])
         ->and($sheets['Resumen'])->toContain(['Ventas fiadas', 2000])
         ->and($sheets['Resumen'])->toContain(['Efectivo', 6500])
@@ -123,10 +125,10 @@ test('the cash close downloads as an Excel workbook with the summary and one she
         ->and($sheets['Resumen'])->toContain(['Envases devueltos', 0])
         ->and($sheets['Efectivo'])->toBe([
             ['Hora', 'Cliente', 'Concepto', 'Importe', 'Origen'],
-            ['2026-10-20 11:00', 'Hotel Altos de la Viña', 'Cobro de deuda', 6500, 'Sin visita'],
+            ['11:00', 'Hotel Altos de la Viña', 'Cobro de deuda', 6500, 'Sin visita'],
         ])
-        ->and($sheets['Fiado'][1])->toBe(['2026-10-20 10:30', 'Hotel Altos de la Viña', 2000, 'Sin visita'])
-        ->and($sheets['Envases'][1])->toBe(['2026-10-20 18:00', 'Hotel Altos de la Viña', 'Bidón 20L', 'Entregado', 4, 'Sin visita'])
+        ->and($sheets['Fiado'][1])->toBe(['10:30', 'Hotel Altos de la Viña', 2000, 'Sin visita'])
+        ->and($sheets['Envases'][1])->toBe(['18:00', 'Hotel Altos de la Viña', 'Bidón 20L', 'Entregado', 4, 'Sin visita'])
         ->and($sheets['Stock'])->toBe([
             ['Producto', 'Cargado', 'Cargas', 'Queda en el camión'],
             ['Bidón 20L', 0, 0, 7],

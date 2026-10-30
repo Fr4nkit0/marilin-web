@@ -34,14 +34,14 @@ export function time(moment: string): string {
     return parse(moment).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
 }
 
-/** The day of a moment ("20/10/2026"). */
+/** The day of a moment or of a plain day, as dd/mm/aaaa ("29/10/2026", "05/01/2026"). */
 export function date(moment: string): string {
-    return parse(moment).toLocaleDateString('es-AR');
+    return parse(moment).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
-/** Day and hour of a moment ("20/10/26, 13:05"). */
+/** Day and hour of a moment ("20/10/2026 13:05"). */
 export function dateTime(moment: string): string {
-    return parse(moment).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short', hourCycle: 'h23' });
+    return `${date(moment)} ${time(moment)}`;
 }
 
 export function stopStatusLabel(status: StopStatus): string {
@@ -57,7 +57,15 @@ export function paymentStatusLabel(status: PaymentStatus): string {
     return status === 'CONFIRMED' ? 'Confirmado' : 'Cancelado';
 }
 
-/** The server sends ISO 8601, and some timestamps with a space instead of the "T". */
+/**
+ * The server sends ISO 8601, and some timestamps with a space instead of the "T".
+ * A plain day ("2026-10-29") is read as local midnight, not UTC, so it never shows as the day before.
+ */
 function parse(moment: string): Date {
+    const plainDay = /^(\d{4})-(\d{2})-(\d{2})$/.exec(moment);
+    if (plainDay) {
+        return new Date(Number(plainDay[1]), Number(plainDay[2]) - 1, Number(plainDay[3]));
+    }
+
     return new Date(moment.replace(' ', 'T'));
 }
