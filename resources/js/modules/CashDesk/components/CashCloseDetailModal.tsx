@@ -1,6 +1,6 @@
 import React from 'react';
 import { X } from 'lucide-react';
-import Modal from '@/ui/Modal';
+import Modal, { ModalTitle } from '@/ui/Modal';
 import {
     CashCloseContainerRow,
     CashCloseCreditRow,
@@ -215,7 +215,7 @@ export default function CashCloseDetailModal({ kind, details, onClose }: Props) 
                 <div>
                     <div className="flex items-start justify-between gap-4 px-6 pt-6 pb-4 border-b border-hairline">
                         <div>
-                            <h2 className="text-lg font-semibold text-ink">{TITLES[kind].title}</h2>
+                            <ModalTitle className="text-lg font-semibold text-ink">{TITLES[kind].title}</ModalTitle>
                             <p className="text-sm text-ink-muted mt-1">{TITLES[kind].description}</p>
                         </div>
                         <button

@@ -3,6 +3,7 @@
 namespace App\Customers\Customers\Http\Controllers;
 
 use App\Accounts\Models\Driver;
+use App\Catalog\Enums\PaymentMethodCode;
 use App\Catalog\Models\ContainerType;
 use App\Catalog\Models\PaymentMethod;
 use App\Catalog\Models\Product;
@@ -19,6 +20,8 @@ use App\Customers\Customers\Models\Customer;
 use App\Customers\Customers\Models\CustomerAddress;
 use App\Customers\Neighborhoods\Models\Neighborhood;
 use App\Http\Controllers\Controller;
+use App\Street\Ledger\Models\CustomerAccountEntry;
+use App\Street\Sales\Models\SaleDetail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -101,16 +104,16 @@ class CustomerController extends Controller
 
         // Paginate / fetch last 10 account movements (Sales, Payments, Adjustments)
         $accountEntries = $customer->accountEntries()
-            ->with(['creator', 'payment.paymentMethod', 'sale'])
+            ->with(['creator', 'payment.paymentMethod', 'sale.details.product'])
             ->latest('id')
             ->limit(20)
             ->get()
-            ->map(fn ($entry) => [
+            ->map(fn (CustomerAccountEntry $entry) => [
                 'id' => $entry->id,
                 'entryType' => $entry->entry_type,
                 'direction' => $entry->direction,
                 'amount' => (float) $entry->amount,
-                'description' => $entry->description,
+                'concept' => $this->concept($entry),
                 'createdAt' => $entry->created_at?->format('d/m/Y H:i'),
                 'paymentMethod' => $entry->payment?->paymentMethod?->name,
             ]);
@@ -154,6 +157,35 @@ class CustomerController extends Controller
             'paymentMethods' => $canRecordAtHome ? PaymentMethod::query()->enabled()->orderBy('name')->get(['id', 'name']) : [],
             'containerTypes' => $canRecordAtHome ? ContainerType::query()->enabled()->orderBy('description')->get(['id', 'description']) : [],
         ]);
+    }
+
+    /**
+     * One wording for a sale or a payment, whether the street or the house recorded it: built from what was sold
+     * ("Venta 2x Bidón 20L, 1x Sifón 1.5L") or how it was paid ("Cobro en efectivo"), never from the stored free text.
+     * Cancellations and adjustments keep their own description.
+     */
+    private function concept(CustomerAccountEntry $entry): ?string
+    {
+        if ($entry->entry_type === 'SALE' && $entry->sale !== null) {
+            $lines = $entry->sale->details
+                ->sortBy('id')
+                ->map(fn (SaleDetail $detail): string => "{$detail->quantity}x {$detail->product?->name}")
+                ->implode(', ');
+
+            return $lines === '' ? 'Venta' : "Venta {$lines}";
+        }
+
+        if ($entry->entry_type === 'PAYMENT' && $entry->payment !== null) {
+            $method = $entry->payment->paymentMethod;
+
+            return match ($method?->code) {
+                PaymentMethodCode::Cash->value => 'Cobro en efectivo',
+                PaymentMethodCode::Transfer->value => 'Cobro por transferencia',
+                default => $method === null ? 'Cobro' : "Cobro ({$method->name})",
+            };
+        }
+
+        return $entry->description;
     }
 
     /**

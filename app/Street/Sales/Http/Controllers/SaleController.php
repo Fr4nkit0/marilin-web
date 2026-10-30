@@ -52,6 +52,9 @@ class SaleController extends Controller
             $query->whereHas('customer', fn ($q) => $q->where('name', 'ilike', "%{$search}%"));
         }
 
+        // A cancelled sale stays listed, marked as such, but it is not one of the day's operations.
+        $confirmedCount = (clone $query)->confirmed()->count();
+
         $sales = $query->latest('date')->paginate(15)->withQueryString();
 
         // An empty date query parameter arrives as null and falls back to today, so the totals are always one day's.
@@ -70,7 +73,7 @@ class SaleController extends Controller
                 'totalSalesAmount' => $totalSalesAmount,
                 'creditSalesAmount' => $creditSalesAmount,
                 'immediateSalesAmount' => $totalSalesAmount - $creditSalesAmount,
-                'count' => $sales->total(),
+                'count' => $confirmedCount,
             ],
             'filters' => [
                 'search' => $search,

@@ -75,9 +75,9 @@ export function balanceLabel(balance: number | string): string {
     }
 }
 
-/** Anything but a confirmed payment reads as cancelled, as the payments list always showed it. */
+/** Anything but a confirmed payment reads as annulled: the web says "Anulado" for both stored values. */
 export function paymentStatusLabel(status: PaymentStatus): string {
-    return status === 'CONFIRMED' ? 'Confirmado' : 'Cancelado';
+    return status === 'CONFIRMED' ? 'Confirmado' : 'Anulado';
 }
 
 /**

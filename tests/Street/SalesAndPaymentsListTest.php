@@ -151,3 +151,24 @@ test('an unknown driver is a not found, not an empty list', function (): void {
     $this->get(route('sales.index', ['repartidor_id' => 999999]))->assertNotFound();
     $this->get(route('payments.index', ['repartidor_id' => 999999]))->assertNotFound();
 });
+
+test('a cancelled sale stays listed with its status but is not counted nor added up', function (): void {
+    $this->anaSale->update(['status' => 'cancelled']);
+
+    $props = listProps('sales.index', 'Street/Sales/Index');
+    $byId = collect($props['sales']['data'])->keyBy('id');
+
+    expect(listedIds($props, 'sales'))->toHaveCount(4)
+        ->and($byId[$this->anaSale->id]['status'])->toBe('cancelled')
+        ->and($byId[$this->houseSale->id]['status'])->toBe('confirmed')
+        ->and($props['metrics']['count'])->toBe(3)
+        ->and((float) $props['metrics']['totalSalesAmount'])->toBe(1580.0);
+});
+
+test('the count of sales follows the type and customer filters', function (): void {
+    $credit = listProps('sales.index', 'Street/Sales/Index', ['sale_type' => 'credit']);
+    $hotel = listProps('sales.index', 'Street/Sales/Index', ['search' => 'hot']);
+
+    expect($credit['metrics']['count'])->toBe(1)
+        ->and($hotel['metrics']['count'])->toBe(1);
+});

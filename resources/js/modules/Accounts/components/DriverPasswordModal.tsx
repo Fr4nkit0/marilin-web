@@ -2,7 +2,7 @@ import React, { FormEvent, useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
 import { FieldError } from '@/ui/Field';
 import { X } from 'lucide-react';
-import Modal from '@/ui/Modal';
+import Modal, { ModalTitle } from '@/ui/Modal';
 import { DriverAccount } from '@/modules/Accounts/types';
 
 interface Props {
@@ -35,7 +35,7 @@ export default function DriverPasswordModal({ account, onClose }: Props) {
             <form onSubmit={submit} noValidate>
                 <div className="flex items-start justify-between gap-4 px-6 pt-6 pb-4 border-b border-hairline">
                     <div>
-                        <h2 className="text-lg font-semibold text-ink">Cambiar contraseña</h2>
+                        <ModalTitle className="text-lg font-semibold text-ink">Cambiar contraseña</ModalTitle>
                         <p className="text-sm text-ink-muted mt-1">
                             {account?.name}: se cierra su sesión en la app y tiene que entrar con la contraseña nueva.
                         </p>

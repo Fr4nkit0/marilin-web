@@ -55,7 +55,8 @@ describe('status labels', () => {
 
     it('names payment statuses', () => {
         expect(paymentStatusLabel('CONFIRMED')).toBe('Confirmado');
-        expect(paymentStatusLabel('CANCELLED')).toBe('Cancelado');
+        expect(paymentStatusLabel('CANCELLED')).toBe('Anulado');
+        expect(paymentStatusLabel('ANNULLED')).toBe('Anulado');
     });
 
     it('names every customer account entry type', () => {

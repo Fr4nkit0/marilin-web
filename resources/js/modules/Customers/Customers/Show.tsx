@@ -68,7 +68,8 @@ interface Props {
         entryType: AccountEntryType;
         direction: number; // 1 debit (owes more), -1 credit (pays)
         amount: number;
-        description?: string;
+        /** "Venta 2x Bidón 20L", "Cobro en efectivo", or a cancellation's own words. */
+        concept: string | null;
         createdAt: string;
         paymentMethod?: string;
     }[];
@@ -327,7 +328,7 @@ export default function CustomerShow({
                                                     {entry.createdAt}
                                                 </td>
                                                 <td className="px-6 py-4 font-medium text-ink">
-                                                    {entry.description || (isDebit ? 'Venta de productos' : 'Cobranza')}
+                                                    {entry.concept ?? accountEntryTypeLabel(entry.entryType)}
                                                 </td>
                                                 <td className="px-6 py-4 text-center">
                                                     <span

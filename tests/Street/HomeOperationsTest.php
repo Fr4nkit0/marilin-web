@@ -19,6 +19,7 @@ use App\Street\Ledger\Models\CustomerBalance;
 use App\Street\Payments\Models\Payment;
 use App\Street\RouteStock\Models\RouteInventory;
 use App\Street\Sales\Models\Sale;
+use App\Street\Sales\Models\SaleDetail;
 use App\Street\StreetOperation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -347,4 +348,46 @@ test('a failing container line rolls back the home sale and its ledger entry', f
     ]))->assertServerError();
 
     nothingWasWritten();
+});
+
+test('the success message of a home operation reaches the next page as a shared flash, once', function (): void {
+    $this->actingAs($this->admin)
+        ->followingRedirects()
+        ->post(route('customers.home-payments.store', $this->customer), ['amount' => '1000', 'payment_method_id' => $this->cash->id])
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Customers/Customers/Show')
+            ->where('flash.success', 'Cobro en casa registrado.'));
+
+    $this->actingAs($this->admin)
+        ->get(route('customers.show', $this->customer))
+        ->assertInertia(fn (Assert $page) => $page->where('flash.success', null));
+});
+
+test('the customer page names every ledger entry the same way, whatever recorded it', function (): void {
+    $transfer = PaymentMethod::factory()->create(['code' => 'TRANSFER', 'name' => 'Transferencia', 'enabled' => true]);
+
+    // At home: a cash sale books the sale and its payment.
+    $this->actingAs($this->admin)->post(route('customers.home-sales.store', $this->customer), homeSale());
+
+    // On the street, with the free text the sync or the seeder stored.
+    $streetSale = Sale::factory()->create(['customer_id' => $this->customer->id, 'total' => 6500]);
+    SaleDetail::factory()->create(['sale_id' => $streetSale->id, 'product_id' => $this->bidon->id, 'quantity' => 1, 'unit_price' => 6500]);
+    CustomerAccountEntry::factory()->saleEntry()->create(['customer_id' => $this->customer->id, 'sale_id' => $streetSale->id, 'amount' => 6500, 'description' => 'Venta 1x Bidones 20L']);
+    $streetPayment = Payment::factory()->create(['customer_id' => $this->customer->id, 'payment_method_id' => $transfer->id, 'sale_id' => null, 'amount' => 500]);
+    CustomerAccountEntry::factory()->paymentEntry()->create(['customer_id' => $this->customer->id, 'payment_id' => $streetPayment->id, 'amount' => 500, 'description' => 'Cobro Transferencia']);
+    // A cancellation keeps its own words.
+    CustomerAccountEntry::factory()->create(['customer_id' => $this->customer->id, 'entry_type' => 'CREDIT_NOTE', 'direction' => -1, 'sale_id' => $streetSale->id, 'amount' => 6500, 'description' => 'Venta anulada por el repartidor: cliente ausente']);
+    CustomerAccountEntry::factory()->create(['customer_id' => $this->customer->id, 'entry_type' => 'ADJUSTMENT', 'direction' => 1, 'amount' => 100, 'description' => 'Saldo deudor inicial registrado al dar de alta']);
+
+    $this->actingAs($this->admin)
+        ->get(route('customers.show', $this->customer))
+        ->assertInertia(fn (Assert $page) => $page->where('accountEntries', fn ($entries) => collect($entries)->pluck('concept')->all() === [
+            'Saldo deudor inicial registrado al dar de alta',
+            'Venta anulada por el repartidor: cliente ausente',
+            'Cobro por transferencia',
+            'Venta 1x Bidón 20L',
+            'Cobro en efectivo',
+            'Venta 2x Bidón 20L, 3x Soda',
+        ]));
 });

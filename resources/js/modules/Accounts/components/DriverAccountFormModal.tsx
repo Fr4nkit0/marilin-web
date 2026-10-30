@@ -2,7 +2,7 @@ import React, { FormEvent, useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
 import { FieldError } from '@/ui/Field';
 import { X } from 'lucide-react';
-import Modal from '@/ui/Modal';
+import Modal, { ModalTitle } from '@/ui/Modal';
 import { DriverAccount } from '@/modules/Accounts/types';
 
 interface Props {
@@ -95,9 +95,9 @@ export default function DriverAccountFormModal({ show, account, onClose }: Props
             <form onSubmit={submit} noValidate>
                 <div className="flex items-start justify-between gap-4 px-6 pt-6 pb-4 border-b border-hairline">
                     <div>
-                        <h2 className="text-lg font-semibold text-ink">
+                        <ModalTitle className="text-lg font-semibold text-ink">
                             {isNew ? 'Nuevo repartidor' : 'Editar repartidor'}
-                        </h2>
+                        </ModalTitle>
                         <p className="text-sm text-ink-muted mt-1">
                             {isNew
                                 ? 'Con este email y contraseña el repartidor entra a la app.'

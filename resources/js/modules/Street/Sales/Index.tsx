@@ -1,7 +1,7 @@
 import React from 'react';
 import { Head, Link } from '@inertiajs/react';
 import AdminLayout from '@/layouts/AdminLayout';
-import { PaymentMethodBadge } from '@/ui/Badge';
+import { PaymentMethodBadge, StatusBadge } from '@/ui/Badge';
 import { KpiCard } from '@/ui/KpiCard';
 import { PageHeader } from '@/ui/PageHeader';
 import {
@@ -32,10 +32,14 @@ interface SaleDetail {
     subtotal: string | number;
 }
 
+/** A sale is confirmed until the driver cancels it; "annulled" is a stored value no flow writes today. */
+type SaleStatus = 'confirmed' | 'cancelled' | 'annulled';
+
 interface SaleItem {
     id: number;
     date: string;
     total: string | number;
+    status: SaleStatus;
     is_credit_sale: boolean;
     customer?: {
         id: number;
@@ -129,9 +133,20 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
         {
             header: 'Tipo / Método',
             align: 'center',
-            cell: (sale) => <PaymentMethodBadge method={sale.payments?.[0]?.payment_method?.name || (sale.is_credit_sale ? 'Crédito Ruta' : 'Efectivo')} />,
+            cell: (sale) =>
+                sale.status === 'confirmed' ? (
+                    <PaymentMethodBadge method={sale.payments?.[0]?.payment_method?.name || (sale.is_credit_sale ? 'Crédito Ruta' : 'Efectivo')} />
+                ) : (
+                    <StatusBadge status="cancelado" label="Anulada" />
+                ),
         },
-        { header: 'Total', align: 'right', className: 'font-semibold text-ink', cell: (sale) => money(sale.total) },
+        {
+            header: 'Total',
+            align: 'right',
+            className: 'font-semibold text-ink',
+            // A cancelled sale moved no money: its amount stays visible but struck through, outside the totals.
+            cell: (sale) => (sale.status === 'confirmed' ? money(sale.total) : <s className="font-normal text-ink-muted">{money(sale.total)}</s>),
+        },
     ];
 
     return (
@@ -160,7 +175,7 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
                     value={money(metrics.totalSalesAmount)}
                     icon={DollarSign}
                     variant="primary"
-                    subtitle={`${metrics.count} operaciones registradas`}
+                    subtitle={metrics.count === 1 ? '1 operación registrada' : `${metrics.count} operaciones registradas`}
                 />
                 <KpiCard
                     title="Contado / Cobrado"

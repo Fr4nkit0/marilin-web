@@ -3,6 +3,8 @@ import { Link, router, usePage } from '@inertiajs/react';
 import { useTheme } from '@/lib/theme';
 import ThemeSwitch from '@/ui/ThemeSwitch';
 import NotificationsMenu, { NotificationItem } from '@/ui/NotificationsMenu';
+import Toast from '@/ui/Toast';
+import { useFlashToast } from '@/lib/useFlashToast';
 import { time } from '@/lib/format';
 import type { Notifications } from '@/types';
 import {
@@ -63,6 +65,7 @@ export default function AdminLayout({
     const user = auth.user;
     // Applies the saved theme and follows the system while the choice is "system", menu open or not.
     useTheme();
+    const [toast, dismissToast] = useFlashToast();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
     const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -296,6 +299,8 @@ export default function AdminLayout({
                     {children}
                 </main>
             </div>
+
+            <Toast toast={toast} onDismiss={dismissToast} />
 
             {/* Confirmation Logout Modal */}
             {showLogoutModal && (

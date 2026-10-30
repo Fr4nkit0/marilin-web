@@ -2,7 +2,7 @@ import React, { FormEvent, useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
 import { FieldError } from '@/ui/Field';
 import { X } from 'lucide-react';
-import Modal from '@/ui/Modal';
+import Modal, { ModalTitle } from '@/ui/Modal';
 import { AgreementProduct } from '../types';
 import { money } from '@/lib/format';
 
@@ -61,7 +61,7 @@ export default function CustomerAgreementFormModal({ show, customerId, customerN
             <form onSubmit={submit} noValidate>
                 <div className="flex items-start justify-between gap-4 px-6 pt-6 pb-4 border-b border-hairline">
                     <div>
-                        <h2 className="text-lg font-semibold text-ink">Nuevo acuerdo de precio</h2>
+                        <ModalTitle className="text-lg font-semibold text-ink">Nuevo acuerdo de precio</ModalTitle>
                         <p className="text-sm text-ink-muted mt-1">
                             {customerName}: el precio acordado reemplaza al de lista y llega a la app en la próxima
                             sincronización.

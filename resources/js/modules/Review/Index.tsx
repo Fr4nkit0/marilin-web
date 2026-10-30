@@ -18,7 +18,7 @@ interface Props {
 const TYPE_LABELS: Record<ReviewType, string> = {
     visit: 'Visita',
     sale: 'Venta',
-    payment: 'Pago',
+    payment: 'Cobro',
     route_stop: 'Parada reprogramada',
     customer: 'Cliente',
     container_movement: 'Movimiento de envases',

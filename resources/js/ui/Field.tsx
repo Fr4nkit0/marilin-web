@@ -15,18 +15,28 @@ interface FieldProps {
     children: ReactNode;
 }
 
-/** A labelled form control with its validation error under it. */
+/**
+ * A labelled form control with its validation error under it. The label alone names the control;
+ * the hint, or the error in its place, is the control's description.
+ */
 export function Field({ label, htmlFor, error, hint, children }: FieldProps) {
     const generatedId = useId();
-    const control = isValidElement<{ id?: string }>(children) ? children : null;
+    const descriptionId = `${generatedId}-description`;
+    const control = isValidElement<{ id?: string; 'aria-describedby'?: string }>(children) ? children : null;
     const id = htmlFor ?? control?.props.id ?? generatedId;
+    const described = Boolean(error) || Boolean(hint);
+    const describedBy = [control?.props['aria-describedby'], described ? descriptionId : null].filter(Boolean).join(' ') || undefined;
 
     return (
         <div className="space-y-1.5">
             <Label htmlFor={id}>{label}</Label>
-            {control && !control.props.id ? cloneElement(control, { id }) : children}
-            {hint && !error ? <p className="text-xs text-ink-muted">{hint}</p> : null}
-            <FieldError message={error} />
+            {control ? cloneElement(control, { id: control.props.id ?? id, 'aria-describedby': describedBy }) : children}
+            {hint && !error ? (
+                <p id={descriptionId} className="text-xs text-ink-muted">
+                    {hint}
+                </p>
+            ) : null}
+            <FieldError id={descriptionId} message={error} />
         </div>
     );
 }
@@ -42,8 +52,12 @@ export function Label({ value, className = '', children, ...rest }: LabelHTMLAtt
 }
 
 /** A validation message under a control; nothing when there is no message. */
-export function FieldError({ message, className = '' }: { message?: string; className?: string }) {
-    return message ? <p className={`text-xs text-rose-600 dark:text-rose-300 ${className}`.trim()}>{message}</p> : null;
+export function FieldError({ message, className = '', id }: { message?: string; className?: string; id?: string }) {
+    return message ? (
+        <p id={id} className={`text-xs text-rose-600 dark:text-rose-300 ${className}`.trim()}>
+            {message}
+        </p>
+    ) : null;
 }
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement> & Invalid>(function Input(

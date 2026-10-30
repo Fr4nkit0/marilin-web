@@ -1,7 +1,7 @@
 import React, { FormEvent, useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
 import { Plus, Trash2, X } from 'lucide-react';
-import Modal from '@/ui/Modal';
+import Modal, { ModalTitle } from '@/ui/Modal';
 import { FieldError } from '@/ui/Field';
 import { HomeContainerType, HomePaymentMethod, HomeProduct } from '@/modules/Street/types';
 import { money } from '@/lib/format';
@@ -80,7 +80,7 @@ export default function HomeSaleModal({ show, customerId, customerName, products
             <form onSubmit={submit} noValidate>
                 <div className="flex items-start justify-between gap-4 px-6 pt-6 pb-4 border-b border-hairline">
                     <div>
-                        <h2 className="text-lg font-semibold text-ink">Venta en casa</h2>
+                        <ModalTitle className="text-lg font-semibold text-ink">Venta en casa</ModalTitle>
                         <p className="text-sm text-ink-muted mt-1">
                             {customerName}: no descuenta inventario de ninguna ruta. El precio sale del acuerdo vigente o
                             de la lista y no se puede cambiar acá.
@@ -98,9 +98,10 @@ export default function HomeSaleModal({ show, customerId, customerName, products
 
                 <div className="px-6 py-5 space-y-5">
                     <div className="space-y-2">
+                        {/* One grid per row with the same columns, so every quantity input lines up whatever the product's name. */}
                         {products.map((product) => (
-                            <div key={product.id} className="flex items-center justify-between gap-4">
-                                <div>
+                            <div key={product.id} className="grid grid-cols-[minmax(0,1fr)_6rem] items-center gap-4">
+                                <div className="min-w-0">
                                     <p className="text-sm font-medium text-ink">{product.name}</p>
                                     <p className="text-xs text-ink-muted">
                                         {money(product.unitPrice)} · {product.source === 'agreement' ? 'Acuerdo vigente' : 'Precio de lista'}
@@ -114,7 +115,7 @@ export default function HomeSaleModal({ show, customerId, customerName, products
                                     aria-label={`Cantidad de ${product.name}`}
                                     value={data.quantities[product.id] ?? ''}
                                     onChange={(e) => setData('quantities', { ...data.quantities, [product.id]: e.target.value })}
-                                    className={`${inputClass} w-24 text-right`}
+                                    className={`${inputClass} text-right`}
                                 />
                             </div>
                         ))}
@@ -173,7 +174,7 @@ export default function HomeSaleModal({ show, customerId, customerName, products
                             </button>
                         </div>
                         {data.containers.map((row, index) => (
-                            <div key={index} className="flex items-center gap-2 mt-2">
+                            <div key={index} className="grid grid-cols-[minmax(0,1fr)_8rem_6rem_auto] items-center gap-2 mt-2">
                                 <select
                                     aria-label="Tipo de envase"
                                     value={row.container_type_id}
@@ -204,7 +205,7 @@ export default function HomeSaleModal({ show, customerId, customerName, products
                                     aria-label="Cantidad de envases"
                                     value={row.quantity}
                                     onChange={(e) => updateContainer(index, { quantity: e.target.value })}
-                                    className={`${inputClass} w-24 text-right`}
+                                    className={`${inputClass} text-right`}
                                 />
                                 <button
                                     type="button"

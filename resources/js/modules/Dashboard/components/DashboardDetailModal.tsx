@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 import { X } from 'lucide-react';
-import Modal from '@/ui/Modal';
+import Modal, { ModalTitle } from '@/ui/Modal';
 import {
     DashboardContainerRow,
     DashboardDetailKind,
@@ -19,7 +19,7 @@ interface Props {
 
 const TITLES: Record<DashboardDetailKind, { title: string; description: string }> = {
     sales: { title: 'Ventas del día', description: 'Cada venta registrada, con su cliente y repartidor.' },
-    payments: { title: 'Cobranza recaudada', description: 'Cobros confirmados en efectivo y por transferencia.' },
+    payments: { title: 'Total cobrado', description: 'Cobros confirmados en efectivo y por transferencia.' },
     stops: { title: 'Paradas de ruta', description: 'Las paradas de cada repartidor y en qué estado están.' },
     containers: { title: 'Movimiento de envases', description: 'Envases entregados y retirados en el día.' },
 };
@@ -91,7 +91,7 @@ function SalesTable({ rows }: { rows: DashboardSaleRow[] }) {
                     <th className={thClass}>Hora</th>
                     <th className={thClass}>Cliente</th>
                     <th className={thClass}>Repartidor</th>
-                    <th className={thClass}>Pago</th>
+                    <th className={thClass}>Tipo</th>
                     <th className={`${thClass} text-right`}>Monto</th>
                 </tr>
             }
@@ -254,7 +254,7 @@ export default function DashboardDetailModal({ kind, details, onClose }: Props) 
                 <div>
                     <div className="flex items-start justify-between gap-4 px-6 pt-6 pb-4 border-b border-hairline">
                         <div>
-                            <h2 className="text-lg font-semibold text-ink">{TITLES[kind].title}</h2>
+                            <ModalTitle className="text-lg font-semibold text-ink">{TITLES[kind].title}</ModalTitle>
                             <p className="text-sm text-ink-muted mt-1">{TITLES[kind].description}</p>
                         </div>
                         <button
