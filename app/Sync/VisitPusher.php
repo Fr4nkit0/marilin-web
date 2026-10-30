@@ -72,7 +72,7 @@ class VisitPusher extends EntityPusher
     }
 
     /**
-     * Only the outcome and notes of today's own visits can be edited; last write wins by the app's modification date.
+     * Only the outcome and notes of the driver's own visits can be edited, on the visit's day; last write wins by the app's modification date.
      *
      * @param  array<string, mixed>  $record
      */
@@ -89,9 +89,12 @@ class VisitPusher extends EntityPusher
             return;
         }
 
-        if ($visit->arrived_at->toDateString() !== now()->toDateString()) {
-            throw new RejectedRecord("Only today's visits can be edited.");
-        }
+        $this->assertActedOnRecordDay(
+            $visit->arrived_at,
+            $modifiedAt,
+            "The edit was not made on the visit's day.",
+            'The edit is more than %d days old.',
+        );
 
         $visit->update([
             'outcome_id' => $record['outcome_id'] ?? null,

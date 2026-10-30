@@ -21,6 +21,8 @@ export type PageProps<
         user: User;
     };
     notifications?: Notifications;
+    /** What the last action said before redirecting, shown once as a toast. */
+    flash?: { success: string | null };
 };
 
 export interface PaginatedData<T> {

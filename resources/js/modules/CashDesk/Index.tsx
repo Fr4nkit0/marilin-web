@@ -197,7 +197,7 @@ export default function CashCloseIndex({
                                     <span className="font-semibold text-ink-muted">-{money(settlement.creditSales)}</span>
                                 </div>
                                 <div className="flex justify-between py-2 border-b border-hairline last:border-0">
-                                    <span className="text-ink-secondary font-medium">Cobranza de Cuentas Corrientes previas:</span>
+                                    <span className="text-ink-secondary font-medium">Cobro de cuentas corrientes previas:</span>
                                     <span className="font-semibold text-ink">+{money(settlement.debtCollected)}</span>
                                 </div>
                                 <div className="flex justify-between py-2 border-b border-hairline last:border-0">
@@ -242,7 +242,7 @@ export default function CashCloseIndex({
                                                 </div>
                                                 <div className="text-right">
                                                     <p className="font-semibold text-ink text-sm">
-                                                        {sold} vendidos
+                                                        {sold} {sold === 1 ? 'vendido' : 'vendidos'}
                                                     </p>
                                                     <p className="text-xs text-ink-muted mt-1">
                                                         Vuelven: {remaining} unid.

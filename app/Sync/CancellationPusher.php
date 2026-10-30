@@ -8,11 +8,12 @@ use App\Accounts\Models\Driver;
 use App\Accounts\Models\User;
 use App\CashDesk\DayScope;
 use App\Review\ReviewReason;
+use App\Shared\ClientTime;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * The driver cancels a sale or payment of their own recorded today: it is reversed and left for the admin's review (ADR 0001).
+ * The driver cancels a sale or payment of their own, offline on the record's day: it is reversed and left for the admin's review (ADR 0001).
  * The response's server id is the cancelled record's; the cancellation's own uuid is not stored, so a replay is
  * recognized by the record being cancelled already, whatever uuid and day it comes with.
  *
@@ -49,7 +50,7 @@ abstract class CancellationPusher extends EntityPusher
      * @param  TModel  $record
      * @return TModel
      */
-    abstract protected function cancel(Model $record, Driver $driver, User $user, ?string $reason): Model;
+    abstract protected function cancel(Model $record, Driver $driver, User $user, ?string $reason, CarbonInterface $cancelledAt): Model;
 
     protected function rules(): array
     {
@@ -75,11 +76,16 @@ abstract class CancellationPusher extends EntityPusher
             return $this->accepted($record['uuid'], $target->getKey(), $this->pendingReason($target));
         }
 
-        if (! $this->occurredAt($target)->isToday()) {
-            throw new RejectedRecord("Only today's records can be cancelled.");
-        }
+        $cancelledAt = ClientTime::parse($record['cancelled_at'])->min(now());
 
-        $cancelled = $this->cancel($target, $driver, $user, $record['reason'] ?? null);
+        $this->assertActedOnRecordDay(
+            $this->occurredAt($target),
+            $cancelledAt,
+            "The cancellation was not made on the record's day.",
+            'The cancellation is more than %d days old.',
+        );
+
+        $cancelled = $this->cancel($target, $driver, $user, $record['reason'] ?? null, $cancelledAt);
 
         return $this->accepted($record['uuid'], $cancelled->getKey(), $this->pendingReason($cancelled));
     }

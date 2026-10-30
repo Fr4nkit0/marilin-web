@@ -45,7 +45,7 @@ class PaymentCancellationPusher extends CancellationPusher
         return $record->paid_at;
     }
 
-    protected function cancel(Model $record, Driver $driver, User $user, ?string $reason): Model
+    protected function cancel(Model $record, Driver $driver, User $user, ?string $reason, CarbonInterface $cancelledAt): Model
     {
         return $this->operation->cancelPayment(new CancelPayment(
             payment: $record,

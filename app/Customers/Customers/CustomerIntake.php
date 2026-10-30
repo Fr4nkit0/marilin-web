@@ -65,6 +65,7 @@ class CustomerIntake
                 $this->ledger->openAccount($customer, $input->initialDebt, $input->createdBy);
             }
             $this->recordInitialContainers($customer, $input);
+            $this->addPreferences($customer, $input->preferences);
 
             return $customer;
         });
@@ -106,8 +107,27 @@ class CustomerIntake
                 ...$stamps,
             ])->save();
 
+            $this->addPreferences($customer, $input->preferences);
+
             return $customer;
         });
+    }
+
+    /**
+     * Adds a delivery preference from the web. A removed preference for the same day and start comes back
+     * with the new window instead of clashing with it.
+     */
+    public function addPreference(Customer $customer, CustomerPreferenceChange $input): CustomerPreference
+    {
+        $start = $this->timeOfDay($input->timeWindowStart);
+
+        $removed = $customer->preferences()
+            ->where('enabled', false)
+            ->where('day_of_week', $input->dayOfWeek)
+            ->when($start === null, fn ($query) => $query->whereNull('time_window_start'), fn ($query) => $query->where('time_window_start', $start))
+            ->first();
+
+        return $this->savePreference($customer, $removed, $input);
     }
 
     /**
@@ -120,7 +140,7 @@ class CustomerIntake
             $end = $this->timeOfDay($input->timeWindowEnd);
 
             if ($start !== null && $end !== null && $end <= $start) {
-                throw new InvalidCustomerChange('The time window end must be after its start.');
+                throw new InvalidCustomerChange('The time window end must be after its start.', 'time_window_end');
             }
 
             $taken = $customer->preferences()
@@ -130,7 +150,7 @@ class CustomerIntake
                 ->exists();
 
             if ($taken) {
-                throw new InvalidCustomerChange('The customer already has a preference for that day and time.');
+                throw new InvalidCustomerChange('The customer already has a preference for that day and time.', 'day_of_week');
             }
 
             $preference ??= new CustomerPreference(['customer_id' => $customer->id, 'created_by' => $input->modifiedBy->id]);
@@ -194,6 +214,20 @@ class CustomerIntake
 
             return $address;
         });
+    }
+
+    /**
+     * @param  list<CustomerPreferenceChange>  $preferences
+     */
+    private function addPreferences(Customer $customer, array $preferences): void
+    {
+        foreach ($preferences as $index => $preference) {
+            try {
+                $this->addPreference($customer, $preference);
+            } catch (InvalidCustomerChange $invalid) {
+                throw $invalid->under("preferences.{$index}");
+            }
+        }
     }
 
     private function recordInitialContainers(Customer $customer, CustomerRegistration $input): void

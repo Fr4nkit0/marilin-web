@@ -3,6 +3,7 @@
 namespace App\Customers\Customers\Http\Controllers;
 
 use App\Accounts\Models\Driver;
+use App\Catalog\Enums\PaymentMethodCode;
 use App\Catalog\Models\ContainerType;
 use App\Catalog\Models\PaymentMethod;
 use App\Catalog\Models\Product;
@@ -12,13 +13,18 @@ use App\Customers\Customers\AddressLocation;
 use App\Customers\Customers\CustomerAddressDetails;
 use App\Customers\Customers\CustomerEdit;
 use App\Customers\Customers\CustomerIntake;
+use App\Customers\Customers\CustomerPreferenceChange;
 use App\Customers\Customers\CustomerRegistration;
 use App\Customers\Customers\Http\Requests\StoreCustomerRequest;
 use App\Customers\Customers\Http\Requests\UpdateCustomerRequest;
 use App\Customers\Customers\Models\Customer;
 use App\Customers\Customers\Models\CustomerAddress;
+use App\Customers\Customers\Models\CustomerPreference;
 use App\Customers\Neighborhoods\Models\Neighborhood;
 use App\Http\Controllers\Controller;
+use App\Shared\TextMatch;
+use App\Street\Ledger\Models\CustomerAccountEntry;
+use App\Street\Sales\Models\SaleDetail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -45,13 +51,7 @@ class CustomerController extends Controller
             ])
             ->where('enabled', true);
 
-        if ($search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'ilike', "%{$search}%")
-                    ->orWhere('phone_number', 'like', "%{$search}%")
-                    ->orWhereHas('primaryAddress', fn ($sq) => $sq->where('street', 'ilike', "%{$search}%"));
-            });
-        }
+        TextMatch::search($query, ['name', 'phone_number', 'primaryAddress.street'], $search);
 
         if ($driverId) {
             $query->where('driver_id', $driverId);
@@ -101,16 +101,16 @@ class CustomerController extends Controller
 
         // Paginate / fetch last 10 account movements (Sales, Payments, Adjustments)
         $accountEntries = $customer->accountEntries()
-            ->with(['creator', 'payment.paymentMethod', 'sale'])
+            ->with(['creator', 'payment.paymentMethod', 'sale.details.product'])
             ->latest('id')
             ->limit(20)
             ->get()
-            ->map(fn ($entry) => [
+            ->map(fn (CustomerAccountEntry $entry) => [
                 'id' => $entry->id,
                 'entryType' => $entry->entry_type,
                 'direction' => $entry->direction,
                 'amount' => (float) $entry->amount,
-                'description' => $entry->description,
+                'concept' => $this->concept($entry),
                 'createdAt' => $entry->created_at?->format('d/m/Y H:i'),
                 'paymentMethod' => $entry->payment?->paymentMethod?->name,
             ]);
@@ -139,6 +139,18 @@ class CustomerController extends Controller
                 'status' => $agreement->statusOn($today),
             ]);
 
+        $preferences = $customer->preferences()
+            ->enabled()
+            ->orderBy('day_of_week')
+            ->orderByRaw('time_window_start nulls first')
+            ->get()
+            ->map(fn (CustomerPreference $preference): array => [
+                'id' => $preference->id,
+                'dayOfWeek' => $preference->day_of_week,
+                'timeWindowStart' => $this->hourMinute($preference->time_window_start),
+                'timeWindowEnd' => $this->hourMinute($preference->time_window_end),
+            ]);
+
         $canRecordAtHome = Gate::allows('manage-agreements');
 
         return Inertia::render('Customers/Customers/Show', [
@@ -146,6 +158,7 @@ class CustomerController extends Controller
             'accountEntries' => $accountEntries,
             'containerMovements' => $containerMovements,
             'agreements' => $agreements,
+            'preferences' => $preferences,
             'agreementProducts' => Product::query()->enabled()->orderBy('name')->get(['id', 'name', 'price'])
                 ->map(fn (Product $product): array => ['id' => $product->id, 'name' => $product->name, 'price' => (float) $product->price]),
             'canManageAgreements' => Gate::allows('manage-agreements'),
@@ -154,6 +167,40 @@ class CustomerController extends Controller
             'paymentMethods' => $canRecordAtHome ? PaymentMethod::query()->enabled()->orderBy('name')->get(['id', 'name']) : [],
             'containerTypes' => $canRecordAtHome ? ContainerType::query()->enabled()->orderBy('description')->get(['id', 'description']) : [],
         ]);
+    }
+
+    /**
+     * One wording for a sale or a payment, whether the street or the house recorded it: built from what was sold
+     * ("Venta 2x Bidón 20L, 1x Sifón 1.5L") or how it was paid ("Cobro en efectivo"), never from the stored free text.
+     * Cancellations and adjustments keep their own description.
+     */
+    private function concept(CustomerAccountEntry $entry): ?string
+    {
+        if ($entry->entry_type === 'SALE' && $entry->sale !== null) {
+            $lines = $entry->sale->details
+                ->sortBy('id')
+                ->map(fn (SaleDetail $detail): string => "{$detail->quantity}x {$detail->product?->name}")
+                ->implode(', ');
+
+            return $lines === '' ? 'Venta' : "Venta {$lines}";
+        }
+
+        if ($entry->entry_type === 'PAYMENT' && $entry->payment !== null) {
+            $method = $entry->payment->paymentMethod;
+
+            return match ($method?->code) {
+                PaymentMethodCode::Cash->value => 'Cobro en efectivo',
+                PaymentMethodCode::Transfer->value => 'Cobro por transferencia',
+                default => $method === null ? 'Cobro' : "Cobro ({$method->name})",
+            };
+        }
+
+        return $entry->description;
+    }
+
+    private function hourMinute(?string $time): ?string
+    {
+        return $time === null ? null : substr($time, 0, 5);
     }
 
     /**
@@ -184,7 +231,7 @@ class CustomerController extends Controller
     {
         $validated = $request->validated();
 
-        $intake->register(new CustomerRegistration(
+        CustomerPreferenceController::asFieldErrors(fn () => $intake->register(new CustomerRegistration(
             name: $validated['name'],
             phoneNumber: $validated['phone_number'] ?? null,
             driverId: isset($validated['repartidor_id']) ? (int) $validated['repartidor_id'] : null,
@@ -193,7 +240,8 @@ class CustomerController extends Controller
             // numeric also accepts forms like 1e2; the ledger works with a fixed two-decimal string.
             initialDebt: number_format((float) ($validated['initial_balance'] ?? 0), 2, '.', ''),
             initialContainers: array_map(fn (mixed $quantity): int => (int) $quantity, $validated['initial_containers'] ?? []),
-        ));
+            preferences: $this->preferenceRows($validated, $request),
+        )));
 
         return redirect()->route('customers.index')->with('success', 'Cliente creado exitosamente');
     }
@@ -205,15 +253,28 @@ class CustomerController extends Controller
     {
         $validated = $request->validated();
 
-        $intake->update($customer, new CustomerEdit(
+        CustomerPreferenceController::asFieldErrors(fn () => $intake->update($customer, new CustomerEdit(
             name: $validated['name'],
             phoneNumber: $validated['phone_number'] ?? null,
             address: $this->addressDetails($validated, $customer->primaryAddress),
             modifiedBy: $request->user(),
             driverId: isset($validated['repartidor_id']) ? (int) $validated['repartidor_id'] : null,
-        ));
+            preferences: $this->preferenceRows($validated, $request),
+        )));
 
         return redirect()->back()->with('success', 'Cliente actualizado exitosamente');
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     * @return list<CustomerPreferenceChange>
+     */
+    private function preferenceRows(array $validated, Request $request): array
+    {
+        return array_values(array_map(
+            fn (array $row): CustomerPreferenceChange => CustomerPreferenceController::change($row, $request),
+            $validated['preferences'] ?? [],
+        ));
     }
 
     /**

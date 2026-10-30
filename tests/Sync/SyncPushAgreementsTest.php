@@ -106,13 +106,13 @@ test('push rejects an invalid agreement with its error and leaves the table unch
         ->and($result['error'])->toContain($error)
         ->and(CustomerAgreement::query()->pluck('id')->all())->toBe([$existing->id]);
 })->with([
-    'zero price' => [['unit_price' => 0], 'unit price'],
-    'three decimals' => [['unit_price' => 10.123], 'unit price'],
-    'missing price' => [['unit_price' => null], 'unit price'],
-    'unknown product' => [['product_id' => 999999], 'product id'],
-    'bad from date' => [['valid_from' => '22/10/2026'], 'valid from'],
-    'end before start' => [['valid_to' => '2026-10-21'], 'valid to'],
-    'reason too long' => [['reason' => str_repeat('a', 501)], 'reason'],
+    'zero price' => [['unit_price' => 0], 'El campo precio debe ser mayor que 0.'],
+    'three decimals' => [['unit_price' => 10.123], 'El campo precio debe tener 0-2 decimales.'],
+    'missing price' => [['unit_price' => null], 'El campo precio es obligatorio.'],
+    'unknown product' => [['product_id' => 999999], 'El valor seleccionado en producto no es válido.'],
+    'bad from date' => [['valid_from' => '22/10/2026'], 'El campo vigente desde debe tener el formato Y-m-d.'],
+    'end before start' => [['valid_to' => '2026-10-21'], 'El campo vigente hasta debe ser una fecha posterior o igual a vigente desde.'],
+    'reason too long' => [['reason' => str_repeat('a', 501)], 'El campo motivo no puede tener más de 500 caracteres.'],
     'unknown customer' => [['customer_id' => 999999], 'customer'],
 ]);
 

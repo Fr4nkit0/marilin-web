@@ -133,7 +133,7 @@ export default function PaymentsIndex({ payments, metrics, filters, paymentMetho
                     value={money(metrics.totalCollected)}
                     icon={CircleDollarSign}
                     variant="success"
-                    subtitle="Cobranza confirmada hoy"
+                    subtitle="Cobros confirmados del día"
                 />
                 <KpiCard
                     title="Efectivo en Mano"
@@ -215,7 +215,7 @@ export default function PaymentsIndex({ payments, metrics, filters, paymentMetho
                         >
                             <option value="all">Todos los estados</option>
                             <option value="CONFIRMED">Confirmados</option>
-                            <option value="CANCELLED">Cancelados</option>
+                            <option value="CANCELLED">Anulados</option>
                         </select>
                     </div>
                 </form>

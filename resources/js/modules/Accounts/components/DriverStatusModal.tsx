@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { router } from '@inertiajs/react';
-import Modal from '@/ui/Modal';
+import Modal, { ModalTitle } from '@/ui/Modal';
 import { DriverAccount } from '@/modules/Accounts/types';
 
 interface Props {
@@ -29,9 +29,9 @@ export default function DriverStatusModal({ account, onClose }: Props) {
     return (
         <Modal show={account !== null} onClose={onClose} maxWidth="md">
             <div className="px-6 pt-6 pb-4">
-                <h2 className="text-lg font-semibold text-ink">
+                <ModalTitle className="text-lg font-semibold text-ink">
                     {disabling ? '¿Deshabilitar la cuenta?' : '¿Habilitar la cuenta?'}
-                </h2>
+                </ModalTitle>
                 <p className="text-sm text-ink-muted mt-2">
                     {disabling
                         ? `${account?.name} no va a poder entrar a la app ni al panel, y se cierran sus sesiones abiertas. Sus ventas, visitas y cobros se conservan.`

@@ -15,6 +15,7 @@ final readonly class CustomerRegistration
      * @param  bool  $opensAccount  false leaves the customer without a balance row until its first entry (the app's customers)
      * @param  ?CarbonInterface  $appModifiedAt  set when the record comes from the app: it dates the rows and marks them as received now
      * @param  ?string  $addressClientUuid  the app's id of the primary address
+     * @param  list<CustomerPreferenceChange>  $preferences  delivery preferences added with it, in the same transaction
      */
     public function __construct(
         public string $name,
@@ -28,5 +29,6 @@ final readonly class CustomerRegistration
         public bool $opensAccount = true,
         public ?CarbonInterface $appModifiedAt = null,
         public ?string $addressClientUuid = null,
+        public array $preferences = [],
     ) {}
 }

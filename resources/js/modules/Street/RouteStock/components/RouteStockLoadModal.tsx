@@ -1,7 +1,7 @@
 import React, { FormEvent, useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
 import { Package, X } from 'lucide-react';
-import Modal from '@/ui/Modal';
+import Modal, { ModalTitle } from '@/ui/Modal';
 import { FieldError } from '@/ui/Field';
 
 export interface LoadableProduct {
@@ -52,9 +52,9 @@ export default function RouteStockLoadModal({ routeId, driverName, isFirstLoad, 
             <form onSubmit={submit} noValidate>
                 <div className="flex items-start justify-between gap-4 px-6 pt-6 pb-4 border-b border-hairline">
                     <div>
-                        <h2 className="text-lg font-semibold text-ink">
+                        <ModalTitle className="text-lg font-semibold text-ink">
                             {isFirstLoad ? 'Carga inicial del inventario de ruta' : 'Recarga del inventario de ruta'}
-                        </h2>
+                        </ModalTitle>
                         <p className="text-sm text-ink-muted mt-1">
                             {driverName}: lo que se carga se suma al stock y llega a la app en la próxima
                             sincronización.

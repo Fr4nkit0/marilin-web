@@ -221,7 +221,7 @@ test('push rejects an invalid address with a readable reason and still accepts t
         ->assertJsonPath('data.customer_addresses.0.status', 'rejected')
         ->assertJsonPath('data.customer_addresses.1.status', 'accepted');
 
-    expect($response->json('data.customer_addresses.0.error'))->toContain('street')
+    expect($response->json('data.customer_addresses.0.error'))->toBe('El campo calle es obligatorio.')
         ->and(CustomerAddress::query()->where('client_uuid', $invalid['uuid'])->exists())->toBeFalse()
         ->and(CustomerAddress::query()->where('client_uuid', $valid['uuid'])->exists())->toBeTrue();
 });
@@ -426,6 +426,6 @@ test('a customer push with an address uuid that is not a uuid is rejected', func
     $response = push(['customers' => [$customerPayload]]);
 
     $response->assertOk()->assertJsonPath('data.customers.0.status', 'rejected');
-    expect($response->json('data.customers.0.error'))->toContain('uuid')
+    expect($response->json('data.customers.0.error'))->toBe('El campo identificador de la dirección debe ser un UUID válido.')
         ->and(Customer::query()->where('client_uuid', $customerPayload['uuid'])->exists())->toBeFalse();
 });

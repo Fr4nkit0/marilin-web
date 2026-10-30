@@ -4,18 +4,22 @@ declare(strict_types=1);
 
 use App\Accounts\Models\Driver;
 use App\Accounts\Models\User;
+use App\CashDesk\DailyFigures;
+use App\CashDesk\DayScope;
 use App\Catalog\Models\ContainerType;
 use App\Catalog\Models\PaymentMethod;
 use App\Catalog\Models\Product;
 use App\Customers\Agreements\Models\CustomerAgreement;
 use App\Customers\Customers\Models\Customer;
 use App\Routes\Routes\Models\Route;
+use App\Street\Containers\Models\ContainerMovement;
 use App\Street\Containers\Models\CustomerContainerBalance;
 use App\Street\Ledger\Models\CustomerAccountEntry;
 use App\Street\Ledger\Models\CustomerBalance;
 use App\Street\Payments\Models\Payment;
 use App\Street\RouteStock\Models\RouteInventory;
 use App\Street\Sales\Models\Sale;
+use App\Street\Sales\Models\SaleDetail;
 use App\Street\StreetOperation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -44,6 +48,7 @@ function homeSale(array $overrides = []): array
 {
     return [
         'lines' => [['product_id' => test()->bidon->id, 'quantity' => 2], ['product_id' => test()->soda->id, 'quantity' => 3]],
+        'payment_method_id' => test()->cash->id,
         ...$overrides,
     ];
 }
@@ -76,8 +81,67 @@ test('the admin records a sale at home priced by the server', function (): void 
         ->and($sale->needs_review)->toBeFalse()
         ->and($sale->date->toDateString())->toBe('2026-10-22')
         ->and($sale->details)->toHaveCount(2)
-        ->and(CustomerAccountEntry::query()->where('sale_id', $sale->id)->sole()->direction)->toBe(1)
-        ->and(homeBalance())->toBe(16000.0);
+        ->and(CustomerAccountEntry::query()->where('sale_id', $sale->id)->where('entry_type', 'SALE')->sole()->direction)->toBe(1);
+});
+
+test('a cash sale at home is paid on the spot with the chosen method, so the balance does not move', function (): void {
+    $this->actingAs($this->admin)
+        ->post(route('customers.home-sales.store', $this->customer), homeSale())
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('customers.show', $this->customer));
+
+    $sale = Sale::query()->sole();
+    $payment = Payment::query()->sole();
+    expect($payment->status)->toBe('CONFIRMED')
+        ->and($payment->sale_id)->toBe($sale->id)
+        ->and($payment->visit_id)->toBeNull()
+        ->and($payment->payment_method_id)->toBe($this->cash->id)
+        ->and((float) $payment->amount)->toBe(16000.0)
+        ->and($payment->received_by)->toBe($this->admin->id)
+        ->and($payment->paid_at->toDateTimeString())->toBe('2026-10-22 10:00:00')
+        ->and(CustomerAccountEntry::query()->orderBy('id')->pluck('entry_type')->all())->toBe(['SALE', 'PAYMENT'])
+        ->and(homeBalance())->toBe(0.0)
+        ->and(app(DailyFigures::class)->forDay('2026-10-22', DayScope::house())->totalCollected)->toBe(16000.0);
+});
+
+test('a cash sale at home without a payment method is rejected and writes nothing', function (): void {
+    $this->actingAs($this->admin)
+        ->from(route('customers.show', $this->customer))
+        ->post(route('customers.home-sales.store', $this->customer), homeSale([
+            'payment_method_id' => null,
+            'containers' => [['container_type_id' => $this->container->id, 'type' => 'DELIVERED', 'quantity' => 1]],
+        ]))
+        ->assertSessionHasErrors('payment_method_id');
+
+    nothingWasWritten();
+    expect(ContainerMovement::count())->toBe(0)
+        ->and((float) RouteInventory::query()->where('route_id', $this->route->id)->sole()->current_quantity)->toBe(50.0);
+});
+
+test('a cash sale at home with an unknown or disabled payment method is rejected', function (): void {
+    $disabled = PaymentMethod::factory()->create(['enabled' => false]);
+
+    foreach ([$disabled->id, 999999] as $methodId) {
+        $this->actingAs($this->admin)
+            ->post(route('customers.home-sales.store', $this->customer), homeSale(['payment_method_id' => $methodId]))
+            ->assertSessionHasErrors('payment_method_id');
+    }
+
+    nothingWasWritten();
+});
+
+test('a credit sale at home records no payment and the customer owes the total, even if a method is sent', function (): void {
+    $this->actingAs($this->admin)
+        ->post(route('customers.home-sales.store', $this->customer), homeSale(['is_credit_sale' => true, 'payment_method_id' => null]))
+        ->assertSessionHasNoErrors();
+    $this->actingAs($this->admin)
+        ->post(route('customers.home-sales.store', $this->customer), homeSale(['is_credit_sale' => true, 'payment_method_id' => 999999]))
+        ->assertSessionHasNoErrors();
+
+    expect(Sale::count())->toBe(2)
+        ->and(Payment::count())->toBe(0)
+        ->and(CustomerAccountEntry::query()->pluck('entry_type')->all())->toBe(['SALE', 'SALE'])
+        ->and(homeBalance())->toBe(32000.0);
 });
 
 test('an agreement valid that day sets the price and an expired one falls back to the list price', function (): void {
@@ -119,7 +183,7 @@ test('a sale at home does not discount the stock of the route of the customer dr
     expect((float) RouteInventory::query()->where('route_id', $this->route->id)->sole()->current_quantity)->toBe(50.0);
 });
 
-test('containers in the same submission update the container balance', function (): void {
+test('containers in the same submission update the container balance and are linked to the home sale', function (): void {
     $this->actingAs($this->admin)->post(route('customers.home-sales.store', $this->customer), homeSale([
         'containers' => [
             ['container_type_id' => $this->container->id, 'type' => 'DELIVERED', 'quantity' => 5],
@@ -129,11 +193,12 @@ test('containers in the same submission update the container balance', function 
 
     expect(CustomerContainerBalance::query()->where('customer_id', $this->customer->id)->sole()->balance)->toBe(3)
         ->and($this->customer->containerMovements()->count())->toBe(2)
-        ->and($this->customer->containerMovements()->whereNotNull('visit_id')->count())->toBe(0);
+        ->and($this->customer->containerMovements()->whereNotNull('visit_id')->count())->toBe(0)
+        ->and($this->customer->containerMovements()->where('sale_id', Sale::query()->sole()->id)->count())->toBe(2);
 });
 
 test('a payment at home lowers the balance without visit nor sale', function (): void {
-    $this->actingAs($this->admin)->post(route('customers.home-sales.store', $this->customer), homeSale());
+    $this->actingAs($this->admin)->post(route('customers.home-sales.store', $this->customer), homeSale(['is_credit_sale' => true]));
 
     $this->actingAs($this->admin)
         ->post(route('customers.home-payments.store', $this->customer), ['amount' => '4000.50', 'payment_method_id' => $this->cash->id])
@@ -213,7 +278,7 @@ test('a sale at home is not part of the cash close of the driver of the customer
         });
 
     expect(Sale::count())->toBe(1)
-        ->and(Payment::count())->toBe(1)
+        ->and(Payment::count())->toBe(2)
         ->and($settlement['totalSales'])->toEqual(0)
         ->and($settlement['cashAmount'])->toEqual(0)
         ->and($settlement['debtCollected'])->toEqual(0)
@@ -283,4 +348,46 @@ test('a failing container line rolls back the home sale and its ledger entry', f
     ]))->assertServerError();
 
     nothingWasWritten();
+});
+
+test('the success message of a home operation reaches the next page as a shared flash, once', function (): void {
+    $this->actingAs($this->admin)
+        ->followingRedirects()
+        ->post(route('customers.home-payments.store', $this->customer), ['amount' => '1000', 'payment_method_id' => $this->cash->id])
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Customers/Customers/Show')
+            ->where('flash.success', 'Cobro en casa registrado.'));
+
+    $this->actingAs($this->admin)
+        ->get(route('customers.show', $this->customer))
+        ->assertInertia(fn (Assert $page) => $page->where('flash.success', null));
+});
+
+test('the customer page names every ledger entry the same way, whatever recorded it', function (): void {
+    $transfer = PaymentMethod::factory()->create(['code' => 'TRANSFER', 'name' => 'Transferencia', 'enabled' => true]);
+
+    // At home: a cash sale books the sale and its payment.
+    $this->actingAs($this->admin)->post(route('customers.home-sales.store', $this->customer), homeSale());
+
+    // On the street, with the free text the sync or the seeder stored.
+    $streetSale = Sale::factory()->create(['customer_id' => $this->customer->id, 'total' => 6500]);
+    SaleDetail::factory()->create(['sale_id' => $streetSale->id, 'product_id' => $this->bidon->id, 'quantity' => 1, 'unit_price' => 6500]);
+    CustomerAccountEntry::factory()->saleEntry()->create(['customer_id' => $this->customer->id, 'sale_id' => $streetSale->id, 'amount' => 6500, 'description' => 'Venta 1x Bidones 20L']);
+    $streetPayment = Payment::factory()->create(['customer_id' => $this->customer->id, 'payment_method_id' => $transfer->id, 'sale_id' => null, 'amount' => 500]);
+    CustomerAccountEntry::factory()->paymentEntry()->create(['customer_id' => $this->customer->id, 'payment_id' => $streetPayment->id, 'amount' => 500, 'description' => 'Cobro Transferencia']);
+    // A cancellation keeps its own words.
+    CustomerAccountEntry::factory()->create(['customer_id' => $this->customer->id, 'entry_type' => 'CREDIT_NOTE', 'direction' => -1, 'sale_id' => $streetSale->id, 'amount' => 6500, 'description' => 'Venta anulada por el repartidor: cliente ausente']);
+    CustomerAccountEntry::factory()->create(['customer_id' => $this->customer->id, 'entry_type' => 'ADJUSTMENT', 'direction' => 1, 'amount' => 100, 'description' => 'Saldo deudor inicial registrado al dar de alta']);
+
+    $this->actingAs($this->admin)
+        ->get(route('customers.show', $this->customer))
+        ->assertInertia(fn (Assert $page) => $page->where('accountEntries', fn ($entries) => collect($entries)->pluck('concept')->all() === [
+            'Saldo deudor inicial registrado al dar de alta',
+            'Venta anulada por el repartidor: cliente ausente',
+            'Cobro por transferencia',
+            'Venta 1x Bidón 20L',
+            'Cobro en efectivo',
+            'Venta 2x Bidón 20L, 3x Soda',
+        ]));
 });

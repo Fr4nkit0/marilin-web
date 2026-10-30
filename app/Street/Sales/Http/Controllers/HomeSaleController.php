@@ -10,6 +10,7 @@ use App\Customers\Customers\Models\Customer;
 use App\Http\Controllers\Controller;
 use App\Street\Containers\Enums\ContainerMovementType;
 use App\Street\Containers\MoveContainers;
+use App\Street\Payments\RecordPayment;
 use App\Street\Sales\Http\Requests\StoreHomeSaleRequest;
 use App\Street\Sales\RecordSale;
 use App\Street\Sales\SaleLine;
@@ -20,6 +21,7 @@ use Illuminate\Support\Facades\DB;
 /**
  * Venta en casa: recorded by the administrator without visit or driver, so it discounts no route stock
  * and belongs to no cash close. Prices come from the server, never from the request.
+ * Unless it is a credit sale it is paid on the spot: its payment for the full total is recorded with it.
  */
 class HomeSaleController extends Controller
 {
@@ -40,17 +42,32 @@ class HomeSaleController extends Controller
         }
 
         DB::transaction(function () use ($request, $customer, $operation, $admin, $now, $lines, $totalCents): void {
-            $operation->recordSale(new RecordSale(
+            $total = number_format($totalCents / 100, 2, '.', '');
+            $isCreditSale = $request->boolean('is_credit_sale');
+
+            $sale = $operation->recordSale(new RecordSale(
                 customer: $customer,
                 visit: null,
                 driver: null,
                 date: $now,
                 lines: $lines,
-                total: number_format($totalCents / 100, 2, '.', ''),
-                isCreditSale: $request->boolean('is_credit_sale'),
+                total: $total,
+                isCreditSale: $isCreditSale,
                 notes: $request->validated('notes'),
                 recordedBy: $admin,
             ));
+
+            if (! $isCreditSale) {
+                $operation->recordPayment(new RecordPayment(
+                    customer: $customer,
+                    visit: null,
+                    sale: $sale,
+                    paymentMethodId: (int) $request->validated('payment_method_id'),
+                    amount: $total,
+                    paidAt: $now,
+                    receivedBy: $admin,
+                ));
+            }
 
             foreach ($request->validated('containers') ?? [] as $container) {
                 $operation->moveContainers(new MoveContainers(
@@ -60,6 +77,7 @@ class HomeSaleController extends Controller
                     quantity: (int) $container['quantity'],
                     visit: null,
                     recordedBy: $admin,
+                    sale: $sale,
                 ));
             }
         });

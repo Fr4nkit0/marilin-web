@@ -6,6 +6,7 @@ use App\Accounts\Models\Driver;
 use App\CashDesk\DailyFigures;
 use App\CashDesk\DayScope;
 use App\Http\Controllers\Controller;
+use App\Shared\TextMatch;
 use App\Street\Sales\Models\Sale;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -48,9 +49,10 @@ class SaleController extends Controller
             $query->where('is_credit_sale', false);
         }
 
-        if ($search) {
-            $query->whereHas('customer', fn ($q) => $q->where('name', 'ilike', "%{$search}%"));
-        }
+        TextMatch::search($query, ['customer.name'], $search);
+
+        // A cancelled sale stays listed, marked as such, but it is not one of the day's operations.
+        $confirmedCount = (clone $query)->confirmed()->count();
 
         $sales = $query->latest('date')->paginate(15)->withQueryString();
 
@@ -70,7 +72,7 @@ class SaleController extends Controller
                 'totalSalesAmount' => $totalSalesAmount,
                 'creditSalesAmount' => $creditSalesAmount,
                 'immediateSalesAmount' => $totalSalesAmount - $creditSalesAmount,
-                'count' => $sales->total(),
+                'count' => $confirmedCount,
             ],
             'filters' => [
                 'search' => $search,

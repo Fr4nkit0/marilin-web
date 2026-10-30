@@ -9,6 +9,9 @@ export type PaymentStatus = 'CONFIRMED' | 'CANCELLED' | 'ANNULLED';
 
 export type AccountEntryType = 'SALE' | 'PAYMENT' | 'ADJUSTMENT' | 'CREDIT_NOTE';
 
+/** A customer's balance: owes money, owes nothing, or has paid more than owed (a negative balance). */
+export type BalanceState = 'debt' | 'clear' | 'credit';
+
 const STOP_STATUS_LABELS: Record<StopStatus, string> = {
     PENDING: 'Pendiente',
     IN_PROGRESS: 'En curso',
@@ -52,9 +55,44 @@ export function accountEntryTypeLabel(type: AccountEntryType): string {
     return ACCOUNT_ENTRY_TYPE_LABELS[type];
 }
 
-/** Anything but a confirmed payment reads as cancelled, as the payments list always showed it. */
+export function balanceState(balance: number | string): BalanceState {
+    const amount = Number(balance);
+    if (amount > 0) return 'debt';
+    if (amount < 0) return 'credit';
+    return 'clear';
+}
+
+/** "Con deuda ($6.500)", "Al día" or, for a negative balance, "Saldo a favor $6.500". */
+export function balanceLabel(balance: number | string): string {
+    const amount = Number(balance);
+    switch (balanceState(amount)) {
+        case 'debt':
+            return `Con deuda (${money(amount)})`;
+        case 'credit':
+            return `Saldo a favor ${money(Math.abs(amount))}`;
+        default:
+            return 'Al día';
+    }
+}
+
+const WEEKDAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+
+/** The day of a delivery preference, 0 = Domingo to 6 = Sábado. */
+export function weekdayName(dayOfWeek: number): string {
+    return WEEKDAYS[dayOfWeek] ?? '';
+}
+
+/** A delivery window as hh:mm: "08:00 a 12:00", "Desde 08:00", "Hasta 12:00", or "Todo el día" without one. */
+export function timeWindowLabel(start: string | null, end: string | null): string {
+    if (start && end) return `${start} a ${end}`;
+    if (start) return `Desde ${start}`;
+    if (end) return `Hasta ${end}`;
+    return 'Todo el día';
+}
+
+/** Anything but a confirmed payment reads as annulled: the web says "Anulado" for both stored values. */
 export function paymentStatusLabel(status: PaymentStatus): string {
-    return status === 'CONFIRMED' ? 'Confirmado' : 'Cancelado';
+    return status === 'CONFIRMED' ? 'Confirmado' : 'Anulado';
 }
 
 /**

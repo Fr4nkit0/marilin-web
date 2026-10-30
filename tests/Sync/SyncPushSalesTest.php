@@ -234,7 +234,7 @@ test('push rejects a sale with a fractional quantity and leaves no trace of it',
         ->assertJsonPath('data.sales.0.status', 'rejected')
         ->assertJsonPath('data.sales.0.server_id', null);
 
-    expect($response->json('data.sales.0.error'))->toContain('quantity')
+    expect($response->json('data.sales.0.error'))->toBe('El campo cantidad debe ser un número entero.')
         ->and(Sale::query()->where('client_uuid', $fractional['uuid'])->exists())->toBeFalse()
         ->and((float) $this->waterStock->fresh()->current_quantity)->toBe(20.0);
 });

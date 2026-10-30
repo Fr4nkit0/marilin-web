@@ -129,7 +129,7 @@ export default function Dashboard({ metrics }: Props) {
                 />
 
                 <KpiCard
-                    title="Cobranza Recaudada"
+                    title="Total cobrado"
                     onClick={() => setOpenDetail('payments')}
                     value={money(kpis.totalCollected)}
                     icon={CircleDollarSign}

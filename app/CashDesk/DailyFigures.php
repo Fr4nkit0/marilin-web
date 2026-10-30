@@ -13,6 +13,7 @@ use App\Street\Sales\Models\Sale;
 /**
  * The single source of a day's sales, collections and container movements, for the cash close,
  * the dashboard and the Sales and Payments pages. Only confirmed sales and payments count: a cancelled one moved no money.
+ * Likewise the containers moved with a cancelled sale and their give-back are left out, so the sale shows no containers at all.
  */
 class DailyFigures
 {
@@ -39,6 +40,8 @@ class DailyFigures
         $containers = ContainerMovement::query()
             ->with(['customer:id,name', 'creator:id,name', 'containerType:id,description'])
             ->tap(fn ($query) => $scope->apply($query, 'created_by'))
+            ->whereNull('reverses_movement_id')
+            ->whereDoesntHave('sale', fn ($query) => $query->where('status', SaleStatus::Cancelled->value))
             ->whereDate('created_at', $date)
             ->orderBy('created_at')
             ->orderBy('id')

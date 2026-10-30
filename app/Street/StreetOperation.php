@@ -22,6 +22,7 @@ use App\Street\Sales\CancelSale;
 use App\Street\Sales\Enums\SaleStatus;
 use App\Street\Sales\Models\Sale;
 use App\Street\Sales\RecordSale;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -38,6 +39,13 @@ class StreetOperation
      * @var array<string, int>
      */
     private const array DIRECTIONS = [ContainerMovementType::Delivered->value => 1, ContainerMovementType::Returned->value => -1, ContainerMovementType::Adjustment->value => 1];
+
+    /**
+     * What gives back a movement of a cancelled sale.
+     *
+     * @var array<string, ContainerMovementType>
+     */
+    private const array OPPOSITES = [ContainerMovementType::Delivered->value => ContainerMovementType::Returned, ContainerMovementType::Returned->value => ContainerMovementType::Delivered];
 
     public function __construct(
         private readonly CustomerLedger $ledger,
@@ -84,8 +92,9 @@ class StreetOperation
     }
 
     /**
-     * Cancels a sale: a credit note reverses it on the ledger and its stock goes back to the route it was discounted from
-     * (none when it discounted none). Its payments are left alone. A sale already cancelled is returned as it is, nothing is booked again.
+     * Cancels a sale: a credit note reverses it on the ledger, its stock goes back to the route it was discounted from
+     * (none when it discounted none) and the containers moved with it go back with the opposite movement. Its payments are left alone.
+     * A sale already cancelled is returned as it is, nothing is booked again.
      */
     public function cancelSale(CancelSale $input): Sale
     {
@@ -107,6 +116,8 @@ class StreetOperation
             if ($sale->stock_route_id !== null) {
                 $this->stock->restore($sale->stock_route_id, $this->soldQuantities($sale));
             }
+
+            $this->giveContainersBack($sale, $input->cancelledBy, $input->cancelledAt ?? now());
 
             return $sale;
         });
@@ -163,15 +174,25 @@ class StreetOperation
 
     public function moveContainers(MoveContainers $input): ContainerMovement
     {
+        return $this->recordContainerMovement($input);
+    }
+
+    /**
+     * Every container movement goes through here, so the customer's balance always follows its movements.
+     */
+    private function recordContainerMovement(MoveContainers $input, ?ContainerMovement $reverses = null, ?CarbonInterface $at = null): ContainerMovement
+    {
         $direction = self::DIRECTIONS[$input->type->value]
             ?? throw new InvalidArgumentException("Container movement type {$input->type->value} is not supported.");
 
-        return DB::transaction(function () use ($input, $direction): ContainerMovement {
-            $movement = ContainerMovement::create([
+        return DB::transaction(function () use ($input, $direction, $reverses, $at): ContainerMovement {
+            $movement = new ContainerMovement([
                 'client_uuid' => $input->clientUuid,
                 'customer_id' => $input->customer->id,
                 'container_type_id' => $input->containerTypeId,
                 'visit_id' => $input->visit?->id,
+                'sale_id' => $input->sale?->id,
+                'reverses_movement_id' => $reverses?->id,
                 'movement_type' => $input->type->value,
                 'quantity' => $input->quantity,
                 'direction' => $direction,
@@ -179,6 +200,13 @@ class StreetOperation
                 'enabled' => true,
                 ...ReviewReason::columns($input->reviewReason),
             ]);
+
+            if ($at !== null) {
+                $movement->created_at = $at;
+                $movement->updated_at = $at;
+            }
+
+            $movement->save();
 
             // Guarantees the row exists so the lock below always has something to lock when two first movements race.
             CustomerContainerBalance::query()->insertOrIgnore([
@@ -205,6 +233,32 @@ class StreetOperation
 
             return $movement;
         });
+    }
+
+    /**
+     * The opposite movement (a delivery is returned, a return delivered again) for each container moved with a cancelled sale.
+     * Reversals point at what they reverse, are never reversed themselves and are dated when the sale was cancelled.
+     */
+    private function giveContainersBack(Sale $sale, User $cancelledBy, CarbonInterface $cancelledAt): void
+    {
+        $movements = $sale->containerMovements()
+            ->whereNull('reverses_movement_id')
+            ->whereIn('movement_type', array_keys(self::OPPOSITES))
+            ->with(['customer', 'visit'])
+            ->orderBy('id')
+            ->get();
+
+        foreach ($movements as $movement) {
+            $this->recordContainerMovement(new MoveContainers(
+                customer: $movement->customer,
+                containerTypeId: $movement->container_type_id,
+                type: self::OPPOSITES[$movement->movement_type],
+                quantity: $movement->quantity,
+                visit: $movement->visit,
+                recordedBy: $cancelledBy,
+                sale: $sale,
+            ), reverses: $movement, at: $cancelledAt);
+        }
     }
 
     /**

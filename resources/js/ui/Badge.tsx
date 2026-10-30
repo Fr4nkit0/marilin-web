@@ -1,4 +1,4 @@
-import { money } from '@/lib/format';
+import { balanceLabel, balanceState, type BalanceState } from '@/lib/format';
 
 export type StatusVariant = 'en_ruta' | 'finalizado' | 'pendiente' | 'parado' | 'cancelado' | 'sin_actividad' | 'en_progreso';
 
@@ -64,27 +64,23 @@ export function StatusBadge({ status, label, className = '' }: StatusBadgeProps)
 }
 
 export interface DebtBadgeProps {
-    hasDebt: boolean;
-    balance?: number | string;
+    balance: number | string;
     className?: string;
 }
 
-export function DebtBadge({ hasDebt, balance, className = '' }: DebtBadgeProps) {
-    if (hasDebt) {
-        return (
-            <span
-                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border border-rose-200/60 dark:border-rose-500/30 bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300 ${className}`}
-            >
-                Con deuda {balance ? `(${money(balance)})` : ''}
-            </span>
-        );
-    }
+const BALANCE_TINTS: Record<BalanceState, string> = {
+    debt: 'border-rose-200/60 dark:border-rose-500/30 bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300',
+    clear: 'border-emerald-200/60 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
+    credit: 'border-sky-200/60 dark:border-sky-500/30 bg-sky-50 dark:bg-sky-500/15 text-sky-700 dark:text-sky-300',
+};
 
+/** Con deuda, Al día or Saldo a favor, from the sign of the customer's balance. */
+export function DebtBadge({ balance, className = '' }: DebtBadgeProps) {
     return (
         <span
-            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border border-emerald-200/60 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 ${className}`}
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${BALANCE_TINTS[balanceState(balance)]} ${className}`}
         >
-            Al día
+            {balanceLabel(balance)}
         </span>
     );
 }

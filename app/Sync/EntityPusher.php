@@ -10,6 +10,7 @@ use App\Customers\Customers\Models\Customer;
 use App\Review\Reviewable;
 use App\Review\ReviewReason;
 use App\Shared\ClientTime;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\QueryException;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -88,6 +89,23 @@ abstract class EntityPusher
     protected function modifiedAt(array $record): Carbon
     {
         return ClientTime::parse($record['modified_at'])->min(now());
+    }
+
+    /**
+     * An offline cancellation or edit is judged by when the driver acted, not by when the push arrives: it must be made
+     * on the record's local day and be at most `sync.offline_action_max_age_days` old.
+     */
+    protected function assertActedOnRecordDay(CarbonInterface $recordAt, CarbonInterface $actedAt, string $notOnDay, string $tooOld): void
+    {
+        if ($recordAt->toDateString() !== $actedAt->toDateString()) {
+            throw new RejectedRecord($notOnDay);
+        }
+
+        $maxAgeDays = (int) config('sync.offline_action_max_age_days');
+
+        if ($actedAt->lessThan(now()->subDays($maxAgeDays))) {
+            throw new RejectedRecord(sprintf($tooOld, $maxAgeDays));
+        }
     }
 
     /**

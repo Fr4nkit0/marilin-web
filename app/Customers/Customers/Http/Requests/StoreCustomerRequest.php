@@ -11,6 +11,8 @@ use Illuminate\Validation\Validator;
 
 class StoreCustomerRequest extends FormRequest
 {
+    use ResolvesCatalogNeighborhood;
+
     public function authorize(): bool
     {
         return true;
@@ -34,6 +36,7 @@ class StoreCustomerRequest extends FormRequest
             // Keyed by container type id: how many containers of each type the customer already holds.
             'initial_containers' => 'nullable|array',
             'initial_containers.*' => 'nullable|integer|min:0',
+            ...CustomerPreferenceRules::rows(),
         ];
     }
 

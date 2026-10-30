@@ -8,6 +8,8 @@ import HomePaymentModal from '@/modules/Street/Payments/components/HomePaymentMo
 import HomeSaleModal from '@/modules/Street/Sales/components/HomeSaleModal';
 import { HomeContainerType, HomePaymentMethod, HomeProduct } from '@/modules/Street/types';
 import { AgreementProduct, AgreementStatus, CustomerAgreementRow } from '@/modules/Customers/Agreements/types';
+import CustomerPreferenceFormModal from './components/CustomerPreferenceFormModal';
+import { CustomerPreferenceRow } from './types';
 import {
     ArrowLeft,
     Phone,
@@ -22,8 +24,9 @@ import {
     Plus,
     CreditCard,
     Truck,
+    CalendarClock,
 } from 'lucide-react';
-import { accountEntryTypeLabel, date, dateTime, money, type AccountEntryType } from '@/lib/format';
+import { accountEntryTypeLabel, balanceState, date, dateTime, money, timeWindowLabel, weekdayName, type AccountEntryType, type BalanceState } from '@/lib/format';
 
 interface Props {
     customer: {
@@ -68,7 +71,8 @@ interface Props {
         entryType: AccountEntryType;
         direction: number; // 1 debit (owes more), -1 credit (pays)
         amount: number;
-        description?: string;
+        /** "Venta 2x Bidón 20L", "Cobro en efectivo", or a cancellation's own words. */
+        concept: string | null;
         createdAt: string;
         paymentMethod?: string;
     }[];
@@ -82,6 +86,8 @@ interface Props {
         created_at: string;
     }[];
     agreements: CustomerAgreementRow[];
+    /** The enabled delivery preferences, by day and start. */
+    preferences: CustomerPreferenceRow[];
     agreementProducts: AgreementProduct[];
     canManageAgreements: boolean;
     canRecordAtHome: boolean;
@@ -96,6 +102,12 @@ const AGREEMENT_STATUS: Record<AgreementStatus, { label: string; className: stri
     ended: { label: 'Finalizado', className: 'bg-surface-1 text-ink-muted' },
 };
 
+const BALANCE_SUMMARY: Record<BalanceState, { caption: string; className: string }> = {
+    debt: { caption: 'Deuda pendiente', className: 'text-red-600 dark:text-red-300' },
+    clear: { caption: 'Sin saldo', className: 'text-emerald-600 dark:text-emerald-300' },
+    credit: { caption: 'Saldo a favor', className: 'text-sky-600 dark:text-sky-300' },
+};
+
 const localToday = () => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -106,6 +118,7 @@ export default function CustomerShow({
     accountEntries,
     containerMovements,
     agreements,
+    preferences,
     agreementProducts,
     canManageAgreements,
     canRecordAtHome,
@@ -113,7 +126,9 @@ export default function CustomerShow({
     paymentMethods,
     containerTypes,
 }: Props) {
-    const [activeTab, setActiveTab] = useState<'account' | 'containers' | 'agreements'>('account');
+    const [activeTab, setActiveTab] = useState<'account' | 'containers' | 'agreements' | 'preferences'>('account');
+    // undefined: the preference form is closed; null: it adds a new one.
+    const [editingPreference, setEditingPreference] = useState<CustomerPreferenceRow | null | undefined>(undefined);
     const [showAgreementForm, setShowAgreementForm] = useState(false);
     const [showHomeSale, setShowHomeSale] = useState(false);
     const [showHomePayment, setShowHomePayment] = useState(false);
@@ -127,8 +142,16 @@ export default function CustomerShow({
         router.patch(route('customers.agreements.end', [customer.id, agreement.id]), {}, { preserveScroll: true });
     };
 
+    const removePreference = (preference: CustomerPreferenceRow) => {
+        const confirmed = window.confirm(
+            `¿Quitar ${weekdayName(preference.dayOfWeek)} (${timeWindowLabel(preference.timeWindowStart, preference.timeWindowEnd)})?`,
+        );
+        if (!confirmed) return;
+        router.delete(route('customers.preferences.destroy', [customer.id, preference.id]), { preserveScroll: true });
+    };
+
     const balanceNum = Number(customer.balance?.current_balance || 0);
-    const hasDebt = balanceNum > 0;
+    const balanceSummary = BALANCE_SUMMARY[balanceState(balanceNum)];
 
     return (
         <AdminLayout
@@ -171,7 +194,7 @@ export default function CustomerShow({
                                 <h1 className="text-2xl font-semibold text-ink tracking-tight">
                                     {customer.name}
                                 </h1>
-                                <DebtBadge hasDebt={hasDebt} balance={balanceNum} />
+                                <DebtBadge balance={balanceNum} />
                             </div>
                             <div className="flex flex-wrap items-center gap-5 text-sm font-medium text-ink-muted mt-2 tracking-wide">
                                 {customer.phone_number && (
@@ -210,11 +233,11 @@ export default function CustomerShow({
                             <span className="text-xs font-medium text-ink-subtle block mb-1 tracking-wide">
                                 Saldo Actual
                             </span>
-                            <p className={`text-3xl font-semibold tracking-tight ${hasDebt ? 'text-red-600 dark:text-red-300' : 'text-emerald-600 dark:text-emerald-300'}`}>
+                            <p className={`text-3xl font-semibold tracking-tight ${balanceSummary.className}`}>
                                 {money(Math.abs(balanceNum))}
                             </p>
                             <span className="text-xs font-medium text-ink-subtle mt-1 block tracking-wide">
-                                {hasDebt ? 'Deuda pendiente' : 'Al día / Sin saldo'}
+                                {balanceSummary.caption}
                             </span>
                         </div>
                     </div>
@@ -283,6 +306,19 @@ export default function CustomerShow({
                         Acuerdos
                     </span>
                 </button>
+                <button
+                    onClick={() => setActiveTab('preferences')}
+                    className={`pb-3 text-sm font-medium tracking-wide transition-colors border-b-4 ${
+                        activeTab === 'preferences'
+                            ? 'border-sky-600 text-ink'
+                            : 'border-transparent text-ink-muted hover:text-ink hover:border-hairline/60'
+                    }`}
+                >
+                    <span className="flex items-center gap-2">
+                        <CalendarClock className="w-4 h-4" />
+                        Días y horarios
+                    </span>
+                </button>
             </div>
 
             {/* TAB 1: Account Entries */}
@@ -321,7 +357,7 @@ export default function CustomerShow({
                                                     {entry.createdAt}
                                                 </td>
                                                 <td className="px-6 py-4 font-medium text-ink">
-                                                    {entry.description || (isDebit ? 'Venta de productos' : 'Cobranza')}
+                                                    {entry.concept ?? accountEntryTypeLabel(entry.entryType)}
                                                 </td>
                                                 <td className="px-6 py-4 text-center">
                                                     <span
@@ -542,6 +578,81 @@ export default function CustomerShow({
                 </div>
             )}
 
+            {/* TAB 4: Delivery preferences */}
+            {activeTab === 'preferences' && (
+                <div className="bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden ">
+                    <div className="p-5 border-b border-hairline flex items-center justify-between gap-4">
+                        <div>
+                            <h3 className="text-base font-semibold text-ink tracking-wide">
+                                Días y horarios de entrega
+                            </h3>
+                            <p className="text-xs text-ink-muted mt-1">
+                                El repartidor los ve en la app después de sincronizar.
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setEditingPreference(null)}
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 cursor-pointer whitespace-nowrap dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
+                        >
+                            <Plus className="w-4 h-4" />
+                            Agregar día
+                        </button>
+                    </div>
+
+                    {preferences.length > 0 ? (
+                        <div className="table-scroll">
+                            <table className="w-full text-sm">
+                                <thead>
+                                    <tr className="text-left text-xs font-medium text-ink-muted border-b border-hairline">
+                                        <th className="px-5 py-3">Día</th>
+                                        <th className="px-5 py-3">Horario</th>
+                                        <th className="px-5 py-3" />
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {preferences.map((preference) => (
+                                        <tr key={preference.id} className="border-b border-hairline last:border-0">
+                                            <td className="px-5 py-3 font-medium text-ink">{weekdayName(preference.dayOfWeek)}</td>
+                                            <td className="px-5 py-3 text-ink-secondary">
+                                                {timeWindowLabel(preference.timeWindowStart, preference.timeWindowEnd)}
+                                            </td>
+                                            <td className="px-5 py-3 text-right whitespace-nowrap">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setEditingPreference(preference)}
+                                                    className="text-sm font-medium text-sky-600 dark:text-sky-300 hover:text-sky-500 cursor-pointer mr-4"
+                                                >
+                                                    Editar
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removePreference(preference)}
+                                                    className="text-sm font-medium text-red-600 dark:text-red-300 hover:text-red-500 cursor-pointer"
+                                                >
+                                                    Quitar
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        <div className="m-6 text-center py-12 text-ink-muted text-sm border-2 border-dashed border-hairline rounded-lg">
+                            Sin días ni horarios cargados.
+                        </div>
+                    )}
+                </div>
+            )}
+
+            <CustomerPreferenceFormModal
+                show={editingPreference !== undefined}
+                customerId={customer.id}
+                preference={editingPreference ?? null}
+                onClose={() => setEditingPreference(undefined)}
+            />
+
             {canRecordAtHome && (
                 <>
                     <HomeSaleModal
@@ -550,6 +661,7 @@ export default function CustomerShow({
                         customerName={customer.name}
                         products={homeProducts}
                         containerTypes={containerTypes}
+                        paymentMethods={paymentMethods}
                         onClose={() => setShowHomeSale(false)}
                     />
                     <HomePaymentModal
@@ -557,6 +669,7 @@ export default function CustomerShow({
                         customerId={customer.id}
                         customerName={customer.name}
                         paymentMethods={paymentMethods}
+                        balance={balanceNum}
                         onClose={() => setShowHomePayment(false)}
                     />
                 </>

@@ -1,11 +1,22 @@
 import {
     Dialog,
     DialogPanel,
+    DialogTitle,
     Transition,
     TransitionChild,
 } from '@headlessui/react';
 import { PropsWithChildren } from 'react';
 
+/** The modal's heading; it names the dialog (aria-labelledby) for screen readers. */
+export function ModalTitle({ className = '', children }: PropsWithChildren<{ className?: string }>) {
+    return (
+        <DialogTitle as="h2" className={className}>
+            {children}
+        </DialogTitle>
+    );
+}
+
+/** A modal dialog (role="dialog", aria-modal); put a ModalTitle inside so it has a name. */
 export default function Modal({
     children,
     show = false,
