@@ -15,7 +15,10 @@ use App\Routes\Routes\Models\Route;
 use App\Routes\Routes\Models\RouteStop;
 use App\Routes\Visits\Models\Visit;
 use App\Routes\Visits\Models\VisitOutcome;
+use App\Street\Containers\Models\ContainerMovement;
+use App\Street\Payments\Models\Payment;
 use App\Street\Sales\Models\Sale;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 
 class BootstrapService
@@ -37,6 +40,8 @@ class BootstrapService
             'customers' => $this->customers($driver, $today),
             'visits' => $this->visits($driver, $today),
             'sales' => $this->sales($driver, $today),
+            'payments' => $this->owned(Payment::query(), $driver, 'received_by', 'paid_at', $today),
+            'container_movements' => $this->owned(ContainerMovement::query(), $driver, 'created_by', 'created_at', $today),
             'products' => Product::query()->where('enabled', true)->get(),
             'container_types' => ContainerType::query()->where('enabled', true)->get(),
             'payment_methods' => PaymentMethod::query()->where('enabled', true)->get(),
@@ -109,6 +114,24 @@ class BootstrapService
             ->tap(fn ($query) => DayScope::driver($driver)->apply($query, 'created_by'))
             ->whereDate('date', $today)
             ->orderBy('date')
+            ->orderBy('id')
+            ->get();
+    }
+
+    /**
+     * Today's records of the driver with the cash close ownership, cancelled ones included, so the app can rebuild what it settled.
+     *
+     * @template TModel of \Illuminate\Database\Eloquent\Model
+     *
+     * @param  Builder<TModel>  $query
+     * @return Collection<int, TModel>
+     */
+    private function owned(Builder $query, Driver $driver, string $recordedByColumn, string $dateColumn, string $today): Collection
+    {
+        return $query
+            ->tap(fn ($query) => DayScope::driver($driver)->apply($query, $recordedByColumn))
+            ->whereDate($dateColumn, $today)
+            ->orderBy($dateColumn)
             ->orderBy('id')
             ->get();
     }
