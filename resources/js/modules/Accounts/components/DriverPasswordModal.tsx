@@ -1,5 +1,6 @@
 import React, { FormEvent, useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
+import { FieldError } from '@/ui/Field';
 import { X } from 'lucide-react';
 import Modal from '@/ui/Modal';
 import { DriverAccount } from '@/modules/Accounts/types';
@@ -31,7 +32,7 @@ export default function DriverPasswordModal({ account, onClose }: Props) {
 
     return (
         <Modal show={account !== null} onClose={onClose} maxWidth="md">
-            <form onSubmit={submit}>
+            <form onSubmit={submit} noValidate>
                 <div className="flex items-start justify-between gap-4 px-6 pt-6 pb-4 border-b border-hairline">
                     <div>
                         <h2 className="text-lg font-semibold text-ink">Cambiar contraseña</h2>
@@ -59,7 +60,7 @@ export default function DriverPasswordModal({ account, onClose }: Props) {
                             className={inputClass}
                             autoComplete="new-password"
                         />
-                        {errors.password && <span className="block text-sm text-red-600 dark:text-red-300 mt-1">{errors.password}</span>}
+                        <FieldError message={errors.password} className="mt-1" />
                     </label>
                     <label className="block">
                         <span className="block text-sm font-medium text-ink mb-1">Repetir contraseña</span>

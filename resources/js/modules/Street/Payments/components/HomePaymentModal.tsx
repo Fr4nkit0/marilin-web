@@ -1,5 +1,6 @@
 import React, { FormEvent, useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
+import { FieldError } from '@/ui/Field';
 import { X } from 'lucide-react';
 import Modal from '@/ui/Modal';
 import { HomePaymentMethod } from '@/modules/Street/types';
@@ -40,7 +41,7 @@ export default function HomePaymentModal({ show, customerId, customerName, payme
 
     return (
         <Modal show={show} onClose={onClose} maxWidth="md">
-            <form onSubmit={submit}>
+            <form onSubmit={submit} noValidate>
                 <div className="flex items-start justify-between gap-4 px-6 pt-6 pb-4 border-b border-hairline">
                     <div>
                         <h2 className="text-lg font-semibold text-ink">Cobro en casa</h2>
@@ -71,7 +72,7 @@ export default function HomePaymentModal({ show, customerId, customerName, payme
                             className={`${inputClass} mt-1`}
                             required
                         />
-                        {errors.amount && <p className="text-sm text-red-600 dark:text-red-300 mt-1">{errors.amount}</p>}
+                        <FieldError message={errors.amount} className="mt-1" />
                     </label>
 
                     <label className="block">
@@ -89,7 +90,7 @@ export default function HomePaymentModal({ show, customerId, customerName, payme
                                 </option>
                             ))}
                         </select>
-                        {errors.payment_method_id && <p className="text-sm text-red-600 dark:text-red-300 mt-1">{errors.payment_method_id}</p>}
+                        <FieldError message={errors.payment_method_id} className="mt-1" />
                     </label>
                 </div>
 

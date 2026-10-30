@@ -19,7 +19,7 @@ import {
     FileText,
     FileSpreadsheet,
 } from 'lucide-react';
-import { money } from '@/lib/format';
+import { date, money } from '@/lib/format';
 
 interface Props {
     repartidores: { id: number; name: string }[];
@@ -32,10 +32,10 @@ export default function CashCloseIndex({
     repartidores,
     selectedRepartidorId,
     settlement,
-    date,
+    date: day,
 }: Props) {
     const [selectedId, setSelectedId] = useState(selectedRepartidorId || '');
-    const [selectedDate, setSelectedDate] = useState(date);
+    const [selectedDate, setSelectedDate] = useState(day);
     const [openDetail, setOpenDetail] = useState<CashCloseDetailKind | null>(null);
 
     const handleSelectRepartidor = (id: string | number) => {
@@ -56,7 +56,7 @@ export default function CashCloseIndex({
         );
     };
 
-    const activeRepartidorName = repartidores.find((r) => r.id === Number(selectedId))?.name || 'Seleccione chofer';
+    const activeRepartidorName = repartidores.find((r) => r.id === Number(selectedId))?.name || 'Seleccione repartidor';
 
     const exportUrl = (format: 'pdf' | 'xlsx') =>
         route('cash-close.export', { format, repartidor_id: selectedId, date: selectedDate });
@@ -66,23 +66,23 @@ export default function CashCloseIndex({
             header={
                 <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-ink-muted">
-                        Liquidación & Arqueo
+                        Cierre de caja
                     </span>
                 </div>
             }
         >
-            <Head title="Cierre de Caja y Arqueo" />
+            <Head title="Cierre de caja" />
 
             <PageHeader
-                title="Cierre de Caja y Arqueo de Ruta"
-                description={`Conciliación de dinero en efectivo, transferencias y balance de stock retornado para ${selectedDate}.`}
+                title="Cierre de caja"
+                description={`Arqueo de la ruta: conciliación de efectivo, transferencias y balance de stock retornado del ${date(selectedDate)}.`}
             />
 
             {/* Drivers Selection Toolbar */}
             <div className="bg-canvas border border-hairline/60 rounded-2xl p-4 mb-6 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 ">
                 <div className="flex items-center gap-3 w-full sm:w-auto">
                     <span className="text-sm font-medium text-ink-muted whitespace-nowrap">
-                        Chofer:
+                        Repartidor:
                     </span>
                     <select
                         value={selectedId}
@@ -135,13 +135,13 @@ export default function CashCloseIndex({
                     <AlertCircle className="w-12 h-12 mx-auto text-ink-subtle mb-3" />
                     <h3 className="text-lg font-semibold text-ink">Sin ruta para liquidar</h3>
                     <p className="text-sm text-ink-muted mt-2">
-                        El chofer <strong className="font-medium text-ink">{activeRepartidorName}</strong> no tiene una ruta registrada en la fecha {selectedDate}.
+                        El repartidor <strong className="font-medium text-ink">{activeRepartidorName}</strong> no tiene una ruta registrada en la fecha {date(selectedDate)}.
                     </p>
                 </div>
             ) : (
                 <div className="space-y-6">
                     {/* Settlement KPI Row */}
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
                         <KpiCard
                             title="Total Rendición Efectivo"
                             onClick={() => setOpenDetail('cash')}

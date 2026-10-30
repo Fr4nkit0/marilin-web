@@ -40,21 +40,22 @@ export function KpiCard({
     return (
         <Wrapper
             {...(onClick ? { type: 'button' as const, onClick } : {})}
-            className={`bg-canvas rounded-2xl border border-hairline/60 p-5 shadow-sm transition-shadow hover:shadow-md ${
+            className={`min-w-0 bg-canvas rounded-2xl border border-hairline/60 p-4 sm:p-5 shadow-sm transition-shadow hover:shadow-md ${
                 onClick
                     ? 'w-full text-left cursor-pointer hover:border-sky-300 focus:outline-none focus:ring-2 focus:ring-sky-600/30'
                     : ''
             } ${className}`}
         >
-            <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-ink-muted">{title}</p>
-                <div className={`p-2 rounded-xl ${iconColors[variant]}`}>
+            {/* Two cards share a row on a phone, so the text steps down a size there. */}
+            <div className="flex items-start justify-between gap-2">
+                <p className="min-w-0 text-xs sm:text-sm font-medium text-ink-muted">{title}</p>
+                <div className={`shrink-0 p-2 rounded-xl ${iconColors[variant]}`}>
                     <Icon className="w-4 h-4" strokeWidth={2} />
                 </div>
             </div>
 
-            <div className="mt-4 flex items-baseline justify-between">
-                <h3 className="text-2xl font-semibold text-ink tracking-tight">{value}</h3>
+            <div className="mt-3 sm:mt-4 flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1">
+                <h3 className="min-w-0 break-words text-lg sm:text-2xl font-semibold text-ink tracking-tight">{value}</h3>
                 {trend && (
                     <div
                         className={`flex items-center text-xs font-medium ${

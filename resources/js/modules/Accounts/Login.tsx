@@ -40,7 +40,7 @@ export default function Login({
                 <p className="text-sm text-ink-muted mt-2 text-center">Ingresá tus credenciales para acceder al sistema</p>
             </div>
 
-            <form onSubmit={submit} className="space-y-6">
+            <form onSubmit={submit} noValidate className="space-y-6">
                 <div>
                     <Label htmlFor="email" value="Correo electrónico" className="text-ink-secondary font-medium" />
 

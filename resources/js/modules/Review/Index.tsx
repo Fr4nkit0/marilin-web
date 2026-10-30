@@ -57,7 +57,7 @@ export default function Index({ items, filters, drivers }: Props) {
             <Head title="Revisión" />
 
             <div className="mb-6">
-                <h1 className="text-2xl font-semibold text-ink tracking-tight">Bandeja de revisión</h1>
+                <h1 className="text-2xl font-semibold text-ink tracking-tight">Revisión</h1>
                 <p className="text-sm font-medium text-ink-muted mt-1 tracking-wide">
                     {items.total} {items.total === 1 ? 'registro' : 'registros'} con los filtros aplicados.
                 </p>

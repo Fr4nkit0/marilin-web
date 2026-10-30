@@ -127,20 +127,20 @@ export default function RoutesIndex({
             header={
                 <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-ink-muted">
-                        Logística & Despacho
+                        Despacho y rutas
                     </span>
                 </div>
             }
         >
-            <Head title="Despacho y Rutas" />
+            <Head title="Despacho y rutas" />
 
             <PageHeader
-                title="Despacho Diario y Gestión de Rutas"
+                title="Despacho y rutas"
                 description={`Supervisión de paradas, inventario de ruta y avance de recorridos para la fecha seleccionada.`}
             />
 
             {/* Quick Metrics */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
+            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 mb-6">
                 <KpiCard
                     title="Rutas Asignadas"
                     value={kpis.totalRoutes}
@@ -207,7 +207,7 @@ export default function RoutesIndex({
                             onChange={(e) => filter.set('driver_id', e.target.value)}
                             className="text-sm font-medium border border-hairline/60 rounded-lg py-2 pl-3 pr-8 bg-canvas text-ink focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent transition-all shadow-sm"
                         >
-                            <option value="">Todos los Choferes</option>
+                            <option value="">Todos los repartidores</option>
                             {drivers.map((drv) => (
                                 <option key={drv.id} value={drv.id}>
                                     {drv.name}
@@ -232,7 +232,7 @@ export default function RoutesIndex({
                     <Truck className="w-12 h-12 text-ink-subtle mx-auto mb-4" />
                     <h3 className="text-lg font-semibold text-ink">No hay rutas asignadas para esta fecha</h3>
                     <p className="text-sm text-ink-muted mt-2">
-                        Probá seleccionando otra fecha o cambiando los filtros de chofer/estado.
+                        Probá seleccionando otra fecha o cambiando los filtros de repartidor/estado.
                     </p>
                 </div>
             ) : (

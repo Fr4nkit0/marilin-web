@@ -54,7 +54,7 @@ class GetDailyDashboardMetricsAction
 
             $repartidoresStatus[] = [
                 'id' => $route->driver?->id ?? $route->id,
-                'name' => $route->driver?->user?->name ?? 'Chofer sin asignar',
+                'name' => $route->driver?->user?->name ?? 'Repartidor sin asignar',
                 'status' => $route->status, // PLANNED, IN_PROGRESS, COMPLETED
                 'totalStops' => $routeStopsCount,
                 'completedStops' => $routeCompletedCount,

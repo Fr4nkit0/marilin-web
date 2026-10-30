@@ -6,6 +6,7 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import AdminLayout from '@/layouts/AdminLayout';
 import { DebtBadge } from '@/ui/Badge';
 import { PageHeader } from '@/ui/PageHeader';
+import { FieldError } from '@/ui/Field';
 import {
     Search,
     Plus,
@@ -156,7 +157,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
             header={
                 <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-ink-muted">
-                        Directorio
+                        Clientes
                     </span>
                 </div>
             }
@@ -166,7 +167,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
             <div className="mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-semibold text-ink tracking-tight">
-                        Gestión de Clientes
+                        Clientes
                     </h1>
                     <p className="text-sm font-medium text-ink-muted mt-1 tracking-wide">
                         {isFiltered
@@ -404,7 +405,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                             </button>
                         </div>
 
-                        <form onSubmit={handleCreateCustomer} className="p-6 space-y-5">
+                        <form onSubmit={handleCreateCustomer} noValidate className="p-6 space-y-5">
                             {/* Nombre o Razón Social */}
                             <div>
                                 <label className="block text-sm font-medium text-ink-secondary mb-1.5">
@@ -418,7 +419,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                     placeholder="Ej: Sanatorio Los Lapachos S.A."
                                     className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                 />
-                                {errors.name && <p className="text-sm text-red-600 dark:text-red-300 mt-1">{errors.name}</p>}
+                                <FieldError message={errors.name} className="mt-1" />
                             </div>
 
                             {/* Teléfono & Repartidor */}
@@ -434,9 +435,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                         placeholder="Ej: +54 387 422-3000"
                                         className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                     />
-                                    {errors.phone_number && (
-                                        <p className="text-sm text-red-600 dark:text-red-300 mt-1">{errors.phone_number}</p>
-                                    )}
+                                    <FieldError message={errors.phone_number} className="mt-1" />
                                 </div>
 
                                 <div>
@@ -455,9 +454,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                             </option>
                                         ))}
                                     </select>
-                                    {errors.repartidor_id && (
-                                        <p className="text-sm text-red-600 dark:text-red-300 mt-1">{errors.repartidor_id}</p>
-                                    )}
+                                    <FieldError message={errors.repartidor_id} className="mt-1" />
                                 </div>
                             </div>
 
@@ -478,7 +475,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                         placeholder="Ej: Belgrano 340"
                                         className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                     />
-                                    {errors.street && <p className="text-sm text-red-600 dark:text-red-300 mt-1">{errors.street}</p>}
+                                    <FieldError message={errors.street} className="mt-1" />
                                 </div>
 
                                 <div>
@@ -495,9 +492,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                         placeholder="Buscar barrio, ej: Tres Cerritos"
                                         className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                     />
-                                    {errors.neighborhood && (
-                                        <p className="text-sm text-red-600 dark:text-red-300 mt-1">{errors.neighborhood}</p>
-                                    )}
+                                    <FieldError message={errors.neighborhood} className="mt-1" />
                                 </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
@@ -513,6 +508,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                             placeholder="Ej: PB, 3, Local 2"
                                             className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                         />
+                                        <FieldError message={errors.floor} className="mt-1" />
                                     </div>
 
                                     <div>
@@ -526,6 +522,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                             placeholder="Ej: 4B"
                                             className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                         />
+                                        <FieldError message={errors.apartment} className="mt-1" />
                                     </div>
 
                                     <div>
@@ -539,6 +536,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                             placeholder="Ej: Frente a Plaza Belgrano"
                                             className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                         />
+                                        <FieldError message={errors.visual_reference} className="mt-1" />
                                     </div>
                                 </div>
                             </div>
@@ -548,9 +546,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                 <h4 className="text-sm font-semibold text-ink">
                                     Condiciones Iniciales
                                 </h4>
-                                {errors.initial_containers && (
-                                    <p className="text-sm text-red-600 dark:text-red-300">{errors.initial_containers}</p>
-                                )}
+                                <FieldError message={errors.initial_containers} className="mt-1" />
 
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                                     <div>
@@ -565,6 +561,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                             onChange={(e) => setData('initial_balance', e.target.value)}
                                             className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  font-medium"
                                         />
+                                        <FieldError message={errors.initial_balance} className="mt-1" />
                                     </div>
 
                                     {containerTypes.map((type) => (
@@ -586,11 +583,10 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                                 }
                                                 className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  font-medium"
                                             />
-                                            {(errors as Record<string, string>)[`initial_containers.${type.id}`] && (
-                                                <p className="text-sm text-red-600 dark:text-red-300 mt-1">
-                                                    {(errors as Record<string, string>)[`initial_containers.${type.id}`]}
-                                                </p>
-                                            )}
+                                            <FieldError
+                                                message={(errors as Record<string, string>)[`initial_containers.${type.id}`]}
+                                                className="mt-1"
+                                            />
                                         </div>
                                     ))}
                                 </div>
@@ -653,7 +649,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                             </button>
                         </div>
 
-                        <form onSubmit={handleUpdateCustomer} className="p-6 space-y-5">
+                        <form onSubmit={handleUpdateCustomer} noValidate className="p-6 space-y-5">
                             {/* Nombre o Razón Social */}
                             <div>
                                 <label className="block text-sm font-medium text-ink-secondary mb-1.5">
@@ -666,9 +662,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                     onChange={(e) => editForm.setData('name', e.target.value)}
                                     className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                 />
-                                {editForm.errors.name && (
-                                    <p className="text-sm text-red-600 dark:text-red-300 mt-1">{editForm.errors.name}</p>
-                                )}
+                                <FieldError message={editForm.errors.name} className="mt-1" />
                             </div>
 
                             {/* Teléfono & Repartidor */}
@@ -684,9 +678,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                         placeholder="Ej: +54 387 422-3000"
                                         className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                     />
-                                    {editForm.errors.phone_number && (
-                                        <p className="text-sm text-red-600 dark:text-red-300 mt-1">{editForm.errors.phone_number}</p>
-                                    )}
+                                    <FieldError message={editForm.errors.phone_number} className="mt-1" />
                                 </div>
 
                                 <div>
@@ -705,9 +697,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                             </option>
                                         ))}
                                     </select>
-                                    {editForm.errors.repartidor_id && (
-                                        <p className="text-sm text-red-600 dark:text-red-300 mt-1">{editForm.errors.repartidor_id}</p>
-                                    )}
+                                    <FieldError message={editForm.errors.repartidor_id} className="mt-1" />
                                 </div>
                             </div>
 
@@ -727,9 +717,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                         onChange={(e) => editForm.setData('street', e.target.value)}
                                         className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                     />
-                                    {editForm.errors.street && (
-                                        <p className="text-sm text-red-600 dark:text-red-300 mt-1">{editForm.errors.street}</p>
-                                    )}
+                                    <FieldError message={editForm.errors.street} className="mt-1" />
                                 </div>
 
                                 <div>
@@ -746,9 +734,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                         placeholder="Buscar barrio, ej: Tres Cerritos"
                                         className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                     />
-                                    {editForm.errors.neighborhood && (
-                                        <p className="text-sm text-red-600 dark:text-red-300 mt-1">{editForm.errors.neighborhood}</p>
-                                    )}
+                                    <FieldError message={editForm.errors.neighborhood} className="mt-1" />
                                 </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
@@ -764,6 +750,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                             placeholder="Ej: PB, 3, Local 2"
                                             className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                         />
+                                        <FieldError message={editForm.errors.floor} className="mt-1" />
                                     </div>
 
                                     <div>
@@ -777,6 +764,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                             placeholder="Ej: 4B"
                                             className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                         />
+                                        <FieldError message={editForm.errors.apartment} className="mt-1" />
                                     </div>
 
                                     <div>
@@ -790,6 +778,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                             placeholder="Ej: Frente a Plaza Belgrano"
                                             className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                         />
+                                        <FieldError message={editForm.errors.visual_reference} className="mt-1" />
                                     </div>
                                 </div>
                             </div>

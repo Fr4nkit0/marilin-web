@@ -73,13 +73,13 @@ export default function AdminLayout({
 
     const navigation: NavItem[] = [
         {
-            name: 'Dashboard',
+            name: 'Panel',
             href: route('dashboard'),
             icon: LayoutDashboard,
             active: route().current('dashboard'),
         },
         {
-            name: 'Choferes',
+            name: 'Repartidores',
             href: route('drivers.index'),
             icon: Truck,
             active: route().current('drivers.*') || route().current('repartidores.*') || false,
@@ -91,7 +91,7 @@ export default function AdminLayout({
             active: route().current('customers.*') || false,
         },
         {
-            name: 'Despacho y Rutas',
+            name: 'Despacho y rutas',
             href: route('routes.index'),
             icon: CalendarCheck,
             active: route().current('routes.*') || false,
@@ -125,7 +125,7 @@ export default function AdminLayout({
               ]
             : []),
         {
-            name: 'Cierre y Arqueo',
+            name: 'Cierre de caja',
             href: route('cash-close.index'),
             icon: Package,
             active: route().current('cash-close.*') || false,

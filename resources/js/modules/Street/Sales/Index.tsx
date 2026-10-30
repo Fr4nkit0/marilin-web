@@ -15,7 +15,7 @@ import {
     User,
     Clock,
 } from 'lucide-react';
-import { money, time } from '@/lib/format';
+import { date, money, time } from '@/lib/format';
 import { useListFilters } from '@/lib/useListFilters';
 import DataTable, { type Column } from '@/ui/DataTable';
 import Pagination from '@/ui/Pagination';
@@ -144,17 +144,17 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
                 </div>
             }
         >
-            <Head title="Ventas" />
+            <Head title="Ventas y cobros" />
 
             <PageHeader
                 title="Ventas y cobros"
-                description={`Ventas hechas en la calle y en casa el ${filters.date}.`}
+                description={`Ventas hechas en la calle y en casa el ${date(filters.date)}.`}
             />
 
             <SalesPaymentsTabs current="sales" filters={{ search: filters.search, date: filters.date, repartidor_id: filters.repartidor_id }} />
 
             {/* Metrics Row */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-6">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 mb-6">
                 <KpiCard
                     title="Ventas Totales"
                     value={money(metrics.totalSalesAmount)}

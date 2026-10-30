@@ -14,7 +14,7 @@ import {
     User,
     ArrowUpRight,
 } from 'lucide-react';
-import { money, paymentStatusLabel, time, type PaymentStatus } from '@/lib/format';
+import { date, money, paymentStatusLabel, time, type PaymentStatus } from '@/lib/format';
 import { useListFilters } from '@/lib/useListFilters';
 import DataTable, { type Column } from '@/ui/DataTable';
 import Pagination from '@/ui/Pagination';
@@ -117,17 +117,17 @@ export default function PaymentsIndex({ payments, metrics, filters, paymentMetho
                 </div>
             }
         >
-            <Head title="Cobros" />
+            <Head title="Ventas y cobros" />
 
             <PageHeader
                 title="Ventas y cobros"
-                description={`Cobros recibidos en la calle y en casa el ${filters.date}, con o sin venta.`}
+                description={`Cobros recibidos en la calle y en casa el ${date(filters.date)}, con o sin venta.`}
             />
 
             <SalesPaymentsTabs current="payments" filters={{ search: filters.search, date: filters.date, repartidor_id: filters.repartidor_id }} />
 
             {/* Metrics */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-6">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 mb-6">
                 <KpiCard
                     title="Total Recaudado"
                     value={money(metrics.totalCollected)}
