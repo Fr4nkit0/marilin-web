@@ -8,6 +8,9 @@ import HomePaymentModal from '@/modules/Street/Payments/components/HomePaymentMo
 import HomeSaleModal from '@/modules/Street/Sales/components/HomeSaleModal';
 import { HomeContainerType, HomePaymentMethod, HomeProduct } from '@/modules/Street/types';
 import { AgreementProduct, AgreementStatus, CustomerAgreementRow } from '@/modules/Customers/Agreements/types';
+import ScheduledVisitFormModal from '@/modules/Routes/ScheduledVisits/components/ScheduledVisitFormModal';
+import ScheduledVisitStatusBadge from '@/modules/Routes/ScheduledVisits/components/ScheduledVisitStatusBadge';
+import { ScheduledVisitRow } from '@/modules/Routes/ScheduledVisits/types';
 import CustomerPreferenceFormModal from './components/CustomerPreferenceFormModal';
 import { CustomerPreferenceRow } from './types';
 import {
@@ -25,6 +28,7 @@ import {
     CreditCard,
     Truck,
     CalendarClock,
+    CalendarPlus,
 } from 'lucide-react';
 import { accountEntryTypeLabel, balanceState, date, dateTime, money, timeWindowLabel, weekdayName, type AccountEntryType, type BalanceState } from '@/lib/format';
 
@@ -94,6 +98,10 @@ interface Props {
     homeProducts: HomeProduct[];
     paymentMethods: HomePaymentMethod[];
     containerTypes: HomeContainerType[];
+    /** Every upcoming scheduled visit and the last past ones, newest date first. */
+    scheduledVisits: ScheduledVisitRow[];
+    /** A visit can be scheduled only for a customer with a driver. */
+    canSchedule: boolean;
 }
 
 const AGREEMENT_STATUS: Record<AgreementStatus, { label: string; className: string }> = {
@@ -125,8 +133,11 @@ export default function CustomerShow({
     homeProducts,
     paymentMethods,
     containerTypes,
+    scheduledVisits,
+    canSchedule,
 }: Props) {
-    const [activeTab, setActiveTab] = useState<'account' | 'containers' | 'agreements' | 'preferences'>('account');
+    const [activeTab, setActiveTab] = useState<'account' | 'containers' | 'agreements' | 'preferences' | 'scheduledVisits'>('account');
+    const [showScheduleVisit, setShowScheduleVisit] = useState(false);
     // undefined: the preference form is closed; null: it adds a new one.
     const [editingPreference, setEditingPreference] = useState<CustomerPreferenceRow | null | undefined>(undefined);
     const [showAgreementForm, setShowAgreementForm] = useState(false);
@@ -148,6 +159,12 @@ export default function CustomerShow({
         );
         if (!confirmed) return;
         router.delete(route('customers.preferences.destroy', [customer.id, preference.id]), { preserveScroll: true });
+    };
+
+    const cancelScheduledVisit = (visit: ScheduledVisitRow) => {
+        const confirmed = window.confirm(`¿Cancelar la visita del ${date(visit.date)}?`);
+        if (!confirmed) return;
+        router.patch(route('scheduled-visits.cancel', visit.id), {}, { preserveScroll: true });
     };
 
     const balanceNum = Number(customer.balance?.current_balance || 0);
@@ -244,26 +261,43 @@ export default function CustomerShow({
                 </div>
             </div>
 
-            {canRecordAtHome && (
-                <div className="flex flex-wrap items-center gap-3 mb-6">
-                    <button
-                        type="button"
-                        onClick={() => setShowHomeSale(true)}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 cursor-pointer dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
-                    >
-                        <Plus className="w-4 h-4" />
-                        Venta en casa
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setShowHomePayment(true)}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-ink-secondary bg-canvas ring-1 ring-inset ring-hairline/80 hover:bg-canvas-soft cursor-pointer"
-                    >
-                        <CircleDollarSign className="w-4 h-4" />
-                        Cobro en casa
-                    </button>
-                </div>
-            )}
+            <div className="flex flex-wrap items-center gap-3 mb-6">
+                {canRecordAtHome && (
+                    <>
+                        <button
+                            type="button"
+                            onClick={() => setShowHomeSale(true)}
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 cursor-pointer dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
+                        >
+                            <Plus className="w-4 h-4" />
+                            Venta en casa
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setShowHomePayment(true)}
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-ink-secondary bg-canvas ring-1 ring-inset ring-hairline/80 hover:bg-canvas-soft cursor-pointer"
+                        >
+                            <CircleDollarSign className="w-4 h-4" />
+                            Cobro en casa
+                        </button>
+                    </>
+                )}
+                <button
+                    type="button"
+                    onClick={() => setShowScheduleVisit(true)}
+                    disabled={!canSchedule}
+                    aria-describedby={canSchedule ? undefined : 'schedule-visit-hint'}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-ink-secondary bg-canvas ring-1 ring-inset ring-hairline/80 hover:bg-canvas-soft cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-canvas"
+                >
+                    <CalendarPlus className="w-4 h-4" />
+                    Agendar visita
+                </button>
+                {!canSchedule && (
+                    <span id="schedule-visit-hint" className="text-xs text-ink-muted">
+                        Asigná un repartidor antes de agendar.
+                    </span>
+                )}
+            </div>
 
             {/* Content Tabs Navigation */}
             <div className="flex items-center gap-6 mb-6 border-b border-hairline">
@@ -317,6 +351,19 @@ export default function CustomerShow({
                     <span className="flex items-center gap-2">
                         <CalendarClock className="w-4 h-4" />
                         Días y horarios
+                    </span>
+                </button>
+                <button
+                    onClick={() => setActiveTab('scheduledVisits')}
+                    className={`pb-3 text-sm font-medium tracking-wide transition-colors border-b-4 ${
+                        activeTab === 'scheduledVisits'
+                            ? 'border-sky-600 text-ink'
+                            : 'border-transparent text-ink-muted hover:text-ink hover:border-hairline/60'
+                    }`}
+                >
+                    <span className="flex items-center gap-2">
+                        <CalendarPlus className="w-4 h-4" />
+                        Visitas agendadas
                     </span>
                 </button>
             </div>
@@ -645,6 +692,75 @@ export default function CustomerShow({
                     )}
                 </div>
             )}
+
+            {/* TAB 5: Scheduled visits */}
+            {activeTab === 'scheduledVisits' && (
+                <div className="bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden ">
+                    <div className="p-5 border-b border-hairline">
+                        <h3 className="text-base font-semibold text-ink tracking-wide">Visitas agendadas</h3>
+                        <p className="text-xs text-ink-muted mt-1">
+                            El repartidor la ve como parada de su ruta ese día, marcada como visita solicitada.
+                        </p>
+                    </div>
+
+                    {pageErrors.scheduled_visit && (
+                        <p className="mx-5 mt-4 text-sm text-red-600 dark:text-red-300">{pageErrors.scheduled_visit}</p>
+                    )}
+
+                    {scheduledVisits.length > 0 ? (
+                        <div className="table-scroll">
+                            <table className="w-full text-sm">
+                                <thead>
+                                    <tr className="text-left text-xs font-medium text-ink-muted border-b border-hairline">
+                                        <th className="px-5 py-3">Fecha</th>
+                                        <th className="px-5 py-3">Hora</th>
+                                        <th className="px-5 py-3">Nota</th>
+                                        <th className="px-5 py-3">Estado</th>
+                                        <th className="px-5 py-3" />
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {scheduledVisits.map((visit) => (
+                                        <tr key={visit.id} className="border-b border-hairline last:border-0">
+                                            <td className="px-5 py-3 font-medium text-ink whitespace-nowrap">{date(visit.date)}</td>
+                                            <td className="px-5 py-3 text-ink-secondary">
+                                                {visit.scheduledTime ? `Desde ${visit.scheduledTime}` : '—'}
+                                            </td>
+                                            <td className="px-5 py-3 text-ink-secondary">{visit.note ?? '—'}</td>
+                                            <td className="px-5 py-3">
+                                                <ScheduledVisitStatusBadge status={visit.status} label={visit.statusLabel} />
+                                            </td>
+                                            <td className="px-5 py-3 text-right">
+                                                {visit.canCancel && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => cancelScheduledVisit(visit)}
+                                                        className="text-sm font-medium text-red-600 dark:text-red-300 hover:text-red-500 cursor-pointer"
+                                                    >
+                                                        Cancelar
+                                                    </button>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        <div className="m-6 text-center py-12 text-ink-muted text-sm border-2 border-dashed border-hairline rounded-lg">
+                            Sin visitas agendadas.
+                        </div>
+                    )}
+                </div>
+            )}
+
+            <ScheduledVisitFormModal
+                show={showScheduleVisit}
+                customerId={customer.id}
+                customerName={customer.name}
+                today={localToday()}
+                onClose={() => setShowScheduleVisit(false)}
+            />
 
             <CustomerPreferenceFormModal
                 show={editingPreference !== undefined}

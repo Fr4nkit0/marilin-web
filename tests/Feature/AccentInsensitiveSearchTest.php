@@ -106,13 +106,13 @@ test('the drivers list without a search lists every enabled driver', function ()
 });
 
 test('the users search ignores accents and case', function (string $term): void {
-    $gomez = User::factory()->create(['name' => 'Lucía Gómez', 'is_super_user' => false]);
-    Driver::factory()->create(['user_id' => $gomez->id]);
+    $nandubay = User::factory()->create(['name' => 'Lucía Ñandúbay', 'is_super_user' => false]);
+    Driver::factory()->create(['user_id' => $nandubay->id]);
     $other = User::factory()->create(['name' => 'Carlos Ruiz', 'is_super_user' => false]);
     Driver::factory()->create(['user_id' => $other->id]);
 
-    expect(searchedIds('users.index', ['search' => $term], 'users', paginated: false))->toBe([$gomez->id]);
-})->with(['without the accent' => 'lucia gomez', 'in capitals' => 'GOMEZ']);
+    expect(searchedIds('users.index', ['search' => $term], 'users', paginated: false))->toBe([$nandubay->id]);
+})->with(['without the accent' => 'lucia nandubay', 'in capitals' => 'NANDUBAY']);
 
 test('the search treats % and _ as plain characters', function (): void {
     expect(searchedIds('customers.index', ['search' => '%'], 'customers'))->toBe([]);

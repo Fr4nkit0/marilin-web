@@ -73,19 +73,42 @@ class ReviewInbox
      */
     public function page(array $filters, int $perPage = 15): LengthAwarePaginator
     {
-        return $this->items($filters)
+        $page = $this->items($filters)
             ->select('items.type', 'items.id', 'items.driver_id', 'items.occurred_at', 'items.reason', 'items.reviewed_at')
             ->addSelect('customers.name as customer', 'users.name as driver', 'reviewers.name as reviewed_by')
             ->orderByDesc('items.occurred_at')
             ->orderBy('items.type')
             ->orderBy('items.id')
-            ->paginate($perPage)
-            ->through(function (object $row): object {
-                $row->reason = ReviewReason::tryFrom((string) $row->reason)?->label() ?? $row->reason;
+            ->paginate($perPage);
+
+        $requestedStops = $this->requestedStops($page->items());
+
+        return $page
+            ->through(function (object $row) use ($requestedStops): object {
+                $requested = $row->type === RouteStop::reviewSource()->type && isset($requestedStops[$row->id]);
+                $row->reason = ReviewReason::tryFrom((string) $row->reason)?->label($requested) ?? $row->reason;
 
                 return $row;
             })
             ->withQueryString();
+    }
+
+    /**
+     * The ids, as keys, of the page's stops that carried a scheduled visit.
+     *
+     * @param  array<int, object>  $rows
+     * @return array<int, int>
+     */
+    private function requestedStops(array $rows): array
+    {
+        $stopIds = collect($rows)->where('type', RouteStop::reviewSource()->type)->pluck('id');
+
+        return $stopIds->isEmpty() ? [] : RouteStop::query()
+            ->whereIn('id', $stopIds)
+            ->whereNotNull('scheduled_visit_id')
+            ->pluck('id')
+            ->flip()
+            ->all();
     }
 
     /**

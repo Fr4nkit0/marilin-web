@@ -8,6 +8,7 @@ use App\Review\Reviewable;
 use App\Review\ReviewSource;
 use App\Routes\Routes\Database\Factories\RouteStopFactory;
 use App\Routes\Routes\Enums\StopStatus;
+use App\Routes\ScheduledVisits\Models\ScheduledVisit;
 use App\Routes\Visits\Enums\VisitStatus;
 use App\Routes\Visits\Models\Visit;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -17,7 +18,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-#[Fillable(['route_id', 'customer_id', 'address_id', 'is_rescheduled_from', 'scheduled_time', 'client_uuid', 'enabled', 'needs_review', 'review_reason'])]
+#[Fillable(['route_id', 'customer_id', 'address_id', 'is_rescheduled_from', 'scheduled_time', 'scheduled_visit_id', 'note', 'client_uuid', 'enabled', 'needs_review', 'review_reason'])]
 class RouteStop extends Model
 {
     /** @use HasFactory<RouteStopFactory> */
@@ -60,6 +61,19 @@ class RouteStop extends Model
     public function rescheduledTo(): HasOne
     {
         return $this->hasOne(RouteStop::class, 'is_rescheduled_from');
+    }
+
+    public function scheduledVisit(): BelongsTo
+    {
+        return $this->belongsTo(ScheduledVisit::class);
+    }
+
+    /**
+     * "Visita solicitada": the stop carries a visit the admin scheduled.
+     */
+    public function isRequested(): bool
+    {
+        return $this->scheduled_visit_id !== null;
     }
 
     public function visit(): HasOne

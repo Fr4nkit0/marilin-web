@@ -12,6 +12,7 @@ import {
     Calendar,
 } from 'lucide-react';
 import { date, money, stopStatusLabel } from '@/lib/format';
+import RequestedVisitMark from './components/RequestedVisitMark';
 import type { RouteStatus, RouteStopRow } from './types';
 
 interface StopItem extends RouteStopRow {
@@ -212,6 +213,7 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
                                                         <span>{stop.customer.address}</span>
                                                     </div>
                                                 )}
+                                                {stop.is_requested && <RequestedVisitMark note={stop.note} />}
                                             </td>
 
                                             {/* Status */}

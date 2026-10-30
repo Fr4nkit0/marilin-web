@@ -30,9 +30,14 @@ enum ReviewReason: string
 
     /**
      * What the admin reads in the review inbox; the backing value is what gets stored.
+     * An unvisited stop that carried a scheduled visit reads as the requested visit it was.
      */
-    public function label(): string
+    public function label(bool $requestedStop = false): string
     {
+        if ($requestedStop && in_array($this, [self::UnvisitedStop, self::UnvisitedRescheduledStop], true)) {
+            return 'Visita solicitada sin visitar.';
+        }
+
         return match ($this) {
             self::ForeignCustomer => 'El cliente está asignado a otro repartidor.',
             self::DisabledCustomer => 'El cliente está dado de baja.',

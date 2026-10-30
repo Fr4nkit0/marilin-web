@@ -57,6 +57,16 @@ test('the daily task flags a rescheduled stop whose day ended without a visit an
         ->and($original->fresh()->needs_review)->toBeFalse();
 });
 
+test('the daily task never flags a disabled rescheduled stop', function (): void {
+    $original = stopOn('2026-10-21');
+    $disabled = stopOn('2026-10-22', $original);
+    $disabled->update(['enabled' => false]);
+
+    $this->artisan('review:flag-rescheduled-stops')->assertSuccessful();
+
+    expect($disabled->fresh()->needs_review)->toBeFalse();
+});
+
 test('the daily task does not flag the stops of a cancelled route', function (): void {
     $original = stopOn('2026-10-21');
     $stop = stopOn('2026-10-22', $original);

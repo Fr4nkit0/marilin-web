@@ -39,6 +39,15 @@ class Route extends Model
         return $this->hasMany(RouteStop::class);
     }
 
+    /**
+     * The stops the driver still has to make or made: a disabled one (a cancelled scheduled visit) is gone from the route.
+     * The web lists and counts these; sync keeps reading stops() so the app hears about the disabled ones.
+     */
+    public function activeStops(): HasMany
+    {
+        return $this->stops()->where('enabled', true);
+    }
+
     public function inventories(): HasMany
     {
         return $this->hasMany(RouteInventory::class);

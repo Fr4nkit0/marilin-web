@@ -97,7 +97,7 @@ class PullService
             $data[$name] = $rows->take($size)->values();
 
             if ($name === 'route_stops') {
-                $data[$name] = $data[$name]->map(fn (RouteStop $stop): RouteStop => $this->withEffectiveStatus($stop));
+                $data[$name] = $data[$name]->map(fn (RouteStop $stop): RouteStop => $this->withDerivedFields($stop));
             }
         }
 
@@ -141,9 +141,10 @@ class PullService
         ];
     }
 
-    private function withEffectiveStatus(RouteStop $stop): RouteStop
+    private function withDerivedFields(RouteStop $stop): RouteStop
     {
         $stop->setAttribute('status', $stop->effectiveStatus()->value);
+        $stop->setAttribute('is_requested', $stop->isRequested());
         $stop->unsetRelations();
 
         return $stop;

@@ -11,6 +11,7 @@ use App\Customers\Customers\Models\CustomerAddress;
 use App\Review\ReviewReason;
 use App\Routes\Routes\Models\Route;
 use App\Routes\Routes\Models\RouteStop;
+use App\Routes\ScheduledVisits\Models\ScheduledVisit;
 use App\Routes\Visits\Models\Visit;
 use App\Street\Containers\Models\ContainerMovement;
 use App\Street\Payments\Models\Payment;
@@ -234,6 +235,19 @@ test('the review inbox shows the known review reasons in the language of the pan
         'sale' => 'El cliente está asignado a otro repartidor.',
         'visit' => 'Motivo libre',
     ]);
+});
+
+test('an unvisited stop that carried a scheduled visit reads as a requested visit, without changing the stored reason', function (): void {
+    $who = inboxDriver();
+    $requested = flaggedRecord('route_stop', $who, review: ['review_reason' => ReviewReason::UnvisitedStop->value]);
+    $requested->forceFill(['scheduled_visit_id' => ScheduledVisit::factory()->create(['customer_id' => $who['customer']->id, 'date' => '2026-10-22'])->id])->save();
+    $plain = flaggedRecord('route_stop', $who, review: ['review_reason' => ReviewReason::UnvisitedStop->value]);
+
+    expect(collect(inboxRows())->pluck('reason', 'id')->all())->toEqual([
+        $requested->id => 'Visita solicitada sin visitar.',
+        $plain->id => 'La parada terminó el día sin visita.',
+    ])
+        ->and($requested->fresh()->review_reason)->toBe(ReviewReason::UnvisitedStop->value);
 });
 
 test('a record that was already reviewed keeps its first reviewer and date', function (): void {

@@ -22,6 +22,8 @@ use App\Customers\Customers\Models\CustomerAddress;
 use App\Customers\Customers\Models\CustomerPreference;
 use App\Customers\Neighborhoods\Models\Neighborhood;
 use App\Http\Controllers\Controller;
+use App\Routes\ScheduledVisits\Enums\ScheduledVisitDisplayStatus;
+use App\Routes\ScheduledVisits\Models\ScheduledVisit;
 use App\Shared\TextMatch;
 use App\Street\Ledger\Models\CustomerAccountEntry;
 use App\Street\Sales\Models\SaleDetail;
@@ -163,6 +165,8 @@ class CustomerController extends Controller
                 ->map(fn (Product $product): array => ['id' => $product->id, 'name' => $product->name, 'price' => (float) $product->price]),
             'canManageAgreements' => Gate::allows('manage-agreements'),
             'canRecordAtHome' => $canRecordAtHome,
+            'scheduledVisits' => $this->scheduledVisits($customer),
+            'canSchedule' => $customer->driver_id !== null,
             'homeProducts' => $canRecordAtHome ? $this->homeProducts($customer, $prices) : [],
             'paymentMethods' => $canRecordAtHome ? PaymentMethod::query()->enabled()->orderBy('name')->get(['id', 'name']) : [],
             'containerTypes' => $canRecordAtHome ? ContainerType::query()->enabled()->orderBy('description')->get(['id', 'description']) : [],
@@ -196,6 +200,39 @@ class CustomerController extends Controller
         }
 
         return $entry->description;
+    }
+
+    /**
+     * Every upcoming scheduled visit and the last twenty past ones, newest date first, with what the admin reads of each.
+     *
+     * @return list<array{id: int, date: string, scheduledTime: string|null, note: string|null, status: string, statusLabel: string, canCancel: bool}>
+     */
+    private function scheduledVisits(Customer $customer): array
+    {
+        $today = today()->toDateString();
+        $query = fn () => ScheduledVisit::query()
+            ->where('customer_id', $customer->id)
+            ->with(['routeStop.visit', 'routeStop.route'])
+            ->orderByDesc('date')
+            ->orderByDesc('id');
+
+        return $query()->whereDate('date', '>=', $today)->get()
+            ->concat($query()->whereDate('date', '<', $today)->limit(20)->get())
+            ->map(function (ScheduledVisit $visit): array {
+                $status = $visit->displayStatus();
+
+                return [
+                    'id' => $visit->id,
+                    'date' => $visit->date->toDateString(),
+                    'scheduledTime' => $this->hourMinute($visit->scheduled_time),
+                    'note' => $visit->note,
+                    'status' => $status->value,
+                    'statusLabel' => $status->label(),
+                    'canCancel' => in_array($status, [ScheduledVisitDisplayStatus::Scheduled, ScheduledVisitDisplayStatus::OnRoute], true),
+                ];
+            })
+            ->values()
+            ->all();
     }
 
     private function hourMinute(?string $time): ?string

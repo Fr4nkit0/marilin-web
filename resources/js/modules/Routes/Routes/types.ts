@@ -19,5 +19,10 @@ export interface RouteStopRow {
     /** "Parada hecha": the visit finished, whatever its outcome. */
     done: boolean;
     arrivedAt?: string;
+    /** What the driver wrote at the visit. */
     notes?: string;
+    /** "Visita solicitada": the admin scheduled this visit. */
+    is_requested: boolean;
+    /** The admin's note for a requested visit. */
+    note: string | null;
 }
