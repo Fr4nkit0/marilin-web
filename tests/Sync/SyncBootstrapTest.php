@@ -15,8 +15,10 @@ use App\Routes\Routes\Models\Route;
 use App\Routes\Routes\Models\RouteStop;
 use App\Routes\Visits\Models\Visit;
 use App\Routes\Visits\Models\VisitOutcome;
+use App\Street\Containers\Models\ContainerMovement;
 use App\Street\Containers\Models\CustomerContainerBalance;
 use App\Street\Ledger\Models\CustomerBalance;
+use App\Street\Payments\Models\Payment;
 use App\Street\RouteStock\Models\RouteInventory;
 use App\Street\Sales\Models\Sale;
 use App\Street\Sales\Models\SaleDetail;
@@ -272,6 +274,53 @@ test('bootstrap returns the enabled neighborhoods ordered by name', function ():
     expect(collect($neighborhoods)->map(fn (array $row): array => [$row['id'], $row['name'], $row['enabled']])->all())
         ->toBe([[$centro->id, 'Centro', true], [$tres->id, 'Tres Cerritos', true]])
         ->and(array_keys($neighborhoods[0]))->toBe(['id', 'name', 'enabled', 'updated_at']);
+});
+
+test('bootstrap returns the driver payments and container movements of today, cancelled ones included', function (): void {
+    [$user, $driver, $route] = driverWithToday();
+    Sanctum::actingAs($user, ['*']);
+
+    $customer = Customer::factory()->create(['driver_id' => $driver->id, 'enabled' => true]);
+    $visit = Visit::factory()->create(['driver_id' => $driver->id, 'customer_id' => $customer->id, 'arrived_at' => now()]);
+    $sale = Sale::factory()->create(['customer_id' => $customer->id, 'visit_id' => $visit->id, 'date' => now()]);
+    $other = User::factory()->create();
+
+    $visitPayment = Payment::factory()->create([
+        'client_uuid' => '9f1c2b3a-4d5e-4f60-8a7b-1c2d3e4f5a6b',
+        'customer_id' => $customer->id, 'visit_id' => $visit->id, 'sale_id' => $sale->id,
+        'received_by' => $other->id, 'paid_at' => now(), 'status' => 'CONFIRMED',
+    ]);
+    $loosePayment = Payment::factory()->create(['customer_id' => $customer->id, 'visit_id' => null, 'received_by' => $user->id, 'paid_at' => now(), 'status' => 'CANCELLED']);
+    $yesterdayPayment = Payment::factory()->create(['customer_id' => $customer->id, 'visit_id' => null, 'received_by' => $user->id, 'paid_at' => now()->subDay()]);
+    $housePayment = Payment::factory()->create(['customer_id' => $customer->id, 'visit_id' => null, 'received_by' => $other->id, 'paid_at' => now()]);
+
+    $type = ContainerType::factory()->create();
+    $visitMovement = ContainerMovement::factory()->create([
+        'client_uuid' => '1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d',
+        'customer_id' => $customer->id, 'visit_id' => $visit->id, 'container_type_id' => $type->id,
+        'movement_type' => 'RETURNED', 'quantity' => 2, 'created_by' => $other->id, 'created_at' => now(),
+    ]);
+    $yesterdayMovement = ContainerMovement::factory()->create(['customer_id' => $customer->id, 'visit_id' => null, 'created_by' => $user->id, 'created_at' => now()->subDay()]);
+    $otherDriverMovement = ContainerMovement::factory()->create(['visit_id' => null, 'created_by' => $other->id, 'created_at' => now()]);
+
+    $response = $this->getJson('/api/v1/sync/bootstrap')->assertOk();
+
+    $payments = collect($response->json('data.payments'))->keyBy('id');
+    expect($payments->keys()->sort()->values()->all())->toBe(collect([$visitPayment->id, $loosePayment->id])->sort()->values()->all())
+        ->and($payments[$visitPayment->id]['client_uuid'])->toBe('9f1c2b3a-4d5e-4f60-8a7b-1c2d3e4f5a6b')
+        ->and($payments[$visitPayment->id]['sale_id'])->toBe($sale->id)
+        ->and($payments[$visitPayment->id]['visit_id'])->toBe($visit->id)
+        ->and($payments[$visitPayment->id])->toHaveKeys(['customer_id', 'payment_method_id', 'amount', 'paid_at', 'status'])
+        ->and($payments[$loosePayment->id]['status'])->toBe('CANCELLED')
+        ->and($payments->keys())->not->toContain($yesterdayPayment->id)
+        ->and($payments->keys())->not->toContain($housePayment->id);
+
+    $movements = collect($response->json('data.container_movements'));
+    expect($movements->pluck('id')->all())->toBe([$visitMovement->id])
+        ->and($movements[0]['client_uuid'])->toBe('1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d')
+        ->and($movements[0]['movement_type'])->toBe('RETURNED')
+        ->and($movements[0]['quantity'])->toBe(2)
+        ->and($movements[0])->toHaveKeys(['customer_id', 'visit_id', 'container_type_id']);
 });
 
 test('bootstrap server_time carries the safety margin so the first pull cannot miss a same-second write', function (): void {
