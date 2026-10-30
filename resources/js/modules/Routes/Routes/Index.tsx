@@ -22,6 +22,7 @@ import {
     Filter,
     PackagePlus,
 } from 'lucide-react';
+import RequestedVisitMark from './components/RequestedVisitMark';
 import type { RouteStatus, RouteStopRow } from './types';
 
 interface StopItem extends RouteStopRow {
@@ -467,6 +468,7 @@ export default function RoutesIndex({
                                                                                 {stop.customer.phone}
                                                                             </span>
                                                                         )}
+                                                                        {stop.is_requested && <RequestedVisitMark note={stop.note} />}
                                                                     </td>
                                                                     <td className="px-6 py-4 text-ink-muted">
                                                                         {stop.customer.address}

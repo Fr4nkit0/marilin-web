@@ -34,7 +34,7 @@ final class VisitScheduler
         }
 
         if ($date->toDateString() < today()->toDateString()) {
-            throw new InvalidScheduledVisit('La fecha no puede ser anterior a hoy.');
+            throw new InvalidScheduledVisit('La fecha no puede ser anterior a hoy.', 'date');
         }
 
         if (! $customer->enabled) {
