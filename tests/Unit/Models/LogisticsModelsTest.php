@@ -1,25 +1,25 @@
 <?php
 
-use App\Models\Customer;
-use App\Models\CustomerAddress;
-use App\Models\Repartidor;
-use App\Models\Route;
-use App\Models\RouteStop;
-use App\Models\User;
-use App\Models\Visit;
-use App\Models\VisitOutcome;
-use App\Models\VisitStatusHistory;
+use App\Accounts\Models\Driver;
+use App\Accounts\Models\User;
+use App\Customers\Customers\Models\Customer;
+use App\Customers\Customers\Models\CustomerAddress;
+use App\Routes\Routes\Models\Route;
+use App\Routes\Routes\Models\RouteStop;
+use App\Routes\Visits\Models\Visit;
+use App\Routes\Visits\Models\VisitOutcome;
+use App\Routes\Visits\Models\VisitStatusHistory;
 
-test('route belongs to repartidor and filters by date and status scopes', function () {
-    $repartidor = Repartidor::factory()->create();
+test('route belongs to driver and filters by date and status scopes', function () {
+    $driver = Driver::factory()->create();
     $today = now()->toDateString();
 
     $route = Route::factory()->inProgress()->create([
-        'assigned_repartidor_id' => $repartidor->id,
+        'assigned_driver_id' => $driver->id,
         'date' => $today,
     ]);
 
-    expect($route->repartidor->id)->toBe($repartidor->id);
+    expect($route->driver->id)->toBe($driver->id);
     expect(Route::forDate($today)->count())->toBe(1);
     expect(Route::inProgress()->count())->toBe(1);
     expect(Route::planned()->count())->toBe(0);
@@ -55,10 +55,10 @@ test('visit outcome triggers reschedule and links to visits', function () {
 });
 
 test('visit tracks route stop, customer, driver, outcome, and status history', function () {
-    $repartidor = Repartidor::factory()->create();
-    $customer = Customer::factory()->create(['repartidor_id' => $repartidor->id]);
+    $driver = Driver::factory()->create();
+    $customer = Customer::factory()->create(['driver_id' => $driver->id]);
     $address = CustomerAddress::factory()->create(['customer_id' => $customer->id]);
-    $route = Route::factory()->create(['assigned_repartidor_id' => $repartidor->id]);
+    $route = Route::factory()->create(['assigned_driver_id' => $driver->id]);
     $stop = RouteStop::factory()->create([
         'route_id' => $route->id,
         'customer_id' => $customer->id,
@@ -70,7 +70,7 @@ test('visit tracks route stop, customer, driver, outcome, and status history', f
     $visit = Visit::factory()->finished()->create([
         'route_stop_id' => $stop->id,
         'customer_id' => $customer->id,
-        'repartidor_id' => $repartidor->id,
+        'driver_id' => $driver->id,
         'outcome_id' => $outcome->id,
         'created_by' => $user->id,
     ]);
@@ -84,7 +84,7 @@ test('visit tracks route stop, customer, driver, outcome, and status history', f
 
     expect($visit->routeStop->id)->toBe($stop->id);
     expect($visit->customer->id)->toBe($customer->id);
-    expect($visit->repartidor->id)->toBe($repartidor->id);
+    expect($visit->driver->id)->toBe($driver->id);
     expect($visit->outcome->id)->toBe($outcome->id);
     expect($visit->creator->id)->toBe($user->id);
     expect($visit->statusHistories)->toHaveCount(1);

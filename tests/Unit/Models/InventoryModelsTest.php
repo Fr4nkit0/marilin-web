@@ -1,14 +1,14 @@
 <?php
 
-use App\Models\ContainerMovement;
-use App\Models\ContainerType;
-use App\Models\Customer;
-use App\Models\CustomerContainerBalance;
-use App\Models\Product;
-use App\Models\Route;
-use App\Models\RouteInventory;
-use App\Models\RouteInventoryLoad;
-use App\Models\User;
+use App\Accounts\Models\User;
+use App\Catalog\Models\ContainerType;
+use App\Catalog\Models\Product;
+use App\Customers\Customers\Models\Customer;
+use App\Routes\Routes\Models\Route;
+use App\Street\Containers\Models\ContainerMovement;
+use App\Street\Containers\Models\CustomerContainerBalance;
+use App\Street\RouteStock\Models\RouteInventory;
+use App\Street\RouteStock\Models\RouteInventoryLoad;
 
 test('container type has products and container movements', function () {
     $containerType = ContainerType::factory()->bidon20L()->create();

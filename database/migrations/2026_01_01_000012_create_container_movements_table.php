@@ -16,6 +16,8 @@ return new class extends Migration
             $table->foreignId('customer_id')->constrained('customers')->cascadeOnDelete();
             $table->foreignId('container_type_id')->constrained('container_types')->cascadeOnDelete();
             $table->foreignId('visit_id')->nullable()->constrained('visits')->nullOnDelete();
+            $table->foreignId('sale_id')->nullable(); // the sale it was moved with; its FK lives in the sales migration
+            $table->foreignId('reverses_movement_id')->nullable()->constrained('container_movements')->nullOnDelete(); // the movement a sale cancellation gave back
             $table->string('movement_type', 30); // DELIVERED, RETURNED, ADJUSTMENT, LOST, DAMAGED
             $table->integer('quantity');
             $table->smallInteger('direction'); // -1 or 1
@@ -24,9 +26,15 @@ return new class extends Migration
             $table->foreignId('last_modified_by')->nullable()->constrained('users')->nullOnDelete();
             $table->boolean('enabled')->default(true);
             $table->timestamps();
+            $table->uuid('client_uuid')->nullable()->unique();
+            $table->boolean('needs_review')->default(false);
+            $table->text('review_reason')->nullable();
+            $table->timestamp('reviewed_at')->nullable();
+            $table->foreignId('reviewed_by')->nullable()->constrained('users')->nullOnDelete();
 
             $table->index(['customer_id', 'created_at']);
             $table->index('visit_id');
+            $table->index('sale_id');
         });
     }
 

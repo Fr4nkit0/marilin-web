@@ -97,6 +97,8 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => env('DB_SSLMODE', 'prefer'),
+            // The columns are tz-less: CURRENT_TIMESTAMP defaults must be written in the app's zone.
+            'timezone' => env('DB_TIMEZONE', env('APP_TIMEZONE', 'America/Argentina/Buenos_Aires')),
         ],
 
         'sqlsrv' => [

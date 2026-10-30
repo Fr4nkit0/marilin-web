@@ -20,6 +20,8 @@ return new class extends Migration
             $table->foreignId('last_modified_by')->nullable()->constrained('users')->nullOnDelete();
             $table->boolean('enabled')->default(true);
             $table->timestamps();
+
+            $table->index('updated_at');
         });
     }
 

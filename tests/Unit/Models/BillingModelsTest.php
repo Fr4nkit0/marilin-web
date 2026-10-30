@@ -1,16 +1,16 @@
 <?php
 
-use App\Models\Customer;
-use App\Models\CustomerAccountEntry;
-use App\Models\CustomerAgreement;
-use App\Models\CustomerBalance;
-use App\Models\Payment;
-use App\Models\PaymentMethod;
-use App\Models\Product;
-use App\Models\Sale;
-use App\Models\SaleDetail;
-use App\Models\Transaction;
-use App\Models\User;
+use App\Accounts\Models\User;
+use App\Catalog\Models\PaymentMethod;
+use App\Catalog\Models\Product;
+use App\Customers\Agreements\Models\CustomerAgreement;
+use App\Customers\Customers\Models\Customer;
+use App\Street\Ledger\Models\CustomerAccountEntry;
+use App\Street\Ledger\Models\CustomerBalance;
+use App\Street\Payments\Models\Payment;
+use App\Street\Payments\Models\Transaction;
+use App\Street\Sales\Models\Sale;
+use App\Street\Sales\Models\SaleDetail;
 
 test('customer agreement defines agreed price and active scope', function () {
     $customer = Customer::factory()->create();
@@ -45,9 +45,11 @@ test('sales and sale details compute totals and link products', function () {
     $detail = SaleDetail::factory()->create([
         'sale_id' => $sale->id,
         'product_id' => $product->id,
-        'quantity' => 2.00,
+        'quantity' => 2,
         'unit_price' => 1500.00,
     ]);
+
+    expect($detail->fresh()->quantity)->toBe(2);
 
     expect($sale->details)->toHaveCount(1);
     expect($sale->customer->id)->toBe($customer->id);

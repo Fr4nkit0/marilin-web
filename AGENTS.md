@@ -14,11 +14,11 @@ Todo agente de IA debe leer y respetar estas directivas antes de sugerir o modif
 
 ## 2. Stack Tecnológico Core
 - **Backend:** Laravel 12 + PHP 8.5 (en contenedor Docker gestionado por **Laravel Sail**).
-- **Frontend:** Inertia.js v2 + React 18 + TypeScript + Tailwind CSS v4 + Vite.
+- **Frontend:** Inertia.js v2 + React 18 + TypeScript + Tailwind CSS v3 + Vite.
 - **Base de Datos:** PostgreSQL 16 (`pgsql`) con persistencia en volumen Docker.
 - **Cache / Colas:** Redis (`redis`).
 - **Email / SMTP:** Mailpit (`mailpit`).
-- **Testing:** Pest PHP 5 (`./vendor/bin/sail artisan test`).
+- **Testing:** Pest PHP 5 (`./vendor/bin/sail artisan test`) y Vitest para `resources/js/lib` y `resources/js/ui` (`./vendor/bin/sail npm run test`).
 - **Code Quality:** Laravel Pint (`./vendor/bin/sail bin pint`) y TypeScript Type Checking (`npm run build`).
 
 ---
@@ -26,7 +26,9 @@ Todo agente de IA debe leer y respetar estas directivas antes de sugerir o modif
 ## 3. Arquitectura y Principios de Diseño
 
 ### 3.1. Filosofía General
-- **Fat Models / Action Classes, Skinny Controllers:** Los controladores de Laravel / Inertia solo manejan validación de entrada (FormRequests), orquestación y retorno de respuestas Inertia (`Inertia::render()`). La lógica de negocio pesada va en Services o Actions (`app/Actions/` o `app/Services/`).
+- **Módulos por tema (ADR 0003):** `app/` se organiza por tema del dominio, no por tipo de clase: `Accounts`, `Catalog`, `Customers`, `Routes`, `Street`, `CashDesk`, `Review`, `Sync`, `Dashboard` y `Shared`. Cada módulo es dueño de sus `Models/`, `Http/` (controllers, requests), `Enums/`, `Console/Commands/`, `Database/Factories/`, `routes.php` y sus tests en `tests/<Módulo>/`. Un módulo grande se divide en subtemas del glosario (un solo nivel), por ejemplo `Street/{Sales,Payments,Containers,RouteStock,Ledger}`; su interfaz de escritura queda en la raíz (`Street/StreetOperation`).
+- **Leer libre, escribir por el dueño:** cualquier módulo puede importar modelos de otro para leer; las escrituras pasan por el módulo dueño. Las migraciones (una por tabla), el seeder y las páginas de Inertia quedan fuera de los módulos.
+- **Skinny Controllers:** los controladores solo validan (FormRequests), llaman al módulo y devuelven `Inertia::render()`; la lógica de negocio vive en el módulo.
 - **Strict Typing:** Tanto en PHP (tipos en métodos y propiedades obligatorios) como en React / TypeScript (interfaces para props y modelos de dominio en `resources/js/types/`).
 - **IDs Autoincrementales:** Usamos IDs enteros estándar (`$table->id()`) con foreign keys explícitas (`$table->foreignId('...')->constrained()`).
 
@@ -37,9 +39,13 @@ Todo agente de IA debe leer y respetar estas directivas antes de sugerir o modif
 - **Eager Loading:** Prevenir problemas de N+1 queries usando `with()` en las consultas dirigidas a vistas de Inertia.
 
 ### 3.3. Frontend (Inertia + React + TypeScript)
-- **Componentes:** Separar componentes de presentación puros (Dumb/UI) de los componentes de página (Smart/Layouts).
-- **Tipos de Inertia:** Usar `PageProps<T>` para tipar los datos pasados desde los controladores hacia las páginas de Inertia.
-- **Formularios:** Usar el hook `useForm` de `@inertiajs/react` para envíos con validación y manejo automático de errores.
+- **Módulos espejo del backend (ADR 0003):** `resources/js/modules/<Módulo>[/<Subtema>]/` con sus páginas en la raíz (el nombre de Inertia es su ruta: `Inertia::render('Street/Sales/Index')` → `modules/Street/Sales/Index.tsx`), `components/` y `types.ts`.
+- **Compartido sin dominio:** `ui/` (design system: Button, Field, Input, Select, DataTable, Pagination, Badge, KpiCard, PageHeader, Modal) y `lib/` (`format` para plata, fechas y estados; `useListFilters` para los filtros de los listados). Los módulos dependen de `ui/` y `lib/`, nunca al revés.
+- **Entre módulos:** se importan tipos; una página puede componer componentes de otro módulo, un componente no.
+- **Tipos:** `PageProps<T>` y estados como uniones exactas (`StopStatus`, `PaymentStatus`, `RouteStatus`).
+- **Formularios:** `useForm` de `@inertiajs/react` con `ui/Field` y `ui/Button` (`processing`).
+- **Colores neutros por rol:** `bg-canvas`, `bg-canvas-soft`, `bg-surface-1`, `text-ink`, `text-ink-muted`, `border-hairline`… (nunca `bg-white` ni `text-slate-*`): así el modo oscuro llega a todo. Los tintes de estado llevan su variante `dark:`.
+- **Estilo:** DESIGN.md y SURFACE.md; celeste agua (sky-600) para acciones primarias, links, foco y selección.
 
 ---
 

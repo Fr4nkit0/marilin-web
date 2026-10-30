@@ -40,10 +40,11 @@ El ecosistema **Marilin** se compone de dos piezas fundamentales:
 ## ✨ Módulos y Funcionalidades Principales
 
 - **👥 Clientes y Zonas:** Ficha completa de clientes, geolocalización satelital, múltiples direcciones, horarios preferidos de entrega y asignación de repartidor.
-- **🚚 Planificación de Rutas:** Creación y asignación de rutas diarias, reordenamiento de paradas, reprogramación de visitas y monitoreo del estado de las entregas.
+- **🚚 Planificación de Rutas:** Generación automática de la ruta diaria de cada repartidor a partir de los días y horarios de visita de sus clientes (paradas ordenadas por horario), reprogramación de visitas y monitoreo del estado de las entregas.
 - **📦 Inventario y Envases Retornables:** Control de stock en depósito y carga en camión (`route_inventory`), seguimiento de envases entregados/devueltos por cliente (`customer_container_balances`).
 - **💰 Facturación y Acuerdos de Precios:** Configuración de listas de precios especiales por cliente (`customer_agreements`), registro de ventas y emisión de comprobantes.
 - **💳 Cuentas Corrientes y Tesorería:** Registro de pagos (efectivo, transferencias, tarjetas), libro de movimientos contables (`customer_account_entries`) y saldo histórico de clientes.
+- **🔐 Usuarios:** El administrador crea las cuentas de los repartidores (no hay registro público), edita sus datos, les cambia la contraseña y las habilita o deshabilita. Deshabilitar corta sus sesiones en la app y en el panel.
 - **🔄 APIs de Sincronización Móvil:** Endpoints optimizados para recibir las visitas, ventas y cobranzas offline de la app Flutter al recuperar conectividad.
 
 ---
@@ -55,7 +56,7 @@ El ecosistema **Marilin** se compone de dos piezas fundamentales:
 | **Backend** | [Laravel 12](https://laravel.com) · PHP 8.5 |
 | **Entorno & Contenedores** | [Laravel Sail](https://laravel.com/docs/sail) (Docker & Docker Compose) |
 | **Frontend** | [Inertia.js v2](https://inertiajs.com) · [React 18](https://react.dev) · [TypeScript](https://www.typescriptlang.org) |
-| **Estilos & UI** | [Tailwind CSS v4](https://tailwindcss.com) · Headless UI · Lucide Icons |
+| **Estilos & UI** | [Tailwind CSS v3](https://tailwindcss.com) · Headless UI · Lucide Icons |
 | **Base de Datos** | [PostgreSQL 16](https://www.postgresql.org) |
 | **Caché y Colas** | [Redis](https://redis.io) |
 | **Testing** | [Pest PHP 5](https://pestphp.com) (41 tests unitarios y de integración) |
@@ -102,7 +103,17 @@ cd marilin-web
 ./vendor/bin/sail npm run build
 ```
 
-### 4. Acceso a las aplicaciones locales
+### 4. Tareas programadas
+
+El scheduler de Laravel tiene que estar corriendo (`./vendor/bin/sail artisan schedule:work` en local, o un cron con `schedule:run` cada minuto en el servidor):
+
+- `routes:generate` (00:30): crea la ruta del día de cada repartidor habilitado con sus clientes que tienen ese día de visita, usando la dirección principal y ordenando las paradas por el inicio de la franja horaria. No modifica rutas que ya existen. Se puede correr a mano para otra fecha con `--date=YYYY-MM-DD`.
+- `review:flag-rescheduled-stops` (01:00): manda a revisión las paradas reprogramadas que terminaron el día sin visita.
+- `review:flag-unvisited-stops` (01:00): manda a revisión las paradas de días anteriores que quedaron sin visita (la app solo muestra la ruta de hoy).
+
+Los horarios son de Argentina (`APP_TIMEZONE`, por defecto `America/Argentina/Buenos_Aires`).
+
+### 5. Acceso a las aplicaciones locales
 
 - **Panel Web Marilin:** [http://localhost](http://localhost)
 - **Buzón de Correos de Prueba (Mailpit):** [http://localhost:8025](http://localhost:8025)
@@ -128,28 +139,40 @@ El proyecto cuenta con una suite completa de pruebas unitarias y de integración
 
 ```
 marilin-web/
-├── app/
-│   ├── Actions/                  # Lógica de negocio transaccional de responsabilidad única
-│   ├── Http/
-│   │   ├── Controllers/          # Controladores de Inertia y APIs
-│   │   ├── Requests/             # FormRequests de validación y autorización
-│   │   └── Resources/            # JsonResources para la API móvil
-│   ├── Models/                   # Modelos Eloquent con relaciones tipadas y casts
-│   └── Policies/                 # Políticas de acceso (Admin vs Repartidor)
+├── app/                          # Un módulo por tema del dominio (ADR 0003)
+│   ├── Accounts/                 # Usuarios, repartidores, login, tokens de la API
+│   ├── Catalog/                  # Productos, tipos de envase, medios de pago
+│   ├── Customers/
+│   │   ├── Customers/            # Cliente, dirección, alta de cliente
+│   │   └── Agreements/           # Acuerdos y precio del acuerdo
+│   ├── Routes/
+│   │   ├── Routes/               # Ruta, parada, generación diaria
+│   │   └── Visits/               # Visita y resultados de visita
+│   ├── Street/                   # StreetOperation: venta, cobro, envases, inventario de ruta
+│   │   ├── Sales/  Payments/  Containers/  RouteStock/  Ledger/
+│   ├── CashDesk/                 # Cifras del día y cierre de caja
+│   ├── Review/                   # Para revisión: bandeja y marcas nocturnas
+│   ├── Sync/                     # Bajada y Subida de la app
+│   ├── Dashboard/                # Pantalla de inicio
+│   ├── Shared/                   # Lo que no es de ningún tema
+│   ├── Http/                     # Controller base y middleware de Inertia
+│   └── Providers/
+│   (cada módulo: Models/ Http/ Enums/ Console/ Database/Factories/ routes.php)
 ├── database/
-│   ├── factories/                # Model Factories para tests y seeds
-│   ├── migrations/               # Migraciones ordenadas por dependencias
+│   ├── migrations/               # Una migración por tabla, en su forma final
 │   └── seeders/                  # DatabaseSeeder con datos realistas
-├── openspec/                     # Especificaciones y tareas SDD (Spec-Driven Development)
+├── docs/adr/                     # Decisiones de arquitectura
 ├── resources/
 │   └── js/
-│       ├── Components/           # Componentes UI reutilizables (Tailwind + React)
-│       ├── Layouts/              # Layouts autenticados y públicos
-│       ├── Pages/                # Vistas y páginas de Inertia
-│       └── types/                # Interfaces y tipos TypeScript
+│       ├── modules/              # Espejo de app/: páginas, components/ y types.ts por tema
+│       ├── ui/                   # Design system (Button, Field, DataTable, Badge, Modal…)
+│       ├── lib/                  # format (plata, fechas, estados), useListFilters
+│       ├── layouts/              # AdminLayout y GuestLayout
+│       └── types/                # Tipos globales (PageProps, PaginatedData)
 └── tests/
-    ├── Feature/                  # Tests de integración y endpoints
-    └── Unit/                     # Tests de modelos, relaciones y transacciones
+    ├── <Módulo>/                 # Tests de cada módulo
+    ├── Feature/                  # Tests transversales (seeder, API retirada)
+    └── Unit/                     # Tests de modelos que cruzan módulos
 ```
 
 ---

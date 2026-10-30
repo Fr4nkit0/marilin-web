@@ -1,0 +1,847 @@
+import React, { useState } from 'react';
+import { useListFilters } from '@/lib/useListFilters';
+import Pagination from '@/ui/Pagination';
+import type { PaginatedData } from '@/types';
+import { Head, Link, useForm } from '@inertiajs/react';
+import AdminLayout from '@/layouts/AdminLayout';
+import { DebtBadge } from '@/ui/Badge';
+import { PageHeader } from '@/ui/PageHeader';
+import { FieldError } from '@/ui/Field';
+import Modal, { ModalTitle } from '@/ui/Modal';
+import PreferenceRowsField from './components/PreferenceRowsField';
+import { PreferenceInput } from './types';
+import {
+    Search,
+    Plus,
+    Eye,
+    MapPin,
+    Phone,
+    Package,
+    SlidersHorizontal,
+    X,
+    Building2,
+    Save,
+} from 'lucide-react';
+
+interface CustomerAddress {
+    id: number;
+    street: string;
+    apartment?: string;
+    floor?: string;
+    visual_reference?: string;
+    neighborhood?: string | null;
+    is_primary: boolean;
+}
+
+interface ContainerBalance {
+    id: number;
+    balance: number;
+    container_type?: {
+        name: string;
+        code: string;
+    };
+}
+
+interface CustomerItem {
+    id: number;
+    name: string;
+    phone_number?: string;
+    driver?: {
+        id: number;
+        user?: {
+            name: string;
+        };
+    };
+    repartidor?: {
+        id: number;
+        user?: {
+            name: string;
+        };
+    };
+    primary_address?: CustomerAddress;
+    balance?: {
+        current_balance: string | number;
+    };
+    container_balances?: ContainerBalance[];
+}
+
+interface Props {
+    customers: PaginatedData<CustomerItem>;
+    filters: {
+        search?: string;
+        repartidor_id?: string;
+        debt_status?: string;
+    };
+    repartidores: { id: number; name: string }[];
+    neighborhoods: string[];
+    containerTypes: { id: number; description: string }[];
+}
+
+const NEIGHBORHOOD_OPTIONS = 'neighborhood-options';
+
+export default function CustomersIndex({ customers, filters, repartidores, neighborhoods, containerTypes }: Props) {
+    const filter = useListFilters(
+        'customers.index',
+        { search: filters.search || '', repartidor_id: filters.repartidor_id || '', debt_status: filters.debt_status || 'all' },
+        { search: '', repartidor_id: '', debt_status: 'all' },
+    );
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [editingCustomer, setEditingCustomer] = useState<CustomerItem | null>(null);
+
+    const { data, setData, post, processing, errors, reset } = useForm({
+        name: '',
+        phone_number: '',
+        repartidor_id: '',
+        street: '',
+        floor: '',
+        apartment: '',
+        visual_reference: '',
+        neighborhood: '',
+        initial_balance: '0',
+        // Keyed by container type id, one count per enabled type.
+        initial_containers: {} as Record<string, string>,
+        // Delivery preferences stored with the customer.
+        preferences: [] as PreferenceInput[],
+    });
+
+    const editForm = useForm({
+        name: '',
+        phone_number: '',
+        repartidor_id: '',
+        street: '',
+        floor: '',
+        apartment: '',
+        visual_reference: '',
+        neighborhood: '',
+        // New delivery preferences only; the existing ones are changed from the customer page.
+        preferences: [] as PreferenceInput[],
+    });
+
+    const isFiltered = Boolean(filters.search || filters.repartidor_id || (filters.debt_status && filters.debt_status !== 'all'));
+
+    const handleCreateCustomer = (e: React.FormEvent) => {
+        e.preventDefault();
+        post(route('customers.store'), {
+            onSuccess: () => {
+                setIsCreateModalOpen(false);
+                reset();
+            },
+        });
+    };
+
+    const handleOpenEditModal = (c: CustomerItem) => {
+        setEditingCustomer(c);
+        const assignedDriverId = c.driver?.id ?? c.repartidor?.id;
+        editForm.setData({
+            name: c.name,
+            phone_number: c.phone_number || '',
+            repartidor_id: assignedDriverId ? String(assignedDriverId) : '',
+            street: c.primary_address?.street || '',
+            floor: c.primary_address?.floor || '',
+            apartment: c.primary_address?.apartment || '',
+            visual_reference: c.primary_address?.visual_reference || '',
+            neighborhood: c.primary_address?.neighborhood || '',
+            preferences: [],
+        });
+        editForm.clearErrors();
+    };
+
+    const handleUpdateCustomer = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingCustomer) return;
+        editForm.put(route('customers.update', editingCustomer.id), {
+            onSuccess: () => {
+                setEditingCustomer(null);
+            },
+        });
+    };
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        filter.submit();
+    };
+
+    return (
+        <AdminLayout
+            header={
+                <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-ink-muted">
+                        Clientes
+                    </span>
+                </div>
+            }
+        >
+            <Head title="Clientes" />
+
+            <div className="mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-semibold text-ink tracking-tight">
+                        Clientes
+                    </h1>
+                    <p className="text-sm font-medium text-ink-muted mt-1 tracking-wide">
+                        {isFiltered
+                            ? customers.total === 1
+                                ? '1 cliente coincide con los filtros.'
+                                : `${customers.total} clientes coinciden con los filtros.`
+                            : `Total de ${customers.total} clientes registrados en el sistema.`}
+                    </p>
+                </div>
+                <button
+                    onClick={() => setIsCreateModalOpen(true)}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 transition shadow-sm cursor-pointer dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
+                >
+                    <Plus className="w-4 h-4" />
+                    Nuevo Cliente
+                </button>
+            </div>
+
+            {/* Filters Bar */}
+            <div className="bg-canvas/80 backdrop-blur-md rounded-2xl p-4 mb-6 shadow-sm border border-hairline/60 ">
+                <form onSubmit={handleSearch} className="grid grid-cols-1 gap-4 sm:grid-cols-12 items-center">
+                    {/* Search Input */}
+                    <div className="sm:col-span-6 relative">
+                        <Search className="w-4 h-4 text-ink-subtle absolute left-3 top-1/2 -translate-y-1/2" />
+                        <input
+                            type="text"
+                            value={filter.values.search}
+                            onChange={(e) => filter.draft('search', e.target.value)}
+                            aria-label="Buscar cliente"
+                            placeholder="Buscar por nombre, teléfono o dirección..."
+                            className="w-full pl-9 pr-4 py-2 text-sm border border-hairline/60 bg-canvas text-ink placeholder-ink-subtle rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 font-medium"
+                        />
+                    </div>
+
+                    {/* Repartidor Filter */}
+                    <div className="sm:col-span-3">
+                        <select
+                            value={filter.values.repartidor_id}
+                            onChange={(e) => filter.set('repartidor_id', e.target.value)}
+                            aria-label="Repartidor"
+                            className="w-full py-2 px-3 text-sm border border-hairline/60 bg-canvas text-ink placeholder-ink-subtle rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 font-medium"
+                        >
+                            <option value="">Todos los Repartidores</option>
+                            {repartidores.map((rep) => (
+                                <option key={rep.id} value={rep.id}>
+                                    {rep.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* Debt Filter */}
+                    <div className="sm:col-span-3">
+                        <select
+                            value={filter.values.debt_status}
+                            onChange={(e) => filter.set('debt_status', e.target.value)}
+                            aria-label="Estado de deuda"
+                            className="w-full py-2 px-3 text-sm border border-hairline/60 bg-canvas text-ink placeholder-ink-subtle rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 font-medium"
+                        >
+                            <option value="all">Todos los Estados</option>
+                            <option value="with_debt">Con Deuda Pendiente</option>
+                            <option value="clean">Al Día (Sin Deuda)</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+
+            {/* Customers Table */}
+            <div className="bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden ">
+                <div className="table-scroll">
+                    <table className="w-full text-left text-sm whitespace-nowrap">
+                        <thead className="bg-canvas/80 backdrop-blur-md border-b border-hairline text-ink-muted">
+                            <tr>
+                                <th className="px-6 py-4 text-xs font-medium text-ink tracking-wide">Cliente</th>
+                                <th className="px-6 py-4 text-xs font-medium text-ink tracking-wide">Dirección</th>
+                                <th className="px-6 py-4 text-xs font-medium text-ink tracking-wide">Repartidor</th>
+                                <th className="px-6 py-4 text-xs font-medium text-ink tracking-wide text-center">Envases</th>
+                                <th className="px-6 py-4 text-xs font-medium text-ink tracking-wide text-right">Cuenta Corriente</th>
+                                <th className="px-6 py-4 text-xs font-medium text-ink tracking-wide text-right">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody className="">
+                            {customers.data.length === 0 ? (
+                                <tr>
+                                    <td colSpan={6} className="px-6 py-10 text-center text-ink-muted text-sm">
+                                        <span className="table-empty">No se encontraron clientes con los filtros aplicados.</span>
+                                    </td>
+                                </tr>
+                            ) : (
+                                customers.data.map((c) => {
+                                    const balanceNum = Number(c.balance?.current_balance || 0);
+                                    const totalContainers = c.container_balances?.reduce(
+                                        (acc, cb) => acc + cb.balance,
+                                        0
+                                    ) || 0;
+
+                                    return (
+                                        <tr key={c.id} className="hover:bg-canvas-soft transition-colors">
+                                            {/* Name & Phone */}
+                                            <td className="px-6 py-4">
+                                                <div className="font-medium text-ink">
+                                                    {c.name}
+                                                </div>
+                                                {c.phone_number && (
+                                                    <div className="flex items-center gap-1.5 text-ink-muted text-xs mt-1">
+                                                        <Phone className="w-3.5 h-3.5" />
+                                                        <span>{c.phone_number}</span>
+                                                    </div>
+                                                )}
+                                            </td>
+
+                                            {/* Primary Address */}
+                                            <td className="px-6 py-4 text-ink-secondary">
+                                                {c.primary_address ? (
+                                                    <div className="flex items-start gap-2 min-w-[14rem] max-w-xs">
+                                                        <MapPin className="w-4 h-4 text-ink-subtle shrink-0 mt-0.5" />
+                                                        <span className="whitespace-normal">
+                                                            {c.primary_address.street}
+                                                            {c.primary_address.floor && (
+                                                                <span className="text-ink-subtle">
+                                                                    , Piso {c.primary_address.floor}
+                                                                </span>
+                                                            )}
+                                                            {c.primary_address.apartment && (
+                                                                <span className="text-ink-subtle">
+                                                                    , Depto {c.primary_address.apartment}
+                                                                </span>
+                                                            )}
+                                                            {c.primary_address.neighborhood && (
+                                                                <span className="block text-xs text-ink-subtle">
+                                                                    {c.primary_address.neighborhood}
+                                                                </span>
+                                                            )}
+                                                        </span>
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-ink-subtle italic">Sin dirección</span>
+                                                )}
+                                            </td>
+
+                                            {/* Repartidor / Driver */}
+                                            <td className="px-6 py-4">
+                                                {(c.driver?.user || c.repartidor?.user) ? (
+                                                    <span className="inline-flex items-center gap-2 font-medium text-ink">
+                                                        <div className="w-6 h-6 rounded-lg bg-surface-1 text-ink-secondary flex items-center justify-center text-xs">
+                                                            {(c.driver?.user?.name || c.repartidor?.user?.name || '').charAt(0)}
+                                                        </div>
+                                                        {c.driver?.user?.name || c.repartidor?.user?.name}
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-surface-1 text-ink-secondary">Sin asignar</span>
+                                                )}
+                                            </td>
+
+                                            {/* Containers Balance */}
+                                            <td className="px-6 py-4 text-center">
+                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-1 text-ink-secondary font-medium text-xs">
+                                                    <Package className="w-3.5 h-3.5" />
+                                                    {totalContainers} unid
+                                                </span>
+                                            </td>
+
+                                            {/* Debt Status & Balance */}
+                                            <td className="px-6 py-4 text-right">
+                                                <DebtBadge balance={balanceNum} />
+                                            </td>
+
+                                            {/* Actions */}
+                                            <td className="px-6 py-4 text-right">
+                                                <div className="flex items-center justify-end gap-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleOpenEditModal(c)}
+                                                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full border border-hairline bg-canvas text-ink-secondary hover:bg-canvas-soft font-medium transition cursor-pointer text-xs shadow-sm"
+                                                        title="Editar datos del cliente"
+                                                    >
+                                                        <SlidersHorizontal className="w-3.5 h-3.5" />
+                                                        Editar
+                                                    </button>
+                                                    <Link
+                                                        href={route('customers.show', c.id)}
+                                                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-sky-600 text-white hover:bg-sky-700 font-medium transition text-xs shadow-sm dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
+                                                    >
+                                                        <Eye className="w-3.5 h-3.5" />
+                                                        Ver Ficha
+                                                    </Link>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+
+                <Pagination page={customers} />
+            </div>
+
+            <datalist id={NEIGHBORHOOD_OPTIONS}>
+                {neighborhoods.map((name) => (
+                    <option key={name} value={name} />
+                ))}
+            </datalist>
+
+            {/* Modal para Crear Nuevo Cliente */}
+            <Modal show={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} maxWidth="lg">
+                <div className="bg-canvas/80 backdrop-blur-md border-b border-hairline p-5 text-ink flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-surface-1 text-ink flex items-center justify-center">
+                            <Building2 className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <ModalTitle className="text-base font-semibold text-ink tracking-wide">
+                                Alta de Nuevo Cliente
+                            </ModalTitle>
+                            <p className="text-sm font-medium text-ink-muted tracking-wide">
+                                Ingresa los datos generales, dirección y condiciones iniciales.
+                            </p>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setIsCreateModalOpen(false)}
+                        aria-label="Cerrar"
+                        className="p-2 rounded-lg text-ink-subtle hover:text-ink-secondary hover:bg-surface-1 transition cursor-pointer"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+
+                <form onSubmit={handleCreateCustomer} noValidate className="p-6 space-y-5">
+                    {/* Nombre o Razón Social */}
+                    <div>
+                        <label htmlFor="create-name" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                            Nombre o Razón Social <span className="text-ink">*</span>
+                        </label>
+                        <input
+                            id="create-name"
+                            type="text"
+                            required
+                            value={data.name}
+                            onChange={(e) => setData('name', e.target.value)}
+                            placeholder="Ej: Sanatorio Los Lapachos S.A."
+                            className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
+                        />
+                        <FieldError message={errors.name} className="mt-1" />
+                    </div>
+
+                    {/* Teléfono & Repartidor */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div>
+                            <label htmlFor="create-phone-number" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                Teléfono de Contacto
+                            </label>
+                            <input
+                                id="create-phone-number"
+                                type="text"
+                                value={data.phone_number}
+                                onChange={(e) => setData('phone_number', e.target.value)}
+                                placeholder="Ej: +54 387 422-3000"
+                                className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
+                            />
+                            <FieldError message={errors.phone_number} className="mt-1" />
+                        </div>
+
+                        <div>
+                            <label htmlFor="create-repartidor-id" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                Repartidor Asignado
+                            </label>
+                            <select
+                                id="create-repartidor-id"
+                                value={data.repartidor_id}
+                                onChange={(e) => setData('repartidor_id', e.target.value)}
+                                className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  bg-canvas"
+                            >
+                                <option value="">Sin Asignar</option>
+                                {repartidores.map((rep) => (
+                                    <option key={rep.id} value={rep.id}>
+                                        {rep.name}
+                                    </option>
+                                ))}
+                            </select>
+                            <FieldError message={errors.repartidor_id} className="mt-1" />
+                        </div>
+                    </div>
+
+                    {/* Dirección */}
+                    <div className="space-y-4 pt-5 border-t border-hairline">
+                        <h4 className="text-sm font-semibold text-ink">
+                            Dirección Principal
+                        </h4>
+                        <div>
+                            <label htmlFor="create-street" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                Calle y Altura <span className="text-ink">*</span>
+                            </label>
+                            <input
+                                id="create-street"
+                                type="text"
+                                required
+                                value={data.street}
+                                onChange={(e) => setData('street', e.target.value)}
+                                placeholder="Ej: Belgrano 340"
+                                className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
+                            />
+                            <FieldError message={errors.street} className="mt-1" />
+                        </div>
+
+                        <div>
+                            <label htmlFor="create-neighborhood" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                Barrio
+                            </label>
+                            <input
+                                id="create-neighborhood"
+                                type="text"
+                                list={NEIGHBORHOOD_OPTIONS}
+                                autoComplete="off"
+                                value={data.neighborhood}
+                                onChange={(e) => setData('neighborhood', e.target.value)}
+                                placeholder="Buscar barrio, ej: Tres Cerritos"
+                                className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
+                            />
+                            <FieldError message={errors.neighborhood} className="mt-1" />
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                            <div>
+                                <label htmlFor="create-floor" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                    Piso
+                                </label>
+                                <input
+                                    id="create-floor"
+                                    type="text"
+                                    value={data.floor}
+                                    onChange={(e) => setData('floor', e.target.value)}
+                                    maxLength={20}
+                                    placeholder="Ej: PB, 3, Local 2"
+                                    className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
+                                />
+                                <FieldError message={errors.floor} className="mt-1" />
+                            </div>
+
+                            <div>
+                                <label htmlFor="create-apartment" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                    Departamento
+                                </label>
+                                <input
+                                    id="create-apartment"
+                                    type="text"
+                                    value={data.apartment}
+                                    onChange={(e) => setData('apartment', e.target.value)}
+                                    placeholder="Ej: 4B"
+                                    className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
+                                />
+                                <FieldError message={errors.apartment} className="mt-1" />
+                            </div>
+
+                            <div>
+                                <label htmlFor="create-visual-reference" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                    Referencia Visual
+                                </label>
+                                <input
+                                    id="create-visual-reference"
+                                    type="text"
+                                    value={data.visual_reference}
+                                    onChange={(e) => setData('visual_reference', e.target.value)}
+                                    placeholder="Ej: Frente a Plaza Belgrano"
+                                    className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
+                                />
+                                <FieldError message={errors.visual_reference} className="mt-1" />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Saldos Iniciales & Envases Comodato */}
+                    <div className="space-y-4 pt-5 border-t border-hairline">
+                        <h4 className="text-sm font-semibold text-ink">
+                            Condiciones Iniciales
+                        </h4>
+                        <FieldError message={errors.initial_containers} className="mt-1" />
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                            <div>
+                                <label htmlFor="create-initial-balance" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                    Deuda Inicial ($)
+                                </label>
+                                <input
+                                    id="create-initial-balance"
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    value={data.initial_balance}
+                                    onChange={(e) => setData('initial_balance', e.target.value)}
+                                    className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  font-medium"
+                                />
+                                <FieldError message={errors.initial_balance} className="mt-1" />
+                            </div>
+
+                            {containerTypes.map((type) => (
+                                <div key={type.id}>
+                                    <label
+                                        htmlFor={`initial-containers-${type.id}`}
+                                        className="block text-sm font-medium text-ink-secondary mb-1.5"
+                                    >
+                                        {type.description}
+                                    </label>
+                                    <input
+                                        id={`initial-containers-${type.id}`}
+                                        type="number"
+                                        min="0"
+                                        step="1"
+                                        value={data.initial_containers[type.id] ?? '0'}
+                                        onChange={(e) =>
+                                            setData('initial_containers', { ...data.initial_containers, [type.id]: e.target.value })
+                                        }
+                                        className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  font-medium"
+                                    />
+                                    <FieldError
+                                        message={(errors as Record<string, string>)[`initial_containers.${type.id}`]}
+                                        className="mt-1"
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Días y horarios */}
+                    <div className="space-y-4 pt-5 border-t border-hairline">
+                        <h4 className="text-sm font-semibold text-ink">
+                            Días y horarios de entrega
+                        </h4>
+                        <PreferenceRowsField
+                            idPrefix="create"
+                            rows={data.preferences}
+                            onChange={(rows) => setData('preferences', rows)}
+                            errors={errors as Record<string, string>}
+                        />
+                    </div>
+
+                    {/* Buttons */}
+                    <div className="mt-6 flex items-center justify-end gap-3 pt-5 border-t border-hairline">
+                        <button
+                            type="button"
+                            onClick={() => setIsCreateModalOpen(false)}
+                            className="px-4 py-2 rounded-lg bg-surface-2 border-none text-sm font-medium text-ink hover:bg-surface-3 transition cursor-pointer"
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={processing}
+                            className="px-4 py-2 rounded-lg bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 transition shadow-sm cursor-pointer flex items-center gap-2 disabled:opacity-50 dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
+                        >
+                            <Save className="w-4 h-4" />
+                            {processing ? 'Guardando...' : 'Guardar Cliente'}
+                        </button>
+                    </div>
+                </form>
+            </Modal>
+
+            {/* Modal para Editar Cliente Existente */}
+            <Modal show={editingCustomer !== null} onClose={() => setEditingCustomer(null)} maxWidth="lg">
+                <div className="bg-canvas/80 backdrop-blur-md border-b border-hairline p-5 text-ink flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-surface-1 text-ink flex items-center justify-center">
+                            <SlidersHorizontal className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <ModalTitle className="text-base font-semibold text-ink tracking-wide">
+                                Editar Datos de Cliente
+                            </ModalTitle>
+                            <p className="text-sm font-medium text-ink-muted tracking-wide">
+                                Actualiza nombre, teléfono, repartidor o dirección física.
+                            </p>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setEditingCustomer(null)}
+                        aria-label="Cerrar"
+                        className="p-2 rounded-lg text-ink-subtle hover:text-ink-secondary hover:bg-surface-1 transition cursor-pointer"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+
+                <form onSubmit={handleUpdateCustomer} noValidate className="p-6 space-y-5">
+                    {/* Nombre o Razón Social */}
+                    <div>
+                        <label htmlFor="edit-name" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                            Nombre o Razón Social <span className="text-ink">*</span>
+                        </label>
+                        <input
+                            id="edit-name"
+                            type="text"
+                            required
+                            value={editForm.data.name}
+                            onChange={(e) => editForm.setData('name', e.target.value)}
+                            className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
+                        />
+                        <FieldError message={editForm.errors.name} className="mt-1" />
+                    </div>
+
+                    {/* Teléfono & Repartidor */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div>
+                            <label htmlFor="edit-phone-number" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                Teléfono de Contacto
+                            </label>
+                            <input
+                                id="edit-phone-number"
+                                type="text"
+                                value={editForm.data.phone_number}
+                                onChange={(e) => editForm.setData('phone_number', e.target.value)}
+                                placeholder="Ej: +54 387 422-3000"
+                                className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
+                            />
+                            <FieldError message={editForm.errors.phone_number} className="mt-1" />
+                        </div>
+
+                        <div>
+                            <label htmlFor="edit-repartidor-id" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                Repartidor Asignado
+                            </label>
+                            <select
+                                id="edit-repartidor-id"
+                                value={editForm.data.repartidor_id}
+                                onChange={(e) => editForm.setData('repartidor_id', e.target.value)}
+                                className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  bg-canvas"
+                            >
+                                <option value="">Sin Asignar</option>
+                                {repartidores.map((rep) => (
+                                    <option key={rep.id} value={rep.id}>
+                                        {rep.name}
+                                    </option>
+                                ))}
+                            </select>
+                            <FieldError message={editForm.errors.repartidor_id} className="mt-1" />
+                        </div>
+                    </div>
+
+                    {/* Dirección */}
+                    <div className="space-y-4 pt-5 border-t border-hairline">
+                        <h4 className="text-sm font-semibold text-ink">
+                            Dirección Principal
+                        </h4>
+                        <div>
+                            <label htmlFor="edit-street" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                Calle y Altura <span className="text-ink">*</span>
+                            </label>
+                            <input
+                                id="edit-street"
+                                type="text"
+                                required
+                                value={editForm.data.street}
+                                onChange={(e) => editForm.setData('street', e.target.value)}
+                                className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
+                            />
+                            <FieldError message={editForm.errors.street} className="mt-1" />
+                        </div>
+
+                        <div>
+                            <label htmlFor="edit-neighborhood" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                Barrio
+                            </label>
+                            <input
+                                id="edit-neighborhood"
+                                type="text"
+                                list={NEIGHBORHOOD_OPTIONS}
+                                autoComplete="off"
+                                value={editForm.data.neighborhood}
+                                onChange={(e) => editForm.setData('neighborhood', e.target.value)}
+                                placeholder="Buscar barrio, ej: Tres Cerritos"
+                                className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
+                            />
+                            <FieldError message={editForm.errors.neighborhood} className="mt-1" />
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                            <div>
+                                <label htmlFor="edit-floor" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                    Piso
+                                </label>
+                                <input
+                                    id="edit-floor"
+                                    type="text"
+                                    value={editForm.data.floor}
+                                    onChange={(e) => editForm.setData('floor', e.target.value)}
+                                    maxLength={20}
+                                    placeholder="Ej: PB, 3, Local 2"
+                                    className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
+                                />
+                                <FieldError message={editForm.errors.floor} className="mt-1" />
+                            </div>
+
+                            <div>
+                                <label htmlFor="edit-apartment" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                    Departamento
+                                </label>
+                                <input
+                                    id="edit-apartment"
+                                    type="text"
+                                    value={editForm.data.apartment}
+                                    onChange={(e) => editForm.setData('apartment', e.target.value)}
+                                    placeholder="Ej: 4B"
+                                    className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
+                                />
+                                <FieldError message={editForm.errors.apartment} className="mt-1" />
+                            </div>
+
+                            <div>
+                                <label htmlFor="edit-visual-reference" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                    Referencia Visual
+                                </label>
+                                <input
+                                    id="edit-visual-reference"
+                                    type="text"
+                                    value={editForm.data.visual_reference}
+                                    onChange={(e) => editForm.setData('visual_reference', e.target.value)}
+                                    placeholder="Ej: Frente a Plaza Belgrano"
+                                    className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
+                                />
+                                <FieldError message={editForm.errors.visual_reference} className="mt-1" />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Días y horarios */}
+                    <div className="space-y-4 pt-5 border-t border-hairline">
+                        <div>
+                            <h4 className="text-sm font-semibold text-ink">
+                                Agregar días y horarios de entrega
+                            </h4>
+                            <p className="text-xs text-ink-muted mt-1">
+                                Los que ya tiene se editan o quitan desde la ficha del cliente.
+                            </p>
+                        </div>
+                        <PreferenceRowsField
+                            idPrefix="edit"
+                            rows={editForm.data.preferences}
+                            onChange={(rows) => editForm.setData('preferences', rows)}
+                            errors={editForm.errors as Record<string, string>}
+                        />
+                    </div>
+
+                    {/* Buttons */}
+                    <div className="mt-6 flex items-center justify-end gap-3 pt-5 border-t border-hairline">
+                        <button
+                            type="button"
+                            onClick={() => setEditingCustomer(null)}
+                            className="px-4 py-2 rounded-lg bg-surface-2 border-none text-sm font-medium text-ink hover:bg-surface-3 transition cursor-pointer"
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={editForm.processing}
+                            className="px-4 py-2 rounded-lg bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 transition shadow-sm cursor-pointer flex items-center gap-2 disabled:opacity-50 dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
+                        >
+                            <Save className="w-4 h-4" />
+                            {editForm.processing ? 'Guardando...' : 'Guardar Cambios'}
+                        </button>
+                    </div>
+                </form>
+            </Modal>
+        </AdminLayout>
+    );
+}

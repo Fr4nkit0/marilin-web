@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('routes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('assigned_repartidor_id')->constrained('repartidores');
+            $table->foreignId('assigned_driver_id')->constrained('drivers');
             $table->date('date');
             $table->string('status', 30)->default('PLANNED'); // PLANNED, IN_PROGRESS, COMPLETED, CANCELLED
             $table->dateTime('started_at')->nullable();
@@ -21,7 +21,8 @@ return new class extends Migration
             $table->boolean('enabled')->default(true);
             $table->timestamps();
 
-            $table->unique(['date', 'assigned_repartidor_id']);
+            $table->unique(['date', 'assigned_driver_id']);
+            $table->index('updated_at');
         });
     }
 

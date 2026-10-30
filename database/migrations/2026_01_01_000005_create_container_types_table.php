@@ -17,6 +17,8 @@ return new class extends Migration
             $table->string('description', 160);
             $table->boolean('enabled')->default(true);
             $table->timestamps();
+
+            $table->index('updated_at');
         });
     }
 

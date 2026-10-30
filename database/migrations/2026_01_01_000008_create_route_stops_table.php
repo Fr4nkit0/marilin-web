@@ -19,6 +19,17 @@ return new class extends Migration
             $table->foreignId('is_rescheduled_from')->nullable()->constrained('route_stops')->nullOnDelete();
             $table->boolean('enabled')->default(true);
             $table->timestamps();
+            $table->time('scheduled_time')->nullable();
+            $table->foreignId('scheduled_visit_id')->nullable(); // the scheduled visit it carries; its FK lives in the scheduled_visits migration
+            $table->text('note')->nullable();
+            $table->uuid('client_uuid')->nullable()->unique();
+            $table->boolean('needs_review')->default(false);
+            $table->text('review_reason')->nullable();
+            $table->timestamp('reviewed_at')->nullable();
+            $table->foreignId('reviewed_by')->nullable()->constrained('users')->nullOnDelete();
+
+            $table->index('updated_at');
+            $table->index('scheduled_visit_id');
         });
     }
 

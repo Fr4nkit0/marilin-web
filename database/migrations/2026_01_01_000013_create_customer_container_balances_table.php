@@ -23,6 +23,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['customer_id', 'container_type_id']);
+            $table->index('updated_at');
         });
     }
 

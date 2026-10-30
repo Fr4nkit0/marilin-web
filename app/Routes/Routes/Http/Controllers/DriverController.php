@@ -1,0 +1,155 @@
+<?php
+
+namespace App\Routes\Routes\Http\Controllers;
+
+use App\Accounts\Models\Driver;
+use App\CashDesk\DailyFigures;
+use App\CashDesk\DayScope;
+use App\Http\Controllers\Controller;
+use App\Routes\Routes\Models\RouteStop;
+use App\Shared\TextMatch;
+use App\Street\Payments\Enums\PaymentStatus;
+use App\Street\Sales\Enums\SaleStatus;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
+
+class DriverController extends Controller
+{
+    /**
+     * Display a listing of drivers with their daily routes and real-time operational status.
+     */
+    public function index(Request $request): Response
+    {
+        $date = $request->query('date', Carbon::today()->toDateString());
+
+        $drivers = Driver::with([
+            'user',
+            'customers',
+            'routes' => fn ($q) => $q->whereDate('date', $date)
+                ->with(['activeStops.customer.primaryAddress', 'activeStops.visit', 'activeStops.rescheduledTo', 'inventoryLoads.product', 'inventories.product']),
+        ])
+            ->where('enabled', true)
+            ->tap(fn ($query) => TextMatch::search($query, ['user.name'], $request->query('search')))
+            ->get()
+            ->map(function ($driver) {
+                $todayRoute = $driver->routes->first();
+
+                $totalStops = $todayRoute ? $todayRoute->activeStops->count() : 0;
+                $completedStops = $todayRoute ? $todayRoute->activeStops->filter(fn (RouteStop $stop) => $stop->isDone())->count() : 0;
+
+                $progress = $totalStops > 0 ? round(($completedStops / $totalStops) * 100) : 0;
+
+                $routeData = $todayRoute ? [
+                    'id' => $todayRoute->id,
+                    'status' => $todayRoute->status,
+                    'startedAt' => $todayRoute->started_at?->format('H:i'),
+                    'completedAt' => $todayRoute->completed_at?->format('H:i'),
+                    'totalStops' => $totalStops,
+                    'completedStops' => $completedStops,
+                    'progressPercent' => $progress,
+                    'truckLoads' => $todayRoute->inventoryLoads->map(fn ($l) => [
+                        'product' => $l->product?->name,
+                        'quantity' => (float) $l->quantity,
+                    ]),
+                ] : null;
+
+                return [
+                    'id' => $driver->id,
+                    'name' => $driver->user?->name ?? 'Sin nombre',
+                    'phone_number' => $driver->user?->phone_number,
+                    'email' => $driver->user?->email,
+                    'totalCustomers' => $driver->customers->count(),
+                    'currentRoute' => $routeData,
+                    'todayRoute' => $routeData,
+                ];
+            });
+
+        return Inertia::render('Routes/Routes/Drivers', [
+            'repartidores' => $drivers,
+            'drivers' => $drivers,
+            'filters' => [
+                'search' => $request->query('search'),
+            ],
+            'selectedDate' => $date,
+        ]);
+    }
+
+    /**
+     * Display a driver detailed profile, route timeline, and customer load.
+     */
+    public function show(Driver $repartidor, Request $request, DailyFigures $figures): Response
+    {
+        $date = $request->query('date', Carbon::today()->toDateString());
+
+        $repartidor->load([
+            'user',
+            'customers.primaryAddress',
+            'routes' => fn ($q) => $q->whereDate('date', $date)
+                ->with([
+                    'activeStops.customer.primaryAddress',
+                    'activeStops.rescheduledTo',
+                    'activeStops.visit.outcome',
+                    'activeStops.visit.payments',
+                    'activeStops.visit.sales',
+                    'inventoryLoads.product',
+                    'inventories.product',
+                ]),
+        ]);
+
+        $currentRoute = $repartidor->routes->first();
+        // The totals include what the app pushed without a visit, so they match the dashboard, the sales list and the cash close.
+        $day = $currentRoute ? $figures->forDay($date, DayScope::driver($repartidor)) : null;
+
+        $totalStops = $currentRoute?->activeStops->count() ?? 0;
+        $completedStops = $currentRoute?->activeStops->filter(fn (RouteStop $stop) => $stop->isDone())->count() ?? 0;
+
+        $formattedRoute = $currentRoute ? [
+            'id' => $currentRoute->id,
+            'date' => $currentRoute->date?->format('d/m/Y') ?? $date,
+            'status' => $currentRoute->status,
+            'startedAt' => $currentRoute->started_at?->format('H:i'),
+            'completedAt' => $currentRoute->completed_at?->format('H:i'),
+            'totalStops' => $totalStops,
+            'completedStops' => $completedStops,
+            'progressPercent' => $totalStops > 0 ? round(($completedStops / $totalStops) * 100) : 0,
+            'totalSalesAmount' => $day->totalSales,
+            'totalCollectedAmount' => $day->totalCollected,
+            'stops' => $currentRoute->activeStops->map(fn ($stop) => [
+                'id' => $stop->id,
+                'customer' => [
+                    'id' => $stop->customer->id,
+                    'name' => $stop->customer->name,
+                    'address' => $stop->customer->primaryAddress?->street ?? 'Sin dirección',
+                    'phone' => $stop->customer->phone_number,
+                ],
+                'status' => $stop->effectiveStatus()->value,
+                'done' => $stop->isDone(),
+                'arrivedAt' => $stop->visit?->arrived_at?->format('H:i'),
+                'salesAmount' => (float) ($stop->visit?->sales->where('status', SaleStatus::Confirmed->value)->sum('total') ?? 0),
+                'paymentsAmount' => (float) ($stop->visit?->payments->where('status', PaymentStatus::Confirmed->value)->sum('amount') ?? 0),
+                'notes' => $stop->visit?->notes,
+                // "Visita solicitada": the admin scheduled it; the note is the admin's, notes are the driver's.
+                'is_requested' => $stop->isRequested(),
+                'note' => $stop->note,
+            ]),
+            'inventory' => $currentRoute->inventories->map(fn ($i) => [
+                'id' => $i->id,
+                'productName' => $i->product?->name ?? 'Producto',
+                'currentQuantity' => (float) $i->current_quantity,
+            ]),
+        ] : null;
+
+        return Inertia::render('Routes/Routes/Driver', [
+            'repartidor' => [
+                'id' => $repartidor->id,
+                'name' => $repartidor->user?->name ?? 'Sin nombre',
+                'email' => $repartidor->user?->email,
+                'totalAssignedCustomers' => $repartidor->customers->count(),
+            ],
+            'route' => $formattedRoute,
+            'targetDate' => $date,
+        ]);
+    }
+}

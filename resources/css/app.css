@@ -1,3 +1,93 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* How much of a wide table's right edge fades out; animated by its own horizontal scroll. */
+@property --table-fade {
+    syntax: '<length>';
+    inherits: false;
+    initial-value: 0px;
+}
+
+@keyframes table-scroll-fade {
+    0%,
+    90% {
+        --table-fade: 3rem;
+    }
+    100% {
+        --table-fade: 0px;
+    }
+}
+
+/*
+ * Tables scroll sideways on narrow screens (DESIGN.md). The right edge fades while there is more
+ * to see, so the hidden columns are discoverable; a table that fits shows no fade at all.
+ */
+@layer components {
+    .table-scroll {
+        overflow-x: auto;
+        container-type: inline-size;
+    }
+
+    @supports (animation-timeline: scroll()) {
+        .table-scroll {
+            -webkit-mask-image: linear-gradient(to right, #000 calc(100% - var(--table-fade)), transparent);
+            mask-image: linear-gradient(to right, #000 calc(100% - var(--table-fade)), transparent);
+            animation: table-scroll-fade linear both;
+            animation-timeline: scroll(self inline);
+        }
+    }
+
+    /* An empty table's message stays within the visible width instead of centering on the full table. */
+    .table-empty {
+        position: sticky;
+        left: 0;
+        display: block;
+        width: calc(100cqw - 3rem);
+        white-space: normal;
+    }
+}
+
+/* Neutral color roles (DESIGN.md), as RGB channels. Light by default; `.dark` on <html> switches them. */
+@layer base {
+    :root {
+        color-scheme: light;
+        --color-canvas: 255 255 255;
+        --color-canvas-soft: 248 250 252;
+        --color-surface-1: 241 245 249;
+        --color-surface-2: 226 232 240;
+        --color-surface-3: 203 213 225;
+        --color-ink: 15 23 42;
+        --color-ink-secondary: 51 65 85;
+        --color-ink-muted: 100 116 139;
+        --color-ink-subtle: 148 163 184;
+        --color-hairline: 226 232 240;
+        --color-hairline-strong: 203 213 225;
+    }
+
+    /* Near-black neutral dark (S7): no blue tint, so the water-blue accent and the glow stand out. */
+    .dark {
+        color-scheme: dark;
+        --color-canvas: 21 24 29;
+        --color-canvas-soft: 11 13 16;
+        --color-surface-1: 29 33 39;
+        --color-surface-2: 38 43 51;
+        --color-surface-3: 53 59 69;
+        --color-ink: 244 245 247;
+        --color-ink-secondary: 201 205 212;
+        --color-ink-muted: 139 146 156;
+        --color-ink-subtle: 94 101 112;
+        --color-hairline: 38 43 51;
+        --color-hairline-strong: 53 59 69;
+    }
+
+    /* Soft water-blue glow behind the frosted panels, fixed so it does not scroll. */
+    .dark body {
+        background-color: rgb(11 13 16);
+        background-image:
+            radial-gradient(40rem 30rem at 12% -5%, rgb(14 165 233 / 0.16), transparent 60%),
+            radial-gradient(36rem 28rem at 95% 15%, rgb(34 211 238 / 0.10), transparent 60%),
+            radial-gradient(44rem 34rem at 60% 110%, rgb(14 165 233 / 0.10), transparent 60%);
+        background-attachment: fixed;
+    }
+}
