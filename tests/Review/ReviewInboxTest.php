@@ -306,3 +306,20 @@ test('an agreement created by a driver through the push shows up in the inbox wi
 test('the review inbox rejects an unknown type filter', function (): void {
     $this->get('/review?type=invoice')->assertSessionHasErrors('type');
 });
+
+test('the notifications bell counts the records waiting for review exactly like the inbox does', function (): void {
+    $who = inboxDriver();
+    foreach (['visit', 'sale', 'payment', 'route_stop', 'customer'] as $type) {
+        flaggedRecord($type, $who);
+    }
+    flaggedRecord('container_movement', $who, review: ['reviewed_at' => '2026-10-23 09:00:00']);
+    Sale::factory()->create(['customer_id' => $who['customer']->id]);
+
+    $inboxTotal = null;
+    $this->get('/review')->assertInertia(function (Assert $page) use (&$inboxTotal): void {
+        $inboxTotal = $page->toArray()['props']['items']['total'];
+    });
+
+    expect($inboxTotal)->toBe(5);
+    $this->get(route('dashboard'))->assertInertia(fn (Assert $page) => $page->where('notifications.pendingReview', $inboxTotal));
+});

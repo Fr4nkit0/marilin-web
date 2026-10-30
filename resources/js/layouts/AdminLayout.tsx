@@ -2,6 +2,9 @@ import React, { PropsWithChildren, ReactNode, useState } from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
 import { useTheme } from '@/lib/theme';
 import ThemeSwitch from '@/ui/ThemeSwitch';
+import NotificationsMenu, { NotificationItem } from '@/ui/NotificationsMenu';
+import { time } from '@/lib/format';
+import type { Notifications } from '@/types';
 import {
     LayoutDashboard,
     Truck,
@@ -15,12 +18,34 @@ import {
     LogOut,
     Menu,
     X,
-    Bell,
     ChevronDown,
     MapPin,
     AlertTriangle,
     ClipboardCheck,
 } from 'lucide-react';
+
+function notificationItems(notifications: Notifications | undefined): NotificationItem[] {
+    if (!notifications) return [];
+
+    const drivers = notifications.unsyncedDrivers.map((driver) => ({
+        key: `driver-${driver.id}`,
+        label: driver.lastSyncAt
+            ? `${driver.name} está en ruta y no sincroniza desde las ${time(driver.lastSyncAt)}`
+            : `${driver.name} está en ruta y nunca sincronizó`,
+        href: route('drivers.show', driver.id),
+    }));
+    const pending = notifications.pendingReview;
+    const review =
+        pending > 0
+            ? [{
+                  key: 'review',
+                  label: pending === 1 ? '1 registro espera revisión' : `${pending} registros esperan revisión`,
+                  href: route('review.index'),
+              }]
+            : [];
+
+    return [...drivers, ...review];
+}
 
 interface NavItem {
     name: string;
@@ -34,7 +59,8 @@ export default function AdminLayout({
     header,
     children,
 }: PropsWithChildren<{ header?: ReactNode }>) {
-    const user = usePage().props.auth.user;
+    const { auth, notifications } = usePage().props;
+    const user = auth.user;
     // Applies the saved theme and follows the system while the choice is "system", menu open or not.
     useTheme();
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -207,13 +233,12 @@ export default function AdminLayout({
                     </div>
 
                     <div className="flex items-center gap-4">
-                        {/* Notifications */}
-                        <button className="relative p-2 rounded-lg text-ink-muted hover:text-ink hover:bg-surface-1 transition">
-                            <Bell className="w-5 h-5" strokeWidth={2} />
-                            <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
-                        </button>
-
-                        <div className="h-6 w-px bg-surface-2"></div>
+                        {notifications && (
+                            <>
+                                <NotificationsMenu items={notificationItems(notifications)} />
+                                <div className="h-6 w-px bg-surface-2"></div>
+                            </>
+                        )}
 
                         {/* User Menu */}
                         <div className="relative">

@@ -6,12 +6,21 @@ export interface User {
     is_super_user: boolean;
 }
 
+/** What the header bell shows; only users who see the review menu get it. */
+export interface Notifications {
+    /** On route today and the app never reached the server, or not for the last half hour. */
+    unsyncedDrivers: { id: number; name: string; lastSyncAt: string | null }[];
+    /** Records waiting for review, as the review inbox counts them. */
+    pendingReview: number;
+}
+
 export type PageProps<
     T extends Record<string, unknown> = Record<string, unknown>,
 > = T & {
     auth: {
         user: User;
     };
+    notifications?: Notifications;
 };
 
 export interface PaginatedData<T> {
