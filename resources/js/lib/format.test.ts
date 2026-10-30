@@ -31,7 +31,12 @@ describe('dates', () => {
     });
 
     it('shows day and hour together', () => {
-        expect(dateTime(at)).toBe('20/10/26, 13:05');
+        expect(dateTime(at)).toBe('20/10/2026 13:05');
+    });
+
+    it('shows a plain day as dd/mm/aaaa, the same day in any zone', () => {
+        expect(date('2026-10-29')).toBe('29/10/2026');
+        expect(date('2026-01-05')).toBe('05/01/2026');
     });
 
     it('reads the server timestamps that come with a space instead of a T', () => {

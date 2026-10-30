@@ -1,5 +1,7 @@
 @php
     $money = fn ($amount): string => '$ '.number_format((float) $amount, 2, ',', '.');
+    $day = \Illuminate\Support\Carbon::parse($date)->format('d/m/Y');
+    $hour = fn (?string $at): string => $at === null ? '' : \Illuminate\Support\Carbon::parse($at)->format('H:i');
     $origins = ['stop' => 'Parada', 'loose' => 'Sin visita'];
     $movements = ['DELIVERED' => 'Entregado', 'RETURNED' => 'Devuelto'];
     $details = $settlement['details'];
@@ -12,7 +14,7 @@
 <html lang="es">
 <head>
     <meta charset="utf-8">
-    <title>Cierre de caja {{ $driver }} {{ $date }}</title>
+    <title>Cierre de caja {{ $driver }} {{ $day }}</title>
     <style>
         body { font-family: DejaVu Sans, sans-serif; font-size: 10px; color: #0f172a; }
         h1 { font-size: 16px; margin: 0 0 4px; }
@@ -32,7 +34,7 @@
 </head>
 <body>
     <h1>Cierre de caja y arqueo de ruta</h1>
-    <div class="meta">Repartidor: <strong>{{ $driver }}</strong> &middot; Fecha: <strong>{{ $date }}</strong> &middot; Estado de la ruta: {{ $settlement['status'] }}</div>
+    <div class="meta">Repartidor: <strong>{{ $driver }}</strong> &middot; Fecha: <strong>{{ $day }}</strong> &middot; Estado de la ruta: {{ $settlement['status'] }}</div>
 
     <h2>Resumen</h2>
     <table class="summary">
@@ -53,7 +55,7 @@
             <table>
                 <tr><th>Hora</th><th>Cliente</th><th>Concepto</th><th>Origen</th><th class="num">Importe</th></tr>
                 @foreach ($rows as $row)
-                    <tr><td>{{ $row['at'] }}</td><td>{{ $row['customer'] }}</td><td>{{ $row['concept'] }}</td><td>{{ $origins[$row['origin']] }}</td><td class="num">{{ $money($row['amount']) }}</td></tr>
+                    <tr><td>{{ $hour($row['at']) }}</td><td>{{ $row['customer'] }}</td><td>{{ $row['concept'] }}</td><td>{{ $origins[$row['origin']] }}</td><td class="num">{{ $money($row['amount']) }}</td></tr>
                 @endforeach
             </table>
         @endif
@@ -66,7 +68,7 @@
         <table>
             <tr><th>Hora</th><th>Cliente</th><th>Origen</th><th class="num">Importe</th></tr>
             @foreach ($details['credit'] as $row)
-                <tr><td>{{ $row['at'] }}</td><td>{{ $row['customer'] }}</td><td>{{ $origins[$row['origin']] }}</td><td class="num">{{ $money($row['amount']) }}</td></tr>
+                <tr><td>{{ $hour($row['at']) }}</td><td>{{ $row['customer'] }}</td><td>{{ $origins[$row['origin']] }}</td><td class="num">{{ $money($row['amount']) }}</td></tr>
             @endforeach
         </table>
     @endif
@@ -78,7 +80,7 @@
         <table>
             <tr><th>Hora</th><th>Cliente</th><th>Envase</th><th>Movimiento</th><th>Origen</th><th class="num">Cantidad</th></tr>
             @foreach ($details['containers'] as $row)
-                <tr><td>{{ $row['at'] }}</td><td>{{ $row['customer'] }}</td><td>{{ $row['container'] }}</td><td>{{ $movements[$row['movement']] ?? $row['movement'] }}</td><td>{{ $origins[$row['origin']] }}</td><td class="num">{{ $row['quantity'] }}</td></tr>
+                <tr><td>{{ $hour($row['at']) }}</td><td>{{ $row['customer'] }}</td><td>{{ $row['container'] }}</td><td>{{ $movements[$row['movement']] ?? $row['movement'] }}</td><td>{{ $origins[$row['origin']] }}</td><td class="num">{{ $row['quantity'] }}</td></tr>
             @endforeach
         </table>
     @endif

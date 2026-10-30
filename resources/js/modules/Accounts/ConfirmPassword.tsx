@@ -19,14 +19,14 @@ export default function ConfirmPassword() {
 
     return (
         <GuestLayout>
-            <Head title="Confirm Password" />
+            <Head title="Confirmar contraseña" />
 
             <div className="mb-4 text-sm text-ink-secondary">
                 This is a secure area of the application. Please confirm your
                 password before continuing.
             </div>
 
-            <form onSubmit={submit}>
+            <form onSubmit={submit} noValidate>
                 <div className="mt-4">
                     <Label htmlFor="password" value="Password" />
 

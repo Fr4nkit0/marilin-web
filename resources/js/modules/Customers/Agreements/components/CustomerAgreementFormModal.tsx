@@ -1,5 +1,6 @@
 import React, { FormEvent, useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
+import { FieldError } from '@/ui/Field';
 import { X } from 'lucide-react';
 import Modal from '@/ui/Modal';
 import { AgreementProduct } from '../types';
@@ -57,7 +58,7 @@ export default function CustomerAgreementFormModal({ show, customerId, customerN
 
     return (
         <Modal show={show} onClose={onClose} maxWidth="md">
-            <form onSubmit={submit}>
+            <form onSubmit={submit} noValidate>
                 <div className="flex items-start justify-between gap-4 px-6 pt-6 pb-4 border-b border-hairline">
                     <div>
                         <h2 className="text-lg font-semibold text-ink">Nuevo acuerdo de precio</h2>
@@ -92,7 +93,7 @@ export default function CustomerAgreementFormModal({ show, customerId, customerN
                                 </option>
                             ))}
                         </select>
-                        {errors.product_id && <p className="text-sm text-red-600 dark:text-red-300 mt-1">{errors.product_id}</p>}
+                        <FieldError message={errors.product_id} className="mt-1" />
                     </label>
 
                     <label className="block">
@@ -112,7 +113,7 @@ export default function CustomerAgreementFormModal({ show, customerId, customerN
                                 Precio de lista: {money(listPrice)}
                             </p>
                         )}
-                        {errors.unit_price && <p className="text-sm text-red-600 dark:text-red-300 mt-1">{errors.unit_price}</p>}
+                        <FieldError message={errors.unit_price} className="mt-1" />
                     </label>
 
                     <div className="grid grid-cols-2 gap-4">
@@ -126,7 +127,7 @@ export default function CustomerAgreementFormModal({ show, customerId, customerN
                                 className={`${inputClass} mt-1`}
                                 required
                             />
-                            {errors.valid_from && <p className="text-sm text-red-600 dark:text-red-300 mt-1">{errors.valid_from}</p>}
+                            <FieldError message={errors.valid_from} className="mt-1" />
                         </label>
                         <label className="block">
                             <span className="text-sm font-medium text-ink-secondary">Hasta (opcional)</span>
@@ -138,7 +139,7 @@ export default function CustomerAgreementFormModal({ show, customerId, customerN
                                 style={{ colorScheme: 'light' }}
                                 className={`${inputClass} mt-1`}
                             />
-                            {errors.valid_to && <p className="text-sm text-red-600 dark:text-red-300 mt-1">{errors.valid_to}</p>}
+                            <FieldError message={errors.valid_to} className="mt-1" />
                         </label>
                     </div>
 
@@ -151,7 +152,7 @@ export default function CustomerAgreementFormModal({ show, customerId, customerN
                             onChange={(e) => setData('reason', e.target.value)}
                             className={`${inputClass} mt-1`}
                         />
-                        {errors.reason && <p className="text-sm text-red-600 dark:text-red-300 mt-1">{errors.reason}</p>}
+                        <FieldError message={errors.reason} className="mt-1" />
                     </label>
                 </div>
 

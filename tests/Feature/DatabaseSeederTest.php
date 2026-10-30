@@ -2,13 +2,18 @@
 
 declare(strict_types=1);
 
+use App\CashDesk\DailyFigures;
+use App\CashDesk\DayScope;
 use App\Catalog\Models\Product;
 use App\Customers\Agreements\Models\CustomerAgreement;
 use App\Customers\Customers\Models\Customer;
 use App\Customers\Customers\Models\CustomerAddress;
 use App\Customers\Neighborhoods\Models\Neighborhood;
+use App\Routes\Routes\Models\Route;
 use App\Routes\Routes\Models\RouteStop;
+use App\Street\Payments\Models\Payment;
 use App\Street\RouteStock\Models\RouteInventoryLoad;
+use App\Street\Sales\Models\Sale;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -88,6 +93,8 @@ test('running the seeder again does not duplicate stops, agreements, products or
         RouteStop::query()->count(),
         CustomerAgreement::query()->count(),
         Product::query()->count(),
+        Sale::query()->count(),
+        Payment::query()->count(),
         (float) Customer::query()->where('name', 'Sanatorio Nuestra Señora del Rosario')->firstOrFail()->balance->current_balance,
     ];
     $before = $counts();
@@ -116,4 +123,26 @@ test('the seeded trucks are loaded in the morning, before their route starts', f
     expect($loads)->not->toBeEmpty()
         ->and($loads->reject(fn (RouteInventoryLoad $load): bool => $load->loaded_at->isSameDay($load->route->started_at)
             && $load->loaded_at->lessThan($load->route->started_at))->pluck('id')->all())->toBe([]);
+});
+
+test('yesterday every driver closed a route with visited stops, sales and payments, comparable to today', function (): void {
+    $routes = Route::query()->whereDate('date', '2026-10-19')->with(['stops.visit', 'inventoryLoads'])->get();
+    $stops = $routes->flatMap->stops;
+    $yesterday = app(DailyFigures::class)->forDay('2026-10-19', DayScope::all());
+    $today = app(DailyFigures::class)->forDay('2026-10-20', DayScope::all());
+
+    expect($routes)->toHaveCount(4)
+        ->and($routes->pluck('status')->unique()->values()->all())->toBe(['COMPLETED'])
+        ->and($routes->pluck('assigned_driver_id')->unique())->toHaveCount(4)
+        ->and($routes->every(fn (Route $route): bool => $route->completed_at !== null && $route->inventoryLoads->isNotEmpty()))->toBeTrue()
+        ->and($stops)->not->toBeEmpty()
+        ->and($stops->filter(fn (RouteStop $stop): bool => $stop->visit === null || ! $stop->isDone())->pluck('id')->all())->toBe([])
+        ->and($yesterday->payments)->not->toBeEmpty()
+        ->and($yesterday->cashPayments)->not->toBeEmpty()
+        ->and($yesterday->transferPayments)->not->toBeEmpty()
+        ->and($yesterday->creditSales)->toBeGreaterThan(0.0)
+        ->and($yesterday->sales->whereNull('visit_id'))->toBeEmpty()
+        ->and($today->totalSales)->toBeGreaterThan(0.0)
+        ->and($yesterday->totalSales)->toBeGreaterThan($today->totalSales * 0.5)
+        ->and($yesterday->totalSales)->toBeLessThan($today->totalSales * 2);
 });

@@ -28,9 +28,9 @@ export default function ResetPassword({
 
     return (
         <GuestLayout>
-            <Head title="Reset Password" />
+            <Head title="Nueva contraseña" />
 
-            <form onSubmit={submit}>
+            <form onSubmit={submit} noValidate>
                 <div>
                     <Label htmlFor="email" value="Email" />
 
@@ -71,6 +71,7 @@ export default function ResetPassword({
                     />
 
                     <Input
+                        id="password_confirmation"
                         type="password"
                         name="password_confirmation"
                         value={data.password_confirmation}

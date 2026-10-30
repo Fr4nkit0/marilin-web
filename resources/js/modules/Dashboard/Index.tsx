@@ -15,7 +15,7 @@ import {
     CheckCircle2,
     RefreshCw,
 } from 'lucide-react';
-import { money } from '@/lib/format';
+import { date, money } from '@/lib/format';
 
 const REFRESH_EVERY_MS = 30_000;
 
@@ -59,9 +59,9 @@ export default function Dashboard({ metrics }: Props) {
         };
     }, []);
 
-    const showDay = (date: string) => {
-        if (!date) return;
-        router.get(route('dashboard'), { date }, { preserveState: true, preserveScroll: true, replace: true });
+    const showDay = (day: string) => {
+        if (!day) return;
+        router.get(route('dashboard'), { date: day }, { preserveState: true, preserveScroll: true, replace: true });
     };
 
     const openCashClose = (driverId: number) => {
@@ -73,21 +73,21 @@ export default function Dashboard({ metrics }: Props) {
             header={
                 <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-ink">
-                        Dashboard
+                        Panel
                     </span>
                 </div>
             }
         >
-            <Head title="Panel de Control - Marilin" />
+            <Head title="Panel" />
 
             {/* Page Header */}
             <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-semibold text-ink tracking-tight">
-                        Dashboard
+                        Panel
                     </h1>
                     <p className="text-sm text-ink-muted mt-1">
-                        Resumen operativo del día: <span className="font-medium text-ink-secondary">{metrics.date}</span>
+                        Resumen operativo del día: <span className="font-medium text-ink-secondary">{date(metrics.date)}</span>
                     </p>
                 </div>
                 {/* On a phone the date and the button share a row and the timestamp drops below them. */}
@@ -114,7 +114,7 @@ export default function Dashboard({ metrics }: Props) {
             </div>
 
             {/* 1. KPIs Row */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
+            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 mb-6">
                 <KpiCard
                     title="Ventas del Día"
                     onClick={() => setOpenDetail('sales')}

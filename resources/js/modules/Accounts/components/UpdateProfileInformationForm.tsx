@@ -29,7 +29,7 @@ export default function UpdateProfileInformation({
 
     return (
         <section className={className}>
-            <form onSubmit={submit} className="space-y-6">
+            <form onSubmit={submit} noValidate className="space-y-6">
                 <div>
                     <Label htmlFor="name" value="Nombre" className="text-ink-secondary font-medium" />
 

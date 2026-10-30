@@ -2,6 +2,7 @@
 
 namespace App\Catalog\Database\Factories;
 
+use App\Catalog\Enums\PaymentMethodCode;
 use App\Catalog\Models\PaymentMethod;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -24,7 +25,7 @@ class PaymentMethodFactory extends Factory
     public function efectivo(): static
     {
         return $this->state(fn (array $attributes) => [
-            'code' => 'EFECTIVO',
+            'code' => PaymentMethodCode::Cash->value,
             'name' => 'Efectivo',
         ]);
     }
@@ -32,7 +33,7 @@ class PaymentMethodFactory extends Factory
     public function transferencia(): static
     {
         return $this->state(fn (array $attributes) => [
-            'code' => 'TRANSFERENCIA',
+            'code' => PaymentMethodCode::Transfer->value,
             'name' => 'Transferencia Bancaria',
         ]);
     }

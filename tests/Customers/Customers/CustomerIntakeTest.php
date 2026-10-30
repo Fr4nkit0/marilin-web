@@ -59,7 +59,9 @@ test('a customer without initial debt still gets a balance at zero and no entry'
 });
 
 test('the initial containers are adjustment movements and fill the balance', function (): void {
-    $this->actingAs($this->user)->post(route('customers.store'), webCustomer(['bidon_20l_balance' => '3', 'sifon_2l_balance' => 2]));
+    $this->actingAs($this->user)
+        ->post(route('customers.store'), webCustomer(['initial_containers' => [$this->bidon->id => '3', $this->sifon->id => 2]]))
+        ->assertSessionHasNoErrors();
 
     $customer = Customer::query()->where('name', 'Kiosco Ana')->firstOrFail();
     $movements = ContainerMovement::query()->where('customer_id', $customer->id)->get()->keyBy('container_type_id');
@@ -76,16 +78,44 @@ test('the initial containers are adjustment movements and fill the balance', fun
         ->and($balances[$this->sifon->id]->balance)->toBe(2);
 });
 
+test('any enabled container type takes initial containers, only those above zero move', function (): void {
+    $soda = ContainerType::factory()->create(['code' => 'SIFON_1_5L', 'description' => 'Sifón 1.5L']);
+
+    $this->actingAs($this->user)
+        ->post(route('customers.store'), webCustomer(['initial_containers' => [$soda->id => 5, $this->bidon->id => 0]]))
+        ->assertSessionHasNoErrors();
+
+    $movement = ContainerMovement::query()->sole();
+    expect($movement->container_type_id)->toBe($soda->id)
+        ->and($movement->quantity)->toBe(5)
+        ->and(CustomerContainerBalance::query()->sole()->balance)->toBe(5);
+});
+
 test('zero initial containers write nothing', function (): void {
-    $this->actingAs($this->user)->post(route('customers.store'), webCustomer(['bidon_20l_balance' => 0, 'sifon_2l_balance' => 0]));
+    $this->actingAs($this->user)->post(route('customers.store'), webCustomer(['initial_containers' => [$this->bidon->id => 0, $this->sifon->id => 0]]));
 
     expect(ContainerMovement::query()->count())->toBe(0)
         ->and(CustomerContainerBalance::query()->count())->toBe(0);
 });
 
+test('initial containers must be whole non-negative counts of enabled container types', function (array $containers): void {
+    $this->actingAs($this->user)
+        ->post(route('customers.store'), webCustomer(['initial_containers' => $containers]))
+        ->assertSessionHasErrors();
+
+    expect(Customer::query()->count())->toBe(0)
+        ->and(ContainerMovement::query()->count())->toBe(0)
+        ->and(CustomerContainerBalance::query()->count())->toBe(0);
+})->with([
+    'negative' => [fn () => [$this->bidon->id => -1]],
+    'fractional' => [fn () => [$this->bidon->id => '1.5']],
+    'unknown type' => [fn () => [999999 => 2]],
+    'disabled type' => [fn () => [ContainerType::factory()->create(['enabled' => false])->id => 2]],
+]);
+
 test('invalid store input leaves every table unchanged', function (): void {
     $this->actingAs($this->user)
-        ->post(route('customers.store'), webCustomer(['initial_balance' => '-5', 'bidon_20l_balance' => 2]))
+        ->post(route('customers.store'), webCustomer(['initial_balance' => '-5', 'initial_containers' => [$this->bidon->id => 2]]))
         ->assertSessionHasErrors('initial_balance');
 
     expect(Customer::query()->count())->toBe(0)
@@ -104,7 +134,7 @@ test('the module registers a customer without http', function (): void {
         address: new CustomerAddressDetails(street: 'Sarmiento 10'),
         createdBy: $this->user,
         initialDebt: '200.00',
-        initialContainers: ['BIDON_20L' => 4],
+        initialContainers: [$this->bidon->id => 4],
     ));
 
     expect($customer->primaryAddress->street)->toBe('Sarmiento 10')
@@ -150,7 +180,7 @@ test('a failing initial container movement rolls back the customer, its address,
     $this->mock(StreetOperation::class, fn ($mock) => $mock->shouldReceive('moveContainers')->andThrow(new RuntimeException('boom')));
     $this->actingAs($this->user)->withoutExceptionHandling();
 
-    expect(fn () => $this->post(route('customers.store'), webCustomer(['initial_balance' => '100', 'bidon_20l_balance' => 2])))
+    expect(fn () => $this->post(route('customers.store'), webCustomer(['initial_balance' => '100', 'initial_containers' => [$this->bidon->id => 2]])))
         ->toThrow(RuntimeException::class, 'boom');
 
     expect([Customer::count(), CustomerAddress::count(), CustomerAccountEntry::count(), CustomerBalance::count(), ContainerMovement::count(), CustomerContainerBalance::count()])

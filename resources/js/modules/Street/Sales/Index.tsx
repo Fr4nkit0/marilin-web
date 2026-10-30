@@ -15,7 +15,7 @@ import {
     User,
     Clock,
 } from 'lucide-react';
-import { money, time } from '@/lib/format';
+import { date, money, time } from '@/lib/format';
 import { useListFilters } from '@/lib/useListFilters';
 import DataTable, { type Column } from '@/ui/DataTable';
 import Pagination from '@/ui/Pagination';
@@ -144,17 +144,17 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
                 </div>
             }
         >
-            <Head title="Ventas - Marilin" />
+            <Head title="Ventas y cobros" />
 
             <PageHeader
                 title="Ventas y cobros"
-                description={`Ventas hechas en la calle y en casa el ${filters.date}.`}
+                description={`Ventas hechas en la calle y en casa el ${date(filters.date)}.`}
             />
 
             <SalesPaymentsTabs current="sales" filters={{ search: filters.search, date: filters.date, repartidor_id: filters.repartidor_id }} />
 
             {/* Metrics Row */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-6">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 mb-6">
                 <KpiCard
                     title="Ventas Totales"
                     value={money(metrics.totalSalesAmount)}
@@ -188,6 +188,7 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
                             type="text"
                             value={filter.values.search}
                             onChange={(e) => filter.draft('search', e.target.value)}
+                            aria-label="Buscar cliente"
                             placeholder="Buscar por cliente..."
                             className="w-full pl-9 pr-4 py-2 text-sm font-medium border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-canvas text-ink placeholder-ink-subtle shadow-sm transition-all"
                         />
@@ -199,6 +200,7 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
                             type="date"
                             value={filter.values.date}
                             onChange={(e) => filter.set('date', e.target.value)}
+                            aria-label="Fecha"
                             style={{ colorScheme: 'light' }}
                             className="w-full py-2 px-3 text-sm font-medium border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-canvas text-ink shadow-sm transition-all"
                         />
@@ -218,6 +220,7 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
                         <select
                             value={filter.values.sale_type}
                             onChange={(e) => filter.set('sale_type', e.target.value)}
+                            aria-label="Tipo de venta"
                             className="w-full py-2 px-3 text-sm font-medium border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-canvas text-ink shadow-sm transition-all"
                         >
                             <option value="all">Todo tipo</option>

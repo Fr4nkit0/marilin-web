@@ -2,6 +2,7 @@ import React, { FormEvent, useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
 import { Plus, Trash2, X } from 'lucide-react';
 import Modal from '@/ui/Modal';
+import { FieldError } from '@/ui/Field';
 import { HomeContainerType, HomeProduct } from '@/modules/Street/types';
 import { money } from '@/lib/format';
 
@@ -71,7 +72,7 @@ export default function HomeSaleModal({ show, customerId, customerName, products
 
     return (
         <Modal show={show} onClose={onClose} maxWidth="lg">
-            <form onSubmit={submit}>
+            <form onSubmit={submit} noValidate>
                 <div className="flex items-start justify-between gap-4 px-6 pt-6 pb-4 border-b border-hairline">
                     <div>
                         <h2 className="text-lg font-semibold text-ink">Venta en casa</h2>
@@ -204,13 +205,11 @@ export default function HomeSaleModal({ show, customerId, customerName, products
                     </label>
 
                     {formErrors.length > 0 && (
-                        <ul className="space-y-1">
+                        <div className="space-y-1">
                             {formErrors.map(([key, message]) => (
-                                <li key={key} className="text-sm text-red-600 dark:text-red-300">
-                                    {message}
-                                </li>
+                                <FieldError key={key} message={message} />
                             ))}
-                        </ul>
+                        </div>
                     )}
                 </div>
 

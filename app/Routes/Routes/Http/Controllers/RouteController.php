@@ -63,7 +63,7 @@ class RouteController extends Controller
                 'completedAt' => $route->completed_at?->format('H:i'),
                 'driver' => [
                     'id' => $route->driver?->id,
-                    'name' => $route->driver?->user?->name ?? 'Sin Chofer',
+                    'name' => $route->driver?->user?->name ?? 'Sin repartidor',
                     'phone' => $route->driver?->user?->phone_number,
                 ],
                 'stats' => [
@@ -121,7 +121,7 @@ class RouteController extends Controller
 
         $drivers = Driver::with('user')->where('enabled', true)->get()->map(fn ($d) => [
             'id' => $d->id,
-            'name' => $d->user?->name ?? 'Chofer',
+            'name' => $d->user?->name ?? 'Repartidor',
         ]);
 
         return Inertia::render('Routes/Routes/Index', [

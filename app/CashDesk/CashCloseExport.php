@@ -7,6 +7,7 @@ namespace App\CashDesk;
 use App\Street\Containers\Enums\ContainerMovementType;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Response;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Writer\XLSX\Writer;
@@ -67,7 +68,7 @@ class CashCloseExport
         $payments = fn (array $rows): array => [
             ['Hora', 'Cliente', 'Concepto', 'Importe', 'Origen'],
             ...array_map(fn (array $row): array => [
-                $row['at'], $row['customer'], $row['concept'], $row['amount'], self::ORIGINS[$row['origin']],
+                $this->hour($row['at']), $row['customer'], $row['concept'], $row['amount'], self::ORIGINS[$row['origin']],
             ], $rows),
         ];
         $remaining = collect($settlement['stockRemaining'])->pluck('quantity', 'product');
@@ -77,7 +78,7 @@ class CashCloseExport
         return [
             'Resumen' => [
                 ['Repartidor', $driver],
-                ['Fecha', $date],
+                ['Fecha', Carbon::parse($date)->format('d/m/Y')],
                 ['Estado de la ruta', $settlement['status']],
                 [],
                 ['Ventas totales', $settlement['totalSales']],
@@ -94,13 +95,13 @@ class CashCloseExport
             'Fiado' => [
                 ['Hora', 'Cliente', 'Importe', 'Origen'],
                 ...array_map(fn (array $row): array => [
-                    $row['at'], $row['customer'], $row['amount'], self::ORIGINS[$row['origin']],
+                    $this->hour($row['at']), $row['customer'], $row['amount'], self::ORIGINS[$row['origin']],
                 ], $details['credit']),
             ],
             'Envases' => [
                 ['Hora', 'Cliente', 'Envase', 'Movimiento', 'Cantidad', 'Origen'],
                 ...array_map(fn (array $row): array => [
-                    $row['at'], $row['customer'], $row['container'], self::MOVEMENTS[$row['movement']] ?? $row['movement'], $row['quantity'], self::ORIGINS[$row['origin']],
+                    $this->hour($row['at']), $row['customer'], $row['container'], self::MOVEMENTS[$row['movement']] ?? $row['movement'], $row['quantity'], self::ORIGINS[$row['origin']],
                 ], $details['containers']),
             ],
             'Stock' => [
@@ -113,6 +114,12 @@ class CashCloseExport
                 ])->all(),
             ],
         ];
+    }
+
+    /** The hour of a record; the day is in the header, so the "Hora" column carries only the hour. */
+    private function hour(?string $at): string
+    {
+        return $at === null ? '' : Carbon::parse($at)->format('H:i');
     }
 
     private function fileName(string $driver, string $date, string $extension): string

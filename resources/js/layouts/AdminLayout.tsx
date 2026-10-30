@@ -2,6 +2,9 @@ import React, { PropsWithChildren, ReactNode, useState } from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
 import { useTheme } from '@/lib/theme';
 import ThemeSwitch from '@/ui/ThemeSwitch';
+import NotificationsMenu, { NotificationItem } from '@/ui/NotificationsMenu';
+import { time } from '@/lib/format';
+import type { Notifications } from '@/types';
 import {
     LayoutDashboard,
     Truck,
@@ -15,12 +18,34 @@ import {
     LogOut,
     Menu,
     X,
-    Bell,
     ChevronDown,
     MapPin,
     AlertTriangle,
     ClipboardCheck,
 } from 'lucide-react';
+
+function notificationItems(notifications: Notifications | undefined): NotificationItem[] {
+    if (!notifications) return [];
+
+    const drivers = notifications.unsyncedDrivers.map((driver) => ({
+        key: `driver-${driver.id}`,
+        label: driver.lastSyncAt
+            ? `${driver.name} está en ruta y no sincroniza desde las ${time(driver.lastSyncAt)}`
+            : `${driver.name} está en ruta y nunca sincronizó`,
+        href: route('drivers.show', driver.id),
+    }));
+    const pending = notifications.pendingReview;
+    const review =
+        pending > 0
+            ? [{
+                  key: 'review',
+                  label: pending === 1 ? '1 registro espera revisión' : `${pending} registros esperan revisión`,
+                  href: route('review.index'),
+              }]
+            : [];
+
+    return [...drivers, ...review];
+}
 
 interface NavItem {
     name: string;
@@ -34,7 +59,8 @@ export default function AdminLayout({
     header,
     children,
 }: PropsWithChildren<{ header?: ReactNode }>) {
-    const user = usePage().props.auth.user;
+    const { auth, notifications } = usePage().props;
+    const user = auth.user;
     // Applies the saved theme and follows the system while the choice is "system", menu open or not.
     useTheme();
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -47,13 +73,13 @@ export default function AdminLayout({
 
     const navigation: NavItem[] = [
         {
-            name: 'Dashboard',
+            name: 'Panel',
             href: route('dashboard'),
             icon: LayoutDashboard,
             active: route().current('dashboard'),
         },
         {
-            name: 'Choferes',
+            name: 'Repartidores',
             href: route('drivers.index'),
             icon: Truck,
             active: route().current('drivers.*') || route().current('repartidores.*') || false,
@@ -65,7 +91,7 @@ export default function AdminLayout({
             active: route().current('customers.*') || false,
         },
         {
-            name: 'Despacho y Rutas',
+            name: 'Despacho y rutas',
             href: route('routes.index'),
             icon: CalendarCheck,
             active: route().current('routes.*') || false,
@@ -99,7 +125,7 @@ export default function AdminLayout({
               ]
             : []),
         {
-            name: 'Cierre y Arqueo',
+            name: 'Cierre de caja',
             href: route('cash-close.index'),
             icon: Package,
             active: route().current('cash-close.*') || false,
@@ -126,6 +152,8 @@ export default function AdminLayout({
                 <div className="flex items-center justify-between px-6 bg-canvas border-b border-hairline/60 h-16 lg:hidden">
                     <div className="flex-1"></div>
                     <button
+                        type="button"
+                        aria-label="Cerrar menú"
                         className="p-1.5 rounded-lg text-ink-muted hover:bg-surface-1"
                         onClick={() => setSidebarOpen(false)}
                     >
@@ -181,8 +209,10 @@ export default function AdminLayout({
                         </div>
                     </div>
                     <button
+                        type="button"
                         onClick={() => setShowLogoutModal(true)}
                         className="p-2 rounded-lg text-ink-muted hover:text-ink hover:bg-surface-1 transition cursor-pointer"
+                        aria-label="Cerrar sesión"
                         title="Cerrar sesión"
                     >
                         <LogOut className="w-5 h-5" strokeWidth={2} />
@@ -196,7 +226,10 @@ export default function AdminLayout({
                 <header className="h-16 bg-canvas/80 backdrop-blur-md border-b border-hairline/60 sticky top-0 z-30 flex items-center justify-between px-4 sm:px-6 lg:px-8 shadow-sm ">
                     <div className="flex items-center gap-3">
                         <button
+                            type="button"
                             onClick={() => setSidebarOpen(true)}
+                            aria-label="Abrir menú"
+                            aria-expanded={sidebarOpen}
                             className="lg:hidden p-2 rounded-lg text-ink-muted hover:bg-surface-1 hover:text-ink"
                         >
                             <Menu className="w-5 h-5" />
@@ -207,18 +240,22 @@ export default function AdminLayout({
                     </div>
 
                     <div className="flex items-center gap-4">
-                        {/* Notifications */}
-                        <button className="relative p-2 rounded-lg text-ink-muted hover:text-ink hover:bg-surface-1 transition">
-                            <Bell className="w-5 h-5" strokeWidth={2} />
-                            <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
-                        </button>
-
-                        <div className="h-6 w-px bg-surface-2"></div>
+                        {notifications && (
+                            <>
+                                <NotificationsMenu items={notificationItems(notifications)} />
+                                <div className="h-6 w-px bg-surface-2"></div>
+                            </>
+                        )}
 
                         {/* User Menu */}
                         <div className="relative">
                             <button
+                                type="button"
                                 onClick={() => setUserMenuOpen(!userMenuOpen)}
+                                // On a phone the name is hidden, so the button carries it for screen readers too.
+                                aria-label={`Menú de ${user.name}`}
+                                aria-haspopup="true"
+                                aria-expanded={userMenuOpen}
                                 className="flex items-center gap-2 text-sm font-medium text-ink-secondary hover:text-ink"
                             >
                                 <span className="hidden sm:inline-block">{user.name}</span>

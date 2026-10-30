@@ -3,6 +3,8 @@
 namespace App\Routes\Routes\Http\Controllers;
 
 use App\Accounts\Models\Driver;
+use App\CashDesk\DailyFigures;
+use App\CashDesk\DayScope;
 use App\Http\Controllers\Controller;
 use App\Routes\Routes\Models\RouteStop;
 use App\Street\Payments\Enums\PaymentStatus;
@@ -75,7 +77,7 @@ class DriverController extends Controller
     /**
      * Display a driver detailed profile, route timeline, and customer load.
      */
-    public function show(Driver $repartidor, Request $request): Response
+    public function show(Driver $repartidor, Request $request, DailyFigures $figures): Response
     {
         $date = $request->query('date', Carbon::today()->toDateString());
 
@@ -95,6 +97,8 @@ class DriverController extends Controller
         ]);
 
         $currentRoute = $repartidor->routes->first();
+        // The totals include what the app pushed without a visit, so they match the dashboard, the sales list and the cash close.
+        $day = $currentRoute ? $figures->forDay($date, DayScope::driver($repartidor)) : null;
 
         $totalStops = $currentRoute?->stops->count() ?? 0;
         $completedStops = $currentRoute?->stops->filter(fn (RouteStop $stop) => $stop->isDone())->count() ?? 0;
@@ -108,8 +112,8 @@ class DriverController extends Controller
             'totalStops' => $totalStops,
             'completedStops' => $completedStops,
             'progressPercent' => $totalStops > 0 ? round(($completedStops / $totalStops) * 100) : 0,
-            'totalSalesAmount' => (float) $currentRoute->stops->sum(fn ($s) => $s->visit?->sales->where('status', SaleStatus::Confirmed->value)->sum('total') ?? 0),
-            'totalCollectedAmount' => (float) $currentRoute->stops->sum(fn ($s) => $s->visit?->payments->where('status', PaymentStatus::Confirmed->value)->sum('amount') ?? 0),
+            'totalSalesAmount' => $day->totalSales,
+            'totalCollectedAmount' => $day->totalCollected,
             'stops' => $currentRoute->stops->map(fn ($stop) => [
                 'id' => $stop->id,
                 'customer' => [

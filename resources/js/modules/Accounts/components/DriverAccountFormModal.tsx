@@ -1,5 +1,6 @@
 import React, { FormEvent, useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
+import { FieldError } from '@/ui/Field';
 import { X } from 'lucide-react';
 import Modal from '@/ui/Modal';
 import { DriverAccount } from '@/modules/Accounts/types';
@@ -85,13 +86,13 @@ export default function DriverAccountFormModal({ show, account, onClose }: Props
                 className={inputClass}
                 autoComplete={type === 'password' ? 'new-password' : 'off'}
             />
-            {errors[key] && <span className="block text-sm text-red-600 dark:text-red-300 mt-1">{errors[key]}</span>}
+            <FieldError message={errors[key]} className="mt-1" />
         </label>
     );
 
     return (
         <Modal show={show} onClose={onClose} maxWidth="md">
-            <form onSubmit={submit}>
+            <form onSubmit={submit} noValidate>
                 <div className="flex items-start justify-between gap-4 px-6 pt-6 pb-4 border-b border-hairline">
                     <div>
                         <h2 className="text-lg font-semibold text-ink">

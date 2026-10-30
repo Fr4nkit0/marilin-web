@@ -11,7 +11,7 @@ final readonly class CustomerRegistration
 {
     /**
      * @param  string  $initialDebt  what the customer owes on entering, as a decimal string
-     * @param  array<string, int>  $initialContainers  containers the customer holds on entering, keyed by container type code
+     * @param  array<string, int>  $initialContainers  containers the customer holds on entering, keyed by container type id
      * @param  bool  $opensAccount  false leaves the customer without a balance row until its first entry (the app's customers)
      * @param  ?CarbonInterface  $appModifiedAt  set when the record comes from the app: it dates the rows and marks them as received now
      * @param  ?string  $addressClientUuid  the app's id of the primary address

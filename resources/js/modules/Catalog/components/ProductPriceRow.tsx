@@ -1,5 +1,6 @@
 import React from 'react';
 import { useForm } from '@inertiajs/react';
+import { FieldError } from '@/ui/Field';
 import { Save } from 'lucide-react';
 import { StatusBadge } from '@/ui/Badge';
 import { ProductItem } from '@/modules/Catalog/types';
@@ -26,7 +27,7 @@ export default function ProductPriceRow({ product }: Props) {
                 <StatusBadge status={product.enabled ? 'finalizado' : 'cancelado'} label={product.enabled ? 'Activo' : 'Inactivo'} />
             </td>
             <td className="px-6 py-4">
-                <form onSubmit={submit} className="flex items-start justify-end gap-2">
+                <form onSubmit={submit} noValidate className="flex items-start justify-end gap-2">
                     <div>
                         <div className="relative">
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-subtle">$</span>
@@ -41,7 +42,7 @@ export default function ProductPriceRow({ product }: Props) {
                                 className="w-36 py-2 pl-7 pr-3 text-sm text-right border border-hairline/60 bg-canvas text-ink rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 font-medium"
                             />
                         </div>
-                        {errors.price && <p className="text-xs text-red-600 dark:text-red-300 mt-1">{errors.price}</p>}
+                        <FieldError message={errors.price} className="mt-1" />
                     </div>
                     <button
                         type="submit"

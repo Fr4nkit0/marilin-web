@@ -51,7 +51,7 @@ export default function Index({ users, filters }: Props) {
 
     return (
         <AdminLayout header={<span className="text-sm font-medium text-ink-muted">Usuarios</span>}>
-            <Head title="Usuarios - Marilin" />
+            <Head title="Usuarios" />
 
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>

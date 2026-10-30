@@ -73,6 +73,36 @@ class ReviewInbox
      */
     public function page(array $filters, int $perPage = 15): LengthAwarePaginator
     {
+        return $this->items($filters)
+            ->select('items.type', 'items.id', 'items.driver_id', 'items.occurred_at', 'items.reason', 'items.reviewed_at')
+            ->addSelect('customers.name as customer', 'users.name as driver', 'reviewers.name as reviewed_by')
+            ->orderByDesc('items.occurred_at')
+            ->orderBy('items.type')
+            ->orderBy('items.id')
+            ->paginate($perPage)
+            ->through(function (object $row): object {
+                $row->reason = ReviewReason::tryFrom((string) $row->reason)?->label() ?? $row->reason;
+
+                return $row;
+            })
+            ->withQueryString();
+    }
+
+    /**
+     * How many records the inbox shows with no filter: everything still waiting for review, in one query.
+     */
+    public function pendingCount(): int
+    {
+        return $this->items([])->count();
+    }
+
+    /**
+     * Every reviewable record that matches the filters, joined to its customer, driver and reviewer; pending only unless the status says otherwise.
+     *
+     * @param  array{driver_id?: int|null, from?: string|null, to?: string|null, type?: string|null, status?: string|null}  $filters
+     */
+    private function items(array $filters): Builder
+    {
         $types = isset($filters['type']) ? [$filters['type']] : self::TYPES;
         $union = null;
 
@@ -87,23 +117,11 @@ class ReviewInbox
             ->leftJoin('drivers', 'drivers.id', '=', 'items.driver_id')
             ->leftJoin('users', 'users.id', '=', 'drivers.user_id')
             ->leftJoin('users as reviewers', 'reviewers.id', '=', 'items.reviewed_by')
-            ->select('items.type', 'items.id', 'items.driver_id', 'items.occurred_at', 'items.reason', 'items.reviewed_at')
-            ->addSelect('customers.name as customer', 'users.name as driver', 'reviewers.name as reviewed_by')
             ->when($filters['driver_id'] ?? null, fn (Builder $q, $driverId) => $q->where('items.driver_id', $driverId))
             ->when($filters['from'] ?? null, fn (Builder $q, $from) => $q->whereDate('items.occurred_at', '>=', $from))
             ->when($filters['to'] ?? null, fn (Builder $q, $to) => $q->whereDate('items.occurred_at', '<=', $to))
             ->when(($filters['status'] ?? 'pending') === 'pending', fn (Builder $q) => $q->whereNull('items.reviewed_at'))
-            ->when(($filters['status'] ?? null) === 'reviewed', fn (Builder $q) => $q->whereNotNull('items.reviewed_at'))
-            ->orderByDesc('items.occurred_at')
-            ->orderBy('items.type')
-            ->orderBy('items.id')
-            ->paginate($perPage)
-            ->through(function (object $row): object {
-                $row->reason = ReviewReason::tryFrom((string) $row->reason)?->label() ?? $row->reason;
-
-                return $row;
-            })
-            ->withQueryString();
+            ->when(($filters['status'] ?? null) === 'reviewed', fn (Builder $q) => $q->whereNotNull('items.reviewed_at'));
     }
 
     /**

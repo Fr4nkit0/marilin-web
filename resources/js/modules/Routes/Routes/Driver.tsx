@@ -11,7 +11,7 @@ import {
     Package,
     Calendar,
 } from 'lucide-react';
-import { money, stopStatusLabel } from '@/lib/format';
+import { date, money, stopStatusLabel } from '@/lib/format';
 import type { RouteStatus, RouteStopRow } from './types';
 
 interface StopItem extends RouteStopRow {
@@ -62,14 +62,14 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
                         href={route('drivers.index')}
                         className="text-ink-muted hover:text-ink font-medium transition-colors"
                     >
-                        Choferes
+                        Repartidores
                     </Link>
                     <span className="text-ink-subtle">/</span>
                     <span className="font-medium text-ink">{repartidor.name}</span>
                 </div>
             }
         >
-            <Head title={`${repartidor.name} - Detalle de Chofer`} />
+            <Head title={repartidor.name} />
 
             {/* Back link */}
             <div className="mb-4">
@@ -108,7 +108,7 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
                                 <span className="text-ink-subtle">•</span>
                                 <div className="flex items-center gap-1.5">
                                     <Calendar className="w-4 h-4 text-ink-subtle" />
-                                    <span>Fecha: {targetDate}</span>
+                                    <span>Fecha: {date(targetDate)}</span>
                                 </div>
                             </div>
                         </div>
@@ -144,7 +144,7 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
                     <Truck className="w-12 h-12 mx-auto text-ink-subtle mb-4" />
                     <h3 className="text-lg font-medium text-ink">Sin ruta asignada para hoy</h3>
                     <p className="text-sm text-ink-muted mt-2">
-                        El chofer no tiene una hoja de ruta planificada para la fecha seleccionada ({targetDate}).
+                        El repartidor no tiene una hoja de ruta planificada para la fecha seleccionada ({date(targetDate)}).
                     </p>
                 </div>
             ) : (

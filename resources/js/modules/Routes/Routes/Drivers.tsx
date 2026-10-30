@@ -62,22 +62,22 @@ export default function RepartidoresIndex({ repartidores, filters }: Props) {
             header={
                 <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-ink-muted">
-                        Flota & Choferes
+                        Repartidores
                     </span>
                 </div>
             }
         >
-            <Head title="Choferes - Marilin" />
+            <Head title="Repartidores" />
 
             <PageHeader
-                title="Gestión de Choferes"
-                description="Supervisión en tiempo real de choferes, rutas asignadas y avance de entregas."
+                title="Repartidores"
+                description="Supervisión en tiempo real de repartidores, rutas asignadas y avance de entregas."
             />
 
             {/* Quick Metrics */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-6">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 mb-6">
                 <KpiCard
-                    title="Total Choferes"
+                    title="Total repartidores"
                     value={repartidores.length}
                     icon={Truck}
                     variant="primary"
@@ -107,7 +107,8 @@ export default function RepartidoresIndex({ repartidores, filters }: Props) {
                         type="text"
                         value={filter.values.search}
                         onChange={(e) => filter.draft('search', e.target.value)}
-                        placeholder="Buscar por nombre de chofer o email..."
+                        aria-label="Buscar repartidor"
+                        placeholder="Buscar por nombre de repartidor o email..."
                         className="w-full pl-10 pr-4 py-2.5 text-sm bg-canvas border border-hairline text-ink font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 placeholder-ink-subtle"
                     />
                 </form>
@@ -119,7 +120,7 @@ export default function RepartidoresIndex({ repartidores, filters }: Props) {
                     <table className="w-full text-left text-sm">
                         <thead className="bg-canvas/80 backdrop-blur-md border-b border-hairline text-ink-muted font-medium text-sm tracking-wide">
                             <tr>
-                                <th className="px-6 py-4">Chofer</th>
+                                <th className="px-6 py-4">Repartidor</th>
                                 <th className="px-6 py-4">Estado Ruta Hoy</th>
                                 <th className="px-6 py-4">Progreso de Entregas</th>
                                 <th className="px-6 py-4 text-center">Clientes Asignados</th>
@@ -131,7 +132,7 @@ export default function RepartidoresIndex({ repartidores, filters }: Props) {
                             {repartidores.length === 0 ? (
                                 <tr>
                                     <td colSpan={6} className="px-6 py-8 text-center text-ink-muted font-medium">
-                                        <span className="table-empty">No se encontraron choferes registrados.</span>
+                                        <span className="table-empty">No se encontraron repartidores registrados.</span>
                                     </td>
                                 </tr>
                             ) : (

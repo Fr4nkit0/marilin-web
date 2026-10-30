@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Dashboard\DriverSync;
+use App\Review\ReviewInbox;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -34,6 +36,16 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            // The bell in the header, for whoever sees the review menu; a closure so only Inertia page responses pay its queries.
+            ...($request->user()?->can('review-inbox') ? [
+                'notifications' => fn (): array => [
+                    'unsyncedDrivers' => array_map(
+                        fn (array $driver): array => ['id' => $driver['id'], 'name' => $driver['name'], 'lastSyncAt' => $driver['lastSyncAt']],
+                        app(DriverSync::class)->stale(),
+                    ),
+                    'pendingReview' => app(ReviewInbox::class)->pendingCount(),
+                ],
+            ] : []),
         ];
     }
 }

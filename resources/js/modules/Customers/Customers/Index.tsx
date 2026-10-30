@@ -6,6 +6,7 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import AdminLayout from '@/layouts/AdminLayout';
 import { DebtBadge } from '@/ui/Badge';
 import { PageHeader } from '@/ui/PageHeader';
+import { FieldError } from '@/ui/Field';
 import {
     Search,
     Plus,
@@ -25,6 +26,7 @@ interface CustomerAddress {
     apartment?: string;
     floor?: string;
     visual_reference?: string;
+    neighborhood?: string | null;
     is_primary: boolean;
 }
 
@@ -68,9 +70,13 @@ interface Props {
         debt_status?: string;
     };
     repartidores: { id: number; name: string }[];
+    neighborhoods: string[];
+    containerTypes: { id: number; description: string }[];
 }
 
-export default function CustomersIndex({ customers, filters, repartidores }: Props) {
+const NEIGHBORHOOD_OPTIONS = 'neighborhood-options';
+
+export default function CustomersIndex({ customers, filters, repartidores, neighborhoods, containerTypes }: Props) {
     const filter = useListFilters(
         'customers.index',
         { search: filters.search || '', repartidor_id: filters.repartidor_id || '', debt_status: filters.debt_status || 'all' },
@@ -87,9 +93,10 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
         floor: '',
         apartment: '',
         visual_reference: '',
+        neighborhood: '',
         initial_balance: '0',
-        bidon_20l_balance: '0',
-        sifon_2l_balance: '0',
+        // Keyed by container type id, one count per enabled type.
+        initial_containers: {} as Record<string, string>,
     });
 
     const editForm = useForm({
@@ -100,7 +107,10 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
         floor: '',
         apartment: '',
         visual_reference: '',
+        neighborhood: '',
     });
+
+    const isFiltered = Boolean(filters.search || filters.repartidor_id || (filters.debt_status && filters.debt_status !== 'all'));
 
     const handleCreateCustomer = (e: React.FormEvent) => {
         e.preventDefault();
@@ -123,6 +133,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
             floor: c.primary_address?.floor || '',
             apartment: c.primary_address?.apartment || '',
             visual_reference: c.primary_address?.visual_reference || '',
+            neighborhood: c.primary_address?.neighborhood || '',
         });
     };
 
@@ -146,20 +157,24 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
             header={
                 <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-ink-muted">
-                        Directorio
+                        Clientes
                     </span>
                 </div>
             }
         >
-            <Head title="Clientes - Marilin" />
+            <Head title="Clientes" />
 
             <div className="mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-semibold text-ink tracking-tight">
-                        Gestión de Clientes
+                        Clientes
                     </h1>
                     <p className="text-sm font-medium text-ink-muted mt-1 tracking-wide">
-                        Total de {customers.total} clientes registrados en el sistema.
+                        {isFiltered
+                            ? customers.total === 1
+                                ? '1 cliente coincide con los filtros.'
+                                : `${customers.total} clientes coinciden con los filtros.`
+                            : `Total de ${customers.total} clientes registrados en el sistema.`}
                     </p>
                 </div>
                 <button
@@ -181,6 +196,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                             type="text"
                             value={filter.values.search}
                             onChange={(e) => filter.draft('search', e.target.value)}
+                            aria-label="Buscar cliente"
                             placeholder="Buscar por nombre, teléfono o dirección..."
                             className="w-full pl-9 pr-4 py-2 text-sm border border-hairline/60 bg-canvas text-ink placeholder-ink-subtle rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 font-medium"
                         />
@@ -191,6 +207,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                         <select
                             value={filter.values.repartidor_id}
                             onChange={(e) => filter.set('repartidor_id', e.target.value)}
+                            aria-label="Repartidor"
                             className="w-full py-2 px-3 text-sm border border-hairline/60 bg-canvas text-ink placeholder-ink-subtle rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 font-medium"
                         >
                             <option value="">Todos los Repartidores</option>
@@ -207,6 +224,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                         <select
                             value={filter.values.debt_status}
                             onChange={(e) => filter.set('debt_status', e.target.value)}
+                            aria-label="Estado de deuda"
                             className="w-full py-2 px-3 text-sm border border-hairline/60 bg-canvas text-ink placeholder-ink-subtle rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 font-medium"
                         >
                             <option value="all">Todos los Estados</option>
@@ -279,6 +297,11 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                                                     , Depto {c.primary_address.apartment}
                                                                 </span>
                                                             )}
+                                                            {c.primary_address.neighborhood && (
+                                                                <span className="block text-xs text-ink-subtle">
+                                                                    {c.primary_address.neighborhood}
+                                                                </span>
+                                                            )}
                                                         </span>
                                                     </div>
                                                 ) : (
@@ -345,6 +368,12 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                 <Pagination page={customers} />
             </div>
 
+            <datalist id={NEIGHBORHOOD_OPTIONS}>
+                {neighborhoods.map((name) => (
+                    <option key={name} value={name} />
+                ))}
+            </datalist>
+
             {/* Modal para Crear Nuevo Cliente */}
             {isCreateModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
@@ -373,19 +402,21 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                             <button
                                 type="button"
                                 onClick={() => setIsCreateModalOpen(false)}
+                                aria-label="Cerrar"
                                 className="p-2 rounded-lg text-ink-subtle hover:text-ink-secondary hover:bg-surface-1 transition cursor-pointer"
                             >
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
 
-                        <form onSubmit={handleCreateCustomer} className="p-6 space-y-5">
+                        <form onSubmit={handleCreateCustomer} noValidate className="p-6 space-y-5">
                             {/* Nombre o Razón Social */}
                             <div>
-                                <label className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                <label htmlFor="create-name" className="block text-sm font-medium text-ink-secondary mb-1.5">
                                     Nombre o Razón Social <span className="text-ink">*</span>
                                 </label>
                                 <input
+                                    id="create-name"
                                     type="text"
                                     required
                                     value={data.name}
@@ -393,32 +424,32 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                     placeholder="Ej: Sanatorio Los Lapachos S.A."
                                     className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                 />
-                                {errors.name && <p className="text-sm text-red-600 dark:text-red-300 mt-1">{errors.name}</p>}
+                                <FieldError message={errors.name} className="mt-1" />
                             </div>
 
                             {/* Teléfono & Repartidor */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                 <div>
-                                    <label className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                    <label htmlFor="create-phone-number" className="block text-sm font-medium text-ink-secondary mb-1.5">
                                         Teléfono de Contacto
                                     </label>
                                     <input
+                                        id="create-phone-number"
                                         type="text"
                                         value={data.phone_number}
                                         onChange={(e) => setData('phone_number', e.target.value)}
-                                        placeholder="Ej: +54 388 422-3000"
+                                        placeholder="Ej: +54 387 422-3000"
                                         className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                     />
-                                    {errors.phone_number && (
-                                        <p className="text-sm text-red-600 dark:text-red-300 mt-1">{errors.phone_number}</p>
-                                    )}
+                                    <FieldError message={errors.phone_number} className="mt-1" />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                    <label htmlFor="create-repartidor-id" className="block text-sm font-medium text-ink-secondary mb-1.5">
                                         Repartidor Asignado
                                     </label>
                                     <select
+                                        id="create-repartidor-id"
                                         value={data.repartidor_id}
                                         onChange={(e) => setData('repartidor_id', e.target.value)}
                                         className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  bg-canvas"
@@ -430,9 +461,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                             </option>
                                         ))}
                                     </select>
-                                    {errors.repartidor_id && (
-                                        <p className="text-sm text-red-600 dark:text-red-300 mt-1">{errors.repartidor_id}</p>
-                                    )}
+                                    <FieldError message={errors.repartidor_id} className="mt-1" />
                                 </div>
                             </div>
 
@@ -442,10 +471,11 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                     Dirección Principal
                                 </h4>
                                 <div>
-                                    <label className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                    <label htmlFor="create-street" className="block text-sm font-medium text-ink-secondary mb-1.5">
                                         Calle y Altura <span className="text-ink">*</span>
                                     </label>
                                     <input
+                                        id="create-street"
                                         type="text"
                                         required
                                         value={data.street}
@@ -453,15 +483,33 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                         placeholder="Ej: Belgrano 340"
                                         className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                     />
-                                    {errors.street && <p className="text-sm text-red-600 dark:text-red-300 mt-1">{errors.street}</p>}
+                                    <FieldError message={errors.street} className="mt-1" />
+                                </div>
+
+                                <div>
+                                    <label htmlFor="create-neighborhood" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                        Barrio
+                                    </label>
+                                    <input
+                                        id="create-neighborhood"
+                                        type="text"
+                                        list={NEIGHBORHOOD_OPTIONS}
+                                        autoComplete="off"
+                                        value={data.neighborhood}
+                                        onChange={(e) => setData('neighborhood', e.target.value)}
+                                        placeholder="Buscar barrio, ej: Tres Cerritos"
+                                        className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
+                                    />
+                                    <FieldError message={errors.neighborhood} className="mt-1" />
                                 </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                                     <div>
-                                        <label className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                        <label htmlFor="create-floor" className="block text-sm font-medium text-ink-secondary mb-1.5">
                                             Piso
                                         </label>
                                         <input
+                                            id="create-floor"
                                             type="text"
                                             value={data.floor}
                                             onChange={(e) => setData('floor', e.target.value)}
@@ -469,32 +517,37 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                             placeholder="Ej: PB, 3, Local 2"
                                             className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                         />
+                                        <FieldError message={errors.floor} className="mt-1" />
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                        <label htmlFor="create-apartment" className="block text-sm font-medium text-ink-secondary mb-1.5">
                                             Departamento
                                         </label>
                                         <input
+                                            id="create-apartment"
                                             type="text"
                                             value={data.apartment}
                                             onChange={(e) => setData('apartment', e.target.value)}
                                             placeholder="Ej: 4B"
                                             className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                         />
+                                        <FieldError message={errors.apartment} className="mt-1" />
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                        <label htmlFor="create-visual-reference" className="block text-sm font-medium text-ink-secondary mb-1.5">
                                             Referencia Visual
                                         </label>
                                         <input
+                                            id="create-visual-reference"
                                             type="text"
                                             value={data.visual_reference}
                                             onChange={(e) => setData('visual_reference', e.target.value)}
                                             placeholder="Ej: Frente a Plaza Belgrano"
                                             className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                         />
+                                        <FieldError message={errors.visual_reference} className="mt-1" />
                                     </div>
                                 </div>
                             </div>
@@ -504,13 +557,15 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                 <h4 className="text-sm font-semibold text-ink">
                                     Condiciones Iniciales
                                 </h4>
+                                <FieldError message={errors.initial_containers} className="mt-1" />
 
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                                     <div>
-                                        <label className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                        <label htmlFor="create-initial-balance" className="block text-sm font-medium text-ink-secondary mb-1.5">
                                             Deuda Inicial ($)
                                         </label>
                                         <input
+                                            id="create-initial-balance"
                                             type="number"
                                             step="0.01"
                                             min="0"
@@ -518,33 +573,34 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                             onChange={(e) => setData('initial_balance', e.target.value)}
                                             className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  font-medium"
                                         />
+                                        <FieldError message={errors.initial_balance} className="mt-1" />
                                     </div>
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                            Bidones 20L
-                                        </label>
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            value={data.bidon_20l_balance}
-                                            onChange={(e) => setData('bidon_20l_balance', e.target.value)}
-                                            className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  font-medium"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                            Sifones 2L
-                                        </label>
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            value={data.sifon_2l_balance}
-                                            onChange={(e) => setData('sifon_2l_balance', e.target.value)}
-                                            className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  font-medium"
-                                        />
-                                    </div>
+                                    {containerTypes.map((type) => (
+                                        <div key={type.id}>
+                                            <label
+                                                htmlFor={`initial-containers-${type.id}`}
+                                                className="block text-sm font-medium text-ink-secondary mb-1.5"
+                                            >
+                                                {type.description}
+                                            </label>
+                                            <input
+                                                id={`initial-containers-${type.id}`}
+                                                type="number"
+                                                min="0"
+                                                step="1"
+                                                value={data.initial_containers[type.id] ?? '0'}
+                                                onChange={(e) =>
+                                                    setData('initial_containers', { ...data.initial_containers, [type.id]: e.target.value })
+                                                }
+                                                className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  font-medium"
+                                            />
+                                            <FieldError
+                                                message={(errors as Record<string, string>)[`initial_containers.${type.id}`]}
+                                                className="mt-1"
+                                            />
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
 
@@ -599,53 +655,53 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                             <button
                                 type="button"
                                 onClick={() => setEditingCustomer(null)}
+                                aria-label="Cerrar"
                                 className="p-2 rounded-lg text-ink-subtle hover:text-ink-secondary hover:bg-surface-1 transition cursor-pointer"
                             >
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
 
-                        <form onSubmit={handleUpdateCustomer} className="p-6 space-y-5">
+                        <form onSubmit={handleUpdateCustomer} noValidate className="p-6 space-y-5">
                             {/* Nombre o Razón Social */}
                             <div>
-                                <label className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                <label htmlFor="edit-name" className="block text-sm font-medium text-ink-secondary mb-1.5">
                                     Nombre o Razón Social <span className="text-ink">*</span>
                                 </label>
                                 <input
+                                    id="edit-name"
                                     type="text"
                                     required
                                     value={editForm.data.name}
                                     onChange={(e) => editForm.setData('name', e.target.value)}
                                     className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                 />
-                                {editForm.errors.name && (
-                                    <p className="text-sm text-red-600 dark:text-red-300 mt-1">{editForm.errors.name}</p>
-                                )}
+                                <FieldError message={editForm.errors.name} className="mt-1" />
                             </div>
 
                             {/* Teléfono & Repartidor */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                 <div>
-                                    <label className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                    <label htmlFor="edit-phone-number" className="block text-sm font-medium text-ink-secondary mb-1.5">
                                         Teléfono de Contacto
                                     </label>
                                     <input
+                                        id="edit-phone-number"
                                         type="text"
                                         value={editForm.data.phone_number}
                                         onChange={(e) => editForm.setData('phone_number', e.target.value)}
-                                        placeholder="Ej: +54 388 422-3000"
+                                        placeholder="Ej: +54 387 422-3000"
                                         className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                     />
-                                    {editForm.errors.phone_number && (
-                                        <p className="text-sm text-red-600 dark:text-red-300 mt-1">{editForm.errors.phone_number}</p>
-                                    )}
+                                    <FieldError message={editForm.errors.phone_number} className="mt-1" />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                    <label htmlFor="edit-repartidor-id" className="block text-sm font-medium text-ink-secondary mb-1.5">
                                         Repartidor Asignado
                                     </label>
                                     <select
+                                        id="edit-repartidor-id"
                                         value={editForm.data.repartidor_id}
                                         onChange={(e) => editForm.setData('repartidor_id', e.target.value)}
                                         className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  bg-canvas"
@@ -657,9 +713,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                             </option>
                                         ))}
                                     </select>
-                                    {editForm.errors.repartidor_id && (
-                                        <p className="text-sm text-red-600 dark:text-red-300 mt-1">{editForm.errors.repartidor_id}</p>
-                                    )}
+                                    <FieldError message={editForm.errors.repartidor_id} className="mt-1" />
                                 </div>
                             </div>
 
@@ -669,27 +723,44 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                     Dirección Principal
                                 </h4>
                                 <div>
-                                    <label className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                    <label htmlFor="edit-street" className="block text-sm font-medium text-ink-secondary mb-1.5">
                                         Calle y Altura <span className="text-ink">*</span>
                                     </label>
                                     <input
+                                        id="edit-street"
                                         type="text"
                                         required
                                         value={editForm.data.street}
                                         onChange={(e) => editForm.setData('street', e.target.value)}
                                         className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                     />
-                                    {editForm.errors.street && (
-                                        <p className="text-sm text-red-600 dark:text-red-300 mt-1">{editForm.errors.street}</p>
-                                    )}
+                                    <FieldError message={editForm.errors.street} className="mt-1" />
+                                </div>
+
+                                <div>
+                                    <label htmlFor="edit-neighborhood" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                        Barrio
+                                    </label>
+                                    <input
+                                        id="edit-neighborhood"
+                                        type="text"
+                                        list={NEIGHBORHOOD_OPTIONS}
+                                        autoComplete="off"
+                                        value={editForm.data.neighborhood}
+                                        onChange={(e) => editForm.setData('neighborhood', e.target.value)}
+                                        placeholder="Buscar barrio, ej: Tres Cerritos"
+                                        className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
+                                    />
+                                    <FieldError message={editForm.errors.neighborhood} className="mt-1" />
                                 </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                                     <div>
-                                        <label className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                        <label htmlFor="edit-floor" className="block text-sm font-medium text-ink-secondary mb-1.5">
                                             Piso
                                         </label>
                                         <input
+                                            id="edit-floor"
                                             type="text"
                                             value={editForm.data.floor}
                                             onChange={(e) => editForm.setData('floor', e.target.value)}
@@ -697,32 +768,37 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                             placeholder="Ej: PB, 3, Local 2"
                                             className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                         />
+                                        <FieldError message={editForm.errors.floor} className="mt-1" />
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                        <label htmlFor="edit-apartment" className="block text-sm font-medium text-ink-secondary mb-1.5">
                                             Departamento
                                         </label>
                                         <input
+                                            id="edit-apartment"
                                             type="text"
                                             value={editForm.data.apartment}
                                             onChange={(e) => editForm.setData('apartment', e.target.value)}
                                             placeholder="Ej: 4B"
                                             className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                         />
+                                        <FieldError message={editForm.errors.apartment} className="mt-1" />
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                        <label htmlFor="edit-visual-reference" className="block text-sm font-medium text-ink-secondary mb-1.5">
                                             Referencia Visual
                                         </label>
                                         <input
+                                            id="edit-visual-reference"
                                             type="text"
                                             value={editForm.data.visual_reference}
                                             onChange={(e) => editForm.setData('visual_reference', e.target.value)}
                                             placeholder="Ej: Frente a Plaza Belgrano"
                                             className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                         />
+                                        <FieldError message={editForm.errors.visual_reference} className="mt-1" />
                                     </div>
                                 </div>
                             </div>

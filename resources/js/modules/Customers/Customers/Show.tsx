@@ -23,7 +23,7 @@ import {
     CreditCard,
     Truck,
 } from 'lucide-react';
-import { accountEntryTypeLabel, money, type AccountEntryType } from '@/lib/format';
+import { accountEntryTypeLabel, date, dateTime, money, type AccountEntryType } from '@/lib/format';
 
 interface Props {
     customer: {
@@ -35,6 +35,7 @@ interface Props {
             apartment?: string;
             floor?: string;
             visual_reference?: string;
+            neighborhood?: string | null;
             latitude?: number;
             longitude?: number;
         };
@@ -95,8 +96,6 @@ const AGREEMENT_STATUS: Record<AgreementStatus, { label: string; className: stri
     ended: { label: 'Finalizado', className: 'bg-surface-1 text-ink-muted' },
 };
 
-const formatDay = (day: string) => day.split('-').reverse().join('/');
-
 const localToday = () => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -146,7 +145,7 @@ export default function CustomerShow({
                 </div>
             }
         >
-            <Head title={`${customer.name} - Detalle de Cliente`} />
+            <Head title={customer.name} />
 
             {/* Back button */}
             <div className="mb-4">
@@ -188,6 +187,7 @@ export default function CustomerShow({
                                             {customer.primary_address.street}
                                             {customer.primary_address.floor && ` (Piso ${customer.primary_address.floor})`}
                                             {customer.primary_address.apartment && ` (Depto ${customer.primary_address.apartment})`}
+                                            {customer.primary_address.neighborhood && `, ${customer.primary_address.neighborhood}`}
                                             {customer.primary_address.visual_reference && ` - ${customer.primary_address.visual_reference}`}
                                         </span>
                                     </div>
@@ -422,7 +422,7 @@ export default function CustomerShow({
                                         containerMovements.map((cm) => (
                                             <tr key={cm.id} className="hover:bg-canvas-soft transition-colors">
                                                 <td className="px-6 py-4 text-ink-secondary">
-                                                    {cm.created_at}
+                                                    {dateTime(cm.created_at)}
                                                 </td>
                                                 <td className="px-6 py-4 font-medium text-ink">
                                                     {cm.container_type?.name}
@@ -504,8 +504,8 @@ export default function CustomerShow({
                                                 {money(agreement.unitPrice)}
                                             </td>
                                             <td className="px-5 py-3 text-ink-secondary whitespace-nowrap">
-                                                {formatDay(agreement.validFrom)} →{' '}
-                                                {agreement.validTo ? formatDay(agreement.validTo) : 'sin fin'}
+                                                {date(agreement.validFrom)} →{' '}
+                                                {agreement.validTo ? date(agreement.validTo) : 'sin fin'}
                                             </td>
                                             <td className="px-5 py-3">
                                                 <span

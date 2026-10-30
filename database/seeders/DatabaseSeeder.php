@@ -8,6 +8,7 @@ use App\Catalog\Models\ContainerType;
 use App\Catalog\Models\PaymentMethod;
 use App\Catalog\Models\Product;
 use App\Customers\Agreements\Models\CustomerAgreement;
+use App\Customers\Agreements\PriceResolver;
 use App\Customers\Customers\Models\Customer;
 use App\Customers\Customers\Models\CustomerAddress;
 use App\Customers\Customers\Models\CustomerPreference;
@@ -171,7 +172,7 @@ class DatabaseSeeder extends Seeder
         );
 
         // 5. Visit Outcomes: what happened when there was no sale. Only rescheduling reopens the stop later.
-        VisitOutcome::firstOrCreate(
+        $outcomeAbsent = VisitOutcome::firstOrCreate(
             ['code' => 'absent'],
             ['name' => 'Ausente', 'triggers_reschedule' => false, 'enabled' => true]
         );
@@ -669,29 +670,49 @@ class DatabaseSeeder extends Seeder
             $createdCustomers[$cfg['name']] = $customer;
         }
 
-        // 7. Yesterday Sales History (To generate positive salesDelta trend on dashboard)
-        $yesterdaySales = [
-            ['customer' => 'Sanatorio Nuestra Señora del Rosario', 'total' => 18000.00],
-            ['customer' => 'Hotel Cerro San Bernardo', 'total' => 15200.00],
-            ['customer' => 'Café Martínez Belgrano', 'total' => 11400.00],
-            ['customer' => 'Panadería y Confitería La Unión', 'total' => 9750.00],
+        // 7. Yesterday: every driver closed a full route, so the dashboard compares today against a real day.
+        // A null method is a credit sale; 'absent' is a visit without sale.
+        $yesterdayRoutes = [
+            [$repJuan, '08:00', '13:40', [
+                ['customer' => 'Sanatorio Nuestra Señora del Rosario', 'time' => '08:30', 'qty_agua' => 10, 'qty_soda' => 0, 'method' => $transferMethod],
+                ['customer' => 'Café Martínez Belgrano', 'time' => '09:15', 'qty_agua' => 4, 'qty_soda' => 8, 'method' => $cashMethod],
+                ['customer' => 'Estudio Jurídico Alvear & Asoc.', 'time' => '10:00', 'qty_agua' => 3, 'qty_soda' => 0, 'method' => $cashMethod],
+                ['customer' => 'Hotel Cerro San Bernardo', 'time' => '11:20', 'qty_agua' => 8, 'qty_soda' => 6, 'method' => null],
+                ['customer' => 'Familia Tolaba', 'time' => '12:50', 'absent' => true],
+            ]],
+            [$repCarlos, '07:45', '13:15', [
+                ['customer' => 'Panadería y Confitería La Unión', 'time' => '08:10', 'qty_agua' => 4, 'qty_soda' => 6, 'method' => $cashMethod],
+                ['customer' => 'Gimnasio Go Fitness Salta', 'time' => '09:05', 'qty_agua' => 8, 'qty_soda' => 0, 'method' => $transferMethod],
+                ['customer' => 'Kiosco El Sol', 'time' => '10:20', 'qty_agua' => 3, 'qty_soda' => 4, 'method' => $cashMethod],
+                ['customer' => 'Familia Ramírez', 'time' => '11:40', 'qty_agua' => 2, 'qty_soda' => 0, 'method' => null],
+            ]],
+            [$repMarcos, '08:30', '12:30', [
+                ['customer' => 'Crossfit Sur Box', 'time' => '09:00', 'qty_agua' => 6, 'qty_soda' => 0, 'method' => $transferMethod],
+                ['customer' => 'Taller Mecánico Tavella Motors', 'time' => '10:10', 'qty_agua' => 5, 'qty_soda' => 0, 'method' => null],
+                ['customer' => 'Familia Morales', 'time' => '11:30', 'qty_agua' => 3, 'qty_soda' => 0, 'method' => $cashMethod],
+            ]],
+            [$repEsteban, '08:00', '13:00', [
+                ['customer' => 'Supermercado El Tunal', 'time' => '08:25', 'qty_agua' => 10, 'qty_soda' => 8, 'method' => $transferMethod],
+                ['customer' => 'Verdulería Los Andes', 'time' => '09:10', 'qty_agua' => 3, 'qty_soda' => 2, 'method' => $cashMethod],
+                ['customer' => 'Escuela N° 4032 Limache', 'time' => '10:00', 'qty_agua' => 6, 'qty_soda' => 0, 'method' => null],
+                ['customer' => 'Familia Quispe', 'time' => '11:15', 'qty_agua' => 2, 'qty_soda' => 0, 'method' => $cashMethod],
+                ['customer' => 'Familia Mamaní', 'time' => '12:20', 'qty_agua' => 2, 'qty_soda' => 0, 'method' => $cashMethod],
+            ]],
         ];
 
-        foreach ($yesterdaySales as $ys) {
-            $cust = $createdCustomers[$ys['customer']] ?? null;
-            if ($cust) {
-                Sale::firstOrCreate(
-                    ['customer_id' => $cust->id, 'date' => $yesterday->copy()->setHour(11)],
-                    [
-                        'total' => $ys['total'],
-                        'status' => 'confirmed',
-                        'is_credit_sale' => false,
-                        'notes' => 'Venta jornada previa',
-                        'created_by' => $admin->id,
-                        'enabled' => true,
-                    ]
-                );
-            }
+        foreach ($yesterdayRoutes as [$driver, $startedAt, $completedAt, $stops]) {
+            $this->seedCompletedRoute(
+                $driver,
+                $yesterday,
+                $startedAt,
+                $completedAt,
+                $stops,
+                $createdCustomers,
+                ['agua' => $productAgua20L, 'soda' => $productSoda2L],
+                $bidon20L,
+                $outcomeAbsent,
+                $admin,
+            );
         }
 
         // 8. TODAY'S ROUTES & TRUCK LOADS
@@ -1307,6 +1328,172 @@ class DatabaseSeeder extends Seeder
             ['route_id' => $routeEsteban->id, 'customer_id' => $absentCustomer->id, 'is_rescheduled_from' => $absentStop->id],
             ['address_id' => $absentStop->address_id, 'scheduled_time' => '16:00', 'enabled' => true]
         );
+    }
+
+    /**
+     * A finished day for one driver: truck loaded before the start, every stop visited, sales at the
+     * customer's price that day, and the cash or transfer payment of every sale that was not on credit.
+     *
+     * @param  list<array{customer: string, time: string, qty_agua?: int, qty_soda?: int, method?: ?PaymentMethod, absent?: bool}>  $stops
+     * @param  array<string, Customer>  $customers
+     * @param  array{agua: Product, soda: Product}  $products
+     */
+    private function seedCompletedRoute(
+        Driver $driver,
+        Carbon $day,
+        string $startedAt,
+        string $completedAt,
+        array $stops,
+        array $customers,
+        array $products,
+        ContainerType $bidon,
+        VisitOutcome $outcomeAbsent,
+        User $admin,
+    ): void {
+        $at = fn (string $time): Carbon => $day->copy()->setTimeFromTimeString($time);
+        $prices = app(PriceResolver::class);
+
+        $route = DeliveryRoute::firstOrCreate(
+            ['assigned_driver_id' => $driver->id, 'date' => $day->toDateString()],
+            ['status' => 'COMPLETED', 'started_at' => $at($startedAt), 'completed_at' => $at($completedAt), 'enabled' => true]
+        );
+
+        $sold = ['agua' => 0, 'soda' => 0];
+
+        foreach ($stops as $s) {
+            $customer = $customers[$s['customer']];
+            $address = $customer->primaryAddress;
+            $absent = $s['absent'] ?? false;
+
+            $stop = RouteStop::firstOrCreate(
+                ['route_id' => $route->id, 'customer_id' => $customer->id],
+                ['address_id' => $address->id, 'enabled' => true]
+            );
+
+            $visit = Visit::firstOrCreate(
+                ['route_stop_id' => $stop->id],
+                [
+                    'customer_id' => $customer->id,
+                    'driver_id' => $driver->id,
+                    'outcome_id' => $absent ? $outcomeAbsent->id : null,
+                    'arrived_at' => $at($s['time']),
+                    'latitude' => $address->latitude,
+                    'longitude' => $address->longitude,
+                    'status' => 'FINISHED',
+                    'notes' => $absent ? 'No había nadie' : 'Entrega completada',
+                    'created_by' => $driver->user_id,
+                    'enabled' => true,
+                ]
+            );
+
+            if ($absent) {
+                continue;
+            }
+
+            $lines = [];
+            foreach (['agua' => $s['qty_agua'], 'soda' => $s['qty_soda']] as $key => $quantity) {
+                if ($quantity > 0) {
+                    $lines[$key] = [$quantity, (float) $prices->priceFor($customer, $products[$key], $day)->unitPrice];
+                    $sold[$key] += $quantity;
+                }
+            }
+            $total = array_sum(array_map(fn (array $line): float => $line[0] * $line[1], $lines));
+            $isCredit = $s['method'] === null;
+
+            $sale = Sale::firstOrCreate(
+                ['customer_id' => $customer->id, 'visit_id' => $visit->id],
+                [
+                    'date' => $visit->arrived_at,
+                    'total' => $total,
+                    'status' => 'confirmed',
+                    'is_credit_sale' => $isCredit,
+                    'notes' => 'Venta en parada',
+                    'created_by' => $driver->user_id,
+                    'enabled' => true,
+                ]
+            );
+
+            foreach ($lines as $key => [$quantity, $unitPrice]) {
+                SaleDetail::firstOrCreate(
+                    ['sale_id' => $sale->id, 'product_id' => $products[$key]->id],
+                    ['quantity' => $quantity, 'unit_price' => $unitPrice]
+                );
+            }
+
+            foreach ([['DELIVERED', 1, 'Entrega de bidones'], ['RETURNED', -1, 'Retiro de bidones vacíos']] as [$type, $direction, $reason]) {
+                ContainerMovement::firstOrCreate(
+                    ['visit_id' => $visit->id, 'movement_type' => $type],
+                    [
+                        'customer_id' => $customer->id,
+                        'container_type_id' => $bidon->id,
+                        'quantity' => $s['qty_agua'],
+                        'direction' => $direction,
+                        'reason' => $reason,
+                        'created_by' => $driver->user_id,
+                        'enabled' => true,
+                    ]
+                );
+            }
+
+            if ($isCredit) {
+                $this->bookCreditSale($sale, $customer, $driver->user_id, "Venta a Crédito {$s['qty_agua']}x Bidones 20L");
+
+                continue;
+            }
+
+            $payment = Payment::query()->where('sale_id', $sale->id)->first() ?? Payment::create([
+                'transaction_id' => Transaction::create(['type' => 'IN', 'amount' => $total])->id,
+                'sale_id' => $sale->id,
+                'customer_id' => $customer->id,
+                'visit_id' => $visit->id,
+                'payment_method_id' => $s['method']->id,
+                'amount' => $total,
+                'received_by' => $driver->user_id,
+                'paid_at' => $visit->arrived_at,
+                'status' => 'CONFIRMED',
+            ]);
+
+            // A sale paid on the spot books both sides, so the customer's balance does not move.
+            CustomerAccountEntry::firstOrCreate(
+                ['sale_id' => $sale->id, 'entry_type' => 'SALE'],
+                [
+                    'customer_id' => $customer->id,
+                    'direction' => 1,
+                    'amount' => $total,
+                    'description' => "Venta {$s['qty_agua']}x Bidones 20L",
+                    'created_by' => $driver->user_id,
+                    'created_at' => $visit->arrived_at,
+                ]
+            );
+            CustomerAccountEntry::firstOrCreate(
+                ['payment_id' => $payment->id, 'entry_type' => 'PAYMENT'],
+                [
+                    'customer_id' => $customer->id,
+                    'direction' => -1,
+                    'amount' => $total,
+                    'description' => "Cobro {$s['method']->name}",
+                    'created_by' => $driver->user_id,
+                    'created_at' => $visit->arrived_at,
+                ]
+            );
+        }
+
+        // The truck leaves with some spare stock; what is left is the load minus what was sold.
+        foreach ($products as $key => $product) {
+            $loaded = $sold[$key] > 0 ? $sold[$key] + 6 : 0;
+            if ($loaded === 0) {
+                continue;
+            }
+
+            RouteInventoryLoad::firstOrCreate(
+                ['route_id' => $route->id, 'product_id' => $product->id],
+                ['quantity' => $loaded, 'loaded_at' => $route->started_at->copy()->subMinutes(30), 'created_by' => $admin->id]
+            );
+            RouteInventory::firstOrCreate(
+                ['route_id' => $route->id, 'product_id' => $product->id],
+                ['current_quantity' => $loaded - $sold[$key], 'created_by' => $admin->id, 'enabled' => true]
+            );
+        }
     }
 
     /**

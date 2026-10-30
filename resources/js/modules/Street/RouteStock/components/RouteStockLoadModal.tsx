@@ -2,6 +2,7 @@ import React, { FormEvent, useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
 import { Package, X } from 'lucide-react';
 import Modal from '@/ui/Modal';
+import { FieldError } from '@/ui/Field';
 
 export interface LoadableProduct {
     id: number;
@@ -48,7 +49,7 @@ export default function RouteStockLoadModal({ routeId, driverName, isFirstLoad, 
 
     return (
         <Modal show={routeId !== null} onClose={onClose} maxWidth="md">
-            <form onSubmit={submit}>
+            <form onSubmit={submit} noValidate>
                 <div className="flex items-start justify-between gap-4 px-6 pt-6 pb-4 border-b border-hairline">
                     <div>
                         <h2 className="text-lg font-semibold text-ink">
@@ -91,11 +92,11 @@ export default function RouteStockLoadModal({ routeId, driverName, isFirstLoad, 
                     ))}
 
                     {errorList.length > 0 && (
-                        <ul className="text-sm text-red-600 dark:text-red-300 space-y-1 pt-1">
+                        <div className="space-y-1 pt-1">
                             {errorList.map(([field, message]) => (
-                                <li key={field}>{message}</li>
+                                <FieldError key={field} message={message} />
                             ))}
-                        </ul>
+                        </div>
                     )}
                 </div>
 

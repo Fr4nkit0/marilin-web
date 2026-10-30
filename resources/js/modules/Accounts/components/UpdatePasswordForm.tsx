@@ -48,7 +48,7 @@ export default function UpdatePasswordForm({
 
     return (
         <section className={className}>
-            <form onSubmit={updatePassword} className="space-y-6">
+            <form onSubmit={updatePassword} noValidate className="space-y-6">
                 <div>
                     <Label
                         htmlFor="current_password"
