@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { useListFilters } from '@/lib/useListFilters';
+import { stopStatusLabel } from '@/lib/format';
 import AdminLayout from '@/layouts/AdminLayout';
 import { StatusBadge } from '@/ui/Badge';
 import { KpiCard } from '@/ui/KpiCard';
@@ -464,7 +465,7 @@ export default function RoutesIndex({
                                                                         {stop.customer.address}
                                                                     </td>
                                                                     <td className="px-6 py-4">
-                                                                        <StatusBadge status={stop.status} />
+                                                                        <StatusBadge status={stop.status} label={stopStatusLabel(stop.status)} />
                                                                     </td>
                                                                     <td className="px-6 py-4 text-ink-muted">
                                                                         {stop.arrivedAt ? `${stop.arrivedAt} hs` : '-'}

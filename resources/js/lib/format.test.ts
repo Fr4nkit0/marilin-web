@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { date, dateTime, money, paymentStatusLabel, stopStatusLabel, time } from './format';
+import { accountEntryTypeLabel, date, dateTime, money, paymentStatusLabel, stopStatusLabel, time } from './format';
 
 describe('money', () => {
     it('shows pesos with the Argentine thousands separator', () => {
@@ -51,5 +51,12 @@ describe('status labels', () => {
     it('names payment statuses', () => {
         expect(paymentStatusLabel('CONFIRMED')).toBe('Confirmado');
         expect(paymentStatusLabel('CANCELLED')).toBe('Cancelado');
+    });
+
+    it('names every customer account entry type', () => {
+        expect(accountEntryTypeLabel('SALE')).toBe('Venta');
+        expect(accountEntryTypeLabel('PAYMENT')).toBe('Cobro');
+        expect(accountEntryTypeLabel('ADJUSTMENT')).toBe('Ajuste');
+        expect(accountEntryTypeLabel('CREDIT_NOTE')).toBe('Nota de crédito');
     });
 });

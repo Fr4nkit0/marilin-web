@@ -141,3 +141,20 @@ test('each card carries the records behind it with customer, time, amount and or
         ->and($details['credit'][0])->toMatchArray(['customer' => 'Hotel Altos de la Viña', 'at' => '2026-10-20 09:15', 'amount' => 3400.0, 'origin' => 'stop'])
         ->and($details['containers'][0])->toMatchArray(['customer' => 'Hotel Altos de la Viña', 'container' => 'Bidón 20L', 'movement' => 'RETURNED', 'quantity' => 6, 'origin' => 'stop']);
 });
+
+test('the arqueo lines add up to the cash to deliver, also when a debt is paid by transfer', function (): void {
+    $sale = driverSale(['customer_id' => $this->estudio->id, 'total' => 9500]);
+    driverSale(['customer_id' => $this->hotel->id, 'total' => 3400, 'is_credit_sale' => true]);
+    driverPayment(['customer_id' => $this->estudio->id, 'sale_id' => $sale->id, 'payment_method_id' => $this->cash->id, 'amount' => 6500]);
+    driverPayment(['customer_id' => $this->estudio->id, 'sale_id' => $sale->id, 'payment_method_id' => $this->transfer->id, 'amount' => 3000]);
+    driverPayment(['customer_id' => $this->estudio->id, 'sale_id' => null, 'payment_method_id' => $this->cash->id, 'amount' => 2000]);
+    driverPayment(['customer_id' => $this->hotel->id, 'sale_id' => null, 'payment_method_id' => $this->transfer->id, 'amount' => 1500]);
+
+    $settlement = settlement();
+
+    expect($settlement['transferAmount'])->toEqual(4500)
+        ->and($settlement['debtCollected'])->toEqual(3500)
+        ->and($settlement['totalSales'] - $settlement['creditSales'] + $settlement['debtCollected'] - $settlement['transferAmount'])
+        ->toEqual($settlement['cashAmount'])
+        ->and($settlement['cashAmount'])->toEqual(8500);
+});
