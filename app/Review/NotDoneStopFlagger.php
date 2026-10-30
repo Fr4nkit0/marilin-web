@@ -8,7 +8,7 @@ use App\Routes\Routes\Enums\RouteStatus;
 use App\Routes\Routes\Models\RouteStop;
 
 /**
- * The nightly flag: every stop of a past, not cancelled route that ended its day not done is left for the admin (ADR 0001).
+ * The nightly flag: every enabled stop of a past, not cancelled route that ended its day not done is left for the admin (ADR 0001).
  * Planned and rescheduled stops differ only by the predicate and the reason.
  */
 class NotDoneStopFlagger
@@ -19,7 +19,7 @@ class NotDoneStopFlagger
     public function flagPlanned(): int
     {
         return $this->flag(
-            fn ($stops) => $stops->whereNull('is_rescheduled_from')->where('enabled', true),
+            fn ($stops) => $stops->whereNull('is_rescheduled_from'),
             ReviewReason::UnvisitedStop,
         );
     }
@@ -37,7 +37,8 @@ class NotDoneStopFlagger
 
     private function flag(callable $predicate, ReviewReason $reason): int
     {
-        $stops = RouteStop::query()->unflagged();
+        // A disabled stop (a cancelled scheduled visit) left the route: it was never due, so it is never unvisited.
+        $stops = RouteStop::query()->unflagged()->enabled();
         $predicate($stops);
 
         return $stops

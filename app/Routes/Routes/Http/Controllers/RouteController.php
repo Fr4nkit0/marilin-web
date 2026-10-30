@@ -28,9 +28,9 @@ class RouteController extends Controller
             ->whereDate('date', $date)
             ->with([
                 'driver.user',
-                'stops.customer.primaryAddress',
-                'stops.visit.outcome',
-                'stops.rescheduledTo',
+                'activeStops.customer.primaryAddress',
+                'activeStops.visit.outcome',
+                'activeStops.rescheduledTo',
                 'inventoryLoads' => fn ($query) => $query->orderBy('loaded_at')->orderBy('id'),
                 'inventoryLoads.product',
                 'inventoryLoads.creator',
@@ -48,8 +48,8 @@ class RouteController extends Controller
         $canLoad = $request->user()?->can('load-trucks') ?? false;
 
         $routes = $routesQuery->get()->map(function ($route) use ($canLoad) {
-            $totalStops = $route->stops->count();
-            $completedStops = $route->stops->filter(fn (RouteStop $stop) => $stop->isDone())->count();
+            $totalStops = $route->activeStops->count();
+            $completedStops = $route->activeStops->filter(fn (RouteStop $stop) => $stop->isDone())->count();
 
             $pendingStops = $totalStops - $completedStops;
             $progress = $totalStops > 0 ? round(($completedStops / $totalStops) * 100) : 0;
@@ -94,7 +94,7 @@ class RouteController extends Controller
                     'productName' => $inv->product?->name ?? 'Producto',
                     'currentQuantity' => (float) $inv->current_quantity,
                 ]),
-                'stops' => $route->stops->map(fn ($stop) => [
+                'stops' => $route->activeStops->map(fn ($stop) => [
                     'id' => $stop->id,
                     'plannedSequence' => $stop->planned_sequence,
                     'customer' => [
@@ -108,6 +108,9 @@ class RouteController extends Controller
                     'arrivedAt' => $stop->visit?->arrived_at?->format('H:i'),
                     'outcome' => $stop->visit?->outcome?->name,
                     'notes' => $stop->visit?->notes,
+                    // "Visita solicitada": the admin scheduled it; the note is the admin's, notes are the driver's.
+                    'is_requested' => $stop->isRequested(),
+                    'note' => $stop->note,
                 ]),
             ];
         });

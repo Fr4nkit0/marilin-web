@@ -28,7 +28,7 @@ class DriverController extends Controller
             'user',
             'customers',
             'routes' => fn ($q) => $q->whereDate('date', $date)
-                ->with(['stops.customer.primaryAddress', 'stops.visit', 'stops.rescheduledTo', 'inventoryLoads.product', 'inventories.product']),
+                ->with(['activeStops.customer.primaryAddress', 'activeStops.visit', 'activeStops.rescheduledTo', 'inventoryLoads.product', 'inventories.product']),
         ])
             ->where('enabled', true)
             ->tap(fn ($query) => TextMatch::search($query, ['user.name'], $request->query('search')))
@@ -36,8 +36,8 @@ class DriverController extends Controller
             ->map(function ($driver) {
                 $todayRoute = $driver->routes->first();
 
-                $totalStops = $todayRoute ? $todayRoute->stops->count() : 0;
-                $completedStops = $todayRoute ? $todayRoute->stops->filter(fn (RouteStop $stop) => $stop->isDone())->count() : 0;
+                $totalStops = $todayRoute ? $todayRoute->activeStops->count() : 0;
+                $completedStops = $todayRoute ? $todayRoute->activeStops->filter(fn (RouteStop $stop) => $stop->isDone())->count() : 0;
 
                 $progress = $totalStops > 0 ? round(($completedStops / $totalStops) * 100) : 0;
 
@@ -88,11 +88,11 @@ class DriverController extends Controller
             'customers.primaryAddress',
             'routes' => fn ($q) => $q->whereDate('date', $date)
                 ->with([
-                    'stops.customer.primaryAddress',
-                    'stops.rescheduledTo',
-                    'stops.visit.outcome',
-                    'stops.visit.payments',
-                    'stops.visit.sales',
+                    'activeStops.customer.primaryAddress',
+                    'activeStops.rescheduledTo',
+                    'activeStops.visit.outcome',
+                    'activeStops.visit.payments',
+                    'activeStops.visit.sales',
                     'inventoryLoads.product',
                     'inventories.product',
                 ]),
@@ -102,8 +102,8 @@ class DriverController extends Controller
         // The totals include what the app pushed without a visit, so they match the dashboard, the sales list and the cash close.
         $day = $currentRoute ? $figures->forDay($date, DayScope::driver($repartidor)) : null;
 
-        $totalStops = $currentRoute?->stops->count() ?? 0;
-        $completedStops = $currentRoute?->stops->filter(fn (RouteStop $stop) => $stop->isDone())->count() ?? 0;
+        $totalStops = $currentRoute?->activeStops->count() ?? 0;
+        $completedStops = $currentRoute?->activeStops->filter(fn (RouteStop $stop) => $stop->isDone())->count() ?? 0;
 
         $formattedRoute = $currentRoute ? [
             'id' => $currentRoute->id,
@@ -116,7 +116,7 @@ class DriverController extends Controller
             'progressPercent' => $totalStops > 0 ? round(($completedStops / $totalStops) * 100) : 0,
             'totalSalesAmount' => $day->totalSales,
             'totalCollectedAmount' => $day->totalCollected,
-            'stops' => $currentRoute->stops->map(fn ($stop) => [
+            'stops' => $currentRoute->activeStops->map(fn ($stop) => [
                 'id' => $stop->id,
                 'customer' => [
                     'id' => $stop->customer->id,
@@ -130,6 +130,9 @@ class DriverController extends Controller
                 'salesAmount' => (float) ($stop->visit?->sales->where('status', SaleStatus::Confirmed->value)->sum('total') ?? 0),
                 'paymentsAmount' => (float) ($stop->visit?->payments->where('status', PaymentStatus::Confirmed->value)->sum('amount') ?? 0),
                 'notes' => $stop->visit?->notes,
+                // "Visita solicitada": the admin scheduled it; the note is the admin's, notes are the driver's.
+                'is_requested' => $stop->isRequested(),
+                'note' => $stop->note,
             ]),
             'inventory' => $currentRoute->inventories->map(fn ($i) => [
                 'id' => $i->id,

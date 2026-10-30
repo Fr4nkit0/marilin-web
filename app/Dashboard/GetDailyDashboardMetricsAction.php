@@ -37,7 +37,7 @@ class GetDailyDashboardMetricsAction
             : 0;
 
         // 3. Route progress and stops
-        $routes = DeliveryRoute::with(['stops.visit', 'stops.rescheduledTo', 'stops.customer:id,name', 'driver.user'])
+        $routes = DeliveryRoute::with(['activeStops.visit', 'activeStops.rescheduledTo', 'activeStops.customer:id,name', 'driver.user'])
             ->whereDate('date', $targetDate)
             ->get();
         $totalStops = 0;
@@ -46,8 +46,8 @@ class GetDailyDashboardMetricsAction
         $repartidoresStatus = [];
 
         foreach ($routes as $route) {
-            $routeStopsCount = $route->stops->count();
-            $routeCompletedCount = $route->stops->filter(fn (RouteStop $stop) => $stop->isDone())->count();
+            $routeStopsCount = $route->activeStops->count();
+            $routeCompletedCount = $route->activeStops->filter(fn (RouteStop $stop) => $stop->isDone())->count();
 
             $totalStops += $routeStopsCount;
             $completedStops += $routeCompletedCount;
@@ -131,7 +131,7 @@ class GetDailyDashboardMetricsAction
                 ->values()
                 ->all(),
             'stops' => $routes
-                ->flatMap(fn (DeliveryRoute $route) => $route->stops->map(fn (RouteStop $stop): array => [
+                ->flatMap(fn (DeliveryRoute $route) => $route->activeStops->map(fn (RouteStop $stop): array => [
                     'id' => $stop->id,
                     'driver' => $route->driver?->user?->name,
                     'customer' => $stop->customer?->name,
