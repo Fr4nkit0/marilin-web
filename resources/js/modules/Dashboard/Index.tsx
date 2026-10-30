@@ -78,7 +78,7 @@ export default function Dashboard({ metrics }: Props) {
                 </div>
             }
         >
-            <Head title="Panel de Control - Marilin" />
+            <Head title="Panel de Control" />
 
             {/* Page Header */}
             <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">

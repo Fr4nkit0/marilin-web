@@ -151,7 +151,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                 </div>
             }
         >
-            <Head title="Clientes - Marilin" />
+            <Head title="Clientes" />
 
             <div className="mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div>

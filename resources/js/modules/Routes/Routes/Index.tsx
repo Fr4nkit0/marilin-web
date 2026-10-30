@@ -132,7 +132,7 @@ export default function RoutesIndex({
                 </div>
             }
         >
-            <Head title="Despacho y Rutas - Marilin" />
+            <Head title="Despacho y Rutas" />
 
             <PageHeader
                 title="Despacho Diario y Gestión de Rutas"

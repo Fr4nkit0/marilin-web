@@ -144,7 +144,7 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
                 </div>
             }
         >
-            <Head title="Ventas - Marilin" />
+            <Head title="Ventas" />
 
             <PageHeader
                 title="Ventas y cobros"

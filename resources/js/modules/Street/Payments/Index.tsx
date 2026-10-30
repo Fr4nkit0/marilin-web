@@ -117,7 +117,7 @@ export default function PaymentsIndex({ payments, metrics, filters, paymentMetho
                 </div>
             }
         >
-            <Head title="Cobros - Marilin" />
+            <Head title="Cobros" />
 
             <PageHeader
                 title="Ventas y cobros"

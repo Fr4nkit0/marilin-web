@@ -67,7 +67,7 @@ export default function RepartidoresIndex({ repartidores, filters }: Props) {
                 </div>
             }
         >
-            <Head title="Choferes - Marilin" />
+            <Head title="Choferes" />
 
             <PageHeader
                 title="Gestión de Choferes"

@@ -11,7 +11,7 @@ interface Props {
 export default function Index({ products }: Props) {
     return (
         <AdminLayout header={<span className="text-sm font-medium text-ink-muted">Productos</span>}>
-            <Head title="Productos - Marilin" />
+            <Head title="Productos" />
 
             <div className="mb-6">
                 <h1 className="text-2xl font-semibold text-ink tracking-tight">Productos</h1>

@@ -54,7 +54,7 @@ export default function Index({ items, filters, drivers }: Props) {
         <AdminLayout
             header={<span className="text-sm font-medium text-ink-muted">Revisión</span>}
         >
-            <Head title="Revisión - Marilin" />
+            <Head title="Revisión" />
 
             <div className="mb-6">
                 <h1 className="text-2xl font-semibold text-ink tracking-tight">Bandeja de revisión</h1>

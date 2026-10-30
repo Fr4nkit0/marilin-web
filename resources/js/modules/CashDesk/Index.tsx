@@ -71,7 +71,7 @@ export default function CashCloseIndex({
                 </div>
             }
         >
-            <Head title="Cierre de Caja y Arqueo - Marilin" />
+            <Head title="Cierre de Caja y Arqueo" />
 
             <PageHeader
                 title="Cierre de Caja y Arqueo de Ruta"
