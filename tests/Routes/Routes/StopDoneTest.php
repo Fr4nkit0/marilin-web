@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 use App\Accounts\Models\Driver;
 use App\Accounts\Models\User;
+use App\CashDesk\DailyFigures;
+use App\CashDesk\DayScope;
+use App\Catalog\Enums\PaymentMethodCode;
+use App\Catalog\Models\PaymentMethod;
 use App\Customers\Customers\Models\Customer;
 use App\Customers\Customers\Models\CustomerAddress;
 use App\Routes\Routes\Models\Route;
@@ -140,8 +144,9 @@ test('the driver page money leaves out cancelled sales and payments', function (
     $visit = $stop->visit;
     Sale::factory()->create(['visit_id' => $visit->id, 'customer_id' => test()->customer->id, 'total' => 1000, 'status' => 'confirmed']);
     Sale::factory()->create(['visit_id' => $visit->id, 'customer_id' => test()->customer->id, 'total' => 400, 'status' => 'cancelled']);
-    Payment::factory()->create(['visit_id' => $visit->id, 'customer_id' => test()->customer->id, 'amount' => 300, 'status' => 'CONFIRMED']);
-    Payment::factory()->create(['visit_id' => $visit->id, 'customer_id' => test()->customer->id, 'amount' => 50, 'status' => 'CANCELLED']);
+    $cash = PaymentMethod::factory()->create(['code' => PaymentMethodCode::Cash->value]);
+    Payment::factory()->create(['visit_id' => $visit->id, 'customer_id' => test()->customer->id, 'payment_method_id' => $cash->id, 'amount' => 300, 'status' => 'CONFIRMED']);
+    Payment::factory()->create(['visit_id' => $visit->id, 'customer_id' => test()->customer->id, 'payment_method_id' => $cash->id, 'amount' => 50, 'status' => 'CANCELLED']);
 
     $this->get(route('drivers.show', ['repartidor' => $this->driver->id, 'date' => '2026-10-20']))
         ->assertOk()
@@ -150,4 +155,34 @@ test('the driver page money leaves out cancelled sales and payments', function (
             ->where('route.totalCollectedAmount', 300)
             ->where('route.stops.0.salesAmount', 1000)
             ->where('route.stops.0.paymentsAmount', 300));
+});
+
+test('the driver page totals count the sales and payments the app pushed without a visit, like the daily figures', function (): void {
+    $visit = stopWithVisit('FINISHED')->visit;
+    $cash = PaymentMethod::factory()->create(['code' => PaymentMethodCode::Cash->value]);
+    $transfer = PaymentMethod::factory()->create(['code' => PaymentMethodCode::Transfer->value]);
+    $driverUser = $this->driver->user_id;
+
+    Sale::factory()->create(['visit_id' => $visit->id, 'customer_id' => $this->customer->id, 'total' => 1000, 'status' => 'confirmed', 'created_by' => $driverUser]);
+    Sale::factory()->create(['visit_id' => null, 'customer_id' => $this->customer->id, 'total' => 1950, 'status' => 'confirmed', 'created_by' => $driverUser]);
+    Sale::factory()->create(['visit_id' => null, 'customer_id' => $this->customer->id, 'total' => 700, 'status' => 'cancelled', 'created_by' => $driverUser]);
+    Payment::factory()->create(['visit_id' => $visit->id, 'customer_id' => $this->customer->id, 'payment_method_id' => $cash->id, 'amount' => 300, 'received_by' => $driverUser]);
+    Payment::factory()->create(['visit_id' => null, 'customer_id' => $this->customer->id, 'payment_method_id' => $transfer->id, 'amount' => 1950, 'received_by' => $driverUser]);
+    Payment::factory()->create(['visit_id' => null, 'customer_id' => $this->customer->id, 'payment_method_id' => $cash->id, 'amount' => 90, 'status' => 'CANCELLED', 'received_by' => $driverUser]);
+
+    $day = app(DailyFigures::class)->forDay('2026-10-20', DayScope::driver($this->driver));
+    expect($day->totalSales)->toBe(2950.0)
+        ->and($day->totalCollected)->toBe(2250.0);
+
+    $this->get(route('drivers.show', ['repartidor' => $this->driver->id, 'date' => '2026-10-20']))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('route.totalSalesAmount', 2950)
+            ->where('route.totalCollectedAmount', 2250)
+            ->where('route.stops.0.salesAmount', 1000)
+            ->where('route.stops.0.paymentsAmount', 300));
+
+    $this->get(route('sales.index', ['date' => '2026-10-20', 'repartidor_id' => $this->driver->id]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('metrics.totalSalesAmount', 2950));
 });
