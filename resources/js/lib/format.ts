@@ -9,6 +9,9 @@ export type PaymentStatus = 'CONFIRMED' | 'CANCELLED' | 'ANNULLED';
 
 export type AccountEntryType = 'SALE' | 'PAYMENT' | 'ADJUSTMENT' | 'CREDIT_NOTE';
 
+/** A customer's balance: owes money, owes nothing, or has paid more than owed (a negative balance). */
+export type BalanceState = 'debt' | 'clear' | 'credit';
+
 const STOP_STATUS_LABELS: Record<StopStatus, string> = {
     PENDING: 'Pendiente',
     IN_PROGRESS: 'En curso',
@@ -50,6 +53,26 @@ export function stopStatusLabel(status: StopStatus): string {
 
 export function accountEntryTypeLabel(type: AccountEntryType): string {
     return ACCOUNT_ENTRY_TYPE_LABELS[type];
+}
+
+export function balanceState(balance: number | string): BalanceState {
+    const amount = Number(balance);
+    if (amount > 0) return 'debt';
+    if (amount < 0) return 'credit';
+    return 'clear';
+}
+
+/** "Con deuda ($6.500)", "Al día" or, for a negative balance, "Saldo a favor $6.500". */
+export function balanceLabel(balance: number | string): string {
+    const amount = Number(balance);
+    switch (balanceState(amount)) {
+        case 'debt':
+            return `Con deuda (${money(amount)})`;
+        case 'credit':
+            return `Saldo a favor ${money(Math.abs(amount))}`;
+        default:
+            return 'Al día';
+    }
 }
 
 /** Anything but a confirmed payment reads as cancelled, as the payments list always showed it. */

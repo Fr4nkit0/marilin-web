@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { accountEntryTypeLabel, date, dateTime, money, paymentStatusLabel, stopStatusLabel, time } from './format';
+import { accountEntryTypeLabel, balanceLabel, balanceState, date, dateTime, money, paymentStatusLabel, stopStatusLabel, time } from './format';
 
 describe('money', () => {
     it('shows pesos with the Argentine thousands separator', () => {
@@ -63,5 +63,23 @@ describe('status labels', () => {
         expect(accountEntryTypeLabel('PAYMENT')).toBe('Cobro');
         expect(accountEntryTypeLabel('ADJUSTMENT')).toBe('Ajuste');
         expect(accountEntryTypeLabel('CREDIT_NOTE')).toBe('Nota de crédito');
+    });
+});
+
+describe('balance', () => {
+    it('reads a positive balance as debt', () => {
+        expect(balanceState(6500)).toBe('debt');
+        expect(balanceLabel('6500.00')).toBe('Con deuda ($6.500)');
+    });
+
+    it('reads a zero balance as up to date', () => {
+        expect(balanceState(0)).toBe('clear');
+        expect(balanceState('0.00')).toBe('clear');
+        expect(balanceLabel(0)).toBe('Al día');
+    });
+
+    it('reads a negative balance as credit in favor of the customer, in absolute value', () => {
+        expect(balanceState(-6500)).toBe('credit');
+        expect(balanceLabel('-6500.00')).toBe('Saldo a favor $6.500');
     });
 });

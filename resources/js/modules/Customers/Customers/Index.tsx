@@ -259,7 +259,6 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                             ) : (
                                 customers.data.map((c) => {
                                     const balanceNum = Number(c.balance?.current_balance || 0);
-                                    const hasDebt = balanceNum > 0;
                                     const totalContainers = c.container_balances?.reduce(
                                         (acc, cb) => acc + cb.balance,
                                         0
@@ -333,7 +332,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
 
                                             {/* Debt Status & Balance */}
                                             <td className="px-6 py-4 text-right">
-                                                <DebtBadge hasDebt={hasDebt} balance={balanceNum} />
+                                                <DebtBadge balance={balanceNum} />
                                             </td>
 
                                             {/* Actions */}

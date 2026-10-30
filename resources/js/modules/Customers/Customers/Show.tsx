@@ -23,7 +23,7 @@ import {
     CreditCard,
     Truck,
 } from 'lucide-react';
-import { accountEntryTypeLabel, date, dateTime, money, type AccountEntryType } from '@/lib/format';
+import { accountEntryTypeLabel, balanceState, date, dateTime, money, type AccountEntryType, type BalanceState } from '@/lib/format';
 
 interface Props {
     customer: {
@@ -96,6 +96,12 @@ const AGREEMENT_STATUS: Record<AgreementStatus, { label: string; className: stri
     ended: { label: 'Finalizado', className: 'bg-surface-1 text-ink-muted' },
 };
 
+const BALANCE_SUMMARY: Record<BalanceState, { caption: string; className: string }> = {
+    debt: { caption: 'Deuda pendiente', className: 'text-red-600 dark:text-red-300' },
+    clear: { caption: 'Sin saldo', className: 'text-emerald-600 dark:text-emerald-300' },
+    credit: { caption: 'Saldo a favor', className: 'text-sky-600 dark:text-sky-300' },
+};
+
 const localToday = () => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -128,7 +134,7 @@ export default function CustomerShow({
     };
 
     const balanceNum = Number(customer.balance?.current_balance || 0);
-    const hasDebt = balanceNum > 0;
+    const balanceSummary = BALANCE_SUMMARY[balanceState(balanceNum)];
 
     return (
         <AdminLayout
@@ -171,7 +177,7 @@ export default function CustomerShow({
                                 <h1 className="text-2xl font-semibold text-ink tracking-tight">
                                     {customer.name}
                                 </h1>
-                                <DebtBadge hasDebt={hasDebt} balance={balanceNum} />
+                                <DebtBadge balance={balanceNum} />
                             </div>
                             <div className="flex flex-wrap items-center gap-5 text-sm font-medium text-ink-muted mt-2 tracking-wide">
                                 {customer.phone_number && (
@@ -210,11 +216,11 @@ export default function CustomerShow({
                             <span className="text-xs font-medium text-ink-subtle block mb-1 tracking-wide">
                                 Saldo Actual
                             </span>
-                            <p className={`text-3xl font-semibold tracking-tight ${hasDebt ? 'text-red-600 dark:text-red-300' : 'text-emerald-600 dark:text-emerald-300'}`}>
+                            <p className={`text-3xl font-semibold tracking-tight ${balanceSummary.className}`}>
                                 {money(Math.abs(balanceNum))}
                             </p>
                             <span className="text-xs font-medium text-ink-subtle mt-1 block tracking-wide">
-                                {hasDebt ? 'Deuda pendiente' : 'Al día / Sin saldo'}
+                                {balanceSummary.caption}
                             </span>
                         </div>
                     </div>
@@ -550,6 +556,7 @@ export default function CustomerShow({
                         customerName={customer.name}
                         products={homeProducts}
                         containerTypes={containerTypes}
+                        paymentMethods={paymentMethods}
                         onClose={() => setShowHomeSale(false)}
                     />
                     <HomePaymentModal
@@ -557,6 +564,7 @@ export default function CustomerShow({
                         customerId={customer.id}
                         customerName={customer.name}
                         paymentMethods={paymentMethods}
+                        balance={balanceNum}
                         onClose={() => setShowHomePayment(false)}
                     />
                 </>
