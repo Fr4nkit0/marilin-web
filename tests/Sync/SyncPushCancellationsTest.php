@@ -271,7 +271,92 @@ test('push answers a replayed :entity cancellation with the same server id and b
         ->and(waterStock())->toBe(20.0);
 })->with(['sale', 'payment'])->with(['same uuid', 'another uuid', 'next day']);
 
-test('push rejects cancelling a :entity of yesterday and changes nothing', function (string $entity): void {
+/**
+ * Pushes a sale or payment of 2026-10-22 and answers its cancellation key, reference and the figures a rejection must leave alone.
+ *
+ * @return array{0: string, 1: array<string, mixed>, 2: class-string}
+ */
+function pushedTarget(string $entity): array
+{
+    $target = $entity === 'sale' ? cancellableSale() : cancellablePayment();
+    push([$entity === 'sale' ? 'sales' : 'payments' => [$target]])->assertOk()->assertJsonPath(($entity === 'sale' ? 'data.sales' : 'data.payments').'.0.status', 'accepted');
+
+    return ["{$entity}_cancellations", $target, $entity === 'sale' ? Sale::class : Payment::class];
+}
+
+test('push applies an offline :entity cancellation made on the record day and synced after midnight', function (string $entity): void {
+    [$key, $target, $model] = pushedTarget($entity);
+
+    // Cancelled on 2026-10-22 at 23:50 local, synced at 00:00:13 of the next day.
+    $this->travelTo('2026-10-23 00:00:13');
+    $result = push([$key => [cancellation(["{$entity}_uuid" => $target['uuid'], 'cancelled_at' => '2026-10-23T02:50:00Z'])]])->assertOk()->json("data.{$key}.0");
+
+    $record = $model::query()->where('client_uuid', $target['uuid'])->firstOrFail();
+    expect($result['status'])->toBe('accepted')
+        ->and($result['server_id'])->toBe($record->id)
+        ->and(strtolower($record->status))->toBe('cancelled')
+        ->and(cancellationBalance())->toBe(1000.0)
+        ->and(CustomerAccountEntry::query()->count())->toBe(2)
+        ->and(waterStock())->toBe(20.0);
+})->with(['sale', 'payment']);
+
+test('push rejects a :entity cancellation made on a later day than the record and changes nothing', function (string $entity): void {
+    [$key, $target, $model] = pushedTarget($entity);
+    $before = [cancellationBalance(), CustomerAccountEntry::query()->count(), waterStock()];
+
+    $this->travelTo('2026-10-23 09:00:00');
+    $result = push([$key => [cancellation(["{$entity}_uuid" => $target['uuid'], 'cancelled_at' => '2026-10-23T11:00:00Z'])]])->assertOk()->json("data.{$key}.0");
+
+    $record = $model::query()->where('client_uuid', $target['uuid'])->firstOrFail();
+    expect($result['status'])->toBe('rejected')
+        ->and($result['server_id'])->toBeNull()
+        ->and($result['error'])->toBe("The cancellation was not made on the record's day.")
+        ->and(strtolower($record->status))->toBe('confirmed')
+        ->and($record->needs_review)->toBeFalse()
+        ->and([cancellationBalance(), CustomerAccountEntry::query()->count(), waterStock()])->toBe($before);
+})->with(['sale', 'payment']);
+
+test('push rejects a :entity cancellation more than 3 days old and changes nothing', function (string $entity): void {
+    [$key, $target, $model] = pushedTarget($entity);
+    $before = [cancellationBalance(), CustomerAccountEntry::query()->count(), waterStock()];
+
+    // Cancelled on the record's day at 12:00 local, synced 3 days and 1 second later.
+    $this->travelTo('2026-10-25 12:00:01');
+    $result = push([$key => [cancellation(["{$entity}_uuid" => $target['uuid'], 'cancelled_at' => '2026-10-22T15:00:00Z'])]])->assertOk()->json("data.{$key}.0");
+
+    $record = $model::query()->where('client_uuid', $target['uuid'])->firstOrFail();
+    expect($result['status'])->toBe('rejected')
+        ->and($result['server_id'])->toBeNull()
+        ->and($result['error'])->toBe('The cancellation is more than 3 days old.')
+        ->and(strtolower($record->status))->toBe('confirmed')
+        ->and($record->needs_review)->toBeFalse()
+        ->and([cancellationBalance(), CustomerAccountEntry::query()->count(), waterStock()])->toBe($before);
+})->with(['sale', 'payment']);
+
+test('push applies a :entity cancellation exactly 3 days old', function (string $entity): void {
+    [$key, $target, $model] = pushedTarget($entity);
+
+    $this->travelTo('2026-10-25 12:00:00');
+    push([$key => [cancellation(["{$entity}_uuid" => $target['uuid'], 'cancelled_at' => '2026-10-22T15:00:00Z'])]])
+        ->assertOk()->assertJsonPath("data.{$key}.0.status", 'accepted');
+
+    expect(strtolower($model::query()->where('client_uuid', $target['uuid'])->firstOrFail()->status))->toBe('cancelled')
+        ->and(cancellationBalance())->toBe(1000.0);
+})->with(['sale', 'payment']);
+
+test('push clamps a :entity cancellation dated in the future to the server clock and applies it', function (string $entity): void {
+    [$key, $target, $model] = pushedTarget($entity);
+
+    // The app's clock runs a day ahead: read as now, the record's day.
+    push([$key => [cancellation(["{$entity}_uuid" => $target['uuid'], 'cancelled_at' => '2026-10-23T15:00:00Z'])]])
+        ->assertOk()->assertJsonPath("data.{$key}.0.status", 'accepted');
+
+    expect(strtolower($model::query()->where('client_uuid', $target['uuid'])->firstOrFail()->status))->toBe('cancelled')
+        ->and(cancellationBalance())->toBe(1000.0)
+        ->and(waterStock())->toBe(20.0);
+})->with(['sale', 'payment']);
+
+test('push rejects cancelling a :entity of yesterday today and changes nothing', function (string $entity): void {
     $target = $entity === 'sale'
         ? cancellableSale(['date' => '2026-10-21T13:30:00Z'])
         : cancellablePayment(['paid_at' => '2026-10-21T14:45:00Z']);
@@ -285,10 +370,27 @@ test('push rejects cancelling a :entity of yesterday and changes nothing', funct
     $record = $model::query()->where('client_uuid', $target['uuid'])->firstOrFail();
     expect($result['status'])->toBe('rejected')
         ->and($result['server_id'])->toBeNull()
-        ->and($result['error'])->toBe("Only today's records can be cancelled.")
+        ->and($result['error'])->toBe("The cancellation was not made on the record's day.")
         ->and(strtolower($record->status))->toBe('confirmed')
         ->and($record->needs_review)->toBeFalse()
         ->and([cancellationBalance(), CustomerAccountEntry::query()->count(), waterStock()])->toBe($before);
+})->with(['sale', 'payment']);
+
+test('push judges the :entity cancellation day in local time, not UTC', function (string $entity): void {
+    // Recorded at 23:30 -03 and cancelled at 20:00 -03 of 2026-10-22: different UTC days, the same local day.
+    $this->travelTo('2026-10-23 00:00:13');
+    $target = $entity === 'sale'
+        ? cancellableSale(['date' => '2026-10-23T02:30:00Z'])
+        : cancellablePayment(['paid_at' => '2026-10-23T02:30:00Z']);
+    push([$entity === 'sale' ? 'sales' : 'payments' => [$target]])->assertOk();
+    $key = "{$entity}_cancellations";
+
+    push([$key => [cancellation(["{$entity}_uuid" => $target['uuid'], 'cancelled_at' => '2026-10-22T23:00:00Z'])]])
+        ->assertOk()->assertJsonPath("data.{$key}.0.status", 'accepted');
+
+    $model = $entity === 'sale' ? Sale::class : Payment::class;
+    expect(strtolower($model::query()->where('client_uuid', $target['uuid'])->firstOrFail()->status))->toBe('cancelled')
+        ->and(cancellationBalance())->toBe(1000.0);
 })->with(['sale', 'payment']);
 
 test('push rejects cancelling a :entity of another driver and changes nothing', function (string $entity, string $ownership): void {

@@ -34,6 +34,11 @@ return new class extends Migration
             $table->index(['customer_id', 'date']);
             $table->index('visit_id');
         });
+
+        // container_movements is created before sales, so its sale FK is added here.
+        Schema::table('container_movements', function (Blueprint $table) {
+            $table->foreign('sale_id')->references('id')->on('sales')->nullOnDelete();
+        });
     }
 
     /**
@@ -41,6 +46,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('container_movements', function (Blueprint $table) {
+            $table->dropForeign(['sale_id']);
+        });
+
         Schema::dropIfExists('sales');
     }
 };

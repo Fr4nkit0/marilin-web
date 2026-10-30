@@ -45,13 +45,14 @@ class SaleCancellationPusher extends CancellationPusher
         return $record->date;
     }
 
-    protected function cancel(Model $record, Driver $driver, User $user, ?string $reason): Model
+    protected function cancel(Model $record, Driver $driver, User $user, ?string $reason, CarbonInterface $cancelledAt): Model
     {
         return $this->operation->cancelSale(new CancelSale(
             sale: $record,
             cancelledBy: $user,
             reason: $reason,
             reviewReason: $this->reviewReason(),
+            cancelledAt: $cancelledAt,
         ));
     }
 }

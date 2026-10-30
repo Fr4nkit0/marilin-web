@@ -40,7 +40,7 @@ class HomeSaleController extends Controller
         }
 
         DB::transaction(function () use ($request, $customer, $operation, $admin, $now, $lines, $totalCents): void {
-            $operation->recordSale(new RecordSale(
+            $sale = $operation->recordSale(new RecordSale(
                 customer: $customer,
                 visit: null,
                 driver: null,
@@ -60,6 +60,7 @@ class HomeSaleController extends Controller
                     quantity: (int) $container['quantity'],
                     visit: null,
                     recordedBy: $admin,
+                    sale: $sale,
                 ));
             }
         });

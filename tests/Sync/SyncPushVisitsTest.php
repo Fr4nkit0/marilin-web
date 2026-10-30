@@ -394,7 +394,7 @@ test('push ignores a visit edit older than the last one applied but still accept
     expect(visitSnapshot($payload['uuid']))->toEqual($before);
 });
 
-test('push rejects an edit of a visit that did not arrive today and leaves it unchanged', function (): void {
+test('push rejects an edit made on a later day than the visit and leaves it unchanged', function (): void {
     $payload = visitPayload(['arrived_at' => '2026-10-21T15:00:00Z']);
     push(['visits' => [$payload]])->assertOk()->assertJsonPath('data.visits.0.status', 'accepted');
     $before = visitSnapshot($payload['uuid']);
@@ -408,9 +408,83 @@ test('push rejects an edit of a visit that did not arrive today and leaves it un
     $response->assertOk()
         ->assertJsonPath('data.visits.0.status', 'rejected')
         ->assertJsonPath('data.visits.0.server_id', null)
-        ->assertJsonPath('data.visits.0.error', "Only today's visits can be edited.");
+        ->assertJsonPath('data.visits.0.error', "The edit was not made on the visit's day.");
 
     expect(visitSnapshot($payload['uuid']))->toEqual($before);
+});
+
+test('push applies an offline visit edit made on the visit day and synced after midnight', function (): void {
+    $payload = visitPayload();
+    $created = push(['visits' => [$payload]]);
+    $outcome = VisitOutcome::factory()->create();
+
+    // Edited on 2026-10-22 at 23:50 local, synced at 00:00:13 of the next day.
+    $this->travelTo('2026-10-23 00:00:13');
+    push(['visits' => [array_replace($payload, ['modified_at' => '2026-10-23T02:50:00Z', 'outcome_id' => $outcome->id, 'notes' => 'Editada de noche'])]])
+        ->assertOk()
+        ->assertJsonPath('data.visits.0.status', 'accepted')
+        ->assertJsonPath('data.visits.0.server_id', $created->json('data.visits.0.server_id'));
+
+    $visit = Visit::query()->where('client_uuid', $payload['uuid'])->firstOrFail();
+    expect($visit->outcome_id)->toBe($outcome->id)
+        ->and($visit->notes)->toBe('Editada de noche')
+        ->and($visit->app_modified_at->toIso8601String())->toBe('2026-10-22T23:50:00-03:00');
+});
+
+test('push rejects a visit edit made the day after the visit, synced that day, and leaves it unchanged', function (): void {
+    $payload = visitPayload();
+    push(['visits' => [$payload]]);
+    $before = visitSnapshot($payload['uuid']);
+
+    $this->travelTo('2026-10-23 09:00:00');
+    push(['visits' => [array_replace($payload, ['modified_at' => '2026-10-23T11:00:00Z', 'notes' => 'Al dia siguiente'])]])
+        ->assertOk()
+        ->assertJsonPath('data.visits.0.status', 'rejected')
+        ->assertJsonPath('data.visits.0.server_id', null)
+        ->assertJsonPath('data.visits.0.error', "The edit was not made on the visit's day.");
+
+    expect(visitSnapshot($payload['uuid']))->toEqual($before);
+});
+
+test('push rejects a visit edit more than 3 days old and leaves it unchanged', function (): void {
+    $payload = visitPayload();
+    push(['visits' => [$payload]]);
+    $before = visitSnapshot($payload['uuid']);
+
+    // Edited on the visit's day at 11:30 local, synced 3 days and 1 second later.
+    $this->travelTo('2026-10-25 11:30:01');
+    push(['visits' => [array_replace($payload, ['modified_at' => '2026-10-22T14:30:00Z', 'notes' => 'Muy vieja'])]])
+        ->assertOk()
+        ->assertJsonPath('data.visits.0.status', 'rejected')
+        ->assertJsonPath('data.visits.0.server_id', null)
+        ->assertJsonPath('data.visits.0.error', 'The edit is more than 3 days old.');
+
+    expect(visitSnapshot($payload['uuid']))->toEqual($before);
+});
+
+test('push applies a visit edit exactly 3 days old', function (): void {
+    $payload = visitPayload();
+    push(['visits' => [$payload]]);
+
+    $this->travelTo('2026-10-25 11:30:00');
+    push(['visits' => [array_replace($payload, ['modified_at' => '2026-10-22T14:30:00Z', 'notes' => 'Justo a tiempo'])]])
+        ->assertOk()
+        ->assertJsonPath('data.visits.0.status', 'accepted');
+
+    expect(Visit::query()->where('client_uuid', $payload['uuid'])->firstOrFail()->notes)->toBe('Justo a tiempo');
+});
+
+test('push clamps a visit edit dated in the future to the server clock and applies it', function (): void {
+    $payload = visitPayload();
+    push(['visits' => [$payload]]);
+
+    push(['visits' => [array_replace($payload, ['modified_at' => '2026-10-23T15:00:00Z', 'notes' => 'Reloj adelantado'])]])
+        ->assertOk()
+        ->assertJsonPath('data.visits.0.status', 'accepted');
+
+    $visit = Visit::query()->where('client_uuid', $payload['uuid'])->firstOrFail();
+    expect($visit->notes)->toBe('Reloj adelantado')
+        ->and($visit->app_modified_at->toIso8601String())->toBe('2026-10-22T12:00:00-03:00');
 });
 
 test('push rejects an edit of a visit of another driver and leaves it unchanged', function (): void {

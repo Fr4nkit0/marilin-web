@@ -9,12 +9,13 @@ use App\Review\Reviewable;
 use App\Review\ReviewSource;
 use App\Routes\Visits\Models\Visit;
 use App\Street\Containers\Database\Factories\ContainerMovementFactory;
+use App\Street\Sales\Models\Sale;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['client_uuid', 'customer_id', 'container_type_id', 'visit_id', 'movement_type', 'quantity', 'direction', 'reason', 'created_by', 'last_modified_by', 'enabled', 'needs_review', 'review_reason'])]
+#[Fillable(['client_uuid', 'customer_id', 'container_type_id', 'visit_id', 'sale_id', 'reverses_movement_id', 'movement_type', 'quantity', 'direction', 'reason', 'created_by', 'last_modified_by', 'enabled', 'needs_review', 'review_reason'])]
 class ContainerMovement extends Model
 {
     /** @use HasFactory<ContainerMovementFactory> */
@@ -49,6 +50,22 @@ class ContainerMovement extends Model
     public function visit(): BelongsTo
     {
         return $this->belongsTo(Visit::class);
+    }
+
+    /**
+     * The sale the containers were moved with; cancelling it gives them back.
+     */
+    public function sale(): BelongsTo
+    {
+        return $this->belongsTo(Sale::class);
+    }
+
+    /**
+     * The movement this one gave back when its sale was cancelled.
+     */
+    public function reversedMovement(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'reverses_movement_id');
     }
 
     public function creator(): BelongsTo

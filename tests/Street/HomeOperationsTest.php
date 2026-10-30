@@ -119,7 +119,7 @@ test('a sale at home does not discount the stock of the route of the customer dr
     expect((float) RouteInventory::query()->where('route_id', $this->route->id)->sole()->current_quantity)->toBe(50.0);
 });
 
-test('containers in the same submission update the container balance', function (): void {
+test('containers in the same submission update the container balance and are linked to the home sale', function (): void {
     $this->actingAs($this->admin)->post(route('customers.home-sales.store', $this->customer), homeSale([
         'containers' => [
             ['container_type_id' => $this->container->id, 'type' => 'DELIVERED', 'quantity' => 5],
@@ -129,7 +129,8 @@ test('containers in the same submission update the container balance', function 
 
     expect(CustomerContainerBalance::query()->where('customer_id', $this->customer->id)->sole()->balance)->toBe(3)
         ->and($this->customer->containerMovements()->count())->toBe(2)
-        ->and($this->customer->containerMovements()->whereNotNull('visit_id')->count())->toBe(0);
+        ->and($this->customer->containerMovements()->whereNotNull('visit_id')->count())->toBe(0)
+        ->and($this->customer->containerMovements()->where('sale_id', Sale::query()->sole()->id)->count())->toBe(2);
 });
 
 test('a payment at home lowers the balance without visit nor sale', function (): void {

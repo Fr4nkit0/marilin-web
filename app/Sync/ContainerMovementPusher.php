@@ -11,6 +11,8 @@ use App\Routes\Visits\Models\Visit;
 use App\Street\Containers\Enums\ContainerMovementType;
 use App\Street\Containers\Models\ContainerMovement;
 use App\Street\Containers\MoveContainers;
+use App\Street\Sales\Enums\SaleStatus;
+use App\Street\Sales\Models\Sale;
 use App\Street\StreetOperation;
 
 class ContainerMovementPusher extends EntityPusher
@@ -26,6 +28,7 @@ class ContainerMovementPusher extends EntityPusher
             'uuid' => ['required', 'uuid'],
             ...$this->referenceRules('customer', required: true),
             ...$this->referenceRules('visit'),
+            ...$this->referenceRules('sale'),
             'container_type_id' => ['required', 'integer', 'exists:container_types,id'],
             'movement_type' => ['required', 'in:'.implode(',', self::PUSHABLE)],
             'quantity' => ['required', 'integer', 'min:1'],
@@ -41,6 +44,13 @@ class ContainerMovementPusher extends EntityPusher
         /** @var Customer $customer */
         $customer = $this->reference(Customer::class, $record, 'customer');
         $visit = $this->reference(Visit::class, $record, 'visit');
+        $sale = $this->reference(Sale::class, $record, 'sale');
+        $this->assertBelongsToCustomer($sale, $customer, 'sale');
+
+        // Its containers were already given back; a movement added now would never be.
+        if ($sale?->status === SaleStatus::Cancelled->value) {
+            throw new RejectedRecord('The sale is cancelled.');
+        }
         $reason = $this->reviewReasonForCustomer($customer, $driver);
 
         $movement = $this->operation->moveContainers(new MoveContainers(
@@ -52,6 +62,7 @@ class ContainerMovementPusher extends EntityPusher
             recordedBy: $user,
             clientUuid: $record['uuid'],
             reviewReason: $reason,
+            sale: $sale,
         ));
 
         return $this->accepted($record['uuid'], $movement->id, $reason?->value);

@@ -8,6 +8,7 @@ use App\Review\Reviewable;
 use App\Review\ReviewSource;
 use App\Routes\Routes\Models\Route;
 use App\Routes\Visits\Models\Visit;
+use App\Street\Containers\Models\ContainerMovement;
 use App\Street\Ledger\Models\CustomerAccountEntry;
 use App\Street\Payments\Models\Payment;
 use App\Street\Sales\Database\Factories\SaleFactory;
@@ -67,6 +68,14 @@ class Sale extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
+    }
+
+    /**
+     * The containers moved with the sale, and their reversals once it is cancelled.
+     */
+    public function containerMovements(): HasMany
+    {
+        return $this->hasMany(ContainerMovement::class);
     }
 
     public function accountEntries(): HasMany
