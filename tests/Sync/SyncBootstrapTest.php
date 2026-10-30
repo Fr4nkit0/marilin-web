@@ -104,6 +104,8 @@ test('bootstrap returns the full day of the authenticated driver', function (): 
     $stops = collect($response->json('data.stops'))->keyBy('id');
     expect($stops)->toHaveCount(2)
         ->and($stops[$original->id]['scheduled_time'])->toBeNull()
+        ->and($stops[$original->id]['is_requested'])->toBeFalse()
+        ->and($stops[$original->id]['note'])->toBeNull()
         ->and($stops[$rescheduled->id]['scheduled_time'])->toBe('16:00:00')
         ->and($stops[$rescheduled->id]['is_rescheduled_from'])->toBe($original->id);
 

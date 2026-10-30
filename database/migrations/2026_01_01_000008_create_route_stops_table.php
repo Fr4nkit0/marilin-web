@@ -20,6 +20,8 @@ return new class extends Migration
             $table->boolean('enabled')->default(true);
             $table->timestamps();
             $table->time('scheduled_time')->nullable();
+            $table->foreignId('scheduled_visit_id')->nullable(); // the scheduled visit it carries; its FK lives in the scheduled_visits migration
+            $table->text('note')->nullable();
             $table->uuid('client_uuid')->nullable()->unique();
             $table->boolean('needs_review')->default(false);
             $table->text('review_reason')->nullable();
@@ -27,6 +29,7 @@ return new class extends Migration
             $table->foreignId('reviewed_by')->nullable()->constrained('users')->nullOnDelete();
 
             $table->index('updated_at');
+            $table->index('scheduled_visit_id');
         });
     }
 
