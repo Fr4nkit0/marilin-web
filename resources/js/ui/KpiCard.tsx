@@ -35,11 +35,12 @@ export function KpiCard({
         slate: 'bg-canvas-soft text-ink-secondary border border-hairline',
     };
 
+    // A heading inside a button gives it no accessible name, so a clickable card names itself.
     const Wrapper = onClick ? 'button' : 'div';
 
     return (
         <Wrapper
-            {...(onClick ? { type: 'button' as const, onClick } : {})}
+            {...(onClick ? { type: 'button' as const, onClick, 'aria-label': `${title}: ${value}` } : {})}
             className={`min-w-0 bg-canvas rounded-2xl border border-hairline/60 p-4 sm:p-5 shadow-sm transition-shadow hover:shadow-md ${
                 onClick
                     ? 'w-full text-left cursor-pointer hover:border-sky-300 focus:outline-none focus:ring-2 focus:ring-sky-600/30'
