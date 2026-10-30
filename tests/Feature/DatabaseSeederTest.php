@@ -8,6 +8,7 @@ use App\Customers\Customers\Models\Customer;
 use App\Customers\Customers\Models\CustomerAddress;
 use App\Customers\Neighborhoods\Models\Neighborhood;
 use App\Routes\Routes\Models\RouteStop;
+use App\Street\RouteStock\Models\RouteInventoryLoad;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -107,4 +108,12 @@ test('the seeded customers live in Salta capital, in neighborhoods of the catalo
             ->contains(fn (?string $text): bool => $text !== null && stripos($text, 'Jujuy') !== false))->pluck('street')->all())->toBe([])
         ->and($addresses->every(fn (CustomerAddress $address): bool => abs((float) $address->latitude + 24.78) < 0.1 && abs((float) $address->longitude + 65.41) < 0.1))->toBeTrue()
         ->and(Customer::query()->where('phone_number', 'not like', '+54 387 %')->pluck('name')->all())->toBe([]);
+});
+
+test('the seeded trucks are loaded in the morning, before their route starts', function (): void {
+    $loads = RouteInventoryLoad::query()->with('route')->get();
+
+    expect($loads)->not->toBeEmpty()
+        ->and($loads->reject(fn (RouteInventoryLoad $load): bool => $load->loaded_at->isSameDay($load->route->started_at)
+            && $load->loaded_at->lessThan($load->route->started_at))->pluck('id')->all())->toBe([]);
 });

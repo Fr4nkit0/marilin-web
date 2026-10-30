@@ -23,7 +23,7 @@ import {
     CreditCard,
     Truck,
 } from 'lucide-react';
-import { money } from '@/lib/format';
+import { accountEntryTypeLabel, money, type AccountEntryType } from '@/lib/format';
 
 interface Props {
     customer: {
@@ -64,7 +64,7 @@ interface Props {
     };
     accountEntries: {
         id: number;
-        entryType: string; // 'SALE', 'PAYMENT', 'ADJUSTMENT'
+        entryType: AccountEntryType;
         direction: number; // 1 debit (owes more), -1 credit (pays)
         amount: number;
         description?: string;
@@ -331,7 +331,7 @@ export default function CustomerShow({
                                                                 : 'bg-surface-1 text-ink-secondary'
                                                         }`}
                                                     >
-                                                        {entry.entryType}
+                                                        {accountEntryTypeLabel(entry.entryType)}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 text-center">

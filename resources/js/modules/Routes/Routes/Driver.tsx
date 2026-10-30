@@ -11,7 +11,7 @@ import {
     Package,
     Calendar,
 } from 'lucide-react';
-import { money } from '@/lib/format';
+import { money, stopStatusLabel } from '@/lib/format';
 import type { RouteStatus, RouteStopRow } from './types';
 
 interface StopItem extends RouteStopRow {
@@ -127,7 +127,7 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
                             </div>
                             <div>
                                 <span className="text-xs font-medium text-ink-muted tracking-wide">
-                                    Cobranza en Mano
+                                    Cobrado
                                 </span>
                                 <p className="text-xl font-medium text-emerald-600 dark:text-emerald-300 mt-0.5">
                                     {money(deliveryRoute.totalCollectedAmount)}
@@ -216,7 +216,7 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
 
                                             {/* Status */}
                                             <td className="px-6 py-4">
-                                                <StatusBadge status={stop.status} />
+                                                <StatusBadge status={stop.status} label={stopStatusLabel(stop.status)} />
                                             </td>
 
                                             {/* Sales / Collections */}

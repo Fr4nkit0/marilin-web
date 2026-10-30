@@ -7,12 +7,21 @@ export type StopStatus = 'PENDING' | 'IN_PROGRESS' | 'FINISHED' | 'RESCHEDULED' 
 
 export type PaymentStatus = 'CONFIRMED' | 'CANCELLED' | 'ANNULLED';
 
+export type AccountEntryType = 'SALE' | 'PAYMENT' | 'ADJUSTMENT' | 'CREDIT_NOTE';
+
 const STOP_STATUS_LABELS: Record<StopStatus, string> = {
     PENDING: 'Pendiente',
     IN_PROGRESS: 'En curso',
     FINISHED: 'Terminada',
     RESCHEDULED: 'Reprogramada',
     CANCELLED: 'Cancelada',
+};
+
+const ACCOUNT_ENTRY_TYPE_LABELS: Record<AccountEntryType, string> = {
+    SALE: 'Venta',
+    PAYMENT: 'Cobro',
+    ADJUSTMENT: 'Ajuste',
+    CREDIT_NOTE: 'Nota de crédito',
 };
 
 /** Pesos with the Argentine separators; cents only when there are any ("$1.500", "$1.250,5"). */
@@ -37,6 +46,10 @@ export function dateTime(moment: string): string {
 
 export function stopStatusLabel(status: StopStatus): string {
     return STOP_STATUS_LABELS[status];
+}
+
+export function accountEntryTypeLabel(type: AccountEntryType): string {
+    return ACCOUNT_ENTRY_TYPE_LABELS[type];
 }
 
 /** Anything but a confirmed payment reads as cancelled, as the payments list always showed it. */

@@ -708,11 +708,11 @@ class DatabaseSeeder extends Seeder
 
         RouteInventoryLoad::firstOrCreate(
             ['route_id' => $routeJuan->id, 'product_id' => $productAgua20L->id],
-            ['quantity' => 60.00, 'created_by' => $admin->id]
+            ['quantity' => 60.00, 'loaded_at' => $routeJuan->started_at->copy()->subMinutes(30), 'created_by' => $admin->id]
         );
         RouteInventoryLoad::firstOrCreate(
             ['route_id' => $routeJuan->id, 'product_id' => $productSoda2L->id],
-            ['quantity' => 30.00, 'created_by' => $admin->id]
+            ['quantity' => 30.00, 'loaded_at' => $routeJuan->started_at->copy()->subMinutes(30), 'created_by' => $admin->id]
         );
 
         RouteInventory::firstOrCreate(
@@ -944,11 +944,11 @@ class DatabaseSeeder extends Seeder
 
         RouteInventoryLoad::firstOrCreate(
             ['route_id' => $routeCarlos->id, 'product_id' => $productAgua20L->id],
-            ['quantity' => 50.00, 'created_by' => $admin->id]
+            ['quantity' => 50.00, 'loaded_at' => $routeCarlos->started_at->copy()->subMinutes(30), 'created_by' => $admin->id]
         );
         RouteInventoryLoad::firstOrCreate(
             ['route_id' => $routeCarlos->id, 'product_id' => $productSoda2L->id],
-            ['quantity' => 20.00, 'created_by' => $admin->id]
+            ['quantity' => 20.00, 'loaded_at' => $routeCarlos->started_at->copy()->subMinutes(30), 'created_by' => $admin->id]
         );
         // Loaded minus sold below: agua 50 - 36, soda 20 - 18.
         RouteInventory::firstOrCreate(
@@ -1118,7 +1118,7 @@ class DatabaseSeeder extends Seeder
 
         RouteInventoryLoad::firstOrCreate(
             ['route_id' => $routeMarcos->id, 'product_id' => $productAgua20L->id],
-            ['quantity' => 40.00, 'created_by' => $admin->id]
+            ['quantity' => 40.00, 'loaded_at' => $routeMarcos->started_at->copy()->subMinutes(30), 'created_by' => $admin->id]
         );
         RouteInventory::firstOrCreate(
             ['route_id' => $routeMarcos->id, 'product_id' => $productAgua20L->id],
@@ -1253,7 +1253,7 @@ class DatabaseSeeder extends Seeder
         foreach ([[$productAgua20L, 40.00], [$productSoda2L, 20.00]] as [$product, $quantity]) {
             RouteInventoryLoad::firstOrCreate(
                 ['route_id' => $routeEsteban->id, 'product_id' => $product->id],
-                ['quantity' => $quantity, 'created_by' => $admin->id]
+                ['quantity' => $quantity, 'loaded_at' => $routeEsteban->started_at->copy()->subMinutes(30), 'created_by' => $admin->id]
             );
             RouteInventory::firstOrCreate(
                 ['route_id' => $routeEsteban->id, 'product_id' => $product->id],

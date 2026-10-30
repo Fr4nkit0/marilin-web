@@ -198,6 +198,10 @@ export default function CashCloseIndex({
                                     <span className="text-ink-secondary font-medium">Cobranza de Cuentas Corrientes previas:</span>
                                     <span className="font-semibold text-ink">+{money(settlement.debtCollected)}</span>
                                 </div>
+                                <div className="flex justify-between py-2 border-b border-hairline last:border-0">
+                                    <span className="text-ink-secondary font-medium">Menos: Transferencias:</span>
+                                    <span className="font-semibold text-ink-muted">-{money(settlement.transferAmount)}</span>
+                                </div>
                                 <div className="flex justify-between items-center py-4 bg-canvas-soft border border-hairline px-5 rounded-xl mt-4 shadow-sm">
                                     <span className="text-ink-secondary font-medium">Efectivo Físico a Entregar:</span>
                                     <span className="text-ink font-semibold text-lg">{money(settlement.cashAmount)}</span>
