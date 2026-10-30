@@ -182,6 +182,7 @@ export default function RoutesIndex({
                                 type="date"
                                 value={filter.values.date}
                                 onChange={(e) => filter.set('date', e.target.value)}
+                                aria-label="Fecha"
                                 style={{ colorScheme: 'light' }}
                                 className="bg-transparent border-none p-0 text-sm font-medium focus:ring-0 focus:outline-none cursor-pointer text-ink"
                             />
@@ -192,6 +193,7 @@ export default function RoutesIndex({
                             <select
                                 value={filter.values.status}
                                 onChange={(e) => filter.set('status', e.target.value)}
+                                aria-label="Estado"
                                 className="text-sm font-medium border border-hairline/60 rounded-lg py-2 pl-3 pr-8 bg-canvas text-ink focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent transition-all shadow-sm"
                             >
                                 <option value="all">Todos los Estados</option>
@@ -205,6 +207,7 @@ export default function RoutesIndex({
                         <select
                             value={filter.values.driver_id}
                             onChange={(e) => filter.set('driver_id', e.target.value)}
+                            aria-label="Repartidor"
                             className="text-sm font-medium border border-hairline/60 rounded-lg py-2 pl-3 pr-8 bg-canvas text-ink focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent transition-all shadow-sm"
                         >
                             <option value="">Todos los repartidores</option>
@@ -316,7 +319,11 @@ export default function RoutesIndex({
                                                 <ArrowUpRight className="w-4 h-4" />
                                             </Link>
                                         )}
-                                        <button className="p-2 rounded-full text-ink-subtle hover:text-ink hover:bg-surface-1 transition-colors">
+                                        <button
+                                            type="button"
+                                            aria-label={`${isExpanded ? 'Ocultar' : 'Ver'} detalle de la ruta de ${routeItem.driver.name}`}
+                                            aria-expanded={isExpanded}
+                                            className="p-2 rounded-full text-ink-subtle hover:text-ink hover:bg-surface-1 transition-colors">
                                             {isExpanded ? (
                                                 <ChevronUp className="w-5 h-5" />
                                             ) : (

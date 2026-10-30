@@ -161,6 +161,7 @@ export default function PaymentsIndex({ payments, metrics, filters, paymentMetho
                             type="text"
                             value={filter.values.search}
                             onChange={(e) => filter.draft('search', e.target.value)}
+                            aria-label="Buscar cliente"
                             placeholder="Buscar por cliente..."
                             className="w-full pl-9 pr-4 py-2 text-sm font-medium border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-canvas text-ink placeholder-ink-subtle shadow-sm transition-all"
                         />
@@ -172,6 +173,7 @@ export default function PaymentsIndex({ payments, metrics, filters, paymentMetho
                             type="date"
                             value={filter.values.date}
                             onChange={(e) => filter.set('date', e.target.value)}
+                            aria-label="Fecha"
                             style={{ colorScheme: 'light' }}
                             className="w-full py-2 px-3 text-sm font-medium border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-canvas text-ink shadow-sm transition-all"
                         />
@@ -191,6 +193,7 @@ export default function PaymentsIndex({ payments, metrics, filters, paymentMetho
                         <select
                             value={filter.values.payment_method_id}
                             onChange={(e) => filter.set('payment_method_id', e.target.value)}
+                            aria-label="Método de pago"
                             className="w-full py-2 px-3 text-sm font-medium border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-canvas text-ink shadow-sm transition-all"
                         >
                             <option value="">Todos los métodos</option>
@@ -207,6 +210,7 @@ export default function PaymentsIndex({ payments, metrics, filters, paymentMetho
                         <select
                             value={filter.values.status}
                             onChange={(e) => filter.set('status', e.target.value)}
+                            aria-label="Estado"
                             className="w-full py-2 px-3 text-sm font-medium border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-canvas text-ink shadow-sm transition-all"
                         >
                             <option value="all">Todos los estados</option>

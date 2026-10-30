@@ -36,6 +36,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
                     id="email"
                     type="email"
                     name="email"
+                    aria-label="Email"
                     value={data.email}
                     className="mt-1 block w-full"
                     autoFocus

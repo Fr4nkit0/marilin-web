@@ -196,6 +196,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                             type="text"
                             value={filter.values.search}
                             onChange={(e) => filter.draft('search', e.target.value)}
+                            aria-label="Buscar cliente"
                             placeholder="Buscar por nombre, teléfono o dirección..."
                             className="w-full pl-9 pr-4 py-2 text-sm border border-hairline/60 bg-canvas text-ink placeholder-ink-subtle rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 font-medium"
                         />
@@ -206,6 +207,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                         <select
                             value={filter.values.repartidor_id}
                             onChange={(e) => filter.set('repartidor_id', e.target.value)}
+                            aria-label="Repartidor"
                             className="w-full py-2 px-3 text-sm border border-hairline/60 bg-canvas text-ink placeholder-ink-subtle rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 font-medium"
                         >
                             <option value="">Todos los Repartidores</option>
@@ -222,6 +224,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                         <select
                             value={filter.values.debt_status}
                             onChange={(e) => filter.set('debt_status', e.target.value)}
+                            aria-label="Estado de deuda"
                             className="w-full py-2 px-3 text-sm border border-hairline/60 bg-canvas text-ink placeholder-ink-subtle rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 font-medium"
                         >
                             <option value="all">Todos los Estados</option>
@@ -399,6 +402,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                             <button
                                 type="button"
                                 onClick={() => setIsCreateModalOpen(false)}
+                                aria-label="Cerrar"
                                 className="p-2 rounded-lg text-ink-subtle hover:text-ink-secondary hover:bg-surface-1 transition cursor-pointer"
                             >
                                 <X className="w-5 h-5" />
@@ -408,10 +412,11 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                         <form onSubmit={handleCreateCustomer} noValidate className="p-6 space-y-5">
                             {/* Nombre o Razón Social */}
                             <div>
-                                <label className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                <label htmlFor="create-name" className="block text-sm font-medium text-ink-secondary mb-1.5">
                                     Nombre o Razón Social <span className="text-ink">*</span>
                                 </label>
                                 <input
+                                    id="create-name"
                                     type="text"
                                     required
                                     value={data.name}
@@ -425,10 +430,11 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                             {/* Teléfono & Repartidor */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                 <div>
-                                    <label className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                    <label htmlFor="create-phone-number" className="block text-sm font-medium text-ink-secondary mb-1.5">
                                         Teléfono de Contacto
                                     </label>
                                     <input
+                                        id="create-phone-number"
                                         type="text"
                                         value={data.phone_number}
                                         onChange={(e) => setData('phone_number', e.target.value)}
@@ -439,10 +445,11 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                    <label htmlFor="create-repartidor-id" className="block text-sm font-medium text-ink-secondary mb-1.5">
                                         Repartidor Asignado
                                     </label>
                                     <select
+                                        id="create-repartidor-id"
                                         value={data.repartidor_id}
                                         onChange={(e) => setData('repartidor_id', e.target.value)}
                                         className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  bg-canvas"
@@ -464,10 +471,11 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                     Dirección Principal
                                 </h4>
                                 <div>
-                                    <label className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                    <label htmlFor="create-street" className="block text-sm font-medium text-ink-secondary mb-1.5">
                                         Calle y Altura <span className="text-ink">*</span>
                                     </label>
                                     <input
+                                        id="create-street"
                                         type="text"
                                         required
                                         value={data.street}
@@ -497,10 +505,11 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
 
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                                     <div>
-                                        <label className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                        <label htmlFor="create-floor" className="block text-sm font-medium text-ink-secondary mb-1.5">
                                             Piso
                                         </label>
                                         <input
+                                            id="create-floor"
                                             type="text"
                                             value={data.floor}
                                             onChange={(e) => setData('floor', e.target.value)}
@@ -512,10 +521,11 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                        <label htmlFor="create-apartment" className="block text-sm font-medium text-ink-secondary mb-1.5">
                                             Departamento
                                         </label>
                                         <input
+                                            id="create-apartment"
                                             type="text"
                                             value={data.apartment}
                                             onChange={(e) => setData('apartment', e.target.value)}
@@ -526,10 +536,11 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                        <label htmlFor="create-visual-reference" className="block text-sm font-medium text-ink-secondary mb-1.5">
                                             Referencia Visual
                                         </label>
                                         <input
+                                            id="create-visual-reference"
                                             type="text"
                                             value={data.visual_reference}
                                             onChange={(e) => setData('visual_reference', e.target.value)}
@@ -550,10 +561,11 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
 
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                                     <div>
-                                        <label className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                        <label htmlFor="create-initial-balance" className="block text-sm font-medium text-ink-secondary mb-1.5">
                                             Deuda Inicial ($)
                                         </label>
                                         <input
+                                            id="create-initial-balance"
                                             type="number"
                                             step="0.01"
                                             min="0"
@@ -643,6 +655,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                             <button
                                 type="button"
                                 onClick={() => setEditingCustomer(null)}
+                                aria-label="Cerrar"
                                 className="p-2 rounded-lg text-ink-subtle hover:text-ink-secondary hover:bg-surface-1 transition cursor-pointer"
                             >
                                 <X className="w-5 h-5" />
@@ -652,10 +665,11 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                         <form onSubmit={handleUpdateCustomer} noValidate className="p-6 space-y-5">
                             {/* Nombre o Razón Social */}
                             <div>
-                                <label className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                <label htmlFor="edit-name" className="block text-sm font-medium text-ink-secondary mb-1.5">
                                     Nombre o Razón Social <span className="text-ink">*</span>
                                 </label>
                                 <input
+                                    id="edit-name"
                                     type="text"
                                     required
                                     value={editForm.data.name}
@@ -668,10 +682,11 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                             {/* Teléfono & Repartidor */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                 <div>
-                                    <label className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                    <label htmlFor="edit-phone-number" className="block text-sm font-medium text-ink-secondary mb-1.5">
                                         Teléfono de Contacto
                                     </label>
                                     <input
+                                        id="edit-phone-number"
                                         type="text"
                                         value={editForm.data.phone_number}
                                         onChange={(e) => editForm.setData('phone_number', e.target.value)}
@@ -682,10 +697,11 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                    <label htmlFor="edit-repartidor-id" className="block text-sm font-medium text-ink-secondary mb-1.5">
                                         Repartidor Asignado
                                     </label>
                                     <select
+                                        id="edit-repartidor-id"
                                         value={editForm.data.repartidor_id}
                                         onChange={(e) => editForm.setData('repartidor_id', e.target.value)}
                                         className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  bg-canvas"
@@ -707,10 +723,11 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                     Dirección Principal
                                 </h4>
                                 <div>
-                                    <label className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                    <label htmlFor="edit-street" className="block text-sm font-medium text-ink-secondary mb-1.5">
                                         Calle y Altura <span className="text-ink">*</span>
                                     </label>
                                     <input
+                                        id="edit-street"
                                         type="text"
                                         required
                                         value={editForm.data.street}
@@ -739,10 +756,11 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
 
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                                     <div>
-                                        <label className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                        <label htmlFor="edit-floor" className="block text-sm font-medium text-ink-secondary mb-1.5">
                                             Piso
                                         </label>
                                         <input
+                                            id="edit-floor"
                                             type="text"
                                             value={editForm.data.floor}
                                             onChange={(e) => editForm.setData('floor', e.target.value)}
@@ -754,10 +772,11 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                        <label htmlFor="edit-apartment" className="block text-sm font-medium text-ink-secondary mb-1.5">
                                             Departamento
                                         </label>
                                         <input
+                                            id="edit-apartment"
                                             type="text"
                                             value={editForm.data.apartment}
                                             onChange={(e) => editForm.setData('apartment', e.target.value)}
@@ -768,10 +787,11 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                        <label htmlFor="edit-visual-reference" className="block text-sm font-medium text-ink-secondary mb-1.5">
                                             Referencia Visual
                                         </label>
                                         <input
+                                            id="edit-visual-reference"
                                             type="text"
                                             value={editForm.data.visual_reference}
                                             onChange={(e) => editForm.setData('visual_reference', e.target.value)}

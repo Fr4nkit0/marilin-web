@@ -1,4 +1,4 @@
-import { forwardRef, type InputHTMLAttributes, type LabelHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
+import { cloneElement, forwardRef, isValidElement, useId, type InputHTMLAttributes, type LabelHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
 
 const CONTROL =
     'w-full h-10 px-3 rounded-md border border-hairline bg-canvas dark:bg-canvas-soft text-sm text-ink placeholder-ink-subtle shadow-sm ' +
@@ -8,7 +8,8 @@ const INVALID = 'border-rose-400 focus:ring-rose-600/20 focus:border-rose-600';
 
 interface FieldProps {
     label: ReactNode;
-    htmlFor: string;
+    /** The control's id; when left out, the control's own id or a generated one ties the label to it. */
+    htmlFor?: string;
     error?: string;
     hint?: ReactNode;
     children: ReactNode;
@@ -16,10 +17,14 @@ interface FieldProps {
 
 /** A labelled form control with its validation error under it. */
 export function Field({ label, htmlFor, error, hint, children }: FieldProps) {
+    const generatedId = useId();
+    const control = isValidElement<{ id?: string }>(children) ? children : null;
+    const id = htmlFor ?? control?.props.id ?? generatedId;
+
     return (
         <div className="space-y-1.5">
-            <Label htmlFor={htmlFor}>{label}</Label>
-            {children}
+            <Label htmlFor={id}>{label}</Label>
+            {control && !control.props.id ? cloneElement(control, { id }) : children}
             {hint && !error ? <p className="text-xs text-ink-muted">{hint}</p> : null}
             <FieldError message={error} />
         </div>

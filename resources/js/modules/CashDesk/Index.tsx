@@ -81,10 +81,11 @@ export default function CashCloseIndex({
             {/* Drivers Selection Toolbar */}
             <div className="bg-canvas border border-hairline/60 rounded-2xl p-4 mb-6 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 ">
                 <div className="flex items-center gap-3 w-full sm:w-auto">
-                    <span className="text-sm font-medium text-ink-muted whitespace-nowrap">
+                    <label htmlFor="cash-close-driver" className="text-sm font-medium text-ink-muted whitespace-nowrap">
                         Repartidor:
-                    </span>
+                    </label>
                     <select
+                        id="cash-close-driver"
                         value={selectedId}
                         onChange={(e) => handleSelectRepartidor(e.target.value)}
                         className="py-2 px-3 text-sm font-medium border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-canvas text-ink shadow-sm transition-all min-w-[200px]"
@@ -98,10 +99,11 @@ export default function CashCloseIndex({
                 </div>
 
                 <div className="flex items-center gap-3 w-full sm:w-auto">
-                    <span className="text-sm font-medium text-ink-muted whitespace-nowrap">
+                    <label htmlFor="cash-close-date" className="text-sm font-medium text-ink-muted whitespace-nowrap">
                         Fecha Jornada:
-                    </span>
+                    </label>
                     <input
+                        id="cash-close-date"
                         type="date"
                         value={selectedDate}
                         onChange={(e) => handleDateChange(e.target.value)}

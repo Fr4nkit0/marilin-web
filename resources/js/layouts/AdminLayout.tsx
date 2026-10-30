@@ -152,6 +152,8 @@ export default function AdminLayout({
                 <div className="flex items-center justify-between px-6 bg-canvas border-b border-hairline/60 h-16 lg:hidden">
                     <div className="flex-1"></div>
                     <button
+                        type="button"
+                        aria-label="Cerrar menú"
                         className="p-1.5 rounded-lg text-ink-muted hover:bg-surface-1"
                         onClick={() => setSidebarOpen(false)}
                     >
@@ -207,8 +209,10 @@ export default function AdminLayout({
                         </div>
                     </div>
                     <button
+                        type="button"
                         onClick={() => setShowLogoutModal(true)}
                         className="p-2 rounded-lg text-ink-muted hover:text-ink hover:bg-surface-1 transition cursor-pointer"
+                        aria-label="Cerrar sesión"
                         title="Cerrar sesión"
                     >
                         <LogOut className="w-5 h-5" strokeWidth={2} />
@@ -222,7 +226,10 @@ export default function AdminLayout({
                 <header className="h-16 bg-canvas/80 backdrop-blur-md border-b border-hairline/60 sticky top-0 z-30 flex items-center justify-between px-4 sm:px-6 lg:px-8 shadow-sm ">
                     <div className="flex items-center gap-3">
                         <button
+                            type="button"
                             onClick={() => setSidebarOpen(true)}
+                            aria-label="Abrir menú"
+                            aria-expanded={sidebarOpen}
                             className="lg:hidden p-2 rounded-lg text-ink-muted hover:bg-surface-1 hover:text-ink"
                         >
                             <Menu className="w-5 h-5" />
@@ -243,7 +250,12 @@ export default function AdminLayout({
                         {/* User Menu */}
                         <div className="relative">
                             <button
+                                type="button"
                                 onClick={() => setUserMenuOpen(!userMenuOpen)}
+                                // On a phone the name is hidden, so the button carries it for screen readers too.
+                                aria-label={`Menú de ${user.name}`}
+                                aria-haspopup="true"
+                                aria-expanded={userMenuOpen}
                                 className="flex items-center gap-2 text-sm font-medium text-ink-secondary hover:text-ink"
                             >
                                 <span className="hidden sm:inline-block">{user.name}</span>

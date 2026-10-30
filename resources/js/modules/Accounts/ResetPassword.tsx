@@ -71,6 +71,7 @@ export default function ResetPassword({
                     />
 
                     <Input
+                        id="password_confirmation"
                         type="password"
                         name="password_confirmation"
                         value={data.password_confirmation}
