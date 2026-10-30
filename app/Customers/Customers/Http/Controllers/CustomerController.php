@@ -8,6 +8,7 @@ use App\Catalog\Models\PaymentMethod;
 use App\Catalog\Models\Product;
 use App\Customers\Agreements\Models\CustomerAgreement;
 use App\Customers\Agreements\PriceResolver;
+use App\Customers\Customers\AddressLocation;
 use App\Customers\Customers\CustomerAddressDetails;
 use App\Customers\Customers\CustomerEdit;
 use App\Customers\Customers\CustomerIntake;
@@ -15,6 +16,8 @@ use App\Customers\Customers\CustomerRegistration;
 use App\Customers\Customers\Http\Requests\StoreCustomerRequest;
 use App\Customers\Customers\Http\Requests\UpdateCustomerRequest;
 use App\Customers\Customers\Models\Customer;
+use App\Customers\Customers\Models\CustomerAddress;
+use App\Customers\Neighborhoods\Models\Neighborhood;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -78,6 +81,8 @@ class CustomerController extends Controller
                 'debt_status' => $debtStatus ?? 'all',
             ],
             'repartidores' => $drivers,
+            'neighborhoods' => Neighborhood::query()->enabled()->orderBy('name')->pluck('name'),
+            'containerTypes' => ContainerType::query()->enabled()->orderBy('description')->get(['id', 'description']),
         ]);
     }
 
@@ -183,14 +188,11 @@ class CustomerController extends Controller
             name: $validated['name'],
             phoneNumber: $validated['phone_number'] ?? null,
             driverId: isset($validated['repartidor_id']) ? (int) $validated['repartidor_id'] : null,
-            address: $this->addressDetails($validated),
+            address: $this->addressDetails($validated, null),
             createdBy: $request->user(),
             // numeric also accepts forms like 1e2; the ledger works with a fixed two-decimal string.
             initialDebt: number_format((float) ($validated['initial_balance'] ?? 0), 2, '.', ''),
-            initialContainers: [
-                'BIDON_20L' => (int) ($validated['bidon_20l_balance'] ?? 0),
-                'SIFON_2L' => (int) ($validated['sifon_2l_balance'] ?? 0),
-            ],
+            initialContainers: array_map(fn (mixed $quantity): int => (int) $quantity, $validated['initial_containers'] ?? []),
         ));
 
         return redirect()->route('customers.index')->with('success', 'Cliente creado exitosamente');
@@ -206,7 +208,7 @@ class CustomerController extends Controller
         $intake->update($customer, new CustomerEdit(
             name: $validated['name'],
             phoneNumber: $validated['phone_number'] ?? null,
-            address: $this->addressDetails($validated),
+            address: $this->addressDetails($validated, $customer->primaryAddress),
             modifiedBy: $request->user(),
             driverId: isset($validated['repartidor_id']) ? (int) $validated['repartidor_id'] : null,
         ));
@@ -215,15 +217,23 @@ class CustomerController extends Controller
     }
 
     /**
+     * The web sets the neighborhood only; the coordinates come from the app, so the current ones are kept.
+     * A request without the neighborhood field leaves the stored location untouched.
+     *
      * @param  array<string, mixed>  $validated
      */
-    private function addressDetails(array $validated): CustomerAddressDetails
+    private function addressDetails(array $validated, ?CustomerAddress $current): CustomerAddressDetails
     {
         return new CustomerAddressDetails(
             street: $validated['street'],
             apartment: $validated['apartment'] ?? null,
             floor: $validated['floor'] ?? null,
             visualReference: $validated['visual_reference'] ?? null,
+            location: array_key_exists('neighborhood', $validated) ? new AddressLocation(
+                neighborhood: $validated['neighborhood'],
+                latitude: $current?->latitude,
+                longitude: $current?->longitude,
+            ) : null,
         );
     }
 }

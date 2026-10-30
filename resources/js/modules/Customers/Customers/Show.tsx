@@ -35,6 +35,7 @@ interface Props {
             apartment?: string;
             floor?: string;
             visual_reference?: string;
+            neighborhood?: string | null;
             latitude?: number;
             longitude?: number;
         };
@@ -188,6 +189,7 @@ export default function CustomerShow({
                                             {customer.primary_address.street}
                                             {customer.primary_address.floor && ` (Piso ${customer.primary_address.floor})`}
                                             {customer.primary_address.apartment && ` (Depto ${customer.primary_address.apartment})`}
+                                            {customer.primary_address.neighborhood && `, ${customer.primary_address.neighborhood}`}
                                             {customer.primary_address.visual_reference && ` - ${customer.primary_address.visual_reference}`}
                                         </span>
                                     </div>

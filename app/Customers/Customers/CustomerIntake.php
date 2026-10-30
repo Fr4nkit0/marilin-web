@@ -198,8 +198,8 @@ class CustomerIntake
 
     private function recordInitialContainers(Customer $customer, CustomerRegistration $input): void
     {
-        foreach ($input->initialContainers as $code => $quantity) {
-            $type = $quantity > 0 ? ContainerType::query()->where('code', $code)->first() : null;
+        foreach ($input->initialContainers as $containerTypeId => $quantity) {
+            $type = $quantity > 0 ? ContainerType::query()->enabled()->find($containerTypeId) : null;
 
             if ($type === null) {
                 continue;

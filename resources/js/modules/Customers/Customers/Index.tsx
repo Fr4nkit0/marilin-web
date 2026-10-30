@@ -25,6 +25,7 @@ interface CustomerAddress {
     apartment?: string;
     floor?: string;
     visual_reference?: string;
+    neighborhood?: string | null;
     is_primary: boolean;
 }
 
@@ -68,9 +69,13 @@ interface Props {
         debt_status?: string;
     };
     repartidores: { id: number; name: string }[];
+    neighborhoods: string[];
+    containerTypes: { id: number; description: string }[];
 }
 
-export default function CustomersIndex({ customers, filters, repartidores }: Props) {
+const NEIGHBORHOOD_OPTIONS = 'neighborhood-options';
+
+export default function CustomersIndex({ customers, filters, repartidores, neighborhoods, containerTypes }: Props) {
     const filter = useListFilters(
         'customers.index',
         { search: filters.search || '', repartidor_id: filters.repartidor_id || '', debt_status: filters.debt_status || 'all' },
@@ -87,9 +92,10 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
         floor: '',
         apartment: '',
         visual_reference: '',
+        neighborhood: '',
         initial_balance: '0',
-        bidon_20l_balance: '0',
-        sifon_2l_balance: '0',
+        // Keyed by container type id, one count per enabled type.
+        initial_containers: {} as Record<string, string>,
     });
 
     const editForm = useForm({
@@ -100,7 +106,10 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
         floor: '',
         apartment: '',
         visual_reference: '',
+        neighborhood: '',
     });
+
+    const isFiltered = Boolean(filters.search || filters.repartidor_id || (filters.debt_status && filters.debt_status !== 'all'));
 
     const handleCreateCustomer = (e: React.FormEvent) => {
         e.preventDefault();
@@ -123,6 +132,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
             floor: c.primary_address?.floor || '',
             apartment: c.primary_address?.apartment || '',
             visual_reference: c.primary_address?.visual_reference || '',
+            neighborhood: c.primary_address?.neighborhood || '',
         });
     };
 
@@ -159,7 +169,11 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                         Gestión de Clientes
                     </h1>
                     <p className="text-sm font-medium text-ink-muted mt-1 tracking-wide">
-                        Total de {customers.total} clientes registrados en el sistema.
+                        {isFiltered
+                            ? customers.total === 1
+                                ? '1 cliente coincide con los filtros.'
+                                : `${customers.total} clientes coinciden con los filtros.`
+                            : `Total de ${customers.total} clientes registrados en el sistema.`}
                     </p>
                 </div>
                 <button
@@ -279,6 +293,11 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                                                     , Depto {c.primary_address.apartment}
                                                                 </span>
                                                             )}
+                                                            {c.primary_address.neighborhood && (
+                                                                <span className="block text-xs text-ink-subtle">
+                                                                    {c.primary_address.neighborhood}
+                                                                </span>
+                                                            )}
                                                         </span>
                                                     </div>
                                                 ) : (
@@ -345,6 +364,12 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                 <Pagination page={customers} />
             </div>
 
+            <datalist id={NEIGHBORHOOD_OPTIONS}>
+                {neighborhoods.map((name) => (
+                    <option key={name} value={name} />
+                ))}
+            </datalist>
+
             {/* Modal para Crear Nuevo Cliente */}
             {isCreateModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
@@ -406,7 +431,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                         type="text"
                                         value={data.phone_number}
                                         onChange={(e) => setData('phone_number', e.target.value)}
-                                        placeholder="Ej: +54 388 422-3000"
+                                        placeholder="Ej: +54 387 422-3000"
                                         className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                     />
                                     {errors.phone_number && (
@@ -454,6 +479,25 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                         className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                     />
                                     {errors.street && <p className="text-sm text-red-600 dark:text-red-300 mt-1">{errors.street}</p>}
+                                </div>
+
+                                <div>
+                                    <label htmlFor="create-neighborhood" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                        Barrio
+                                    </label>
+                                    <input
+                                        id="create-neighborhood"
+                                        type="text"
+                                        list={NEIGHBORHOOD_OPTIONS}
+                                        autoComplete="off"
+                                        value={data.neighborhood}
+                                        onChange={(e) => setData('neighborhood', e.target.value)}
+                                        placeholder="Buscar barrio, ej: Tres Cerritos"
+                                        className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
+                                    />
+                                    {errors.neighborhood && (
+                                        <p className="text-sm text-red-600 dark:text-red-300 mt-1">{errors.neighborhood}</p>
+                                    )}
                                 </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
@@ -504,6 +548,9 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                 <h4 className="text-sm font-semibold text-ink">
                                     Condiciones Iniciales
                                 </h4>
+                                {errors.initial_containers && (
+                                    <p className="text-sm text-red-600 dark:text-red-300">{errors.initial_containers}</p>
+                                )}
 
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                                     <div>
@@ -520,31 +567,32 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                         />
                                     </div>
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                            Bidones 20L
-                                        </label>
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            value={data.bidon_20l_balance}
-                                            onChange={(e) => setData('bidon_20l_balance', e.target.value)}
-                                            className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  font-medium"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                            Sifones 2L
-                                        </label>
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            value={data.sifon_2l_balance}
-                                            onChange={(e) => setData('sifon_2l_balance', e.target.value)}
-                                            className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  font-medium"
-                                        />
-                                    </div>
+                                    {containerTypes.map((type) => (
+                                        <div key={type.id}>
+                                            <label
+                                                htmlFor={`initial-containers-${type.id}`}
+                                                className="block text-sm font-medium text-ink-secondary mb-1.5"
+                                            >
+                                                {type.description}
+                                            </label>
+                                            <input
+                                                id={`initial-containers-${type.id}`}
+                                                type="number"
+                                                min="0"
+                                                step="1"
+                                                value={data.initial_containers[type.id] ?? '0'}
+                                                onChange={(e) =>
+                                                    setData('initial_containers', { ...data.initial_containers, [type.id]: e.target.value })
+                                                }
+                                                className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  font-medium"
+                                            />
+                                            {(errors as Record<string, string>)[`initial_containers.${type.id}`] && (
+                                                <p className="text-sm text-red-600 dark:text-red-300 mt-1">
+                                                    {(errors as Record<string, string>)[`initial_containers.${type.id}`]}
+                                                </p>
+                                            )}
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
 
@@ -633,7 +681,7 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                         type="text"
                                         value={editForm.data.phone_number}
                                         onChange={(e) => editForm.setData('phone_number', e.target.value)}
-                                        placeholder="Ej: +54 388 422-3000"
+                                        placeholder="Ej: +54 387 422-3000"
                                         className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                     />
                                     {editForm.errors.phone_number && (
@@ -681,6 +729,25 @@ export default function CustomersIndex({ customers, filters, repartidores }: Pro
                                     />
                                     {editForm.errors.street && (
                                         <p className="text-sm text-red-600 dark:text-red-300 mt-1">{editForm.errors.street}</p>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <label htmlFor="edit-neighborhood" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                        Barrio
+                                    </label>
+                                    <input
+                                        id="edit-neighborhood"
+                                        type="text"
+                                        list={NEIGHBORHOOD_OPTIONS}
+                                        autoComplete="off"
+                                        value={editForm.data.neighborhood}
+                                        onChange={(e) => editForm.setData('neighborhood', e.target.value)}
+                                        placeholder="Buscar barrio, ej: Tres Cerritos"
+                                        className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
+                                    />
+                                    {editForm.errors.neighborhood && (
+                                        <p className="text-sm text-red-600 dark:text-red-300 mt-1">{editForm.errors.neighborhood}</p>
                                     )}
                                 </div>
 
