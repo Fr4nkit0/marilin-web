@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 use App\Accounts\Models\Driver;
 use App\Accounts\Models\User;
+use App\CashDesk\DailyFigures;
+use App\CashDesk\DayScope;
 use App\Catalog\Models\ContainerType;
 use App\Catalog\Models\PaymentMethod;
 use App\Catalog\Models\Product;
 use App\Customers\Agreements\Models\CustomerAgreement;
 use App\Customers\Customers\Models\Customer;
 use App\Routes\Routes\Models\Route;
+use App\Street\Containers\Models\ContainerMovement;
 use App\Street\Containers\Models\CustomerContainerBalance;
 use App\Street\Ledger\Models\CustomerAccountEntry;
 use App\Street\Ledger\Models\CustomerBalance;
@@ -44,6 +47,7 @@ function homeSale(array $overrides = []): array
 {
     return [
         'lines' => [['product_id' => test()->bidon->id, 'quantity' => 2], ['product_id' => test()->soda->id, 'quantity' => 3]],
+        'payment_method_id' => test()->cash->id,
         ...$overrides,
     ];
 }
@@ -76,8 +80,67 @@ test('the admin records a sale at home priced by the server', function (): void 
         ->and($sale->needs_review)->toBeFalse()
         ->and($sale->date->toDateString())->toBe('2026-10-22')
         ->and($sale->details)->toHaveCount(2)
-        ->and(CustomerAccountEntry::query()->where('sale_id', $sale->id)->sole()->direction)->toBe(1)
-        ->and(homeBalance())->toBe(16000.0);
+        ->and(CustomerAccountEntry::query()->where('sale_id', $sale->id)->where('entry_type', 'SALE')->sole()->direction)->toBe(1);
+});
+
+test('a cash sale at home is paid on the spot with the chosen method, so the balance does not move', function (): void {
+    $this->actingAs($this->admin)
+        ->post(route('customers.home-sales.store', $this->customer), homeSale())
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('customers.show', $this->customer));
+
+    $sale = Sale::query()->sole();
+    $payment = Payment::query()->sole();
+    expect($payment->status)->toBe('CONFIRMED')
+        ->and($payment->sale_id)->toBe($sale->id)
+        ->and($payment->visit_id)->toBeNull()
+        ->and($payment->payment_method_id)->toBe($this->cash->id)
+        ->and((float) $payment->amount)->toBe(16000.0)
+        ->and($payment->received_by)->toBe($this->admin->id)
+        ->and($payment->paid_at->toDateTimeString())->toBe('2026-10-22 10:00:00')
+        ->and(CustomerAccountEntry::query()->orderBy('id')->pluck('entry_type')->all())->toBe(['SALE', 'PAYMENT'])
+        ->and(homeBalance())->toBe(0.0)
+        ->and(app(DailyFigures::class)->forDay('2026-10-22', DayScope::house())->totalCollected)->toBe(16000.0);
+});
+
+test('a cash sale at home without a payment method is rejected and writes nothing', function (): void {
+    $this->actingAs($this->admin)
+        ->from(route('customers.show', $this->customer))
+        ->post(route('customers.home-sales.store', $this->customer), homeSale([
+            'payment_method_id' => null,
+            'containers' => [['container_type_id' => $this->container->id, 'type' => 'DELIVERED', 'quantity' => 1]],
+        ]))
+        ->assertSessionHasErrors('payment_method_id');
+
+    nothingWasWritten();
+    expect(ContainerMovement::count())->toBe(0)
+        ->and((float) RouteInventory::query()->where('route_id', $this->route->id)->sole()->current_quantity)->toBe(50.0);
+});
+
+test('a cash sale at home with an unknown or disabled payment method is rejected', function (): void {
+    $disabled = PaymentMethod::factory()->create(['enabled' => false]);
+
+    foreach ([$disabled->id, 999999] as $methodId) {
+        $this->actingAs($this->admin)
+            ->post(route('customers.home-sales.store', $this->customer), homeSale(['payment_method_id' => $methodId]))
+            ->assertSessionHasErrors('payment_method_id');
+    }
+
+    nothingWasWritten();
+});
+
+test('a credit sale at home records no payment and the customer owes the total, even if a method is sent', function (): void {
+    $this->actingAs($this->admin)
+        ->post(route('customers.home-sales.store', $this->customer), homeSale(['is_credit_sale' => true, 'payment_method_id' => null]))
+        ->assertSessionHasNoErrors();
+    $this->actingAs($this->admin)
+        ->post(route('customers.home-sales.store', $this->customer), homeSale(['is_credit_sale' => true, 'payment_method_id' => 999999]))
+        ->assertSessionHasNoErrors();
+
+    expect(Sale::count())->toBe(2)
+        ->and(Payment::count())->toBe(0)
+        ->and(CustomerAccountEntry::query()->pluck('entry_type')->all())->toBe(['SALE', 'SALE'])
+        ->and(homeBalance())->toBe(32000.0);
 });
 
 test('an agreement valid that day sets the price and an expired one falls back to the list price', function (): void {
@@ -134,7 +197,7 @@ test('containers in the same submission update the container balance and are lin
 });
 
 test('a payment at home lowers the balance without visit nor sale', function (): void {
-    $this->actingAs($this->admin)->post(route('customers.home-sales.store', $this->customer), homeSale());
+    $this->actingAs($this->admin)->post(route('customers.home-sales.store', $this->customer), homeSale(['is_credit_sale' => true]));
 
     $this->actingAs($this->admin)
         ->post(route('customers.home-payments.store', $this->customer), ['amount' => '4000.50', 'payment_method_id' => $this->cash->id])
@@ -214,7 +277,7 @@ test('a sale at home is not part of the cash close of the driver of the customer
         });
 
     expect(Sale::count())->toBe(1)
-        ->and(Payment::count())->toBe(1)
+        ->and(Payment::count())->toBe(2)
         ->and($settlement['totalSales'])->toEqual(0)
         ->and($settlement['cashAmount'])->toEqual(0)
         ->and($settlement['debtCollected'])->toEqual(0)

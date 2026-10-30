@@ -3,7 +3,7 @@ import { useForm } from '@inertiajs/react';
 import { Plus, Trash2, X } from 'lucide-react';
 import Modal from '@/ui/Modal';
 import { FieldError } from '@/ui/Field';
-import { HomeContainerType, HomeProduct } from '@/modules/Street/types';
+import { HomeContainerType, HomePaymentMethod, HomeProduct } from '@/modules/Street/types';
 import { money } from '@/lib/format';
 
 interface Props {
@@ -12,6 +12,7 @@ interface Props {
     customerName: string;
     products: HomeProduct[];
     containerTypes: HomeContainerType[];
+    paymentMethods: HomePaymentMethod[];
     onClose: () => void;
 }
 
@@ -20,6 +21,7 @@ type ContainerRow = { container_type_id: string; type: 'DELIVERED' | 'RETURNED';
 type HomeSaleForm = {
     quantities: Record<number, string>;
     is_credit_sale: boolean;
+    payment_method_id: string;
     notes: string;
     containers: ContainerRow[];
 };
@@ -28,10 +30,11 @@ const inputClass =
     'w-full py-2 px-3 text-sm border border-hairline/60 bg-canvas text-ink rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600';
 
 
-export default function HomeSaleModal({ show, customerId, customerName, products, containerTypes, onClose }: Props) {
+export default function HomeSaleModal({ show, customerId, customerName, products, containerTypes, paymentMethods, onClose }: Props) {
     const { data, setData, post, processing, errors, reset, clearErrors, transform } = useForm<HomeSaleForm>({
         quantities: {},
         is_credit_sale: false,
+        payment_method_id: '',
         notes: '',
         containers: [],
     });
@@ -44,11 +47,13 @@ export default function HomeSaleModal({ show, customerId, customerName, products
     }, [show]);
 
     // Only the product and the quantity travel: the server resolves every price.
+    // A sale not on credit is paid on the spot, so it carries the payment method.
     transform((form) => ({
         lines: Object.entries(form.quantities)
             .filter(([, quantity]) => Number(quantity) > 0)
             .map(([productId, quantity]) => ({ product_id: Number(productId), quantity: Number(quantity) })),
         is_credit_sale: form.is_credit_sale,
+        ...(form.is_credit_sale ? {} : { payment_method_id: form.payment_method_id ? Number(form.payment_method_id) : null }),
         notes: form.notes.trim() || null,
         containers: form.containers
             .filter((row) => row.container_type_id && Number(row.quantity) > 0)
@@ -68,7 +73,7 @@ export default function HomeSaleModal({ show, customerId, customerName, products
         post(route('customers.home-sales.store', customerId), { preserveScroll: true, onSuccess: onClose });
     };
 
-    const formErrors = Object.entries(errors).filter(([key]) => key !== 'quantities');
+    const formErrors = Object.entries(errors).filter(([key]) => key !== 'quantities' && key !== 'payment_method_id');
 
     return (
         <Modal show={show} onClose={onClose} maxWidth="lg">
@@ -129,6 +134,26 @@ export default function HomeSaleModal({ show, customerId, customerName, products
                         />
                         Venta a crédito
                     </label>
+
+                    {!data.is_credit_sale && (
+                        <label className="block">
+                            <span className="text-sm font-medium text-ink-secondary">Medio de pago</span>
+                            <select
+                                value={data.payment_method_id}
+                                onChange={(e) => setData('payment_method_id', e.target.value)}
+                                className={`${inputClass} mt-1`}
+                                required
+                            >
+                                <option value="">Elegí un medio de pago</option>
+                                {paymentMethods.map((method) => (
+                                    <option key={method.id} value={method.id}>
+                                        {method.name}
+                                    </option>
+                                ))}
+                            </select>
+                            <FieldError message={errors.payment_method_id} className="mt-1" />
+                        </label>
+                    )}
 
                     <div>
                         <div className="flex items-center justify-between">
@@ -223,7 +248,7 @@ export default function HomeSaleModal({ show, customerId, customerName, products
                     </button>
                     <button
                         type="submit"
-                        disabled={processing || total <= 0}
+                        disabled={processing || total <= 0 || (!data.is_credit_sale && !data.payment_method_id)}
                         className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
                     >
                         Registrar venta
