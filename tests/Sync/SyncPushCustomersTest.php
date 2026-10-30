@@ -89,7 +89,7 @@ test('push rejects an invalid customer with a readable reason and still accepts 
         ->assertJsonPath('data.customers.1.uuid', $valid['uuid'])
         ->assertJsonPath('data.customers.1.status', 'accepted');
 
-    expect($response->json('data.customers.0.error'))->toContain('street')
+    expect($response->json('data.customers.0.error'))->toBe('El campo calle es obligatorio.')
         ->and(Customer::query()->where('client_uuid', $invalid['uuid'])->exists())->toBeFalse()
         ->and(Customer::query()->where('client_uuid', $valid['uuid'])->exists())->toBeTrue();
 });
@@ -301,7 +301,7 @@ test('push rejects a floor longer than 20 characters', function (): void {
     $response = $this->postJson('/api/v1/sync/push', ['customers' => [$payload]]);
 
     $response->assertOk()->assertJsonPath('data.customers.0.status', 'rejected');
-    expect($response->json('data.customers.0.error'))->toContain('floor')
+    expect($response->json('data.customers.0.error'))->toBe('El campo piso no puede tener más de 20 caracteres.')
         ->and(Customer::query()->where('client_uuid', $payload['uuid'])->exists())->toBeFalse();
 });
 

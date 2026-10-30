@@ -230,7 +230,7 @@ test('push rejects an invalid preference with a readable reason and still accept
         ->assertJsonPath('data.customer_preferences.0.status', 'rejected')
         ->assertJsonPath('data.customer_preferences.1.status', 'accepted');
 
-    expect($response->json('data.customer_preferences.0.error'))->toContain('time window start')
+    expect($response->json('data.customer_preferences.0.error'))->toBe('El campo desde debe tener el formato H:i.')
         ->and(CustomerPreference::query()->where('client_uuid', $invalid['uuid'])->exists())->toBeFalse()
         ->and(CustomerPreference::query()->where('client_uuid', $valid['uuid'])->exists())->toBeTrue();
 });
@@ -239,7 +239,7 @@ test('push rejects a day of week outside 0 to 6', function (int $day): void {
     $response = push(['customer_preferences' => [preferencePayload($this->customer, ['day_of_week' => $day])]]);
 
     $response->assertOk()->assertJsonPath('data.customer_preferences.0.status', 'rejected');
-    expect($response->json('data.customer_preferences.0.error'))->toContain('day of week')
+    expect($response->json('data.customer_preferences.0.error'))->toBe('El campo día debe estar entre 0 y 6.')
         ->and(CustomerPreference::query()->count())->toBe(0);
 })->with([-1, 7]);
 

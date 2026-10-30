@@ -66,14 +66,15 @@ class CustomerPreferenceController extends Controller
     }
 
     /**
-     * Runs a change and shows a broken rule next to the field it is about.
+     * Runs a change and shows a broken rule next to the field it is about, in the user's language
+     * (the English message is the translation key; the sync push keeps answering it in English).
      */
     public static function asFieldErrors(Closure $change): mixed
     {
         try {
             return $change();
         } catch (InvalidCustomerChange $invalid) {
-            throw ValidationException::withMessages([$invalid->field ?? 'preference' => $invalid->getMessage()]);
+            throw ValidationException::withMessages([$invalid->field ?? 'preference' => __($invalid->getMessage())]);
         }
     }
 }

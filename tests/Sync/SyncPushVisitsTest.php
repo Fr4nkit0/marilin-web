@@ -537,7 +537,7 @@ test('push rejects a visit edit with an invalid modified_at and leaves the visit
         ->assertJsonPath('data.visits.0.status', 'rejected')
         ->assertJsonPath('data.visits.0.server_id', null);
 
-    expect($response->json('data.visits.0.error'))->toContain('modified')
+    expect($response->json('data.visits.0.error'))->toBe('El campo fecha de modificación debe ser una fecha válida.')
         ->and(visitSnapshot($payload['uuid']))->toEqual($before);
 });
 

@@ -1,0 +1,7 @@
+{
+    "The time window end must be after its start.": "El horario de fin debe ser posterior al de inicio.",
+    "The customer already has a preference for that day and time.": "El cliente ya tiene una preferencia para ese día y horario.",
+    "The primary address cannot be disabled.": "La dirección principal no se puede deshabilitar.",
+    "A customer needs a primary address.": "El cliente necesita una dirección principal.",
+    "The address uuid belongs to another address.": "El identificador de la dirección pertenece a otra dirección."
+}

@@ -118,7 +118,7 @@ test('a preference of another customer is not found', function (): void {
 
 test('a window that ends before it starts is rejected on the end field and nothing is stored', function (string $end): void {
     $this->post(route('customers.preferences.store', $this->customer), ['day_of_week' => 1, 'time_window_start' => '12:00', 'time_window_end' => $end])
-        ->assertSessionHasErrors(['time_window_end' => 'The time window end must be after its start.']);
+        ->assertSessionHasErrors(['time_window_end' => 'El horario de fin debe ser posterior al de inicio.']);
 
     expect($this->customer->preferences()->count())->toBe(0);
 })->with(['before' => '08:00', 'equal' => '12:00']);
@@ -128,9 +128,9 @@ test('a second preference for the same day and start is rejected on the day fiel
     $other = CustomerPreference::factory()->create(['customer_id' => $this->customer->id, 'day_of_week' => 4, 'time_window_start' => '09:00:00']);
 
     $this->post(route('customers.preferences.store', $this->customer), ['day_of_week' => 1, 'time_window_start' => '09:00', 'time_window_end' => '11:00'])
-        ->assertSessionHasErrors(['day_of_week' => 'The customer already has a preference for that day and time.']);
+        ->assertSessionHasErrors(['day_of_week' => 'El cliente ya tiene una preferencia para ese día y horario.']);
     $this->put(route('customers.preferences.update', [$this->customer, $other]), ['day_of_week' => 1, 'time_window_start' => '09:00', 'time_window_end' => '11:00'])
-        ->assertSessionHasErrors(['day_of_week' => 'The customer already has a preference for that day and time.']);
+        ->assertSessionHasErrors(['day_of_week' => 'El cliente ya tiene una preferencia para ese día y horario.']);
 
     expect($this->customer->preferences()->count())->toBe(2)
         ->and($other->fresh()->day_of_week)->toBe(4)
@@ -195,12 +195,12 @@ test('creating a customer with a wrong preference stores neither the customer no
     'end before start' => [
         [['day_of_week' => 1, 'time_window_start' => '08:00', 'time_window_end' => '12:00'], ['day_of_week' => 2, 'time_window_start' => '12:00', 'time_window_end' => '08:00']],
         'preferences.1.time_window_end',
-        'The time window end must be after its start.',
+        'El horario de fin debe ser posterior al de inicio.',
     ],
     'the same day and start twice' => [
         [['day_of_week' => 1, 'time_window_start' => '08:00', 'time_window_end' => '12:00'], ['day_of_week' => 1, 'time_window_start' => '08:00', 'time_window_end' => '10:00']],
         'preferences.1.day_of_week',
-        'The customer already has a preference for that day and time.',
+        'El cliente ya tiene una preferencia para ese día y horario.',
     ],
 ]);
 
@@ -227,7 +227,7 @@ test('editing a customer with a clashing preference row changes nothing', functi
         'name' => 'Otro nombre',
         'street' => 'Mitre 50',
         'preferences' => [['day_of_week' => 1, 'time_window_start' => '09:00', 'time_window_end' => '']],
-    ])->assertSessionHasErrors(['preferences.0.day_of_week' => 'The customer already has a preference for that day and time.']);
+    ])->assertSessionHasErrors(['preferences.0.day_of_week' => 'El cliente ya tiene una preferencia para ese día y horario.']);
 
     expect($this->customer->fresh()->name)->not->toBe('Otro nombre')
         ->and($this->customer->preferences()->count())->toBe(1);
