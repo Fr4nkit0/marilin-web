@@ -73,7 +73,35 @@ test('the web rejects a neighborhood outside the catalog or disabled and stores 
 
     expect(Customer::query()->count())->toBe(0)
         ->and(CustomerAddress::query()->count())->toBe(0);
-})->with(['outside the catalog' => 'Alto Comedero', 'disabled' => 'Barrio Cerrado', 'different case' => 'villa san lorenzo']);
+})->with(['outside the catalog' => 'Alto Comedero', 'disabled' => 'Barrio Cerrado', 'disabled in another case' => 'barrio cerrado']);
+
+test('creating a customer stores the catalog spelling of a neighborhood typed in any case or without accents', function (string $typed, string $stored): void {
+    Neighborhood::factory()->create(['name' => 'Tres Cerritos']);
+    Neighborhood::factory()->create(['name' => 'Castañares Grupo 200']);
+    Neighborhood::factory()->create(['name' => 'Villa San Lorenzo']);
+
+    $this->actingAs($this->user)
+        ->post(route('customers.store'), ['name' => 'Kiosco Ana', 'street' => 'Mitre 50', 'neighborhood' => $typed])
+        ->assertSessionHasNoErrors();
+
+    expect(Customer::query()->where('name', 'Kiosco Ana')->sole()->primaryAddress->neighborhood)->toBe($stored);
+})->with([
+    'lower case' => ['tres cerritos', 'Tres Cerritos'],
+    'without the accent' => ['castanares grupo 200', 'Castañares Grupo 200'],
+    'capitals and spaces around' => ['  VILLA SAN LORENZO ', 'Villa San Lorenzo'],
+]);
+
+test('editing a customer stores the catalog spelling of a neighborhood typed without accents', function (): void {
+    Neighborhood::factory()->create(['name' => 'Castañares Grupo 200']);
+    $customer = Customer::factory()->create();
+    CustomerAddress::factory()->create(['customer_id' => $customer->id, 'is_primary' => true, 'neighborhood' => 'Centro']);
+
+    $this->actingAs($this->user)
+        ->put(route('customers.update', $customer), ['name' => $customer->name, 'street' => 'Mitre 50', 'neighborhood' => 'CASTANARES grupo 200'])
+        ->assertSessionHasNoErrors();
+
+    expect($customer->fresh()->primaryAddress->neighborhood)->toBe('Castañares Grupo 200');
+});
 
 test('editing a customer changes its neighborhood and keeps the coordinates', function (): void {
     Neighborhood::factory()->create(['name' => 'Tres Cerritos']);

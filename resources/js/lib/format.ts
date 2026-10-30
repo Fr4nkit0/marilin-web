@@ -75,6 +75,21 @@ export function balanceLabel(balance: number | string): string {
     }
 }
 
+const WEEKDAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+
+/** The day of a delivery preference, 0 = Domingo to 6 = Sábado. */
+export function weekdayName(dayOfWeek: number): string {
+    return WEEKDAYS[dayOfWeek] ?? '';
+}
+
+/** A delivery window as hh:mm: "08:00 a 12:00", "Desde 08:00", "Hasta 12:00", or "Todo el día" without one. */
+export function timeWindowLabel(start: string | null, end: string | null): string {
+    if (start && end) return `${start} a ${end}`;
+    if (start) return `Desde ${start}`;
+    if (end) return `Hasta ${end}`;
+    return 'Todo el día';
+}
+
 /** Anything but a confirmed payment reads as annulled: the web says "Anulado" for both stored values. */
 export function paymentStatusLabel(status: PaymentStatus): string {
     return status === 'CONFIRMED' ? 'Confirmado' : 'Anulado';

@@ -7,6 +7,7 @@ use App\CashDesk\DailyFigures;
 use App\CashDesk\DayScope;
 use App\Http\Controllers\Controller;
 use App\Routes\Routes\Models\RouteStop;
+use App\Shared\TextMatch;
 use App\Street\Payments\Enums\PaymentStatus;
 use App\Street\Sales\Enums\SaleStatus;
 use Carbon\Carbon;
@@ -30,6 +31,7 @@ class DriverController extends Controller
                 ->with(['stops.customer.primaryAddress', 'stops.visit', 'stops.rescheduledTo', 'inventoryLoads.product', 'inventories.product']),
         ])
             ->where('enabled', true)
+            ->tap(fn ($query) => TextMatch::search($query, ['user.name'], $request->query('search')))
             ->get()
             ->map(function ($driver) {
                 $todayRoute = $driver->routes->first();

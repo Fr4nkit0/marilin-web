@@ -4,6 +4,7 @@ import { useTheme } from '@/lib/theme';
 import ThemeSwitch from '@/ui/ThemeSwitch';
 import NotificationsMenu, { NotificationItem } from '@/ui/NotificationsMenu';
 import Toast from '@/ui/Toast';
+import Modal, { ModalTitle } from '@/ui/Modal';
 import { useFlashToast } from '@/lib/useFlashToast';
 import { time } from '@/lib/format';
 import type { Notifications } from '@/types';
@@ -303,51 +304,42 @@ export default function AdminLayout({
             <Toast toast={toast} onDismiss={dismissToast} />
 
             {/* Confirmation Logout Modal */}
-            {showLogoutModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    {/* Backdrop */}
-                    <div
-                        className="fixed inset-0 bg-gray-900/40 dark:bg-black/70 backdrop-blur-sm transition-opacity"
-                        onClick={() => setShowLogoutModal(false)}
-                    />
-
-                    {/* Modal Card */}
-                    <div className="relative bg-canvas rounded-2xl shadow-xl border border-hairline/60 max-w-md w-full p-6 overflow-hidden z-10 ">
-                        <div className="flex items-start gap-4">
-                            <div className="w-10 h-10 rounded-full bg-rose-100 dark:bg-rose-500/15 flex items-center justify-center text-rose-600 dark:text-rose-300 shrink-0">
-                                <AlertTriangle className="w-5 h-5" strokeWidth={2} />
-                            </div>
-                            <div className="flex-1 pt-1">
-                                <h3 className="text-lg font-semibold text-ink">
-                                    Cerrar sesión
-                                </h3>
-                                <p className="mt-2 text-sm text-ink-muted">
-                                    Finalizarás tu sesión actual. Deberás ingresar credenciales nuevamente para acceder.
-                                </p>
-                            </div>
+            <Modal show={showLogoutModal} onClose={() => setShowLogoutModal(false)} maxWidth="md">
+                <div className="p-6">
+                    <div className="flex items-start gap-4">
+                        <div className="w-10 h-10 rounded-full bg-rose-100 dark:bg-rose-500/15 flex items-center justify-center text-rose-600 dark:text-rose-300 shrink-0">
+                            <AlertTriangle className="w-5 h-5" strokeWidth={2} />
                         </div>
-
-                        {/* Action Buttons */}
-                        <div className="mt-8 flex items-center justify-end gap-3">
-                            <button
-                                type="button"
-                                onClick={() => setShowLogoutModal(false)}
-                                className="px-4 py-2.5 rounded-lg text-sm font-medium text-ink-secondary bg-canvas border border-hairline/60 hover:bg-canvas-soft transition cursor-pointer"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                type="button"
-                                onClick={handleConfirmLogout}
-                                className="px-4 py-2.5 rounded-lg bg-sky-600 text-sm font-medium text-white hover:bg-sky-700 transition shadow-sm cursor-pointer flex items-center gap-2 dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
-                            >
-                                <LogOut className="w-4 h-4" strokeWidth={2} />
+                        <div className="flex-1 pt-1">
+                            <ModalTitle className="text-lg font-semibold text-ink">
                                 Cerrar sesión
-                            </button>
+                            </ModalTitle>
+                            <p className="mt-2 text-sm text-ink-muted">
+                                Finalizarás tu sesión actual. Deberás ingresar credenciales nuevamente para acceder.
+                            </p>
                         </div>
                     </div>
+
+                    {/* Action Buttons */}
+                    <div className="mt-8 flex items-center justify-end gap-3">
+                        <button
+                            type="button"
+                            onClick={() => setShowLogoutModal(false)}
+                            className="px-4 py-2.5 rounded-lg text-sm font-medium text-ink-secondary bg-canvas border border-hairline/60 hover:bg-canvas-soft transition cursor-pointer"
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleConfirmLogout}
+                            className="px-4 py-2.5 rounded-lg bg-sky-600 text-sm font-medium text-white hover:bg-sky-700 transition shadow-sm cursor-pointer flex items-center gap-2 dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
+                        >
+                            <LogOut className="w-4 h-4" strokeWidth={2} />
+                            Cerrar sesión
+                        </button>
+                    </div>
                 </div>
-            )}
+            </Modal>
         </div>
     );
 }

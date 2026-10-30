@@ -7,6 +7,9 @@ import AdminLayout from '@/layouts/AdminLayout';
 import { DebtBadge } from '@/ui/Badge';
 import { PageHeader } from '@/ui/PageHeader';
 import { FieldError } from '@/ui/Field';
+import Modal, { ModalTitle } from '@/ui/Modal';
+import PreferenceRowsField from './components/PreferenceRowsField';
+import { PreferenceInput } from './types';
 import {
     Search,
     Plus,
@@ -97,6 +100,8 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
         initial_balance: '0',
         // Keyed by container type id, one count per enabled type.
         initial_containers: {} as Record<string, string>,
+        // Delivery preferences stored with the customer.
+        preferences: [] as PreferenceInput[],
     });
 
     const editForm = useForm({
@@ -108,6 +113,8 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
         apartment: '',
         visual_reference: '',
         neighborhood: '',
+        // New delivery preferences only; the existing ones are changed from the customer page.
+        preferences: [] as PreferenceInput[],
     });
 
     const isFiltered = Boolean(filters.search || filters.repartidor_id || (filters.debt_status && filters.debt_status !== 'all'));
@@ -134,7 +141,9 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
             apartment: c.primary_address?.apartment || '',
             visual_reference: c.primary_address?.visual_reference || '',
             neighborhood: c.primary_address?.neighborhood || '',
+            preferences: [],
         });
+        editForm.clearErrors();
     };
 
     const handleUpdateCustomer = (e: React.FormEvent) => {
@@ -374,456 +383,465 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
             </datalist>
 
             {/* Modal para Crear Nuevo Cliente */}
-            {isCreateModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
-                    {/* Backdrop */}
-                    <div
-                        className="fixed inset-0 bg-gray-900/80 dark:bg-black/70 backdrop-blur-none transition-opacity"
+            <Modal show={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} maxWidth="lg">
+                <div className="bg-canvas/80 backdrop-blur-md border-b border-hairline p-5 text-ink flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-surface-1 text-ink flex items-center justify-center">
+                            <Building2 className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <ModalTitle className="text-base font-semibold text-ink tracking-wide">
+                                Alta de Nuevo Cliente
+                            </ModalTitle>
+                            <p className="text-sm font-medium text-ink-muted tracking-wide">
+                                Ingresa los datos generales, dirección y condiciones iniciales.
+                            </p>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
                         onClick={() => setIsCreateModalOpen(false)}
-                    />
+                        aria-label="Cerrar"
+                        className="p-2 rounded-lg text-ink-subtle hover:text-ink-secondary hover:bg-surface-1 transition cursor-pointer"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
 
-                    {/* Modal Card */}
-                    <div className="relative bg-canvas rounded-2xl shadow-xl border border-hairline/60 max-w-lg w-full overflow-hidden z-10 my-8 ">
-                        <div className="bg-canvas/80 backdrop-blur-md border-b border-hairline p-5 text-ink flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-lg bg-surface-1 text-ink flex items-center justify-center">
-                                    <Building2 className="w-5 h-5" />
-                                </div>
-                                <div>
-                                    <h3 className="text-base font-semibold text-ink tracking-wide">
-                                        Alta de Nuevo Cliente
-                                    </h3>
-                                    <p className="text-sm font-medium text-ink-muted tracking-wide">
-                                        Ingresa los datos generales, dirección y condiciones iniciales.
-                                    </p>
-                                </div>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => setIsCreateModalOpen(false)}
-                                aria-label="Cerrar"
-                                className="p-2 rounded-lg text-ink-subtle hover:text-ink-secondary hover:bg-surface-1 transition cursor-pointer"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
+                <form onSubmit={handleCreateCustomer} noValidate className="p-6 space-y-5">
+                    {/* Nombre o Razón Social */}
+                    <div>
+                        <label htmlFor="create-name" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                            Nombre o Razón Social <span className="text-ink">*</span>
+                        </label>
+                        <input
+                            id="create-name"
+                            type="text"
+                            required
+                            value={data.name}
+                            onChange={(e) => setData('name', e.target.value)}
+                            placeholder="Ej: Sanatorio Los Lapachos S.A."
+                            className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
+                        />
+                        <FieldError message={errors.name} className="mt-1" />
+                    </div>
+
+                    {/* Teléfono & Repartidor */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div>
+                            <label htmlFor="create-phone-number" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                Teléfono de Contacto
+                            </label>
+                            <input
+                                id="create-phone-number"
+                                type="text"
+                                value={data.phone_number}
+                                onChange={(e) => setData('phone_number', e.target.value)}
+                                placeholder="Ej: +54 387 422-3000"
+                                className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
+                            />
+                            <FieldError message={errors.phone_number} className="mt-1" />
                         </div>
 
-                        <form onSubmit={handleCreateCustomer} noValidate className="p-6 space-y-5">
-                            {/* Nombre o Razón Social */}
+                        <div>
+                            <label htmlFor="create-repartidor-id" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                Repartidor Asignado
+                            </label>
+                            <select
+                                id="create-repartidor-id"
+                                value={data.repartidor_id}
+                                onChange={(e) => setData('repartidor_id', e.target.value)}
+                                className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  bg-canvas"
+                            >
+                                <option value="">Sin Asignar</option>
+                                {repartidores.map((rep) => (
+                                    <option key={rep.id} value={rep.id}>
+                                        {rep.name}
+                                    </option>
+                                ))}
+                            </select>
+                            <FieldError message={errors.repartidor_id} className="mt-1" />
+                        </div>
+                    </div>
+
+                    {/* Dirección */}
+                    <div className="space-y-4 pt-5 border-t border-hairline">
+                        <h4 className="text-sm font-semibold text-ink">
+                            Dirección Principal
+                        </h4>
+                        <div>
+                            <label htmlFor="create-street" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                Calle y Altura <span className="text-ink">*</span>
+                            </label>
+                            <input
+                                id="create-street"
+                                type="text"
+                                required
+                                value={data.street}
+                                onChange={(e) => setData('street', e.target.value)}
+                                placeholder="Ej: Belgrano 340"
+                                className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
+                            />
+                            <FieldError message={errors.street} className="mt-1" />
+                        </div>
+
+                        <div>
+                            <label htmlFor="create-neighborhood" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                Barrio
+                            </label>
+                            <input
+                                id="create-neighborhood"
+                                type="text"
+                                list={NEIGHBORHOOD_OPTIONS}
+                                autoComplete="off"
+                                value={data.neighborhood}
+                                onChange={(e) => setData('neighborhood', e.target.value)}
+                                placeholder="Buscar barrio, ej: Tres Cerritos"
+                                className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
+                            />
+                            <FieldError message={errors.neighborhood} className="mt-1" />
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                             <div>
-                                <label htmlFor="create-name" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                    Nombre o Razón Social <span className="text-ink">*</span>
+                                <label htmlFor="create-floor" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                    Piso
                                 </label>
                                 <input
-                                    id="create-name"
+                                    id="create-floor"
                                     type="text"
-                                    required
-                                    value={data.name}
-                                    onChange={(e) => setData('name', e.target.value)}
-                                    placeholder="Ej: Sanatorio Los Lapachos S.A."
+                                    value={data.floor}
+                                    onChange={(e) => setData('floor', e.target.value)}
+                                    maxLength={20}
+                                    placeholder="Ej: PB, 3, Local 2"
                                     className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                 />
-                                <FieldError message={errors.name} className="mt-1" />
+                                <FieldError message={errors.floor} className="mt-1" />
                             </div>
 
-                            {/* Teléfono & Repartidor */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                                <div>
-                                    <label htmlFor="create-phone-number" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                        Teléfono de Contacto
-                                    </label>
-                                    <input
-                                        id="create-phone-number"
-                                        type="text"
-                                        value={data.phone_number}
-                                        onChange={(e) => setData('phone_number', e.target.value)}
-                                        placeholder="Ej: +54 387 422-3000"
-                                        className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
-                                    />
-                                    <FieldError message={errors.phone_number} className="mt-1" />
-                                </div>
-
-                                <div>
-                                    <label htmlFor="create-repartidor-id" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                        Repartidor Asignado
-                                    </label>
-                                    <select
-                                        id="create-repartidor-id"
-                                        value={data.repartidor_id}
-                                        onChange={(e) => setData('repartidor_id', e.target.value)}
-                                        className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  bg-canvas"
-                                    >
-                                        <option value="">Sin Asignar</option>
-                                        {repartidores.map((rep) => (
-                                            <option key={rep.id} value={rep.id}>
-                                                {rep.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <FieldError message={errors.repartidor_id} className="mt-1" />
-                                </div>
+                            <div>
+                                <label htmlFor="create-apartment" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                    Departamento
+                                </label>
+                                <input
+                                    id="create-apartment"
+                                    type="text"
+                                    value={data.apartment}
+                                    onChange={(e) => setData('apartment', e.target.value)}
+                                    placeholder="Ej: 4B"
+                                    className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
+                                />
+                                <FieldError message={errors.apartment} className="mt-1" />
                             </div>
 
-                            {/* Dirección */}
-                            <div className="space-y-4 pt-5 border-t border-hairline">
-                                <h4 className="text-sm font-semibold text-ink">
-                                    Dirección Principal
-                                </h4>
-                                <div>
-                                    <label htmlFor="create-street" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                        Calle y Altura <span className="text-ink">*</span>
-                                    </label>
-                                    <input
-                                        id="create-street"
-                                        type="text"
-                                        required
-                                        value={data.street}
-                                        onChange={(e) => setData('street', e.target.value)}
-                                        placeholder="Ej: Belgrano 340"
-                                        className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
-                                    />
-                                    <FieldError message={errors.street} className="mt-1" />
-                                </div>
-
-                                <div>
-                                    <label htmlFor="create-neighborhood" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                        Barrio
-                                    </label>
-                                    <input
-                                        id="create-neighborhood"
-                                        type="text"
-                                        list={NEIGHBORHOOD_OPTIONS}
-                                        autoComplete="off"
-                                        value={data.neighborhood}
-                                        onChange={(e) => setData('neighborhood', e.target.value)}
-                                        placeholder="Buscar barrio, ej: Tres Cerritos"
-                                        className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
-                                    />
-                                    <FieldError message={errors.neighborhood} className="mt-1" />
-                                </div>
-
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                                    <div>
-                                        <label htmlFor="create-floor" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                            Piso
-                                        </label>
-                                        <input
-                                            id="create-floor"
-                                            type="text"
-                                            value={data.floor}
-                                            onChange={(e) => setData('floor', e.target.value)}
-                                            maxLength={20}
-                                            placeholder="Ej: PB, 3, Local 2"
-                                            className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
-                                        />
-                                        <FieldError message={errors.floor} className="mt-1" />
-                                    </div>
-
-                                    <div>
-                                        <label htmlFor="create-apartment" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                            Departamento
-                                        </label>
-                                        <input
-                                            id="create-apartment"
-                                            type="text"
-                                            value={data.apartment}
-                                            onChange={(e) => setData('apartment', e.target.value)}
-                                            placeholder="Ej: 4B"
-                                            className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
-                                        />
-                                        <FieldError message={errors.apartment} className="mt-1" />
-                                    </div>
-
-                                    <div>
-                                        <label htmlFor="create-visual-reference" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                            Referencia Visual
-                                        </label>
-                                        <input
-                                            id="create-visual-reference"
-                                            type="text"
-                                            value={data.visual_reference}
-                                            onChange={(e) => setData('visual_reference', e.target.value)}
-                                            placeholder="Ej: Frente a Plaza Belgrano"
-                                            className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
-                                        />
-                                        <FieldError message={errors.visual_reference} className="mt-1" />
-                                    </div>
-                                </div>
+                            <div>
+                                <label htmlFor="create-visual-reference" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                    Referencia Visual
+                                </label>
+                                <input
+                                    id="create-visual-reference"
+                                    type="text"
+                                    value={data.visual_reference}
+                                    onChange={(e) => setData('visual_reference', e.target.value)}
+                                    placeholder="Ej: Frente a Plaza Belgrano"
+                                    className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
+                                />
+                                <FieldError message={errors.visual_reference} className="mt-1" />
                             </div>
-
-                            {/* Saldos Iniciales & Envases Comodato */}
-                            <div className="space-y-4 pt-5 border-t border-hairline">
-                                <h4 className="text-sm font-semibold text-ink">
-                                    Condiciones Iniciales
-                                </h4>
-                                <FieldError message={errors.initial_containers} className="mt-1" />
-
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                                    <div>
-                                        <label htmlFor="create-initial-balance" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                            Deuda Inicial ($)
-                                        </label>
-                                        <input
-                                            id="create-initial-balance"
-                                            type="number"
-                                            step="0.01"
-                                            min="0"
-                                            value={data.initial_balance}
-                                            onChange={(e) => setData('initial_balance', e.target.value)}
-                                            className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  font-medium"
-                                        />
-                                        <FieldError message={errors.initial_balance} className="mt-1" />
-                                    </div>
-
-                                    {containerTypes.map((type) => (
-                                        <div key={type.id}>
-                                            <label
-                                                htmlFor={`initial-containers-${type.id}`}
-                                                className="block text-sm font-medium text-ink-secondary mb-1.5"
-                                            >
-                                                {type.description}
-                                            </label>
-                                            <input
-                                                id={`initial-containers-${type.id}`}
-                                                type="number"
-                                                min="0"
-                                                step="1"
-                                                value={data.initial_containers[type.id] ?? '0'}
-                                                onChange={(e) =>
-                                                    setData('initial_containers', { ...data.initial_containers, [type.id]: e.target.value })
-                                                }
-                                                className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  font-medium"
-                                            />
-                                            <FieldError
-                                                message={(errors as Record<string, string>)[`initial_containers.${type.id}`]}
-                                                className="mt-1"
-                                            />
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Buttons */}
-                            <div className="mt-6 flex items-center justify-end gap-3 pt-5 border-t border-hairline">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsCreateModalOpen(false)}
-                                    className="px-4 py-2 rounded-lg bg-surface-2 border-none text-sm font-medium text-ink hover:bg-surface-3 transition cursor-pointer"
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={processing}
-                                    className="px-4 py-2 rounded-lg bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 transition shadow-sm cursor-pointer flex items-center gap-2 disabled:opacity-50 dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
-                                >
-                                    <Save className="w-4 h-4" />
-                                    {processing ? 'Guardando...' : 'Guardar Cliente'}
-                                </button>
-                            </div>
-                        </form>
+                        </div>
                     </div>
-                </div>
-            )}
+
+                    {/* Saldos Iniciales & Envases Comodato */}
+                    <div className="space-y-4 pt-5 border-t border-hairline">
+                        <h4 className="text-sm font-semibold text-ink">
+                            Condiciones Iniciales
+                        </h4>
+                        <FieldError message={errors.initial_containers} className="mt-1" />
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                            <div>
+                                <label htmlFor="create-initial-balance" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                    Deuda Inicial ($)
+                                </label>
+                                <input
+                                    id="create-initial-balance"
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    value={data.initial_balance}
+                                    onChange={(e) => setData('initial_balance', e.target.value)}
+                                    className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  font-medium"
+                                />
+                                <FieldError message={errors.initial_balance} className="mt-1" />
+                            </div>
+
+                            {containerTypes.map((type) => (
+                                <div key={type.id}>
+                                    <label
+                                        htmlFor={`initial-containers-${type.id}`}
+                                        className="block text-sm font-medium text-ink-secondary mb-1.5"
+                                    >
+                                        {type.description}
+                                    </label>
+                                    <input
+                                        id={`initial-containers-${type.id}`}
+                                        type="number"
+                                        min="0"
+                                        step="1"
+                                        value={data.initial_containers[type.id] ?? '0'}
+                                        onChange={(e) =>
+                                            setData('initial_containers', { ...data.initial_containers, [type.id]: e.target.value })
+                                        }
+                                        className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  font-medium"
+                                    />
+                                    <FieldError
+                                        message={(errors as Record<string, string>)[`initial_containers.${type.id}`]}
+                                        className="mt-1"
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Días y horarios */}
+                    <div className="space-y-4 pt-5 border-t border-hairline">
+                        <h4 className="text-sm font-semibold text-ink">
+                            Días y horarios de entrega
+                        </h4>
+                        <PreferenceRowsField
+                            idPrefix="create"
+                            rows={data.preferences}
+                            onChange={(rows) => setData('preferences', rows)}
+                            errors={errors as Record<string, string>}
+                        />
+                    </div>
+
+                    {/* Buttons */}
+                    <div className="mt-6 flex items-center justify-end gap-3 pt-5 border-t border-hairline">
+                        <button
+                            type="button"
+                            onClick={() => setIsCreateModalOpen(false)}
+                            className="px-4 py-2 rounded-lg bg-surface-2 border-none text-sm font-medium text-ink hover:bg-surface-3 transition cursor-pointer"
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={processing}
+                            className="px-4 py-2 rounded-lg bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 transition shadow-sm cursor-pointer flex items-center gap-2 disabled:opacity-50 dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
+                        >
+                            <Save className="w-4 h-4" />
+                            {processing ? 'Guardando...' : 'Guardar Cliente'}
+                        </button>
+                    </div>
+                </form>
+            </Modal>
 
             {/* Modal para Editar Cliente Existente */}
-            {editingCustomer && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
-                    {/* Backdrop */}
-                    <div
-                        className="fixed inset-0 bg-gray-900/80 dark:bg-black/70 backdrop-blur-none transition-opacity"
+            <Modal show={editingCustomer !== null} onClose={() => setEditingCustomer(null)} maxWidth="lg">
+                <div className="bg-canvas/80 backdrop-blur-md border-b border-hairline p-5 text-ink flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-surface-1 text-ink flex items-center justify-center">
+                            <SlidersHorizontal className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <ModalTitle className="text-base font-semibold text-ink tracking-wide">
+                                Editar Datos de Cliente
+                            </ModalTitle>
+                            <p className="text-sm font-medium text-ink-muted tracking-wide">
+                                Actualiza nombre, teléfono, repartidor o dirección física.
+                            </p>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
                         onClick={() => setEditingCustomer(null)}
-                    />
+                        aria-label="Cerrar"
+                        className="p-2 rounded-lg text-ink-subtle hover:text-ink-secondary hover:bg-surface-1 transition cursor-pointer"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
 
-                    {/* Modal Card */}
-                    <div className="relative bg-canvas rounded-2xl shadow-xl border border-hairline/60 max-w-lg w-full overflow-hidden z-10 my-8 ">
-                        <div className="bg-canvas/80 backdrop-blur-md border-b border-hairline p-5 text-ink flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-lg bg-surface-1 text-ink flex items-center justify-center">
-                                    <SlidersHorizontal className="w-5 h-5" />
-                                </div>
-                                <div>
-                                    <h3 className="text-base font-semibold text-ink tracking-wide">
-                                        Editar Datos de Cliente
-                                    </h3>
-                                    <p className="text-sm font-medium text-ink-muted tracking-wide">
-                                        Actualiza nombre, teléfono, repartidor o dirección física.
-                                    </p>
-                                </div>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => setEditingCustomer(null)}
-                                aria-label="Cerrar"
-                                className="p-2 rounded-lg text-ink-subtle hover:text-ink-secondary hover:bg-surface-1 transition cursor-pointer"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
+                <form onSubmit={handleUpdateCustomer} noValidate className="p-6 space-y-5">
+                    {/* Nombre o Razón Social */}
+                    <div>
+                        <label htmlFor="edit-name" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                            Nombre o Razón Social <span className="text-ink">*</span>
+                        </label>
+                        <input
+                            id="edit-name"
+                            type="text"
+                            required
+                            value={editForm.data.name}
+                            onChange={(e) => editForm.setData('name', e.target.value)}
+                            className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
+                        />
+                        <FieldError message={editForm.errors.name} className="mt-1" />
+                    </div>
+
+                    {/* Teléfono & Repartidor */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div>
+                            <label htmlFor="edit-phone-number" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                Teléfono de Contacto
+                            </label>
+                            <input
+                                id="edit-phone-number"
+                                type="text"
+                                value={editForm.data.phone_number}
+                                onChange={(e) => editForm.setData('phone_number', e.target.value)}
+                                placeholder="Ej: +54 387 422-3000"
+                                className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
+                            />
+                            <FieldError message={editForm.errors.phone_number} className="mt-1" />
                         </div>
 
-                        <form onSubmit={handleUpdateCustomer} noValidate className="p-6 space-y-5">
-                            {/* Nombre o Razón Social */}
+                        <div>
+                            <label htmlFor="edit-repartidor-id" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                Repartidor Asignado
+                            </label>
+                            <select
+                                id="edit-repartidor-id"
+                                value={editForm.data.repartidor_id}
+                                onChange={(e) => editForm.setData('repartidor_id', e.target.value)}
+                                className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  bg-canvas"
+                            >
+                                <option value="">Sin Asignar</option>
+                                {repartidores.map((rep) => (
+                                    <option key={rep.id} value={rep.id}>
+                                        {rep.name}
+                                    </option>
+                                ))}
+                            </select>
+                            <FieldError message={editForm.errors.repartidor_id} className="mt-1" />
+                        </div>
+                    </div>
+
+                    {/* Dirección */}
+                    <div className="space-y-4 pt-5 border-t border-hairline">
+                        <h4 className="text-sm font-semibold text-ink">
+                            Dirección Principal
+                        </h4>
+                        <div>
+                            <label htmlFor="edit-street" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                Calle y Altura <span className="text-ink">*</span>
+                            </label>
+                            <input
+                                id="edit-street"
+                                type="text"
+                                required
+                                value={editForm.data.street}
+                                onChange={(e) => editForm.setData('street', e.target.value)}
+                                className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
+                            />
+                            <FieldError message={editForm.errors.street} className="mt-1" />
+                        </div>
+
+                        <div>
+                            <label htmlFor="edit-neighborhood" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                Barrio
+                            </label>
+                            <input
+                                id="edit-neighborhood"
+                                type="text"
+                                list={NEIGHBORHOOD_OPTIONS}
+                                autoComplete="off"
+                                value={editForm.data.neighborhood}
+                                onChange={(e) => editForm.setData('neighborhood', e.target.value)}
+                                placeholder="Buscar barrio, ej: Tres Cerritos"
+                                className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
+                            />
+                            <FieldError message={editForm.errors.neighborhood} className="mt-1" />
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                             <div>
-                                <label htmlFor="edit-name" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                    Nombre o Razón Social <span className="text-ink">*</span>
+                                <label htmlFor="edit-floor" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                    Piso
                                 </label>
                                 <input
-                                    id="edit-name"
+                                    id="edit-floor"
                                     type="text"
-                                    required
-                                    value={editForm.data.name}
-                                    onChange={(e) => editForm.setData('name', e.target.value)}
+                                    value={editForm.data.floor}
+                                    onChange={(e) => editForm.setData('floor', e.target.value)}
+                                    maxLength={20}
+                                    placeholder="Ej: PB, 3, Local 2"
                                     className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                 />
-                                <FieldError message={editForm.errors.name} className="mt-1" />
+                                <FieldError message={editForm.errors.floor} className="mt-1" />
                             </div>
 
-                            {/* Teléfono & Repartidor */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                                <div>
-                                    <label htmlFor="edit-phone-number" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                        Teléfono de Contacto
-                                    </label>
-                                    <input
-                                        id="edit-phone-number"
-                                        type="text"
-                                        value={editForm.data.phone_number}
-                                        onChange={(e) => editForm.setData('phone_number', e.target.value)}
-                                        placeholder="Ej: +54 387 422-3000"
-                                        className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
-                                    />
-                                    <FieldError message={editForm.errors.phone_number} className="mt-1" />
-                                </div>
-
-                                <div>
-                                    <label htmlFor="edit-repartidor-id" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                        Repartidor Asignado
-                                    </label>
-                                    <select
-                                        id="edit-repartidor-id"
-                                        value={editForm.data.repartidor_id}
-                                        onChange={(e) => editForm.setData('repartidor_id', e.target.value)}
-                                        className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  bg-canvas"
-                                    >
-                                        <option value="">Sin Asignar</option>
-                                        {repartidores.map((rep) => (
-                                            <option key={rep.id} value={rep.id}>
-                                                {rep.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <FieldError message={editForm.errors.repartidor_id} className="mt-1" />
-                                </div>
+                            <div>
+                                <label htmlFor="edit-apartment" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                    Departamento
+                                </label>
+                                <input
+                                    id="edit-apartment"
+                                    type="text"
+                                    value={editForm.data.apartment}
+                                    onChange={(e) => editForm.setData('apartment', e.target.value)}
+                                    placeholder="Ej: 4B"
+                                    className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
+                                />
+                                <FieldError message={editForm.errors.apartment} className="mt-1" />
                             </div>
 
-                            {/* Dirección */}
-                            <div className="space-y-4 pt-5 border-t border-hairline">
-                                <h4 className="text-sm font-semibold text-ink">
-                                    Dirección Principal
-                                </h4>
-                                <div>
-                                    <label htmlFor="edit-street" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                        Calle y Altura <span className="text-ink">*</span>
-                                    </label>
-                                    <input
-                                        id="edit-street"
-                                        type="text"
-                                        required
-                                        value={editForm.data.street}
-                                        onChange={(e) => editForm.setData('street', e.target.value)}
-                                        className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
-                                    />
-                                    <FieldError message={editForm.errors.street} className="mt-1" />
-                                </div>
-
-                                <div>
-                                    <label htmlFor="edit-neighborhood" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                        Barrio
-                                    </label>
-                                    <input
-                                        id="edit-neighborhood"
-                                        type="text"
-                                        list={NEIGHBORHOOD_OPTIONS}
-                                        autoComplete="off"
-                                        value={editForm.data.neighborhood}
-                                        onChange={(e) => editForm.setData('neighborhood', e.target.value)}
-                                        placeholder="Buscar barrio, ej: Tres Cerritos"
-                                        className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
-                                    />
-                                    <FieldError message={editForm.errors.neighborhood} className="mt-1" />
-                                </div>
-
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                                    <div>
-                                        <label htmlFor="edit-floor" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                            Piso
-                                        </label>
-                                        <input
-                                            id="edit-floor"
-                                            type="text"
-                                            value={editForm.data.floor}
-                                            onChange={(e) => editForm.setData('floor', e.target.value)}
-                                            maxLength={20}
-                                            placeholder="Ej: PB, 3, Local 2"
-                                            className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
-                                        />
-                                        <FieldError message={editForm.errors.floor} className="mt-1" />
-                                    </div>
-
-                                    <div>
-                                        <label htmlFor="edit-apartment" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                            Departamento
-                                        </label>
-                                        <input
-                                            id="edit-apartment"
-                                            type="text"
-                                            value={editForm.data.apartment}
-                                            onChange={(e) => editForm.setData('apartment', e.target.value)}
-                                            placeholder="Ej: 4B"
-                                            className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
-                                        />
-                                        <FieldError message={editForm.errors.apartment} className="mt-1" />
-                                    </div>
-
-                                    <div>
-                                        <label htmlFor="edit-visual-reference" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                            Referencia Visual
-                                        </label>
-                                        <input
-                                            id="edit-visual-reference"
-                                            type="text"
-                                            value={editForm.data.visual_reference}
-                                            onChange={(e) => editForm.setData('visual_reference', e.target.value)}
-                                            placeholder="Ej: Frente a Plaza Belgrano"
-                                            className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
-                                        />
-                                        <FieldError message={editForm.errors.visual_reference} className="mt-1" />
-                                    </div>
-                                </div>
+                            <div>
+                                <label htmlFor="edit-visual-reference" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                    Referencia Visual
+                                </label>
+                                <input
+                                    id="edit-visual-reference"
+                                    type="text"
+                                    value={editForm.data.visual_reference}
+                                    onChange={(e) => editForm.setData('visual_reference', e.target.value)}
+                                    placeholder="Ej: Frente a Plaza Belgrano"
+                                    className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
+                                />
+                                <FieldError message={editForm.errors.visual_reference} className="mt-1" />
                             </div>
-
-                            {/* Buttons */}
-                            <div className="mt-6 flex items-center justify-end gap-3 pt-5 border-t border-hairline">
-                                <button
-                                    type="button"
-                                    onClick={() => setEditingCustomer(null)}
-                                    className="px-4 py-2 rounded-lg bg-surface-2 border-none text-sm font-medium text-ink hover:bg-surface-3 transition cursor-pointer"
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={editForm.processing}
-                                    className="px-4 py-2 rounded-lg bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 transition shadow-sm cursor-pointer flex items-center gap-2 disabled:opacity-50 dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
-                                >
-                                    <Save className="w-4 h-4" />
-                                    {editForm.processing ? 'Guardando...' : 'Guardar Cambios'}
-                                </button>
-                            </div>
-                        </form>
+                        </div>
                     </div>
-                </div>
-            )}
+
+                    {/* Días y horarios */}
+                    <div className="space-y-4 pt-5 border-t border-hairline">
+                        <div>
+                            <h4 className="text-sm font-semibold text-ink">
+                                Agregar días y horarios de entrega
+                            </h4>
+                            <p className="text-xs text-ink-muted mt-1">
+                                Los que ya tiene se editan o quitan desde la ficha del cliente.
+                            </p>
+                        </div>
+                        <PreferenceRowsField
+                            idPrefix="edit"
+                            rows={editForm.data.preferences}
+                            onChange={(rows) => editForm.setData('preferences', rows)}
+                            errors={editForm.errors as Record<string, string>}
+                        />
+                    </div>
+
+                    {/* Buttons */}
+                    <div className="mt-6 flex items-center justify-end gap-3 pt-5 border-t border-hairline">
+                        <button
+                            type="button"
+                            onClick={() => setEditingCustomer(null)}
+                            className="px-4 py-2 rounded-lg bg-surface-2 border-none text-sm font-medium text-ink hover:bg-surface-3 transition cursor-pointer"
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={editForm.processing}
+                            className="px-4 py-2 rounded-lg bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 transition shadow-sm cursor-pointer flex items-center gap-2 disabled:opacity-50 dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
+                        >
+                            <Save className="w-4 h-4" />
+                            {editForm.processing ? 'Guardando...' : 'Guardar Cambios'}
+                        </button>
+                    </div>
+                </form>
+            </Modal>
         </AdminLayout>
     );
 }

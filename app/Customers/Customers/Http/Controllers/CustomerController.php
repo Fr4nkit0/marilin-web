@@ -13,13 +13,16 @@ use App\Customers\Customers\AddressLocation;
 use App\Customers\Customers\CustomerAddressDetails;
 use App\Customers\Customers\CustomerEdit;
 use App\Customers\Customers\CustomerIntake;
+use App\Customers\Customers\CustomerPreferenceChange;
 use App\Customers\Customers\CustomerRegistration;
 use App\Customers\Customers\Http\Requests\StoreCustomerRequest;
 use App\Customers\Customers\Http\Requests\UpdateCustomerRequest;
 use App\Customers\Customers\Models\Customer;
 use App\Customers\Customers\Models\CustomerAddress;
+use App\Customers\Customers\Models\CustomerPreference;
 use App\Customers\Neighborhoods\Models\Neighborhood;
 use App\Http\Controllers\Controller;
+use App\Shared\TextMatch;
 use App\Street\Ledger\Models\CustomerAccountEntry;
 use App\Street\Sales\Models\SaleDetail;
 use Illuminate\Http\RedirectResponse;
@@ -48,13 +51,7 @@ class CustomerController extends Controller
             ])
             ->where('enabled', true);
 
-        if ($search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'ilike', "%{$search}%")
-                    ->orWhere('phone_number', 'like', "%{$search}%")
-                    ->orWhereHas('primaryAddress', fn ($sq) => $sq->where('street', 'ilike', "%{$search}%"));
-            });
-        }
+        TextMatch::search($query, ['name', 'phone_number', 'primaryAddress.street'], $search);
 
         if ($driverId) {
             $query->where('driver_id', $driverId);
@@ -142,6 +139,18 @@ class CustomerController extends Controller
                 'status' => $agreement->statusOn($today),
             ]);
 
+        $preferences = $customer->preferences()
+            ->enabled()
+            ->orderBy('day_of_week')
+            ->orderByRaw('time_window_start nulls first')
+            ->get()
+            ->map(fn (CustomerPreference $preference): array => [
+                'id' => $preference->id,
+                'dayOfWeek' => $preference->day_of_week,
+                'timeWindowStart' => $this->hourMinute($preference->time_window_start),
+                'timeWindowEnd' => $this->hourMinute($preference->time_window_end),
+            ]);
+
         $canRecordAtHome = Gate::allows('manage-agreements');
 
         return Inertia::render('Customers/Customers/Show', [
@@ -149,6 +158,7 @@ class CustomerController extends Controller
             'accountEntries' => $accountEntries,
             'containerMovements' => $containerMovements,
             'agreements' => $agreements,
+            'preferences' => $preferences,
             'agreementProducts' => Product::query()->enabled()->orderBy('name')->get(['id', 'name', 'price'])
                 ->map(fn (Product $product): array => ['id' => $product->id, 'name' => $product->name, 'price' => (float) $product->price]),
             'canManageAgreements' => Gate::allows('manage-agreements'),
@@ -188,6 +198,11 @@ class CustomerController extends Controller
         return $entry->description;
     }
 
+    private function hourMinute(?string $time): ?string
+    {
+        return $time === null ? null : substr($time, 0, 5);
+    }
+
     /**
      * The products of a sale at home with the price the server will charge today, read-only for the admin.
      *
@@ -216,7 +231,7 @@ class CustomerController extends Controller
     {
         $validated = $request->validated();
 
-        $intake->register(new CustomerRegistration(
+        CustomerPreferenceController::asFieldErrors(fn () => $intake->register(new CustomerRegistration(
             name: $validated['name'],
             phoneNumber: $validated['phone_number'] ?? null,
             driverId: isset($validated['repartidor_id']) ? (int) $validated['repartidor_id'] : null,
@@ -225,7 +240,8 @@ class CustomerController extends Controller
             // numeric also accepts forms like 1e2; the ledger works with a fixed two-decimal string.
             initialDebt: number_format((float) ($validated['initial_balance'] ?? 0), 2, '.', ''),
             initialContainers: array_map(fn (mixed $quantity): int => (int) $quantity, $validated['initial_containers'] ?? []),
-        ));
+            preferences: $this->preferenceRows($validated, $request),
+        )));
 
         return redirect()->route('customers.index')->with('success', 'Cliente creado exitosamente');
     }
@@ -237,15 +253,28 @@ class CustomerController extends Controller
     {
         $validated = $request->validated();
 
-        $intake->update($customer, new CustomerEdit(
+        CustomerPreferenceController::asFieldErrors(fn () => $intake->update($customer, new CustomerEdit(
             name: $validated['name'],
             phoneNumber: $validated['phone_number'] ?? null,
             address: $this->addressDetails($validated, $customer->primaryAddress),
             modifiedBy: $request->user(),
             driverId: isset($validated['repartidor_id']) ? (int) $validated['repartidor_id'] : null,
-        ));
+            preferences: $this->preferenceRows($validated, $request),
+        )));
 
         return redirect()->back()->with('success', 'Cliente actualizado exitosamente');
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     * @return list<CustomerPreferenceChange>
+     */
+    private function preferenceRows(array $validated, Request $request): array
+    {
+        return array_values(array_map(
+            fn (array $row): CustomerPreferenceChange => CustomerPreferenceController::change($row, $request),
+            $validated['preferences'] ?? [],
+        ));
     }
 
     /**

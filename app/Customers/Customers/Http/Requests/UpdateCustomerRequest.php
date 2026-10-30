@@ -9,6 +9,8 @@ use Illuminate\Validation\Rule;
 
 class UpdateCustomerRequest extends FormRequest
 {
+    use ResolvesCatalogNeighborhood;
+
     public function authorize(): bool
     {
         return true;
@@ -28,6 +30,8 @@ class UpdateCustomerRequest extends FormRequest
             'floor' => 'nullable|string|max:20',
             'visual_reference' => 'nullable|string|max:500',
             'neighborhood' => ['nullable', 'string', Rule::exists('neighborhoods', 'name')->where('enabled', true)],
+            // New delivery preferences only; the existing ones are changed from the customer page.
+            ...CustomerPreferenceRules::rows(),
         ];
     }
 }

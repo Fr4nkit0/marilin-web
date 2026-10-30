@@ -11,6 +11,7 @@ use App\Accounts\Http\Requests\UpdateDriverAccountRequest;
 use App\Accounts\Models\User;
 use App\Accounts\SetDriverAccountEnabledAction;
 use App\Http\Controllers\Controller;
+use App\Shared\TextMatch;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -30,10 +31,7 @@ class UserController extends Controller
         $users = User::query()
             ->where('is_super_user', false)
             ->whereHas('driver')
-            ->when($search !== '', fn ($query) => $query->where(fn ($match) => $match
-                ->whereLike('name', "%{$search}%")
-                ->orWhereLike('email', "%{$search}%")
-                ->orWhereLike('username', "%{$search}%")))
+            ->tap(fn ($query) => TextMatch::search($query, ['name', 'email', 'username'], $search))
             ->when($status === 'enabled', fn ($query) => $query->where('enabled', true))
             ->when($status === 'disabled', fn ($query) => $query->where('enabled', false))
             ->orderBy('name')

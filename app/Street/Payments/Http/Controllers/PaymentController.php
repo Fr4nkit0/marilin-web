@@ -7,6 +7,7 @@ use App\CashDesk\DailyFigures;
 use App\CashDesk\DayScope;
 use App\Catalog\Models\PaymentMethod;
 use App\Http\Controllers\Controller;
+use App\Shared\TextMatch;
 use App\Street\Payments\Models\Payment;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -51,9 +52,7 @@ class PaymentController extends Controller
             $query->where('status', $status);
         }
 
-        if ($search) {
-            $query->whereHas('customer', fn ($q) => $q->where('name', 'ilike', "%{$search}%"));
-        }
+        TextMatch::search($query, ['customer.name'], $search);
 
         $payments = $query->latest('paid_at')->paginate(15)->withQueryString();
 
