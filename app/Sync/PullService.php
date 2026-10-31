@@ -20,6 +20,7 @@ use App\Street\Containers\Models\CustomerContainerBalance;
 use App\Street\Ledger\Models\CustomerBalance;
 use App\Street\RouteStock\Models\RouteInventory;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
 class PullService
@@ -99,6 +100,8 @@ class PullService
             if ($name === 'route_stops') {
                 $data[$name] = $data[$name]->map(fn (RouteStop $stop): RouteStop => $this->withDerivedFields($stop));
             }
+
+            $data[$name] = $data[$name]->map(fn (Model $row): array => $this->row($row));
         }
 
         return [
@@ -111,6 +114,16 @@ class PullService
                 'cursor' => $hasMore ? null : $until->copy()->subSeconds((int) config('sync.pull_cursor_margin_seconds'))->toIso8601String(),
             ],
         ];
+    }
+
+    /**
+     * One row as the pull sends it; the push answers a conflict with the server row in this very shape.
+     *
+     * @return array<string, mixed>
+     */
+    public function row(Model $row): array
+    {
+        return $row->toArray();
     }
 
     /**

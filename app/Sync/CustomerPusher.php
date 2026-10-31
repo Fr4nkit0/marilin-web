@@ -15,10 +15,11 @@ use App\Customers\Customers\FieldMerge;
 use App\Customers\Customers\InvalidCustomerChange;
 use App\Customers\Customers\Models\Customer;
 use App\Review\ReviewReason;
+use Illuminate\Database\Eloquent\Model;
 
 class CustomerPusher extends EntityPusher
 {
-    public function __construct(private readonly CustomerIntake $intake) {}
+    public function __construct(private readonly CustomerIntake $intake, private readonly PullService $pull) {}
 
     /**
      * Customer fields an edit may carry; any one it leaves out is never touched.
@@ -55,6 +56,19 @@ class CustomerPusher extends EntityPusher
         return $merge->isOutdated()
             ? $this->outdated($record['uuid'], $customer->id, $this->pendingReason($customer))
             : $this->accepted($record['uuid'], $customer->id, $this->pendingReason($customer));
+    }
+
+    /**
+     * The customer as the pull sends it plus its primary address, as the pull sends it, under `address`: the same
+     * place a customer edit carries the primary address fields it changed. Null when it has none.
+     *
+     * @param  Customer  $row
+     */
+    protected function current(Model $row): array
+    {
+        $address = $row->primaryAddress()->first();
+
+        return [...$this->pull->row($row), 'address' => $address === null ? null : $this->pull->row($address)];
     }
 
     /**

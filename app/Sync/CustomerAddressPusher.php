@@ -14,6 +14,7 @@ use App\Customers\Customers\CustomerIntake;
 use App\Customers\Customers\InvalidCustomerChange;
 use App\Customers\Customers\Models\Customer;
 use App\Customers\Customers\Models\CustomerAddress;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * An address the driver added or changed: created whole, or edited with last write wins per field like the customer itself.
@@ -21,7 +22,7 @@ use App\Customers\Customers\Models\CustomerAddress;
  */
 class CustomerAddressPusher extends EntityPusher
 {
-    public function __construct(private readonly CustomerIntake $intake) {}
+    public function __construct(private readonly CustomerIntake $intake, private readonly PullService $pull) {}
 
     protected function handle(Driver $driver, User $user, array $record): array
     {
@@ -58,6 +59,11 @@ class CustomerAddressPusher extends EntityPusher
         return $merge->isOutdated()
             ? $this->outdated($record['uuid'], $address->id, $this->pendingReason($customer))
             : $this->accepted($record['uuid'], $address->id, $this->pendingReason($customer));
+    }
+
+    protected function current(Model $row): array
+    {
+        return $this->pull->row($row);
     }
 
     /**
