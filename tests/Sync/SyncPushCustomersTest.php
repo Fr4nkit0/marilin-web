@@ -163,7 +163,7 @@ test('push overwrites a customer found by server id when the edit is newer and s
         ->and($address->fresh()->street)->toBe('Calle nueva de la app');
 });
 
-test('push accepts an edit on a customer assigned to another driver and flags it for review', function (): void {
+test('push accepts an edit on a customer assigned to another driver but leaves it pending for the admin (S3)', function (): void {
     $otherDriver = Driver::factory()->create(['enabled' => true]);
     [$customer] = serverCustomer($otherDriver, $this->user, null);
 
@@ -177,13 +177,11 @@ test('push accepts an edit on a customer assigned to another driver and flags it
         ->assertJsonPath('data.customers.0.status', 'accepted')
         ->assertJsonPath('data.customers.0.server_id', $customer->id);
 
-    $reason = $response->json('data.customers.0.review_reasons.0');
     $customer->refresh();
 
-    expect($reason)->toBeString()->not->toBeEmpty()
-        ->and($customer->needs_review)->toBeTrue()
-        ->and($customer->review_reasons)->toBe([$reason])
-        ->and($customer->name)->toBe('Editado en la calle')
+    expect($response->json('data.customers.0.review_reasons'))->toBe(['Customer is assigned to another driver.'])
+        ->and($customer->needs_review)->toBeFalse()
+        ->and($customer->name)->toBe('Nombre del servidor')
         ->and($customer->driver_id)->toBe($otherDriver->id);
 });
 
@@ -226,7 +224,7 @@ test('the draft nested sync endpoints no longer exist', function (): void {
     $this->postJson('/api/v1/sync/route-visits', ['visits' => []])->assertNotFound();
 });
 
-test('push flags a customer of another driver for review even when the edit is older than the server version and answers outdated', function (): void {
+test('push leaves even an old edit of a customer of another driver pending: the admin judges it, so it is answered accepted (S3)', function (): void {
     $otherDriver = Driver::factory()->create(['enabled' => true]);
     [$customer] = serverCustomer($otherDriver, $this->user, null);
 
@@ -236,10 +234,9 @@ test('push flags a customer of another driver for review even when the edit is o
         'modified_at' => '2026-10-20T09:00:00-03:00',
     ])]]);
 
-    $response->assertOk()->assertJsonPath('data.customers.0.status', 'outdated');
+    $response->assertOk()->assertJsonPath('data.customers.0.status', 'accepted');
 
-    expect($response->json('data.customers.0.review_reasons.0'))->toBeString()->not->toBeEmpty()
-        ->and($customer->fresh()->needs_review)->toBeTrue()
+    expect($response->json('data.customers.0.review_reasons'))->toBe(['Customer is assigned to another driver.'])
         ->and($customer->fresh()->name)->toBe('Nombre del servidor');
 });
 

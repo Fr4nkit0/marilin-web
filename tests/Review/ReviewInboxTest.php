@@ -262,7 +262,7 @@ test('a record that was already reviewed keeps its first reviewer and date', fun
         ->and($record->fresh()->reviewed_at->toIso8601String())->toBe('2026-10-23T12:00:00-03:00');
 });
 
-test('a customer of another driver edited through the push shows up in the inbox', function (): void {
+test('a customer of another driver edited through the push shows up in the inbox as a pending change of the driver that sent it', function (): void {
     $owner = inboxDriver('Repartidor Dueño', 'Cliente Ajeno');
     $editor = inboxDriver('Repartidor Editor', 'Otro');
     Sanctum::actingAs($editor['driver']->user, ['*']);
@@ -279,8 +279,9 @@ test('a customer of another driver edited through the push shows up in the inbox
     $rows = inboxRows();
 
     expect($rows)->toHaveCount(1)
-        ->and($rows[0]['type'])->toBe('customer')
-        ->and($rows[0]['driver'])->toBe('Repartidor Dueño')
+        ->and($rows[0]['type'])->toBe('customer_change')
+        ->and($rows[0]['driver'])->toBe('Repartidor Editor')
+        ->and($rows[0]['customer'])->toBe('Cliente Ajeno')
         ->and($rows[0]['reasons'])->toBe(['El cliente está asignado a otro repartidor.']);
 });
 

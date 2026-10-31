@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Accounts\Models\User;
 use App\Customers\Agreements\Models\CustomerAgreement;
 use App\Customers\Customers\Models\Customer;
+use App\Customers\Customers\Models\PendingCustomerChange;
 use App\Review\Reviewable;
 use App\Review\ReviewInbox;
 use App\Review\ReviewReason;
@@ -86,7 +87,7 @@ test('the review columns are cast on every reviewable model', function (string $
 })->with([Visit::class, Sale::class, Payment::class, RouteStop::class, Customer::class, ContainerMovement::class, CustomerAgreement::class]);
 
 test('every inbox type comes from a model declaration', function (): void {
-    $declared = collect([Visit::class, Sale::class, Payment::class, RouteStop::class, Customer::class, ContainerMovement::class, CustomerAgreement::class])
+    $declared = collect([Visit::class, Sale::class, Payment::class, RouteStop::class, Customer::class, ContainerMovement::class, CustomerAgreement::class, PendingCustomerChange::class])
         ->each(fn (string $model) => expect(class_uses($model))->toHaveKey(Reviewable::class))
         ->map(fn (string $model): string => $model::reviewSource()->type)
         ->all();

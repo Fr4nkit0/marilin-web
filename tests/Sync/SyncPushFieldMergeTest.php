@@ -378,7 +378,7 @@ test('S5: a preference edit by server id of a preference another app record owns
 test('S5: a row created in the web is adopted by its first app edit by server id', function (): void {
     $this->travelTo('2026-10-21 10:00:00');
     $this->actingAs($this->admin)
-        ->post(route('customers.store'), ['name' => 'Kiosco Web', 'street' => 'Mitre 50'])
+        ->post(route('customers.store'), ['name' => 'Kiosco Web', 'street' => 'Mitre 50', 'repartidor_id' => $this->driver->id])
         ->assertSessionHasNoErrors();
     Sanctum::actingAs($this->user, ['*']);
     $web = Customer::query()->where('name', 'Kiosco Web')->firstOrFail();

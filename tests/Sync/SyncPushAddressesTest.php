@@ -272,7 +272,7 @@ test('push rejects leaving the customer without a primary address', function ():
     expect(addressState($this->primary))->toEqual($before);
 });
 
-test('push applies an address on a customer of another driver and flags the customer for review', function (): void {
+test('push leaves a new address on a customer of another driver pending for the admin (S3)', function (): void {
     $otherDriver = Driver::factory()->create(['enabled' => true]);
     $foreign = Customer::factory()->create(['driver_id' => $otherDriver->id]);
     serverAddress($foreign, null, true);
@@ -284,9 +284,8 @@ test('push applies an address on a customer of another driver and flags the cust
         ->assertJsonPath('data.customer_addresses.0.review_reasons', ['Customer is assigned to another driver.']);
 
     $foreign->refresh();
-    expect(CustomerAddress::query()->where('client_uuid', $payload['uuid'])->value('customer_id'))->toBe($foreign->id)
-        ->and($foreign->needs_review)->toBeTrue()
-        ->and($foreign->review_reasons)->toBe(['Customer is assigned to another driver.']);
+    expect(CustomerAddress::query()->where('client_uuid', $payload['uuid'])->exists())->toBeFalse()
+        ->and($foreign->needs_review)->toBeFalse();
 });
 
 test('the customer push keeps editing the primary address after the app moved it', function (): void {

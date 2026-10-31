@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Accounts\Http\Requests;
 
 use App\Accounts\Models\User;
+use Closure;
 use Illuminate\Validation\Rule;
 
 /**
@@ -19,10 +20,27 @@ final class DriverAccountRules
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($ignore)],
+            'email' => ['required', 'string', 'email', 'max:255', self::uniqueEmail($ignore)],
             'username' => ['nullable', 'string', 'max:255', Rule::unique('users', 'username')->ignore($ignore)],
             'phone_number' => ['nullable', 'string', 'max:20'],
         ];
+    }
+
+    /**
+     * Login matches the email whatever its letter case, so two accounts may not differ only by it.
+     */
+    public static function uniqueEmail(?User $ignore = null): Closure
+    {
+        return function (string $attribute, mixed $value, Closure $fail) use ($ignore): void {
+            $taken = User::query()
+                ->emailIs((string) $value)
+                ->when($ignore !== null, fn ($query) => $query->whereKeyNot($ignore->getKey()))
+                ->exists();
+
+            if ($taken) {
+                $fail('Ya hay una cuenta con ese email.');
+            }
+        };
     }
 
     /**

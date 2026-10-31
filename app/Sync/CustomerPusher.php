@@ -11,15 +11,22 @@ use App\Customers\Customers\CustomerAddressDetails;
 use App\Customers\Customers\CustomerAppEdit;
 use App\Customers\Customers\CustomerIntake;
 use App\Customers\Customers\CustomerRegistration;
+use App\Customers\Customers\Enums\CustomerChangeTarget;
 use App\Customers\Customers\FieldMerge;
+use App\Customers\Customers\ForeignCustomerChanges;
 use App\Customers\Customers\InvalidCustomerChange;
 use App\Customers\Customers\Models\Customer;
 use App\Review\ReviewReason;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Arr;
 
 class CustomerPusher extends EntityPusher
 {
-    public function __construct(private readonly CustomerIntake $intake, private readonly PullService $pull) {}
+    public function __construct(
+        private readonly CustomerIntake $intake,
+        private readonly ForeignCustomerChanges $foreignChanges,
+        private readonly PullService $pull,
+    ) {}
 
     /**
      * Customer fields an edit may carry; any one it leaves out is never touched.
@@ -47,7 +54,12 @@ class CustomerPusher extends EntityPusher
                 return $this->accepted($record['uuid'], $customer->id, $this->pendingReasons($customer));
             }
 
-            $this->flagForReviewIfForeign($customer, $driver);
+            if ($this->isForeign($customer, $driver)) {
+                $this->foreignChanges->propose($customer, CustomerChangeTarget::Customer, $customer, $record['uuid'], $this->carried($record), $this->modifiedAt($record), $user);
+
+                return $this->heldForAdmin($record['uuid'], $customer->id);
+            }
+
             $merge = $this->edit($customer, $user, $record);
         } catch (InvalidCustomerChange $invalid) {
             throw new RejectedRecord($invalid->getMessage());
@@ -96,19 +108,12 @@ class CustomerPusher extends EntityPusher
      */
     private function edit(Customer $customer, User $user, array $record): FieldMerge
     {
-        $fields = array_intersect_key($record, array_flip(self::FIELDS));
-
-        // The app may disable a customer, never enable one: an `enabled` true is ignored.
-        if (($record['enabled'] ?? null) === false) {
-            $fields['enabled'] = false;
-        }
-
-        $address = array_intersect_key((array) ($record['address'] ?? []), array_flip(self::ADDRESS_FIELDS));
+        $carried = $this->carried($record);
         $wasEnabled = $customer->enabled;
 
         $merge = $this->intake->mergeAppEdit($customer, new CustomerAppEdit(
-            fields: $fields,
-            address: $address === [] ? null : $address,
+            fields: Arr::except($carried, 'address'),
+            address: $carried['address'] ?? null,
             modifiedAt: $this->modifiedAt($record),
             modifiedBy: $user,
             clientUuid: $record['uuid'],
@@ -122,6 +127,26 @@ class CustomerPusher extends EntityPusher
         }
 
         return $merge;
+    }
+
+    /**
+     * The fields an edit carries, with the primary address ones under `address` when it carries any.
+     *
+     * @param  array<string, mixed>  $record
+     * @return array<string, mixed>
+     */
+    private function carried(array $record): array
+    {
+        $fields = array_intersect_key($record, array_flip(self::FIELDS));
+
+        // The app may disable a customer, never enable one: an `enabled` true is ignored.
+        if (($record['enabled'] ?? null) === false) {
+            $fields['enabled'] = false;
+        }
+
+        $address = array_intersect_key((array) ($record['address'] ?? []), array_flip(self::ADDRESS_FIELDS));
+
+        return $address === [] ? $fields : [...$fields, 'address' => $address];
     }
 
     /**

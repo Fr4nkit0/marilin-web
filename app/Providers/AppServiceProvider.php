@@ -2,9 +2,11 @@
 
 namespace App\Providers;
 
+use App\Accounts\CaseInsensitiveUserProvider;
 use App\Accounts\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
@@ -34,6 +36,9 @@ class AppServiceProvider extends ServiceProvider
         Factory::guessFactoryNamesUsing(fn (string $model): string => str_starts_with($model, 'App\\Models\\')
             ? 'Database\\Factories\\'.class_basename($model).'Factory'
             : Str::replaceLast('\\Models\\', '\\Database\\Factories\\', $model).'Factory');
+
+        // The `eloquent` users provider finds the email whatever its letter case (web login and password reset).
+        Auth::provider('eloquent', fn ($app, array $config): CaseInsensitiveUserProvider => new CaseInsensitiveUserProvider($app['hash'], $config['model']));
 
         // What the apps upload lands here for the admin to look at; drivers must not clear their own records.
         Gate::define('review-inbox', fn (User $user): bool => $user->is_super_user);
