@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Validation\ValidationException;
 
-#[Fillable(['customer_id', 'product_id', 'unit_price', 'valid_from', 'valid_to', 'reason', 'created_by', 'client_uuid', 'needs_review', 'review_reason'])]
+#[Fillable(['customer_id', 'product_id', 'unit_price', 'valid_from', 'valid_to', 'reason', 'created_by', 'client_uuid', 'needs_review', 'review_reasons'])]
 class CustomerAgreement extends Model
 {
     /** @use HasFactory<CustomerAgreementFactory> */

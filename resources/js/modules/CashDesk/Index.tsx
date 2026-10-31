@@ -3,6 +3,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '@/layouts/AdminLayout';
 import { StatusBadge } from '@/ui/Badge';
 import { KpiCard } from '@/ui/KpiCard';
+import Button from '@/ui/Button';
 import { PageHeader } from '@/ui/PageHeader';
 import CashCloseDetailModal from './components/CashCloseDetailModal';
 import { CashCloseDetailKind, SettlementData } from './types';
@@ -178,6 +179,25 @@ export default function CashCloseIndex({
                         />
                     </div>
 
+                    {/* Sales made after the route was completed: they took stock from the truck, so they are shown apart. */}
+                    {settlement.details.postClose.length > 0 && (
+                        <div
+                            role="status"
+                            className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-amber-200/60 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/15 px-5 py-4 text-sm text-amber-800 dark:text-amber-200"
+                        >
+                            <p>
+                                <span className="font-semibold">Post-cierre:</span>{' '}
+                                {settlement.details.postClose.length === 1
+                                    ? '1 venta hecha después de completar la ruta'
+                                    : `${settlement.details.postClose.length} ventas hechas después de completar la ruta`}{' '}
+                                por {money(settlement.postCloseSales)}. Descontaron stock del camión y ya están en el total de ventas.
+                            </p>
+                            <Button variant="secondary" size="sm" onClick={() => setOpenDetail('postClose')}>
+                                Ver ventas post-cierre
+                            </Button>
+                        </div>
+                    )}
+
                     {/* Reconciliation Breakdown: Money & Physical Stock */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {/* Money Reconciliation Box */}
@@ -203,6 +223,22 @@ export default function CashCloseIndex({
                                 <div className="flex justify-between py-2 border-b border-hairline last:border-0">
                                     <span className="text-ink-secondary font-medium">Menos: Transferencias:</span>
                                     <span className="font-semibold text-ink-muted">-{money(settlement.transferAmount)}</span>
+                                </div>
+                                {settlement.cardAmount > 0 && (
+                                    <div className="flex justify-between py-2 border-b border-hairline last:border-0">
+                                        <button
+                                            type="button"
+                                            onClick={() => setOpenDetail('card')}
+                                            className="text-ink-secondary font-medium hover:text-ink underline-offset-2 hover:underline cursor-pointer"
+                                        >
+                                            Menos: Tarjeta:
+                                        </button>
+                                        <span className="font-semibold text-ink-muted">-{money(settlement.cardAmount)}</span>
+                                    </div>
+                                )}
+                                <div className="flex justify-between py-2 border-b border-hairline last:border-0">
+                                    <span className="text-ink-secondary font-medium">Total cobrado (efectivo, transferencia y tarjeta):</span>
+                                    <span className="font-semibold text-ink">{money(settlement.totalCollected)}</span>
                                 </div>
                                 <div className="flex justify-between items-center py-4 bg-canvas-soft border border-hairline px-5 rounded-xl mt-4 shadow-sm">
                                     <span className="text-ink-secondary font-medium">Efectivo Físico a Entregar:</span>

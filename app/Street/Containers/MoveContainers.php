@@ -24,7 +24,8 @@ final readonly class MoveContainers
         public ?Visit $visit,
         public User $recordedBy,
         public ?string $clientUuid = null,
-        public ?ReviewReason $reviewReason = null,
+        /** @var list<ReviewReason|null> why the record is left for the admin's review; none (or only nulls) leaves it clean */
+        public array $reviewReasons = [],
         public ?Sale $sale = null,
     ) {}
 }

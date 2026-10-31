@@ -41,7 +41,7 @@ class PaymentMethodFactory extends Factory
     public function tarjeta(): static
     {
         return $this->state(fn (array $attributes) => [
-            'code' => 'TARJETA',
+            'code' => PaymentMethodCode::Card->value,
             'name' => 'Tarjeta Débito / Crédito',
         ]);
     }

@@ -22,10 +22,14 @@ return new class extends Migration
             $table->foreignId('received_by')->constrained('users');
             $table->dateTime('paid_at')->useCurrent();
             $table->string('status', 30)->default('CONFIRMED'); // CONFIRMED, CANCELLED, ANNULLED
+            // Who cancelled the record, when and why: the driver from the app or the admin from the web.
+            $table->timestamp('cancelled_at')->nullable();
+            $table->foreignId('cancelled_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->text('cancellation_reason')->nullable();
             $table->timestamps();
             $table->uuid('client_uuid')->nullable()->unique();
             $table->boolean('needs_review')->default(false);
-            $table->text('review_reason')->nullable();
+            $table->jsonb('review_reasons')->default('[]'); // every reason the record was flagged for, in order, without repeats
             $table->timestamp('reviewed_at')->nullable();
             $table->foreignId('reviewed_by')->nullable()->constrained('users')->nullOnDelete();
 

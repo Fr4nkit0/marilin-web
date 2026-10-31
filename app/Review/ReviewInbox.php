@@ -74,7 +74,7 @@ class ReviewInbox
     public function page(array $filters, int $perPage = 15): LengthAwarePaginator
     {
         $page = $this->items($filters)
-            ->select('items.type', 'items.id', 'items.driver_id', 'items.occurred_at', 'items.reason', 'items.reviewed_at')
+            ->select('items.type', 'items.id', 'items.driver_id', 'items.occurred_at', 'items.reasons', 'items.reviewed_at')
             ->addSelect('customers.name as customer', 'users.name as driver', 'reviewers.name as reviewed_by')
             ->orderByDesc('items.occurred_at')
             ->orderBy('items.type')
@@ -86,7 +86,7 @@ class ReviewInbox
         return $page
             ->through(function (object $row) use ($requestedStops): object {
                 $requested = $row->type === RouteStop::reviewSource()->type && isset($requestedStops[$row->id]);
-                $row->reason = ReviewReason::tryFrom((string) $row->reason)?->label($requested) ?? $row->reason;
+                $row->reasons = ReviewReason::labels(json_decode((string) $row->reasons, true) ?? [], $requested);
 
                 return $row;
             })

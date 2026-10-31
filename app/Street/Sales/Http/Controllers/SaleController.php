@@ -7,8 +7,12 @@ use App\CashDesk\DailyFigures;
 use App\CashDesk\DayScope;
 use App\Http\Controllers\Controller;
 use App\Shared\TextMatch;
+use App\Street\Sales\CancelSale;
+use App\Street\Sales\Http\Requests\CancelSaleRequest;
 use App\Street\Sales\Models\Sale;
+use App\Street\StreetOperation;
 use Carbon\Carbon;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -60,6 +64,7 @@ class SaleController extends Controller
         $day = $figures->forDay($date ?: Carbon::today()->toDateString(), $scope);
         $totalSalesAmount = $day->totalSales;
         $creditSalesAmount = $day->creditSales;
+        $immediateSalesAmount = $day->immediateSales;
 
         $drivers = Driver::with('user')->get()->map(fn ($r) => [
             'id' => $r->id,
@@ -71,9 +76,12 @@ class SaleController extends Controller
             'metrics' => [
                 'totalSalesAmount' => $totalSalesAmount,
                 'creditSalesAmount' => $creditSalesAmount,
-                'immediateSalesAmount' => $totalSalesAmount - $creditSalesAmount,
+                'immediateSalesAmount' => $immediateSalesAmount,
+                // "Cobrado" is the day's payments, the same figure the panel and the cash close show.
+                'collectedAmount' => $day->totalCollected,
                 'count' => $confirmedCount,
             ],
+            'canCancel' => $request->user()->can('cancel-street-records'),
             'filters' => [
                 'search' => $search,
                 'date' => $date,
@@ -82,5 +90,20 @@ class SaleController extends Controller
             ],
             'repartidores' => $drivers,
         ]);
+    }
+
+    /**
+     * The admin cancels a sale of any day: the ledger, the route stock and the containers are reversed and who, when and why are kept.
+     */
+    public function cancel(CancelSaleRequest $request, Sale $sale, StreetOperation $operation): RedirectResponse
+    {
+        $operation->cancelSale(new CancelSale(
+            sale: $sale,
+            cancelledBy: $request->user(),
+            reason: $request->validated('reason'),
+            byAdmin: true,
+        ));
+
+        return back()->with('success', 'Venta anulada.');
     }
 }

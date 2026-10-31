@@ -74,7 +74,7 @@ final readonly class ReviewSource
         }
 
         return $query->selectRaw(
-            "'{$this->type}' as type, {$table}.id, {$driverId} as driver_id, {$table}.{$this->customer} as customer_id, {$occurredAt} as occurred_at, {$table}.review_reason as reason, {$table}.reviewed_at, {$table}.reviewed_by"
+            "'{$this->type}' as type, {$table}.id, {$driverId} as driver_id, {$table}.{$this->customer} as customer_id, {$occurredAt} as occurred_at, {$table}.review_reasons as reasons, {$table}.reviewed_at, {$table}.reviewed_by"
         );
     }
 }

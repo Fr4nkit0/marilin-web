@@ -153,15 +153,16 @@ abstract class EntityPusher
     }
 
     /**
+     * @param  list<string>  $reviewReasons  every reason the record waits for review, empty when it is clean
      * @return array<string, mixed>
      */
-    protected function accepted(string $uuid, int $serverId, ?string $reviewReason = null): array
+    protected function accepted(string $uuid, int $serverId, array $reviewReasons = []): array
     {
         return [
             'uuid' => $uuid,
             'status' => 'accepted',
             'server_id' => $serverId,
-            'review_reason' => $reviewReason,
+            'review_reasons' => $reviewReasons,
         ];
     }
 
@@ -169,11 +170,12 @@ abstract class EntityPusher
      * An edit dropped as a whole: every field it carried was older than the server's (APP-26). Answered like an
      * accepted record, so the app learns the server id, but with its own status so it can tell the driver.
      *
+     * @param  list<string>  $reviewReasons
      * @return array<string, mixed>
      */
-    protected function outdated(string $uuid, int $serverId, ?string $reviewReason = null): array
+    protected function outdated(string $uuid, int $serverId, array $reviewReasons = []): array
     {
-        return [...$this->accepted($uuid, $serverId, $reviewReason), 'status' => 'outdated'];
+        return [...$this->accepted($uuid, $serverId, $reviewReasons), 'status' => 'outdated'];
     }
 
     /**
@@ -192,7 +194,7 @@ abstract class EntityPusher
     }
 
     /**
-     * Idempotency: a record the server already holds is answered again with the same server id and, if it still waits for review, its reason.
+     * Idempotency: a record the server already holds is answered again with the same server id and, if it still waits for review, its reasons.
      *
      * @param  class-string<Model>  $model
      * @param  array<string, mixed>  $record
@@ -204,26 +206,28 @@ abstract class EntityPusher
 
         return $existing === null
             ? null
-            : $this->accepted($record['uuid'], $existing->getKey(), $this->pendingReason($existing));
+            : $this->accepted($record['uuid'], $existing->getKey(), $this->pendingReasons($existing));
     }
 
     /**
-     * The reason a record is waiting for review, or null when it is not (or the admin already reviewed it).
+     * The reasons a record is waiting for review, empty when it is not (or the admin already reviewed it).
+     *
+     * @return list<string>
      */
-    protected function pendingReason(Model $record): ?string
+    protected function pendingReasons(Model $record): array
     {
         /** @var Reviewable&Model $record */
-        return $record->pendingReviewReason();
+        return $record->pendingReviewReasons();
     }
 
     /**
      * The columns that mark a new record for review, or leave it alone when there is no reason.
      *
-     * @return array{needs_review: bool, review_reason: string|null}
+     * @return array{needs_review: bool, review_reasons: list<string>}
      */
-    protected function reviewAttributes(?ReviewReason $reason): array
+    protected function reviewAttributes(?ReviewReason ...$reasons): array
     {
-        return ReviewReason::columns($reason);
+        return ReviewReason::columns(...$reasons);
     }
 
     /**
@@ -301,7 +305,7 @@ abstract class EntityPusher
             'uuid' => $uuid,
             'status' => 'rejected',
             'server_id' => null,
-            'review_reason' => null,
+            'review_reasons' => [],
             'error' => $error,
         ];
     }

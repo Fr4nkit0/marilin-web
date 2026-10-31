@@ -54,7 +54,7 @@ test('push accepts an agreement of the driver, marks it for review and stores it
         'uuid' => $payload['uuid'],
         'status' => 'accepted',
         'server_id' => $agreement->id,
-        'review_reason' => 'Agreement created by a driver.',
+        'review_reasons' => ['Agreement created by a driver.'],
     ])
         ->and(ReviewReason::DriverAgreement->label())->toBe('Acuerdo de precio creado por el repartidor.')
         ->and($agreement->customer_id)->toBe($this->customer->id)
@@ -65,7 +65,7 @@ test('push accepts an agreement of the driver, marks it for review and stores it
         ->and($agreement->reason)->toBe('Compra por mayor')
         ->and($agreement->created_by)->toBe($this->user->id)
         ->and($agreement->needs_review)->toBeTrue()
-        ->and($agreement->review_reason)->toBe('Agreement created by a driver.')
+        ->and($agreement->review_reasons)->toBe(['Agreement created by a driver.'])
         ->and($agreement->reviewed_at)->toBeNull();
 });
 
@@ -102,7 +102,7 @@ test('push rejects an invalid agreement with its error and leaves the table unch
 
     expect($result['status'])->toBe('rejected')
         ->and($result['server_id'])->toBeNull()
-        ->and($result['review_reason'])->toBeNull()
+        ->and($result['review_reasons'])->toBe([])
         ->and($result['error'])->toContain($error)
         ->and(CustomerAgreement::query()->pluck('id')->all())->toBe([$existing->id]);
 })->with([

@@ -23,4 +23,10 @@ Route::middleware('auth')->group(function () {
 
     // Cobros
     Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
+
+    // Anular una venta o un cobro de cualquier día (con motivo, queda auditado y llega a la app en el pull)
+    Route::middleware('can:cancel-street-records')->group(function () {
+        Route::post('/sales/{sale}/cancel', [SaleController::class, 'cancel'])->name('sales.cancel');
+        Route::post('/payments/{payment}/cancel', [PaymentController::class, 'cancel'])->name('payments.cancel');
+    });
 });

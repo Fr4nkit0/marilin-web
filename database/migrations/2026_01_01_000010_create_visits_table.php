@@ -30,7 +30,7 @@ return new class extends Migration
             $table->uuid('client_uuid')->nullable()->unique();
             $table->timestamp('app_modified_at')->nullable();
             $table->boolean('needs_review')->default(false);
-            $table->text('review_reason')->nullable();
+            $table->jsonb('review_reasons')->default('[]'); // every reason the record was flagged for, in order, without repeats
             $table->timestamp('reviewed_at')->nullable();
             $table->foreignId('reviewed_by')->nullable()->constrained('users')->nullOnDelete();
 

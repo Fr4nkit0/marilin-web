@@ -52,6 +52,7 @@ class PaymentCancellationPusher extends CancellationPusher
             cancelledBy: $user,
             reason: $reason,
             reviewReason: $this->reviewReason(),
+            cancelledAt: $cancelledAt,
         ));
     }
 }

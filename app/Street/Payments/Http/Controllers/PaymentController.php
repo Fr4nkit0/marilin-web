@@ -8,8 +8,12 @@ use App\CashDesk\DayScope;
 use App\Catalog\Models\PaymentMethod;
 use App\Http\Controllers\Controller;
 use App\Shared\TextMatch;
+use App\Street\Payments\CancelPayment;
+use App\Street\Payments\Http\Requests\CancelPaymentRequest;
 use App\Street\Payments\Models\Payment;
+use App\Street\StreetOperation;
 use Carbon\Carbon;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -70,7 +74,9 @@ class PaymentController extends Controller
                 'totalCollected' => $totalCollected,
                 'cashTotal' => $cashTotal,
                 'transferTotal' => $transferTotal,
+                'cardTotal' => $day->cardAmount,
             ],
+            'canCancel' => $request->user()->can('cancel-street-records'),
             'filters' => [
                 'search' => $search,
                 'date' => $date,
@@ -84,5 +90,20 @@ class PaymentController extends Controller
                 'name' => $r->user?->name ?? 'Repartidor',
             ]),
         ]);
+    }
+
+    /**
+     * The admin cancels a payment of any day: its amount goes back on the ledger and who, when and why are kept.
+     */
+    public function cancel(CancelPaymentRequest $request, Payment $payment, StreetOperation $operation): RedirectResponse
+    {
+        $operation->cancelPayment(new CancelPayment(
+            payment: $payment,
+            cancelledBy: $request->user(),
+            reason: $request->validated('reason'),
+            byAdmin: true,
+        ));
+
+        return back()->with('success', 'Cobro anulado.');
     }
 }

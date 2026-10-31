@@ -122,7 +122,7 @@ test('push accepts a visit of the stop with its outcome, arrival time, position 
         ->assertJsonPath('data.visits.0.uuid', $payload['uuid'])
         ->assertJsonPath('data.visits.0.status', 'accepted')
         ->assertJsonPath('data.visits.0.server_id', $visit->id)
-        ->assertJsonPath('data.visits.0.review_reason', null);
+        ->assertJsonPath('data.visits.0.review_reasons', []);
 
     expect($visit->driver_id)->toBe($this->driver->id)
         ->and($visit->route_stop_id)->toBe($this->stop->id)
@@ -176,11 +176,11 @@ test('push accepts a visit on a customer of another driver or a disabled one and
     $response->assertOk()->assertJsonPath('data.visits.0.status', 'accepted');
 
     $visit = Visit::query()->where('client_uuid', $payload['uuid'])->firstOrFail();
-    $reason = $response->json('data.visits.0.review_reason');
+    $reason = $response->json('data.visits.0.review_reasons.0');
 
     expect($reason)->toBeString()->not->toBeEmpty()
         ->and($visit->needs_review)->toBeTrue()
-        ->and($visit->review_reason)->toBe($reason);
+        ->and($visit->review_reasons)->toBe([$reason]);
 })->with(['other driver' => ['other driver'], 'disabled' => ['disabled']]);
 
 /**
@@ -284,11 +284,11 @@ test('push accepts a container movement on a customer of another driver or a dis
     $response->assertOk()->assertJsonPath('data.container_movements.0.status', 'accepted');
 
     $movement = ContainerMovement::query()->where('client_uuid', $payload['uuid'])->firstOrFail();
-    $reason = $response->json('data.container_movements.0.review_reason');
+    $reason = $response->json('data.container_movements.0.review_reasons.0');
 
     expect($reason)->toBeString()->not->toBeEmpty()
         ->and($movement->needs_review)->toBeTrue()
-        ->and($movement->review_reason)->toBe($reason)
+        ->and($movement->review_reasons)->toBe([$reason])
         ->and(CustomerContainerBalance::query()->where('customer_id', $customer->id)->firstOrFail()->balance)->toBe(5);
 })->with(['other driver' => ['other driver'], 'disabled' => ['disabled']]);
 
@@ -336,7 +336,7 @@ test('push applies a newer visit edit to its outcome and notes only', function (
     $response->assertOk()
         ->assertJsonPath('data.visits.0.status', 'accepted')
         ->assertJsonPath('data.visits.0.server_id', $created->json('data.visits.0.server_id'))
-        ->assertJsonPath('data.visits.0.review_reason', null);
+        ->assertJsonPath('data.visits.0.review_reasons', []);
 
     $visit = $before->fresh();
 

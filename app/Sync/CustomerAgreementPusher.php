@@ -50,6 +50,6 @@ class CustomerAgreementPusher extends EntityPusher
             ...$this->reviewAttributes(ReviewReason::DriverAgreement),
         ]);
 
-        return $this->accepted($record['uuid'], $agreement->id, ReviewReason::DriverAgreement->value);
+        return $this->accepted($record['uuid'], $agreement->id, [ReviewReason::DriverAgreement->value]);
     }
 }

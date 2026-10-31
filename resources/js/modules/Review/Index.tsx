@@ -165,7 +165,17 @@ export default function Index({ items, filters, drivers }: Props) {
                                         </td>
                                         <td className="px-6 py-4 text-ink-secondary">{item.customer}</td>
                                         <td className="px-6 py-4 text-ink-secondary whitespace-nowrap">{formatDate(item)}</td>
-                                        <td className="px-6 py-4 text-ink-secondary max-w-sm">{item.reason}</td>
+                                        <td className="px-6 py-4 text-ink-secondary max-w-sm">
+                                            {item.reasons.length === 1 ? (
+                                                item.reasons[0]
+                                            ) : (
+                                                <ul className="list-disc pl-4 space-y-1">
+                                                    {item.reasons.map((reason) => (
+                                                        <li key={reason}>{reason}</li>
+                                                    ))}
+                                                </ul>
+                                            )}
+                                        </td>
                                         <td className="px-6 py-4 text-right whitespace-nowrap">
                                             {item.reviewed_at ? (
                                                 <StatusBadge

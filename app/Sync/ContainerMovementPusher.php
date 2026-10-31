@@ -7,6 +7,7 @@ namespace App\Sync;
 use App\Accounts\Models\Driver;
 use App\Accounts\Models\User;
 use App\Customers\Customers\Models\Customer;
+use App\Review\ReviewReason;
 use App\Routes\Visits\Models\Visit;
 use App\Street\Containers\Enums\ContainerMovementType;
 use App\Street\Containers\Models\ContainerMovement;
@@ -61,10 +62,10 @@ class ContainerMovementPusher extends EntityPusher
             visit: $visit,
             recordedBy: $user,
             clientUuid: $record['uuid'],
-            reviewReason: $reason,
+            reviewReasons: [$reason],
             sale: $sale,
         ));
 
-        return $this->accepted($record['uuid'], $movement->id, $reason?->value);
+        return $this->accepted($record['uuid'], $movement->id, ReviewReason::values($reason));
     }
 }

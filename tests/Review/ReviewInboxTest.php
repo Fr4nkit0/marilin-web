@@ -52,7 +52,7 @@ function inboxDriver(string $driverName = 'Repartidor Uno', string $customerName
  */
 function flaggedRecord(string $type, array $who, string $day = '2026-10-22', array $review = []): Model
 {
-    $review += ['needs_review' => true, 'review_reason' => "Reason for {$type}"];
+    $review += ['needs_review' => true, 'review_reasons' => ["Reason for {$type}"]];
     ['driver' => $driver, 'customer' => $customer] = $who;
 
     $record = match ($type) {
@@ -104,7 +104,7 @@ test('the review inbox lists what is waiting for review with type, driver, custo
         ->where('items.data.0.driver', 'Repartidor Uno')
         ->where('items.data.0.customer', 'Cliente Uno')
         ->where('items.data.0.occurred_at', fn ($date) => str_starts_with((string) $date, '2026-10-22'))
-        ->where('items.data.0.reason', fn ($reason) => str_starts_with((string) $reason, 'Reason for ')));
+        ->where('items.data.0.reasons', fn ($reasons) => count($reasons) === 1 && str_starts_with((string) $reasons[0], 'Reason for ')));
 });
 
 test('the review inbox is only for authenticated users', function (): void {
@@ -226,28 +226,28 @@ test('only a record that is waiting for review can be marked as reviewed', funct
 
 test('the review inbox shows the known review reasons in the language of the panel', function (): void {
     $who = inboxDriver();
-    flaggedRecord('sale', $who, review: ['review_reason' => ReviewReason::ForeignCustomer->value]);
-    flaggedRecord('route_stop', $who, review: ['review_reason' => ReviewReason::UnvisitedRescheduledStop->value]);
-    flaggedRecord('visit', $who, review: ['review_reason' => 'Motivo libre']);
+    flaggedRecord('sale', $who, review: ['review_reasons' => [ReviewReason::ForeignCustomer->value]]);
+    flaggedRecord('route_stop', $who, review: ['review_reasons' => [ReviewReason::UnvisitedRescheduledStop->value]]);
+    flaggedRecord('visit', $who, review: ['review_reasons' => ['Motivo libre']]);
 
-    expect(collect(inboxRows())->pluck('reason', 'type')->all())->toEqual([
-        'route_stop' => 'La parada reprogramada terminó el día sin visita.',
-        'sale' => 'El cliente está asignado a otro repartidor.',
-        'visit' => 'Motivo libre',
+    expect(collect(inboxRows())->pluck('reasons', 'type')->all())->toEqual([
+        'route_stop' => ['La parada reprogramada terminó el día sin visita.'],
+        'sale' => ['El cliente está asignado a otro repartidor.'],
+        'visit' => ['Motivo libre'],
     ]);
 });
 
 test('an unvisited stop that carried a scheduled visit reads as a requested visit, without changing the stored reason', function (): void {
     $who = inboxDriver();
-    $requested = flaggedRecord('route_stop', $who, review: ['review_reason' => ReviewReason::UnvisitedStop->value]);
+    $requested = flaggedRecord('route_stop', $who, review: ['review_reasons' => [ReviewReason::UnvisitedStop->value]]);
     $requested->forceFill(['scheduled_visit_id' => ScheduledVisit::factory()->create(['customer_id' => $who['customer']->id, 'date' => '2026-10-22'])->id])->save();
-    $plain = flaggedRecord('route_stop', $who, review: ['review_reason' => ReviewReason::UnvisitedStop->value]);
+    $plain = flaggedRecord('route_stop', $who, review: ['review_reasons' => [ReviewReason::UnvisitedStop->value]]);
 
-    expect(collect(inboxRows())->pluck('reason', 'id')->all())->toEqual([
-        $requested->id => 'Visita solicitada sin visitar.',
-        $plain->id => 'La parada terminó el día sin visita.',
+    expect(collect(inboxRows())->pluck('reasons', 'id')->all())->toEqual([
+        $requested->id => ['Visita solicitada sin visitar.'],
+        $plain->id => ['La parada terminó el día sin visita.'],
     ])
-        ->and($requested->fresh()->review_reason)->toBe(ReviewReason::UnvisitedStop->value);
+        ->and($requested->fresh()->review_reasons)->toBe([ReviewReason::UnvisitedStop->value]);
 });
 
 test('a record that was already reviewed keeps its first reviewer and date', function (): void {
@@ -281,7 +281,7 @@ test('a customer of another driver edited through the push shows up in the inbox
     expect($rows)->toHaveCount(1)
         ->and($rows[0]['type'])->toBe('customer')
         ->and($rows[0]['driver'])->toBe('Repartidor Dueño')
-        ->and($rows[0]['reason'])->toBe('El cliente está asignado a otro repartidor.');
+        ->and($rows[0]['reasons'])->toBe(['El cliente está asignado a otro repartidor.']);
 });
 
 test('only a super user can open the review inbox or mark records as reviewed', function (): void {
@@ -314,7 +314,7 @@ test('an agreement created by a driver through the push shows up in the inbox wi
         ->and($rows[0]['driver'])->toBe('Repartidor Uno')
         ->and($rows[0]['customer'])->toBe('Cliente Uno')
         ->and($rows[0]['occurred_at'])->toStartWith('2026-10-23')
-        ->and($rows[0]['reason'])->toBe('Acuerdo de precio creado por el repartidor.');
+        ->and($rows[0]['reasons'])->toBe(['Acuerdo de precio creado por el repartidor.']);
 });
 
 test('the review inbox rejects an unknown type filter', function (): void {

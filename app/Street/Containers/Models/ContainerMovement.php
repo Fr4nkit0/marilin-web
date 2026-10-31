@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['client_uuid', 'customer_id', 'container_type_id', 'visit_id', 'sale_id', 'reverses_movement_id', 'movement_type', 'quantity', 'direction', 'reason', 'created_by', 'last_modified_by', 'enabled', 'needs_review', 'review_reason'])]
+#[Fillable(['client_uuid', 'customer_id', 'container_type_id', 'visit_id', 'sale_id', 'reverses_movement_id', 'movement_type', 'quantity', 'direction', 'reason', 'created_by', 'last_modified_by', 'enabled', 'needs_review', 'review_reasons'])]
 class ContainerMovement extends Model
 {
     /** @use HasFactory<ContainerMovementFactory> */

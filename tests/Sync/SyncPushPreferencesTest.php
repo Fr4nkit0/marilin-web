@@ -70,7 +70,7 @@ test('push creates a preference with the app modification date and the moment it
         ->assertJsonPath('data.customer_preferences.0.uuid', $payload['uuid'])
         ->assertJsonPath('data.customer_preferences.0.status', 'accepted')
         ->assertJsonPath('data.customer_preferences.0.server_id', $stored->id)
-        ->assertJsonPath('data.customer_preferences.0.review_reason', null);
+        ->assertJsonPath('data.customer_preferences.0.review_reasons', []);
 
     expect($stored->customer_id)->toBe($this->customer->id)
         ->and($stored->day_of_week)->toBe(1)
@@ -295,12 +295,12 @@ test('push applies a preference on a customer of another driver and flags the cu
     push(['customer_preferences' => [$payload]])
         ->assertOk()
         ->assertJsonPath('data.customer_preferences.0.status', 'accepted')
-        ->assertJsonPath('data.customer_preferences.0.review_reason', 'Customer is assigned to another driver.');
+        ->assertJsonPath('data.customer_preferences.0.review_reasons', ['Customer is assigned to another driver.']);
 
     $foreign->refresh();
     expect(CustomerPreference::query()->where('client_uuid', $payload['uuid'])->value('customer_id'))->toBe($foreign->id)
         ->and($foreign->needs_review)->toBeTrue()
-        ->and($foreign->review_reason)->toBe('Customer is assigned to another driver.')
+        ->and($foreign->review_reasons)->toBe(['Customer is assigned to another driver.'])
         ->and($foreign->driver_id)->toBe($otherDriver->id);
 });
 

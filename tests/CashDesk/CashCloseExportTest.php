@@ -101,7 +101,11 @@ test('the PDF shows the same figures and records as the screen', function (): vo
         ->toContain('$ 9.500,00') // total collected and debt collected
         ->toContain('Hotel Altos de la Viña')
         ->toContain('Bidón 20L')
-        ->toContain('Cobro de deuda');
+        ->toContain('Cobro de deuda')
+        ->toContain('<td>Tarjeta</td>')
+        ->toContain('<h2>Tarjeta</h2>')
+        ->toContain('<td>Ventas post-cierre</td>')
+        ->toContain('<h2>Post-cierre</h2>');
 });
 
 test('the cash close downloads as an Excel workbook with the summary and one sheet per detail', function (): void {
@@ -112,13 +116,17 @@ test('the cash close downloads as an Excel workbook with the summary and one she
 
     $sheets = workbookRows($response);
 
-    expect(array_keys($sheets))->toBe(['Resumen', 'Efectivo', 'Transferencias', 'Fiado', 'Envases', 'Stock'])
+    expect(array_keys($sheets))->toBe(['Resumen', 'Efectivo', 'Transferencias', 'Tarjeta', 'Fiado', 'Post-cierre', 'Envases', 'Stock'])
         ->and($sheets['Resumen'])->toContain(['Repartidor', 'Juan Pérez'])
         ->and($sheets['Resumen'])->toContain(['Fecha', '20/10/2026'])
         ->and($sheets['Resumen'])->toContain(['Ventas totales', 11500])
         ->and($sheets['Resumen'])->toContain(['Ventas fiadas', 2000])
         ->and($sheets['Resumen'])->toContain(['Efectivo', 6500])
         ->and($sheets['Resumen'])->toContain(['Transferencias', 3000])
+        ->and($sheets['Resumen'])->toContain(['Tarjeta', 0])
+        ->and($sheets['Resumen'])->toContain(['Ventas post-cierre', 0])
+        ->and($sheets['Tarjeta'])->toBe([['Hora', 'Cliente', 'Concepto', 'Importe', 'Origen']])
+        ->and($sheets['Post-cierre'])->toBe([['Hora', 'Cliente', 'Importe', 'Tipo', 'Origen']])
         ->and($sheets['Resumen'])->toContain(['Total cobrado', 9500])
         ->and($sheets['Resumen'])->toContain(['Cobro de deudas', 9500])
         ->and($sheets['Resumen'])->toContain(['Envases entregados', 4])

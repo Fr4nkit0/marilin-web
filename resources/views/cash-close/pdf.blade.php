@@ -8,7 +8,7 @@
     $remaining = collect($settlement['stockRemaining'])->pluck('quantity', 'product');
     $loaded = collect($settlement['stockLoaded'])->keyBy('product');
     $products = $loaded->keys()->merge($remaining->keys())->unique();
-    $paymentSections = ['Efectivo' => $details['cash'], 'Transferencias' => $details['transfer']];
+    $paymentSections = ['Efectivo' => $details['cash'], 'Transferencias' => $details['transfer'], 'Tarjeta' => $details['card']];
 @endphp
 <!DOCTYPE html>
 <html lang="es">
@@ -42,8 +42,10 @@
         <tr><td>Ventas fiadas (cuenta corriente)</td><td class="num">{{ $money($settlement['creditSales']) }}</td></tr>
         <tr><td>Cobro de deudas</td><td class="num">{{ $money($settlement['debtCollected']) }}</td></tr>
         <tr><td>Transferencias</td><td class="num">{{ $money($settlement['transferAmount']) }}</td></tr>
+        <tr><td>Tarjeta</td><td class="num">{{ $money($settlement['cardAmount']) }}</td></tr>
         <tr><td>Total cobrado</td><td class="num">{{ $money($settlement['totalCollected']) }}</td></tr>
         <tr class="total"><td>Efectivo a entregar</td><td class="num">{{ $money($settlement['cashAmount']) }}</td></tr>
+        <tr><td>Ventas post-cierre</td><td class="num">{{ $money($settlement['postCloseSales']) }}</td></tr>
         <tr><td>Envases entregados / devueltos</td><td class="num">{{ $settlement['containersDelivered'] }} / {{ $settlement['containersReturned'] }}</td></tr>
     </table>
 
@@ -69,6 +71,18 @@
             <tr><th>Hora</th><th>Cliente</th><th>Origen</th><th class="num">Importe</th></tr>
             @foreach ($details['credit'] as $row)
                 <tr><td>{{ $hour($row['at']) }}</td><td>{{ $row['customer'] }}</td><td>{{ $origins[$row['origin']] }}</td><td class="num">{{ $money($row['amount']) }}</td></tr>
+            @endforeach
+        </table>
+    @endif
+
+    <h2>Post-cierre</h2>
+    @if (count($details['postClose']) === 0)
+        <p class="empty">Sin registros.</p>
+    @else
+        <table>
+            <tr><th>Hora</th><th>Cliente</th><th>Tipo</th><th>Origen</th><th class="num">Importe</th></tr>
+            @foreach ($details['postClose'] as $row)
+                <tr><td>{{ $hour($row['at']) }}</td><td>{{ $row['customer'] }}</td><td>{{ $row['credit'] ? 'Fiado' : 'Contado' }}</td><td>{{ $origins[$row['origin']] }}</td><td class="num">{{ $money($row['amount']) }}</td></tr>
             @endforeach
         </table>
     @endif

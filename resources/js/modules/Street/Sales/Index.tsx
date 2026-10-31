@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import AdminLayout from '@/layouts/AdminLayout';
 import { PaymentMethodBadge, StatusBadge } from '@/ui/Badge';
@@ -14,6 +14,7 @@ import {
     ArrowUpRight,
     User,
     Clock,
+    CircleDollarSign,
 } from 'lucide-react';
 import { date, money, time } from '@/lib/format';
 import { useListFilters } from '@/lib/useListFilters';
@@ -21,6 +22,8 @@ import DataTable, { type Column } from '@/ui/DataTable';
 import Pagination from '@/ui/Pagination';
 import type { PaginatedData } from '@/types';
 import { DriverFilterSelect, SalesPaymentsTabs } from '../components/SalesPaymentsNav';
+import CancelRecordModal, { type CancelTarget } from '../components/CancelRecordModal';
+import Button from '@/ui/Button';
 
 interface SaleDetail {
     id: number;
@@ -32,7 +35,7 @@ interface SaleDetail {
     subtotal: string | number;
 }
 
-/** A sale is confirmed until the driver cancels it; "annulled" is a stored value no flow writes today. */
+/** A sale is confirmed until the driver (from the app) or the admin (from here) cancels it; "annulled" is a stored value no flow writes today. */
 type SaleStatus = 'confirmed' | 'cancelled' | 'annulled';
 
 interface SaleItem {
@@ -71,9 +74,14 @@ interface Props {
     metrics: {
         totalSalesAmount: number;
         creditSalesAmount: number;
+        /** "Contado": what was sold not on account. A sale figure, not what was collected. */
         immediateSalesAmount: number;
+        /** "Cobrado": the day's confirmed payments of every method, the same figure the panel and the cash close show. */
+        collectedAmount: number;
         count: number;
     };
+    /** Only the admin cancels a sale from the web. */
+    canCancel: boolean;
     filters: {
         search?: string;
         date: string;
@@ -83,7 +91,9 @@ interface Props {
     repartidores: { id: number; name: string }[];
 }
 
-export default function SalesIndex({ sales, metrics, filters, repartidores }: Props) {
+export default function SalesIndex({ sales, metrics, filters, repartidores, canCancel }: Props) {
+    const [cancelling, setCancelling] = useState<CancelTarget | null>(null);
+
     const filter = useListFilters(
         'sales.index',
         {
@@ -147,6 +157,30 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
             // A cancelled sale moved no money: its amount stays visible but struck through, outside the totals.
             cell: (sale) => (sale.status === 'confirmed' ? money(sale.total) : <s className="font-normal text-ink-muted">{money(sale.total)}</s>),
         },
+        ...(canCancel
+            ? [
+                  {
+                      header: <span className="sr-only">Acciones</span>,
+                      align: 'right',
+                      cell: (sale: SaleItem) =>
+                          sale.status === 'confirmed' ? (
+                              <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() =>
+                                      setCancelling({
+                                          url: route('sales.cancel', sale.id),
+                                          title: `Anular venta #${sale.id}`,
+                                          summary: `${sale.customer?.name ?? 'Consumidor Final'} · ${money(sale.total)} · ${date(sale.date)}`,
+                                      })
+                                  }
+                              >
+                                  Anular
+                              </Button>
+                          ) : null,
+                  } satisfies Column<SaleItem>,
+              ]
+            : []),
     ];
 
     return (
@@ -169,7 +203,7 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
             <SalesPaymentsTabs current="sales" filters={{ search: filters.search, date: filters.date, repartidor_id: filters.repartidor_id }} />
 
             {/* Metrics Row */}
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 mb-6">
+            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 mb-6">
                 <KpiCard
                     title="Ventas Totales"
                     value={money(metrics.totalSalesAmount)}
@@ -178,11 +212,18 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
                     subtitle={metrics.count === 1 ? '1 operación registrada' : `${metrics.count} operaciones registradas`}
                 />
                 <KpiCard
-                    title="Contado / Cobrado"
+                    title="Contado"
                     value={money(metrics.immediateSalesAmount)}
                     icon={Receipt}
                     variant="success"
-                    subtitle="Efectivo o Transferencias"
+                    subtitle="Ventas que no van a cuenta corriente"
+                />
+                <KpiCard
+                    title="Cobrado"
+                    value={money(metrics.collectedAmount)}
+                    icon={CircleDollarSign}
+                    variant="accent"
+                    subtitle="Cobros del día: efectivo, transferencia y tarjeta"
                 />
                 <KpiCard
                     title="A Crédito / Cta Cte"
@@ -251,6 +292,12 @@ export default function SalesIndex({ sales, metrics, filters, repartidores }: Pr
                 <DataTable columns={columns} rows={sales.data} rowKey={(sale) => sale.id} empty="No se encontraron ventas con los filtros seleccionados." />
                 <Pagination page={sales} noun="ventas" />
             </div>
+
+            <CancelRecordModal
+                target={cancelling}
+                consequence="Se devuelve el total a la cuenta corriente del cliente, el stock a la ruta y los envases que se movieron con la venta. Los cobros de la venta no se tocan."
+                onClose={() => setCancelling(null)}
+            />
         </AdminLayout>
     );
 }

@@ -53,7 +53,7 @@ function streetSaleOf(?Visit $visit = null, bool $credit = false, ?ReviewReason 
         notes: 'two products',
         recordedBy: test()->user,
         clientUuid: '6f1c2f3e-1b6a-4c55-9a53-3a5a2f0c9c11',
-        reviewReason: $reason,
+        reviewReasons: [$reason],
     );
 }
 
@@ -76,7 +76,7 @@ test('a sale with a visit books the ledger and discounts the route of the visit'
         ->and($sale->visit_id)->toBe($visit->id)
         ->and($sale->is_credit_sale)->toBeTrue()
         ->and($sale->needs_review)->toBeTrue()
-        ->and($sale->review_reason)->toBe(ReviewReason::ForeignCustomer->value)
+        ->and($sale->review_reasons)->toBe([ReviewReason::ForeignCustomer->value])
         ->and(routeStockOf($this->water, $otherRoute))->toBe(7.0)
         ->and(routeStockOf($this->soda, $otherRoute))->toBe(8.0)
         ->and(routeStockOf($this->water, $this->route))->toBe(50.0);

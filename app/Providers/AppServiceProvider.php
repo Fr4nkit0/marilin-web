@@ -47,6 +47,9 @@ class AppServiceProvider extends ServiceProvider
         // The truck is loaded at the warehouse, so only the admin records loads.
         Gate::define('load-trucks', fn (User $user): bool => $user->is_super_user);
 
+        // Cancelling a sale or payment of any day reverses money, stock and containers, so only the admin does it from the web.
+        Gate::define('cancel-street-records', fn (User $user): bool => $user->is_super_user);
+
         // Driver accounts are created and switched on or off by the admin only.
         Gate::define('manage-users', fn (User $user): bool => $user->is_super_user);
 

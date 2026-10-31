@@ -44,7 +44,7 @@ class CustomerPusher extends EntityPusher
                 ]);
                 $customer = $this->create($driver, $user, $record);
 
-                return $this->accepted($record['uuid'], $customer->id, $this->pendingReason($customer));
+                return $this->accepted($record['uuid'], $customer->id, $this->pendingReasons($customer));
             }
 
             $this->flagForReviewIfForeign($customer, $driver);
@@ -54,8 +54,8 @@ class CustomerPusher extends EntityPusher
         }
 
         return $merge->isOutdated()
-            ? $this->outdated($record['uuid'], $customer->id, $this->pendingReason($customer))
-            : $this->accepted($record['uuid'], $customer->id, $this->pendingReason($customer));
+            ? $this->outdated($record['uuid'], $customer->id, $this->pendingReasons($customer))
+            : $this->accepted($record['uuid'], $customer->id, $this->pendingReasons($customer));
     }
 
     /**

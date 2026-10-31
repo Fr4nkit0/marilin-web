@@ -75,7 +75,8 @@ function cancellablePayment(array $overrides = []): array
         'uuid' => (string) Str::uuid(),
         'customer_id' => test()->customer->id,
         'payment_method_id' => test()->method->id,
-        'amount' => 1200.25,
+        // Under the customer's debt, so the payment itself is not flagged (S4).
+        'amount' => 800.25,
         'paid_at' => '2026-10-22T14:45:00Z',
     ], $overrides);
 }
@@ -116,14 +117,14 @@ test('push cancels a sale of today: status cancelled, flagged, balance and stock
         ->assertJsonPath('data.sale_cancellations.0.uuid', $payload['uuid'])
         ->assertJsonPath('data.sale_cancellations.0.status', 'accepted')
         ->assertJsonPath('data.sale_cancellations.0.server_id', $record->id)
-        ->assertJsonPath('data.sale_cancellations.0.review_reason', 'Cancelled by a driver.');
+        ->assertJsonPath('data.sale_cancellations.0.review_reasons', ['Cancelled by a driver.']);
 
     $record->refresh();
     $note = CustomerAccountEntry::query()->where('entry_type', 'CREDIT_NOTE')->sole();
 
     expect($record->status)->toBe('cancelled')
         ->and($record->needs_review)->toBeTrue()
-        ->and($record->review_reason)->toBe('Cancelled by a driver.')
+        ->and($record->review_reasons)->toBe(['Cancelled by a driver.'])
         ->and(cancellationBalance())->toBe(1000.0)
         ->and($note->direction)->toBe(-1)
         ->and((float) $note->amount)->toBe(2100.0)
@@ -161,7 +162,7 @@ test('push cancelling a sale leaves its payments alone', function (): void {
     expect($record->status)->toBe('CONFIRMED')
         ->and($record->needs_review)->toBeFalse()
         ->and(CustomerAccountEntry::query()->where('payment_id', $record->id)->count())->toBe(1)
-        ->and(cancellationBalance())->toBe(1000.0 - 1200.25);
+        ->and(cancellationBalance())->toBe(1000.0 - 800.25);
 });
 
 test('push gives a cancelled sale stock back to the route of its visit', function (): void {
@@ -208,7 +209,7 @@ test('push cancels a payment of today: status cancelled, flagged, balance back, 
     $payment = cancellablePayment();
     push(['payments' => [$payment]])->assertOk()->assertJsonPath('data.payments.0.status', 'accepted');
     $record = Payment::query()->where('client_uuid', $payment['uuid'])->firstOrFail();
-    expect(cancellationBalance())->toBe(1000.0 - 1200.25);
+    expect(cancellationBalance())->toBe(1000.0 - 800.25);
 
     $payload = cancellation(['payment_uuid' => $payment['uuid'], 'reason' => 'Billete falso']);
     $response = push(['payment_cancellations' => [$payload]]);
@@ -217,17 +218,17 @@ test('push cancels a payment of today: status cancelled, flagged, balance back, 
         ->assertJsonPath('data.payment_cancellations.0.uuid', $payload['uuid'])
         ->assertJsonPath('data.payment_cancellations.0.status', 'accepted')
         ->assertJsonPath('data.payment_cancellations.0.server_id', $record->id)
-        ->assertJsonPath('data.payment_cancellations.0.review_reason', 'Cancelled by a driver.');
+        ->assertJsonPath('data.payment_cancellations.0.review_reasons', ['Cancelled by a driver.']);
 
     $record->refresh();
     $adjustment = CustomerAccountEntry::query()->where('entry_type', 'ADJUSTMENT')->sole();
 
     expect($record->status)->toBe('CANCELLED')
         ->and($record->needs_review)->toBeTrue()
-        ->and($record->review_reason)->toBe('Cancelled by a driver.')
+        ->and($record->review_reasons)->toBe(['Cancelled by a driver.'])
         ->and(cancellationBalance())->toBe(1000.0)
         ->and($adjustment->direction)->toBe(1)
-        ->and((float) $adjustment->amount)->toBe(1200.25)
+        ->and((float) $adjustment->amount)->toBe(800.25)
         ->and($adjustment->payment_id)->toBe($record->id)
         ->and($adjustment->description)->toBe('Cobro anulado por el repartidor: Billete falso')
         ->and(CustomerAccountEntry::query()->count())->toBe(2);
@@ -264,7 +265,7 @@ test('push answers a replayed :entity cancellation with the same server id and b
         ->assertJsonPath("data.{$key}.0.uuid", $again['uuid'])
         ->assertJsonPath("data.{$key}.0.status", 'accepted')
         ->assertJsonPath("data.{$key}.0.server_id", $serverId)
-        ->assertJsonPath("data.{$key}.0.review_reason", 'Cancelled by a driver.');
+        ->assertJsonPath("data.{$key}.0.review_reasons", ['Cancelled by a driver.']);
 
     expect(CustomerAccountEntry::query()->count())->toBe(2)
         ->and(cancellationBalance())->toBe(1000.0)
@@ -454,17 +455,23 @@ test('a driver cancellation always reaches the review inbox, even on a sale alre
     $stored = Sale::query()->where('client_uuid', $sale['uuid'])->firstOrFail();
 
     $stored->forceFill(match ($state) {
-        'flagged' => ['needs_review' => true, 'review_reason' => 'Sale price differs from the agreement or list price.'],
-        'reviewed' => ['needs_review' => true, 'review_reason' => 'Sale price differs from the agreement or list price.', 'reviewed_at' => now(), 'reviewed_by' => test()->user->id],
+        'flagged' => ['needs_review' => true, 'review_reasons' => ['Sale price differs from the agreement or list price.']],
+        'reviewed' => ['needs_review' => true, 'review_reasons' => ['Sale price differs from the agreement or list price.'], 'reviewed_at' => now(), 'reviewed_by' => test()->user->id],
     })->save();
+
+    // A reason still waiting stays next to the cancellation; one the admin already reviewed is not shown again.
+    $reasons = match ($state) {
+        'flagged' => ['Sale price differs from the agreement or list price.', 'Cancelled by a driver.'],
+        'reviewed' => ['Cancelled by a driver.'],
+    };
 
     push(['sale_cancellations' => [cancellation(['sale_uuid' => $sale['uuid']])]])->assertOk()
         ->assertJsonPath('data.sale_cancellations.0.status', 'accepted')
-        ->assertJsonPath('data.sale_cancellations.0.review_reason', 'Cancelled by a driver.');
+        ->assertJsonPath('data.sale_cancellations.0.review_reasons', $reasons);
 
     $stored->refresh();
     expect($stored->needs_review)->toBeTrue()
-        ->and($stored->review_reason)->toBe('Cancelled by a driver.')
+        ->and($stored->review_reasons)->toBe($reasons)
         ->and($stored->reviewed_at)->toBeNull()
         ->and($stored->reviewed_by)->toBeNull();
 })->with(['flagged', 'reviewed']);
@@ -513,7 +520,7 @@ test('a replayed payment cancellation after the admin reviewed it keeps the revi
     push(['payment_cancellations' => [$first]])->assertOk()
         ->assertJsonPath('data.payment_cancellations.0.status', 'accepted')
         ->assertJsonPath('data.payment_cancellations.0.server_id', $record->id)
-        ->assertJsonPath('data.payment_cancellations.0.review_reason', null);
+        ->assertJsonPath('data.payment_cancellations.0.review_reasons', []);
 
     $record->refresh();
     expect($record->reviewed_at?->toIso8601String())->toBe($reviewedAt?->toIso8601String())

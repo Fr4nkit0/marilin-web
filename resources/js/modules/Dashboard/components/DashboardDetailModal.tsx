@@ -19,7 +19,7 @@ interface Props {
 
 const TITLES: Record<DashboardDetailKind, { title: string; description: string }> = {
     sales: { title: 'Ventas del día', description: 'Cada venta registrada, con su cliente y repartidor.' },
-    payments: { title: 'Total cobrado', description: 'Cobros confirmados en efectivo y por transferencia.' },
+    payments: { title: 'Total cobrado', description: 'Cobros confirmados en efectivo, por transferencia y con tarjeta.' },
     stops: { title: 'Paradas de ruta', description: 'Las paradas de cada repartidor y en qué estado están.' },
     containers: { title: 'Movimiento de envases', description: 'Envases entregados y retirados en el día.' },
 };
@@ -123,6 +123,7 @@ function SalesTable({ rows }: { rows: DashboardSaleRow[] }) {
 function PaymentsTable({ rows }: { rows: DashboardPaymentRow[] }) {
     const cash = rows.filter((row) => row.method === 'CASH').reduce((sum, row) => sum + row.amount, 0);
     const transfer = rows.filter((row) => row.method === 'TRANSFER').reduce((sum, row) => sum + row.amount, 0);
+    const total = rows.reduce((sum, row) => sum + row.amount, 0);
 
     return (
         <Table
@@ -139,7 +140,8 @@ function PaymentsTable({ rows }: { rows: DashboardPaymentRow[] }) {
                 <>
                     <TotalRow colSpan={4} label="Efectivo" value={money(cash)} />
                     <TotalRow colSpan={4} label="Transferencias" value={money(transfer)} />
-                    <TotalRow colSpan={4} label="Total recaudado" value={money(cash + transfer)} />
+                    <TotalRow colSpan={4} label="Tarjeta" value={money(total - cash - transfer)} />
+                    <TotalRow colSpan={4} label="Total cobrado" value={money(total)} />
                 </>
             }
         >
@@ -154,8 +156,10 @@ function PaymentsTable({ rows }: { rows: DashboardPaymentRow[] }) {
                         <td className={tdClass}>
                             {row.method === 'CASH' ? (
                                 <Badge label="Efectivo" style="bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-200/60 dark:border-emerald-500/30" />
-                            ) : (
+                            ) : row.method === 'TRANSFER' ? (
                                 <Badge label="Transferencia" style="bg-sky-50 dark:bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-200/60 dark:border-sky-500/30" />
+                            ) : (
+                                <Badge label="Tarjeta" style="bg-violet-50 dark:bg-violet-500/15 text-violet-700 dark:text-violet-300 border-violet-200/60 dark:border-violet-500/30" />
                             )}
                         </td>
                         <td className={`${tdClass} text-right font-semibold text-ink`}>{money(row.amount)}</td>

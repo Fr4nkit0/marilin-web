@@ -19,7 +19,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['client_uuid', 'route_stop_id', 'customer_id', 'driver_id', 'outcome_id', 'arrived_at', 'latitude', 'longitude', 'altitude', 'status', 'notes', 'created_by', 'last_modified_by', 'enabled', 'needs_review', 'review_reason', 'app_modified_at'])]
+#[Fillable(['client_uuid', 'route_stop_id', 'customer_id', 'driver_id', 'outcome_id', 'arrived_at', 'latitude', 'longitude', 'altitude', 'status', 'notes', 'created_by', 'last_modified_by', 'enabled', 'needs_review', 'review_reasons', 'app_modified_at'])]
 class Visit extends Model
 {
     /** @use HasFactory<VisitFactory> */

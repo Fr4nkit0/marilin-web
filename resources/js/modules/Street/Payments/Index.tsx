@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import AdminLayout from '@/layouts/AdminLayout';
 import { PaymentMethodBadge, StatusBadge } from '@/ui/Badge';
@@ -13,6 +13,7 @@ import {
     Filter,
     User,
     ArrowUpRight,
+    CreditCard,
 } from 'lucide-react';
 import { date, money, paymentStatusLabel, time, type PaymentStatus } from '@/lib/format';
 import { useListFilters } from '@/lib/useListFilters';
@@ -20,6 +21,8 @@ import DataTable, { type Column } from '@/ui/DataTable';
 import Pagination from '@/ui/Pagination';
 import type { PaginatedData } from '@/types';
 import { DriverFilterSelect, SalesPaymentsTabs } from '../components/SalesPaymentsNav';
+import CancelRecordModal, { type CancelTarget } from '../components/CancelRecordModal';
+import Button from '@/ui/Button';
 
 interface PaymentItem {
     id: number;
@@ -49,10 +52,14 @@ interface PaymentItem {
 interface Props {
     payments: PaginatedData<PaymentItem>;
     metrics: {
+        /** "Cobrado": every confirmed payment of the day (cash, transfer and card), the same figure the panel and the cash close show. */
         totalCollected: number;
         cashTotal: number;
         transferTotal: number;
+        cardTotal: number;
     };
+    /** Only the admin cancels a payment from the web. */
+    canCancel: boolean;
     filters: {
         search?: string;
         date: string;
@@ -64,7 +71,9 @@ interface Props {
     repartidores: { id: number; name: string }[];
 }
 
-export default function PaymentsIndex({ payments, metrics, filters, paymentMethods, repartidores }: Props) {
+export default function PaymentsIndex({ payments, metrics, filters, paymentMethods, repartidores, canCancel }: Props) {
+    const [cancelling, setCancelling] = useState<CancelTarget | null>(null);
+
     const filter = useListFilters(
         'payments.index',
         {
@@ -105,6 +114,30 @@ export default function PaymentsIndex({ payments, metrics, filters, paymentMetho
             ),
         },
         { header: 'Monto Recaudado', align: 'right', className: 'font-semibold text-ink', cell: (payment) => `+${money(payment.amount)}` },
+        ...(canCancel
+            ? [
+                  {
+                      header: <span className="sr-only">Acciones</span>,
+                      align: 'right',
+                      cell: (payment: PaymentItem) =>
+                          payment.status === 'CONFIRMED' ? (
+                              <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() =>
+                                      setCancelling({
+                                          url: route('payments.cancel', payment.id),
+                                          title: `Anular cobro #${payment.id}`,
+                                          summary: `${payment.customer?.name ?? 'Cliente sin identificar'} · ${money(payment.amount)} · ${date(payment.paid_at)}`,
+                                      })
+                                  }
+                              >
+                                  Anular
+                              </Button>
+                          ) : null,
+                  } satisfies Column<PaymentItem>,
+              ]
+            : []),
     ];
 
     return (
@@ -127,13 +160,13 @@ export default function PaymentsIndex({ payments, metrics, filters, paymentMetho
             <SalesPaymentsTabs current="payments" filters={{ search: filters.search, date: filters.date, repartidor_id: filters.repartidor_id }} />
 
             {/* Metrics */}
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 mb-6">
+            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 mb-6">
                 <KpiCard
-                    title="Total Recaudado"
+                    title="Cobrado"
                     value={money(metrics.totalCollected)}
                     icon={CircleDollarSign}
                     variant="success"
-                    subtitle="Cobros confirmados del día"
+                    subtitle="Cobros confirmados del día: efectivo, transferencia y tarjeta"
                 />
                 <KpiCard
                     title="Efectivo en Mano"
@@ -148,6 +181,13 @@ export default function PaymentsIndex({ payments, metrics, filters, paymentMetho
                     icon={CheckCircle2}
                     variant="accent"
                     subtitle="Acreditadas en cuenta"
+                />
+                <KpiCard
+                    title="Tarjeta"
+                    value={money(metrics.cardTotal)}
+                    icon={CreditCard}
+                    variant="slate"
+                    subtitle="Débito o crédito"
                 />
             </div>
 
@@ -226,6 +266,12 @@ export default function PaymentsIndex({ payments, metrics, filters, paymentMetho
                 <DataTable columns={columns} rows={payments.data} rowKey={(payment) => payment.id} empty="No se registraron cobros con los filtros seleccionados." />
                 <Pagination page={payments} noun="cobros" />
             </div>
+
+            <CancelRecordModal
+                target={cancelling}
+                consequence="El monto vuelve a la deuda del cliente en su cuenta corriente."
+                onClose={() => setCancelling(null)}
+            />
         </AdminLayout>
     );
 }
