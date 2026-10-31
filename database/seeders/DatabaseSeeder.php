@@ -14,6 +14,8 @@ use App\Customers\Customers\Models\CustomerAddress;
 use App\Customers\Customers\Models\CustomerPreference;
 use App\Routes\Routes\Models\Route as DeliveryRoute;
 use App\Routes\Routes\Models\RouteStop;
+use App\Routes\ScheduledVisits\Models\ScheduledVisit;
+use App\Routes\ScheduledVisits\VisitScheduler;
 use App\Routes\Visits\Models\Visit;
 use App\Routes\Visits\Models\VisitOutcome;
 use App\Street\Containers\Models\ContainerMovement;
@@ -197,12 +199,11 @@ class DatabaseSeeder extends Seeder
                 'street' => 'Caseros 450',
                 'ref' => 'Frente a Plaza 9 de Julio',
                 'neighborhood' => 'Centro',
-                'price_soda' => 950.00,
                 'lat' => -24.78890,
                 'lng' => -65.41050,
                 'bidon_balance' => 18,
                 'sifon_balance' => 4,
-                'price_agua' => 1800.00,
+                'price_agua' => 5200.00,
                 'initial_debt' => 45000.00,
             ],
             [
@@ -216,7 +217,7 @@ class DatabaseSeeder extends Seeder
                 'lng' => -65.42300,
                 'bidon_balance' => 12,
                 'sifon_balance' => 0,
-                'price_agua' => 1850.00,
+                'price_agua' => 5300.00,
                 'initial_debt' => 28500.00,
             ],
             [
@@ -230,7 +231,7 @@ class DatabaseSeeder extends Seeder
                 'lng' => -65.40000,
                 'bidon_balance' => 15,
                 'sifon_balance' => 8,
-                'price_agua' => 1900.00,
+                'price_agua' => 5500.00,
                 'initial_debt' => 34000.00,
             ],
             [
@@ -244,7 +245,7 @@ class DatabaseSeeder extends Seeder
                 'lng' => -65.40800,
                 'bidon_balance' => 25,
                 'sifon_balance' => 12,
-                'price_agua' => 1750.00,
+                'price_agua' => 5000.00,
                 'initial_debt' => 62000.00,
             ],
             [
@@ -260,7 +261,7 @@ class DatabaseSeeder extends Seeder
                 'lng' => -65.40800,
                 'bidon_balance' => 4,
                 'sifon_balance' => 2,
-                'price_agua' => 2000.00,
+                'price_agua' => 5800.00,
                 'initial_debt' => 9200.00,
             ],
             [
@@ -274,7 +275,7 @@ class DatabaseSeeder extends Seeder
                 'lng' => -65.39800,
                 'bidon_balance' => 6,
                 'sifon_balance' => 0,
-                'price_agua' => 1900.00,
+                'price_agua' => 5500.00,
                 'initial_debt' => 11400.00,
             ],
 
@@ -290,7 +291,7 @@ class DatabaseSeeder extends Seeder
                 'lng' => -65.40000,
                 'bidon_balance' => 14,
                 'sifon_balance' => 0,
-                'price_agua' => 1800.00,
+                'price_agua' => 5200.00,
                 'initial_debt' => 16800.00,
             ],
             [
@@ -304,7 +305,7 @@ class DatabaseSeeder extends Seeder
                 'lng' => -65.41800,
                 'bidon_balance' => 8,
                 'sifon_balance' => 0,
-                'price_agua' => 1900.00,
+                'price_agua' => 5500.00,
                 'initial_debt' => 0.00,
             ],
             [
@@ -318,7 +319,7 @@ class DatabaseSeeder extends Seeder
                 'lng' => -65.41150,
                 'bidon_balance' => 5,
                 'sifon_balance' => 0,
-                'price_agua' => 2000.00,
+                'price_agua' => 5800.00,
                 'initial_debt' => 0.00,
             ],
 
@@ -334,7 +335,7 @@ class DatabaseSeeder extends Seeder
                 'lng' => -65.39000,
                 'bidon_balance' => 4,
                 'sifon_balance' => 8,
-                'price_agua' => 1950.00,
+                'price_agua' => 5700.00,
                 'initial_debt' => 0.00,
             ],
             [
@@ -345,12 +346,11 @@ class DatabaseSeeder extends Seeder
                 'ref' => 'Esquina con Alberdi',
                 'floor' => 'PB',
                 'neighborhood' => 'Centro',
-                'price_soda' => 900.00,
                 'lat' => -24.78650,
                 'lng' => -65.40650,
                 'bidon_balance' => 8,
                 'sifon_balance' => 12,
-                'price_agua' => 1900.00,
+                'price_agua' => 5500.00,
                 'initial_debt' => 0.00,
             ],
             [
@@ -364,7 +364,7 @@ class DatabaseSeeder extends Seeder
                 'lng' => -65.40900,
                 'bidon_balance' => 6,
                 'sifon_balance' => 10,
-                'price_agua' => 1900.00,
+                'price_agua' => 5500.00,
                 'initial_debt' => 0.00,
             ],
             [
@@ -378,7 +378,7 @@ class DatabaseSeeder extends Seeder
                 'lng' => -65.40100,
                 'bidon_balance' => 3,
                 'sifon_balance' => 4,
-                'price_agua' => 2000.00,
+                'price_agua' => 5800.00,
                 'initial_debt' => 0.00,
             ],
 
@@ -394,7 +394,7 @@ class DatabaseSeeder extends Seeder
                 'lng' => -65.39600,
                 'bidon_balance' => 3,
                 'sifon_balance' => 2,
-                'price_agua' => 2100.00,
+                'price_agua' => 6000.00,
                 'initial_debt' => 0.00,
             ],
             [
@@ -408,7 +408,7 @@ class DatabaseSeeder extends Seeder
                 'lng' => -65.39200,
                 'bidon_balance' => 4,
                 'sifon_balance' => 2,
-                'price_agua' => 2100.00,
+                'price_agua' => 6000.00,
                 'initial_debt' => 4200.00,
             ],
             [
@@ -422,7 +422,7 @@ class DatabaseSeeder extends Seeder
                 'lng' => -65.40500,
                 'bidon_balance' => 2,
                 'sifon_balance' => 2,
-                'price_agua' => 2100.00,
+                'price_agua' => 6000.00,
                 'initial_debt' => 0.00,
             ],
             [
@@ -436,7 +436,7 @@ class DatabaseSeeder extends Seeder
                 'lng' => -65.39500,
                 'bidon_balance' => 3,
                 'sifon_balance' => 0,
-                'price_agua' => 2100.00,
+                'price_agua' => 6000.00,
                 'initial_debt' => 0.00,
             ],
 
@@ -452,8 +452,8 @@ class DatabaseSeeder extends Seeder
                 'lng' => -65.42500,
                 'bidon_balance' => 10,
                 'sifon_balance' => 6,
-                'price_agua' => 1750.00,
-                'price_soda' => 900.00,
+                'price_agua' => 5000.00,
+                'price_soda' => 1300.00,
                 'initial_debt' => 21000.00,
             ],
             [
@@ -467,8 +467,8 @@ class DatabaseSeeder extends Seeder
                 'lng' => -65.42200,
                 'bidon_balance' => 8,
                 'sifon_balance' => 0,
-                'price_agua' => 1800.00,
-                'expired_price_agua' => 1650.00,
+                'price_agua' => 5200.00,
+                'expired_price_agua' => 5000.00,
                 'initial_debt' => 0.00,
             ],
             [
@@ -484,7 +484,7 @@ class DatabaseSeeder extends Seeder
                 'lng' => -65.42800,
                 'bidon_balance' => 2,
                 'sifon_balance' => 2,
-                'price_agua' => 2100.00,
+                'price_agua' => 6000.00,
                 'initial_debt' => 4200.00,
             ],
             [
@@ -500,7 +500,7 @@ class DatabaseSeeder extends Seeder
                 'lng' => -65.42000,
                 'bidon_balance' => 2,
                 'sifon_balance' => 0,
-                'price_agua' => 2100.00,
+                'price_agua' => 6000.00,
                 'initial_debt' => 0.00,
             ],
             [
@@ -515,7 +515,7 @@ class DatabaseSeeder extends Seeder
                 'lng' => -65.42650,
                 'bidon_balance' => 3,
                 'sifon_balance' => 0,
-                'price_agua' => 2000.00,
+                'price_agua' => 5800.00,
                 'initial_debt' => 0.00,
             ],
             [
@@ -529,7 +529,7 @@ class DatabaseSeeder extends Seeder
                 'lng' => -65.42400,
                 'bidon_balance' => 4,
                 'sifon_balance' => 4,
-                'price_agua' => 1950.00,
+                'price_agua' => 5700.00,
                 'initial_debt' => 7800.00,
             ],
             [
@@ -543,7 +543,7 @@ class DatabaseSeeder extends Seeder
                 'lng' => -65.41900,
                 'bidon_balance' => 0,
                 'sifon_balance' => 0,
-                'price_agua' => 2000.00,
+                'price_agua' => 5800.00,
                 'initial_debt' => 0.00,
                 'enabled' => false,
             ],
@@ -717,6 +717,9 @@ class DatabaseSeeder extends Seeder
 
         // 8. TODAY'S ROUTES & TRUCK LOADS
 
+        // Today's sales charge what each customer pays: their agreement or, without one, the list price.
+        $priceOf = fn (Customer $customer, Product $product): float => (float) app(PriceResolver::class)->priceFor($customer, $product, $today)->unitPrice;
+
         // --- ROUTE 1: Juan Pérez (IN_PROGRESS - Centro & Tres Cerritos) ---
         $routeJuan = DeliveryRoute::firstOrCreate(
             ['assigned_driver_id' => $repJuan->id, 'date' => $today->toDateString()],
@@ -793,9 +796,11 @@ class DatabaseSeeder extends Seeder
                 'is_credit' => false,
             ],
             [
+                // The app only pushes finished visits, so the next stop is pending, never a server visit in progress.
                 'customer' => 'Familia Calisaya',
-                'status' => 'IN_PROGRESS',
-                'time' => '11:50',
+                'status' => 'PENDING',
+                'time' => null,
+                'scheduled' => '12:00',
                 'qty_agua' => 2,
                 'qty_soda' => 0,
                 'method' => null,
@@ -851,7 +856,7 @@ class DatabaseSeeder extends Seeder
                 );
 
                 if ($s['status'] === 'FINISHED') {
-                    $totalSale = ($s['qty_agua'] * 1900.00) + ($s['qty_soda'] * 1000.00);
+                    $totalSale = ($s['qty_agua'] * $priceOf($cust, $productAgua20L)) + ($s['qty_soda'] * $priceOf($cust, $productSoda2L));
                     $sale = Sale::firstOrCreate(
                         ['customer_id' => $cust->id, 'visit_id' => $visit->id],
                         [
@@ -868,13 +873,13 @@ class DatabaseSeeder extends Seeder
                     if ($s['qty_agua'] > 0) {
                         SaleDetail::firstOrCreate(
                             ['sale_id' => $sale->id, 'product_id' => $productAgua20L->id],
-                            ['quantity' => $s['qty_agua'], 'unit_price' => 1900.00]
+                            ['quantity' => $s['qty_agua'], 'unit_price' => $priceOf($cust, $productAgua20L)]
                         );
                     }
                     if ($s['qty_soda'] > 0) {
                         SaleDetail::firstOrCreate(
                             ['sale_id' => $sale->id, 'product_id' => $productSoda2L->id],
-                            ['quantity' => $s['qty_soda'], 'unit_price' => 1000.00]
+                            ['quantity' => $s['qty_soda'], 'unit_price' => $priceOf($cust, $productSoda2L)]
                         );
                     }
 
@@ -950,6 +955,12 @@ class DatabaseSeeder extends Seeder
                     }
                 }
             }
+        }
+
+        // A customer called asking for a visit today: it rides on Juan's pending stop, so the app shows a requested visit.
+        $requestingCustomer = $createdCustomers['Familia Tolaba'];
+        if (ScheduledVisit::query()->where('customer_id', $requestingCustomer->id)->whereDate('date', $today)->doesntExist()) {
+            app(VisitScheduler::class)->schedule($requestingCustomer, $today, '13:00', 'Llamó, quiere 2 bidones', $admin);
         }
 
         // --- ROUTE 2: Carlos Gómez (COMPLETED - Castañares & El Huaico) ---
@@ -1054,7 +1065,7 @@ class DatabaseSeeder extends Seeder
                 ]
             );
 
-            $totalSale = ($s['qty_agua'] * 1800.00) + ($s['qty_soda'] * 1000.00);
+            $totalSale = ($s['qty_agua'] * $priceOf($cust, $productAgua20L)) + ($s['qty_soda'] * $priceOf($cust, $productSoda2L));
             $sale = Sale::firstOrCreate(
                 ['customer_id' => $cust->id, 'visit_id' => $visit->id],
                 [
@@ -1070,13 +1081,13 @@ class DatabaseSeeder extends Seeder
             if ($s['qty_agua'] > 0) {
                 SaleDetail::firstOrCreate(
                     ['sale_id' => $sale->id, 'product_id' => $productAgua20L->id],
-                    ['quantity' => $s['qty_agua'], 'unit_price' => 1800.00]
+                    ['quantity' => $s['qty_agua'], 'unit_price' => $priceOf($cust, $productAgua20L)]
                 );
             }
             if ($s['qty_soda'] > 0) {
                 SaleDetail::firstOrCreate(
                     ['sale_id' => $sale->id, 'product_id' => $productSoda2L->id],
-                    ['quantity' => $s['qty_soda'], 'unit_price' => 1000.00]
+                    ['quantity' => $s['qty_soda'], 'unit_price' => $priceOf($cust, $productSoda2L)]
                 );
             }
 
@@ -1201,7 +1212,7 @@ class DatabaseSeeder extends Seeder
                 ]
             );
 
-            $totalSale = $s['qty_agua'] * 1900.00;
+            $totalSale = $s['qty_agua'] * $priceOf($cust, $productAgua20L);
             $sale = Sale::firstOrCreate(
                 ['customer_id' => $cust->id, 'visit_id' => $visit->id],
                 [
@@ -1216,7 +1227,7 @@ class DatabaseSeeder extends Seeder
 
             SaleDetail::firstOrCreate(
                 ['sale_id' => $sale->id, 'product_id' => $productAgua20L->id],
-                ['quantity' => $s['qty_agua'], 'unit_price' => 1900.00]
+                ['quantity' => $s['qty_agua'], 'unit_price' => $priceOf($cust, $productAgua20L)]
             );
 
             ContainerMovement::firstOrCreate(

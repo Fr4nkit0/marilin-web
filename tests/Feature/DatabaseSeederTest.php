@@ -6,14 +6,18 @@ use App\CashDesk\DailyFigures;
 use App\CashDesk\DayScope;
 use App\Catalog\Models\Product;
 use App\Customers\Agreements\Models\CustomerAgreement;
+use App\Customers\Agreements\PriceResolver;
 use App\Customers\Customers\Models\Customer;
 use App\Customers\Customers\Models\CustomerAddress;
 use App\Customers\Neighborhoods\Models\Neighborhood;
 use App\Routes\Routes\Models\Route;
 use App\Routes\Routes\Models\RouteStop;
+use App\Routes\ScheduledVisits\Models\ScheduledVisit;
+use App\Routes\Visits\Models\Visit;
 use App\Street\Payments\Models\Payment;
 use App\Street\RouteStock\Models\RouteInventoryLoad;
 use App\Street\Sales\Models\Sale;
+use App\Street\Sales\Models\SaleDetail;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -50,7 +54,7 @@ test('the seeded driver Esteban gets a full day to work from the app', function 
         ->and($customers['Familia Quispe']['addresses'][0]['floor'])->toBe('PB')
         ->and($customers['Familia Quispe']['preferences'])->not->toBeEmpty()
         ->and(collect($customers['Supermercado El Tunal']['agreements']))->toHaveCount(2)
-        ->and(collect($customers['Escuela N° 4032 Limache']['agreements'])->pluck('unit_price')->all())->toBe(['1800.00'])
+        ->and(collect($customers['Escuela N° 4032 Limache']['agreements'])->pluck('unit_price')->all())->toBe(['5200.00'])
         ->and($products->map(fn (array $product): string => $product['price'])->all())->toBe(['Bidón 20L' => '6500.00', 'Sifón 1.5L' => '1500.00'])
         ->and($response->json('data.truck_inventory'))->toHaveCount(2);
 });
@@ -76,16 +80,15 @@ test('the first pull of Esteban carries the disabled customer', function (): voi
 
     $customer = collect($response->json('data.customers'))->firstWhere('name', 'Kiosco Don Ramón');
 
-    expect($customer['enabled'])->toBeFalse()
-        ->and(collect($response->json('data.products'))->pluck('name')->all())->not->toContain('Bidón de Agua 12L');
+    expect($customer['enabled'])->toBeFalse();
 });
 
 test('credit sales raise the seeded customer balance', function (): void {
     $sanatorio = Customer::query()->where('name', 'Sanatorio Nuestra Señora del Rosario')->firstOrFail();
     $distribuidora = Customer::query()->where('name', 'Distribuidora del Norte S.R.L.')->firstOrFail();
 
-    expect((float) $sanatorio->balance->current_balance)->toBe(45000.0 + 8 * 1900.0)
-        ->and((float) $distribuidora->balance->current_balance)->toBe(62000.0 + 15 * 1800.0 + 6 * 1000.0);
+    expect((float) $sanatorio->balance->current_balance)->toBe(45000.0 + 8 * 5200.0)
+        ->and((float) $distribuidora->balance->current_balance)->toBe(62000.0 + 15 * 5000.0 + 6 * 1500.0);
 });
 
 test('running the seeder again does not duplicate stops, agreements, products or balances', function (): void {
@@ -145,4 +148,43 @@ test('yesterday every driver closed a route with visited stops, sales and paymen
         ->and($today->totalSales)->toBeGreaterThan(0.0)
         ->and($yesterday->totalSales)->toBeGreaterThan($today->totalSales * 0.5)
         ->and($yesterday->totalSales)->toBeLessThan($today->totalSales * 2);
+});
+
+test('the seeded driver Juan gets one requested stop today, synced to the app with its note', function (): void {
+    $response = $this->withToken(appLogin('juan.perez@marilin.com'))->getJson('/api/v1/sync/bootstrap')->assertOk();
+
+    $requested = collect($response->json('data.stops'))->where('is_requested', true);
+
+    expect($requested)->toHaveCount(1)
+        ->and(RouteStop::with('customer')->find($requested->first()['id'])->customer->name)->toBe('Familia Tolaba')
+        ->and(ScheduledVisit::sole()->note)->toBe('Llamó, quiere 2 bidones');
+});
+
+test('running the seeder again does not duplicate the scheduled visit', function (): void {
+    $this->seed(DatabaseSeeder::class);
+
+    expect(ScheduledVisit::count())->toBe(1);
+});
+
+test('seeded agreements price a 20L bottle between 5000 and 6000, with a single soda agreement as an example', function (): void {
+    $agreements = CustomerAgreement::with('product')->get();
+    $agua = $agreements->where('product.name', 'Bidón 20L');
+    $soda = $agreements->where('product.name', 'Sifón 1.5L');
+
+    expect($agua)->not->toBeEmpty()
+        ->and($agua->every(fn (CustomerAgreement $agreement): bool => (float) $agreement->unit_price >= 5000 && (float) $agreement->unit_price <= 6000))->toBeTrue()
+        ->and($soda->pluck('unit_price')->map(fn ($price): float => (float) $price)->all())->toBe([1300.0]);
+});
+
+test('every seeded sale charges the price the customer had that day', function (): void {
+    $prices = app(PriceResolver::class);
+
+    $mismatches = SaleDetail::with(['sale.customer', 'product'])->get()
+        ->reject(fn (SaleDetail $detail): bool => (float) $detail->unit_price === (float) $prices->priceFor($detail->sale->customer, $detail->product, $detail->sale->date)->unitPrice);
+
+    expect($mismatches->map(fn (SaleDetail $detail): string => "{$detail->sale->customer->name}: {$detail->product->name} {$detail->unit_price}")->values()->all())->toBe([]);
+});
+
+test('no seeded visit is left in progress, since the app only pushes finished visits', function (): void {
+    expect(Visit::query()->where('status', 'IN_PROGRESS')->count())->toBe(0);
 });

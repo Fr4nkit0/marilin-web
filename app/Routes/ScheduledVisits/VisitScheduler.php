@@ -9,6 +9,7 @@ use App\Customers\Customers\Models\Customer;
 use App\Routes\Routes\Enums\RouteStatus;
 use App\Routes\Routes\Models\Route;
 use App\Routes\Routes\Models\RouteStop;
+use App\Routes\Routes\RouteProgress;
 use App\Routes\ScheduledVisits\Enums\ScheduledVisitStatus;
 use App\Routes\ScheduledVisits\Models\ScheduledVisit;
 use Carbon\CarbonInterface;
@@ -21,6 +22,8 @@ use Illuminate\Support\Facades\DB;
  */
 final class VisitScheduler
 {
+    public function __construct(private readonly RouteProgress $progress) {}
+
     /**
      * Stores the visit and, when the driver's route that date exists or the date is today, puts it on the route at once;
      * otherwise routes:generate attaches it when it plans that date.
@@ -78,7 +81,8 @@ final class VisitScheduler
 
     /**
      * Puts the visit on the route: the customer's enabled, not done stop carries it (at the earliest of both times),
-     * or a stop is created for it at the customer's primary address. Either way the stop changes, so the next pull sends it.
+     * or a stop is created for it at the customer's primary address. Either way the stop changes, so the next pull sends it,
+     * and a completed route reopens: it has a not done stop again.
      */
     public function attach(ScheduledVisit $visit, Route $route): RouteStop
     {
@@ -108,6 +112,8 @@ final class VisitScheduler
         }
 
         $visit->update(['route_stop_id' => $stop->id, 'created_stop' => $createdStop]);
+
+        $this->progress->recalculate($route->id);
 
         return $stop;
     }

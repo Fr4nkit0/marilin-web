@@ -7,12 +7,15 @@ namespace App\Sync;
 use App\Accounts\Models\Driver;
 use App\Accounts\Models\User;
 use App\Routes\Routes\Models\RouteStop;
+use App\Routes\Routes\RouteProgress;
 
 /**
  * ADR 0002: the app creates a stop later the same day, in the route of the original stop, linked to it.
  */
 class RescheduledStopPusher extends EntityPusher
 {
+    public function __construct(private readonly RouteProgress $progress) {}
+
     protected function rules(): array
     {
         return [
@@ -44,6 +47,8 @@ class RescheduledStopPusher extends EntityPusher
             'scheduled_time' => $record['scheduled_time'],
             'enabled' => true,
         ]);
+
+        $this->progress->recalculate($stop->route_id);
 
         return $this->accepted($record['uuid'], $stop->id);
     }
