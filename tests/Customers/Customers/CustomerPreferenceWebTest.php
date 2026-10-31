@@ -137,6 +137,78 @@ test('a second preference for the same day and start is rejected on the day fiel
         ->and($existing->fresh()->time_window_end)->toBe('12:00:00');
 });
 
+test('a window that overlaps another enabled one of the same day is rejected on the start field and nothing is stored', function (?string $start, ?string $end, string $message): void {
+    CustomerPreference::factory()->create(['customer_id' => $this->customer->id, 'day_of_week' => 1, 'time_window_start' => $start, 'time_window_end' => $end]);
+
+    $this->post(route('customers.preferences.store', $this->customer), ['day_of_week' => 1, 'time_window_start' => '12:45', 'time_window_end' => '13:30'])
+        ->assertSessionHasErrors(['time_window_start' => $message]);
+
+    expect($this->customer->preferences()->count())->toBe(1);
+})->with([
+    'a full window' => ['08:30:00', '13:00:00', 'Se superpone con 08:30–13:00.'],
+    'a window with only a start' => ['12:30:00', null, 'Se superpone con desde 12:30.'],
+    'a window with only an end' => [null, '13:00:00', 'Se superpone con hasta 13:00.'],
+    'a whole-day window' => [null, null, 'Se superpone con todo el día.'],
+]);
+
+test('a window without an end runs until midnight and one without a start from midnight', function (array $input, string $message): void {
+    CustomerPreference::factory()->create(['customer_id' => $this->customer->id, 'day_of_week' => 1, 'time_window_start' => '14:00:00', 'time_window_end' => '16:00:00']);
+
+    $this->post(route('customers.preferences.store', $this->customer), ['day_of_week' => 1, ...$input])
+        ->assertSessionHasErrors(['time_window_start' => $message]);
+
+    expect($this->customer->preferences()->count())->toBe(1);
+})->with([
+    'only a start' => [['time_window_start' => '10:00', 'time_window_end' => ''], 'Se superpone con 14:00–16:00.'],
+    'only an end' => [['time_window_start' => '', 'time_window_end' => '15:00'], 'Se superpone con 14:00–16:00.'],
+    'the whole day' => [['time_window_start' => '', 'time_window_end' => ''], 'Se superpone con 14:00–16:00.'],
+]);
+
+test('windows that only touch at an edge are accepted', function (array $input): void {
+    CustomerPreference::factory()->create(['customer_id' => $this->customer->id, 'day_of_week' => 1, 'time_window_start' => '08:30:00', 'time_window_end' => '13:00:00']);
+
+    $this->post(route('customers.preferences.store', $this->customer), ['day_of_week' => 1, ...$input])
+        ->assertSessionHasNoErrors();
+
+    expect($this->customer->preferences()->count())->toBe(2);
+})->with([
+    'right after' => [['time_window_start' => '13:00', 'time_window_end' => '15:00']],
+    'right before' => [['time_window_start' => '07:00', 'time_window_end' => '08:30']],
+    'from the end on' => [['time_window_start' => '13:00', 'time_window_end' => '']],
+    'until the start' => [['time_window_start' => '', 'time_window_end' => '08:30']],
+]);
+
+test('a removed preference or another day does not block an overlapping window', function (): void {
+    CustomerPreference::factory()->disabled()->create(['customer_id' => $this->customer->id, 'day_of_week' => 1, 'time_window_start' => '08:30:00', 'time_window_end' => '13:00:00']);
+    CustomerPreference::factory()->create(['customer_id' => $this->customer->id, 'day_of_week' => 2, 'time_window_start' => '08:30:00', 'time_window_end' => '13:00:00']);
+
+    $this->post(route('customers.preferences.store', $this->customer), ['day_of_week' => 1, 'time_window_start' => '12:00', 'time_window_end' => '13:00'])
+        ->assertSessionHasNoErrors();
+
+    expect($this->customer->preferences()->where('day_of_week', 1)->where('time_window_start', '12:00:00')->exists())->toBeTrue();
+});
+
+test('the taken day and start is checked before the overlap', function (): void {
+    CustomerPreference::factory()->create(['customer_id' => $this->customer->id, 'day_of_week' => 1, 'time_window_start' => '08:30:00', 'time_window_end' => '13:00:00']);
+
+    $this->post(route('customers.preferences.store', $this->customer), ['day_of_week' => 1, 'time_window_start' => '08:30', 'time_window_end' => '10:00'])
+        ->assertSessionHasErrors(['day_of_week' => 'El cliente ya tiene una preferencia para ese día y horario.'])
+        ->assertSessionDoesntHaveErrors('time_window_start');
+});
+
+test('changing a preference does not overlap with itself but does with the others', function (): void {
+    $preference = CustomerPreference::factory()->create(['customer_id' => $this->customer->id, 'day_of_week' => 1, 'time_window_start' => '08:30:00', 'time_window_end' => '13:00:00']);
+    $other = CustomerPreference::factory()->create(['customer_id' => $this->customer->id, 'day_of_week' => 3, 'time_window_start' => '09:00:00', 'time_window_end' => '10:00:00']);
+
+    $this->put(route('customers.preferences.update', [$this->customer, $preference]), ['day_of_week' => 1, 'time_window_start' => '08:00', 'time_window_end' => '14:00'])
+        ->assertSessionHasNoErrors();
+    $this->put(route('customers.preferences.update', [$this->customer, $other]), ['day_of_week' => 1, 'time_window_start' => '13:30', 'time_window_end' => '15:00'])
+        ->assertSessionHasErrors(['time_window_start' => 'Se superpone con 08:00–14:00.']);
+
+    expect($preference->fresh()->only(['time_window_start', 'time_window_end']))->toBe(['time_window_start' => '08:00:00', 'time_window_end' => '14:00:00'])
+        ->and($other->fresh()->day_of_week)->toBe(3);
+});
+
 test('the day must be 0 to 6 and the times H:i', function (array $input, string $field): void {
     $this->post(route('customers.preferences.store', $this->customer), $input)->assertSessionHasErrors($field);
 
@@ -196,6 +268,11 @@ test('creating a customer with a wrong preference stores neither the customer no
         [['day_of_week' => 1, 'time_window_start' => '08:00', 'time_window_end' => '12:00'], ['day_of_week' => 2, 'time_window_start' => '12:00', 'time_window_end' => '08:00']],
         'preferences.1.time_window_end',
         'El horario de fin debe ser posterior al de inicio.',
+    ],
+    'overlapping windows' => [
+        [['day_of_week' => 1, 'time_window_start' => '08:30', 'time_window_end' => '13:00'], ['day_of_week' => 1, 'time_window_start' => '12:00', 'time_window_end' => '14:00']],
+        'preferences.1.time_window_start',
+        'Se superpone con 08:30–13:00.',
     ],
     'the same day and start twice' => [
         [['day_of_week' => 1, 'time_window_start' => '08:00', 'time_window_end' => '12:00'], ['day_of_week' => 1, 'time_window_start' => '08:00', 'time_window_end' => '10:00']],

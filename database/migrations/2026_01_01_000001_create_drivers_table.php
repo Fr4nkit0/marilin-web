@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->unique()->constrained('users')->cascadeOnDelete();
             $table->boolean('enabled')->default(true);
+            // The last successful sync (bootstrap, pull or push) from the driver's app.
+            $table->timestamp('last_synced_at')->nullable();
             $table->timestamps();
         });
     }

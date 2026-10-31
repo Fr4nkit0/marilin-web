@@ -92,15 +92,17 @@ test('each KPI card carries the records behind it', function (): void {
         ->and($details['stops'][0]['driver'])->toBe('Juan Pérez');
 });
 
-test('the system card shows each driver last app sync and flags a route in progress that went quiet', function (): void {
+test('the system card shows each driver last successful app sync and flags a route in progress that went quiet', function (): void {
     $juan = Driver::factory()->create(['user_id' => User::factory()->create(['name' => 'Juan Pérez'])->id, 'enabled' => true]);
     $esteban = Driver::factory()->create(['user_id' => User::factory()->create(['name' => 'Esteban Benítez'])->id, 'enabled' => true]);
     $carlos = Driver::factory()->create(['user_id' => User::factory()->create(['name' => 'Carlos Gómez'])->id, 'enabled' => true]);
     Route::factory()->create(['assigned_driver_id' => $juan->id, 'date' => '2026-10-20', 'status' => 'IN_PROGRESS']);
     Route::factory()->create(['assigned_driver_id' => $esteban->id, 'date' => '2026-10-20', 'status' => 'IN_PROGRESS']);
 
-    $juan->user->createToken('android')->accessToken->forceFill(['last_used_at' => now()->subMinutes(4)])->save();
-    $esteban->user->createToken('android')->accessToken->forceFill(['last_used_at' => now()->subMinutes(45)])->save();
+    $juan->forceFill(['last_synced_at' => now()->subMinutes(4)])->save();
+    $esteban->forceFill(['last_synced_at' => now()->subMinutes(45)])->save();
+    // Any other API call with the token (the profile, a refresh) is not a sync.
+    $carlos->user->createToken('android')->accessToken->forceFill(['last_used_at' => now()->subMinutes(2)])->save();
 
     $sync = null;
     $this->get(route('dashboard'))

@@ -287,6 +287,67 @@ test('push rejects an edit that moves a preference onto the day and start of ano
     expect(preferenceState($moved))->toEqual($before);
 });
 
+test('push rejects a window that overlaps another enabled one of the same day', function (?string $start, ?string $end, string $message): void {
+    CustomerPreference::factory()->create(['customer_id' => $this->customer->id, 'day_of_week' => 1, 'time_window_start' => $start, 'time_window_end' => $end]);
+    $payload = preferencePayload($this->customer, ['time_window_start' => '12:45', 'time_window_end' => '13:30']);
+
+    push(['customer_preferences' => [$payload]])
+        ->assertOk()
+        ->assertJsonPath('data.customer_preferences.0.status', 'rejected')
+        ->assertJsonPath('data.customer_preferences.0.server_id', null)
+        ->assertJsonPath('data.customer_preferences.0.error', $message);
+
+    expect(CustomerPreference::query()->count())->toBe(1)
+        ->and(CustomerPreference::query()->where('client_uuid', $payload['uuid'])->exists())->toBeFalse();
+})->with([
+    'a full window' => ['08:30:00', '13:00:00', 'Se superpone con 08:30–13:00.'],
+    'a window with only a start' => ['12:30:00', null, 'Se superpone con desde 12:30.'],
+    'a window with only an end' => [null, '13:00:00', 'Se superpone con hasta 13:00.'],
+    'a whole-day window' => [null, null, 'Se superpone con todo el día.'],
+]);
+
+test('push accepts windows that only touch, and windows over a removed preference', function (): void {
+    CustomerPreference::factory()->create(['customer_id' => $this->customer->id, 'day_of_week' => 1, 'time_window_start' => '08:30:00', 'time_window_end' => '13:00:00']);
+    CustomerPreference::factory()->disabled()->create(['customer_id' => $this->customer->id, 'day_of_week' => 1, 'time_window_start' => '14:00:00', 'time_window_end' => '18:00:00']);
+
+    push(['customer_preferences' => [
+        preferencePayload($this->customer, ['time_window_start' => '13:00', 'time_window_end' => '15:00']),
+        preferencePayload($this->customer, ['time_window_start' => '07:00', 'time_window_end' => '08:30']),
+    ]])->assertOk()
+        ->assertJsonPath('data.customer_preferences.0.status', 'accepted')
+        ->assertJsonPath('data.customer_preferences.1.status', 'accepted');
+
+    expect(CustomerPreference::query()->where('enabled', true)->count())->toBe(3);
+});
+
+test('push answers the taken day and start before the overlap', function (): void {
+    CustomerPreference::factory()->create(['customer_id' => $this->customer->id, 'day_of_week' => 1, 'time_window_start' => '08:30:00', 'time_window_end' => '13:00:00']);
+
+    push(['customer_preferences' => [preferencePayload($this->customer, ['time_window_start' => '08:30', 'time_window_end' => '10:00'])]])
+        ->assertOk()
+        ->assertJsonPath('data.customer_preferences.0.status', 'rejected')
+        ->assertJsonPath('data.customer_preferences.0.error', 'The customer already has a preference for that day and time.');
+});
+
+test('push edits a preference without overlapping with itself, and removes one even when it overlaps', function (): void {
+    $uuid = (string) Str::uuid();
+    $preference = serverPreference($this->customer, $uuid);
+    $overlapping = CustomerPreference::factory()->create([
+        'customer_id' => $this->customer->id, 'client_uuid' => (string) Str::uuid(), 'day_of_week' => 1,
+        'time_window_start' => '10:00:00', 'time_window_end' => '11:00:00', 'updated_at' => '2026-10-20 10:00:00',
+    ]);
+
+    push(['customer_preferences' => [
+        preferencePayload($this->customer, ['uuid' => $overlapping->client_uuid, 'time_window_start' => '10:00', 'time_window_end' => '11:00', 'enabled' => false]),
+        preferencePayload($this->customer, ['uuid' => $uuid, 'time_window_start' => '09:00', 'time_window_end' => '13:00']),
+    ]])->assertOk()
+        ->assertJsonPath('data.customer_preferences.0.status', 'accepted')
+        ->assertJsonPath('data.customer_preferences.1.status', 'accepted');
+
+    expect($overlapping->fresh()->enabled)->toBeFalse()
+        ->and($preference->fresh()->time_window_end)->toBe('13:00:00');
+});
+
 test('push applies a preference on a customer of another driver and flags the customer for review', function (): void {
     $otherDriver = Driver::factory()->create(['enabled' => true]);
     $foreign = Customer::factory()->create(['driver_id' => $otherDriver->id]);
