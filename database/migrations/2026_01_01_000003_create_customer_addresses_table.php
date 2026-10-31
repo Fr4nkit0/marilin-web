@@ -28,6 +28,8 @@ return new class extends Migration
             $table->timestamps();
             $table->string('neighborhood')->nullable();
             $table->timestamp('received_at')->nullable()->index();
+            // When each field last changed, so an offline edit only overwrites what it changed (last write wins per field).
+            $table->jsonb('field_modified_at')->nullable();
 
             $table->index(['latitude', 'longitude']);
             $table->index('updated_at');

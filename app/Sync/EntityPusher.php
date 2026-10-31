@@ -122,6 +122,32 @@ abstract class EntityPusher
     }
 
     /**
+     * An edit dropped as a whole: every field it carried was older than the server's (APP-26). Answered like an
+     * accepted record, so the app learns the server id, but with its own status so it can tell the driver.
+     *
+     * @return array<string, mixed>
+     */
+    protected function outdated(string $uuid, int $serverId, ?string $reviewReason = null): array
+    {
+        return [...$this->accepted($uuid, $serverId, $reviewReason), 'status' => 'outdated'];
+    }
+
+    /**
+     * Rules that only apply on one path of the record (e.g. a create needs fields an edit may leave out).
+     *
+     * @param  array<string, mixed>  $record
+     * @param  array<string, array<int, string>>  $rules
+     */
+    protected function assertValid(array $record, array $rules): void
+    {
+        $validator = Validator::make($record, $rules);
+
+        if ($validator->fails()) {
+            throw new RejectedRecord($validator->errors()->first());
+        }
+    }
+
+    /**
      * Idempotency: a record the server already holds is answered again with the same server id and, if it still waits for review, its reason.
      *
      * @param  class-string<Model>  $model
@@ -183,7 +209,8 @@ abstract class EntityPusher
 
     /**
      * The server row an edit of the app points at: by the app's uuid, then by the server id the app learned in a pull.
-     * Returns null for a new record; rejects a server id that points at nothing.
+     * Returns null for a new record; rejects a server id that points at nothing or at a row another app record owns
+     * (a row without an app id, e.g. created in the web, is adopted by its first app edit).
      *
      * @template TModel of Model
      *
@@ -197,6 +224,10 @@ abstract class EntityPusher
 
         if ($found === null && isset($record['server_id'])) {
             $found = $model::query()->find($record['server_id']) ?? throw new RejectedRecord("The server_id does not match any {$name}.");
+
+            if ($found->getAttribute('client_uuid') !== null) {
+                throw new RejectedRecord('The server_id belongs to another app record.');
+            }
         }
 
         return $found;

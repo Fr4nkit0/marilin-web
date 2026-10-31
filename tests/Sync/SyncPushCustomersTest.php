@@ -104,6 +104,7 @@ function serverCustomer(Driver $driver, User $user, ?string $uuid): array
         'created_by' => $user->id,
         'client_uuid' => $uuid,
         'name' => 'Nombre del servidor',
+        'created_at' => '2026-10-20 10:00:00',
         'updated_at' => '2026-10-20 10:00:00',
     ]);
 
@@ -112,13 +113,14 @@ function serverCustomer(Driver $driver, User $user, ?string $uuid): array
         'street' => 'Calle del servidor',
         'is_primary' => true,
         'created_by' => $user->id,
+        'created_at' => '2026-10-20 10:00:00',
         'updated_at' => '2026-10-20 10:00:00',
     ]);
 
     return [$customer, $address];
 }
 
-test('push does not overwrite a customer when the edit is older than the server version', function (): void {
+test('push does not overwrite a customer when the edit is older than the server version and answers outdated', function (): void {
     $uuid = (string) Str::uuid();
     [$customer, $address] = serverCustomer($this->driver, $this->user, $uuid);
 
@@ -130,7 +132,7 @@ test('push does not overwrite a customer when the edit is older than the server 
     ])]]);
 
     $response->assertOk()
-        ->assertJsonPath('data.customers.0.status', 'accepted')
+        ->assertJsonPath('data.customers.0.status', 'outdated')
         ->assertJsonPath('data.customers.0.server_id', $customer->id);
 
     expect($customer->fresh()->name)->toBe('Nombre del servidor')
@@ -224,7 +226,7 @@ test('the draft nested sync endpoints no longer exist', function (): void {
     $this->postJson('/api/v1/sync/route-visits', ['visits' => []])->assertNotFound();
 });
 
-test('push flags a customer of another driver for review even when the edit is older than the server version', function (): void {
+test('push flags a customer of another driver for review even when the edit is older than the server version and answers outdated', function (): void {
     $otherDriver = Driver::factory()->create(['enabled' => true]);
     [$customer] = serverCustomer($otherDriver, $this->user, null);
 
@@ -234,7 +236,7 @@ test('push flags a customer of another driver for review even when the edit is o
         'modified_at' => '2026-10-20T09:00:00-03:00',
     ])]]);
 
-    $response->assertOk()->assertJsonPath('data.customers.0.status', 'accepted');
+    $response->assertOk()->assertJsonPath('data.customers.0.status', 'outdated');
 
     expect($response->json('data.customers.0.review_reason'))->toBeString()->not->toBeEmpty()
         ->and($customer->fresh()->needs_review)->toBeTrue()
@@ -338,7 +340,7 @@ test('push disables a customer when the app sends enabled false and flags it for
         ->and($customer->updated_at->toIso8601String())->toBe('2026-10-20T11:00:00-03:00');
 });
 
-test('push ignores a disable older than the server version', function (): void {
+test('push ignores a disable older than the server version and answers outdated', function (): void {
     [$customer] = serverCustomer($this->driver, $this->user, null);
 
     $this->postJson('/api/v1/sync/push', ['customers' => [customerPayload([
@@ -346,7 +348,7 @@ test('push ignores a disable older than the server version', function (): void {
         'enabled' => false,
         'modified_at' => '2026-10-20T09:00:00-03:00',
     ])]])->assertOk()
-        ->assertJsonPath('data.customers.0.status', 'accepted')
+        ->assertJsonPath('data.customers.0.status', 'outdated')
         ->assertJsonPath('data.customers.0.review_reason', null);
 
     $customer->refresh();
