@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '@/layouts/AdminLayout';
 import { StatusBadge } from '@/ui/Badge';
-import { CheckCheck } from 'lucide-react';
+import { CheckCheck, PackagePlus } from 'lucide-react';
 import { PaginatedData } from '@/types';
 import { ReviewFilters, ReviewItem, ReviewType } from './types';
 import { date, dateTime } from '@/lib/format';
 import { useListFilters } from '@/lib/useListFilters';
 import Pagination from '@/ui/Pagination';
+import Button from '@/ui/Button';
+import CorrectLoadModal from './components/CorrectLoadModal';
 
 interface Props {
     items: PaginatedData<ReviewItem>;
@@ -45,6 +47,8 @@ export default function Index({ items, filters, drivers }: Props) {
         },
         { driver_id: '', from: '', to: '', type: '', status: 'pending' },
     );
+
+    const [correcting, setCorrecting] = useState<ReviewItem | null>(null);
 
     const markReviewed = (item: ReviewItem) => {
         router.patch(route('review.reviewed', { type: item.type, id: item.id }), {}, { preserveScroll: true });
@@ -183,14 +187,22 @@ export default function Index({ items, filters, drivers }: Props) {
                                                     label={`Revisado${item.reviewed_by ? ` por ${item.reviewed_by}` : ''}`}
                                                 />
                                             ) : (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => markReviewed(item)}
-                                                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-sky-600 text-white hover:bg-sky-700 font-medium transition text-xs shadow-sm cursor-pointer dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
-                                                >
-                                                    <CheckCheck className="w-3.5 h-3.5" />
-                                                    Marcar como revisado
-                                                </button>
+                                                <div className="inline-flex items-center gap-2">
+                                                    {item.stock_correction && (
+                                                        <Button variant="secondary" size="sm" onClick={() => setCorrecting(item)}>
+                                                            <PackagePlus className="w-3.5 h-3.5" />
+                                                            Corregir carga
+                                                        </Button>
+                                                    )}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => markReviewed(item)}
+                                                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-sky-600 text-white hover:bg-sky-700 font-medium transition text-xs shadow-sm cursor-pointer dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
+                                                    >
+                                                        <CheckCheck className="w-3.5 h-3.5" />
+                                                        Marcar como revisado
+                                                    </button>
+                                                </div>
                                             )}
                                         </td>
                                     </tr>
@@ -202,6 +214,8 @@ export default function Index({ items, filters, drivers }: Props) {
 
                 <Pagination page={items} />
             </div>
+
+            <CorrectLoadModal item={correcting} onClose={() => setCorrecting(null)} />
         </AdminLayout>
     );
 }

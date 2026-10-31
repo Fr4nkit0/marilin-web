@@ -18,6 +18,7 @@ enum ReviewReason: string
     case DriverDisabledCustomer = 'Customer disabled by a driver.';
     case DriverCancellation = 'Cancelled by a driver.';
     case PaymentExceedsDebt = "Payment exceeds the customer's debt.";
+    case InsufficientStock = 'Sale leaves the truck stock below zero.';
 
     /**
      * The columns that mark a record for review with every reason given, or leave it clean when there is none:
@@ -76,6 +77,7 @@ enum ReviewReason: string
             self::DriverDisabledCustomer => 'El repartidor dio de baja al cliente.',
             self::DriverCancellation => 'Anulado por el repartidor.',
             self::PaymentExceedsDebt => 'El cobro supera la deuda del cliente y la venta del día.',
+            self::InsufficientStock => 'La venta deja el stock del camión por debajo de cero.',
         };
     }
 }

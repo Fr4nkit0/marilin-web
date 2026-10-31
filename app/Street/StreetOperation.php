@@ -17,6 +17,7 @@ use App\Street\Payments\Enums\PaymentStatus;
 use App\Street\Payments\Models\Payment;
 use App\Street\Payments\Models\Transaction;
 use App\Street\Payments\RecordPayment;
+use App\Street\RouteStock\Enums\LoadType;
 use App\Street\RouteStock\RouteStock;
 use App\Street\Sales\CancelSale;
 use App\Street\Sales\Enums\SaleStatus;
@@ -52,6 +53,10 @@ class StreetOperation
         private readonly RouteStock $stock,
     ) {}
 
+    /**
+     * A sale that leaves the truck stock of a product below zero is still recorded (the load was likely written down wrong),
+     * but goes to review so the admin can correct the load.
+     */
     public function recordSale(RecordSale $input): Sale
     {
         return DB::transaction(function () use ($input): Sale {
@@ -83,8 +88,8 @@ class StreetOperation
 
             $this->ledger->bookSale($input->customer, $sale, $input->recordedBy);
 
-            if ($stockRouteId !== null) {
-                $this->stock->discount($stockRouteId, $this->soldQuantities($sale), $input->recordedBy);
+            if ($stockRouteId !== null && $this->stock->discount($stockRouteId, $this->soldQuantities($sale), $input->recordedBy) !== []) {
+                $sale->flag(ReviewReason::InsufficientStock);
             }
 
             return $sale;
@@ -283,6 +288,17 @@ class StreetOperation
     public function loadRoute(Route $route, array $quantities, User $loadedBy): void
     {
         $this->stock->load($route, $quantities, $loadedBy);
+    }
+
+    /**
+     * Fixes a truck load that was written down short: the missing units are added to the route stock as a correction,
+     * with the admin's reason. A closed route takes it too, since the error is usually found after the day.
+     *
+     * @param  array<int, int>  $quantities  quantity keyed by product id
+     */
+    public function correctRouteLoad(Route $route, array $quantities, string $reason, User $correctedBy): void
+    {
+        $this->stock->load($route, $quantities, $correctedBy, LoadType::Correction, $reason);
     }
 
     /**

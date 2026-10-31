@@ -6,6 +6,7 @@ namespace App\Review\Http\Controllers;
 
 use App\Accounts\Models\User;
 use App\Http\Controllers\Controller;
+use App\Review\Http\Requests\CorrectTruckLoadRequest;
 use App\Review\Http\Requests\ReviewInboxRequest;
 use App\Review\ReviewInbox;
 use Illuminate\Http\RedirectResponse;
@@ -23,6 +24,16 @@ class ReviewInboxController extends Controller
         $inbox->markReviewed($type, $id, $reviewer);
 
         return back();
+    }
+
+    public function correctTruckLoad(CorrectTruckLoadRequest $request, ReviewInbox $inbox, int $id): RedirectResponse
+    {
+        /** @var User $admin */
+        $admin = $request->user();
+
+        $inbox->correctTruckLoad($id, $request->quantities(), $request->string('reason')->toString(), $admin);
+
+        return back()->with('success', 'Carga corregida y venta revisada');
     }
 
     public function index(ReviewInboxRequest $request, ReviewInbox $inbox): Response

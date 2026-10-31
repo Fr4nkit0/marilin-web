@@ -11,6 +11,13 @@ export interface ReviewItem {
     reasons: string[];
     reviewed_at: string | null;
     reviewed_by: string | null;
+    /** A pending sale that left the truck below zero: its route and the truck stock of what it sold; null otherwise. */
+    stock_correction: StockCorrection | null;
+}
+
+export interface StockCorrection {
+    route_id: number;
+    products: { id: number; name: string; current: number }[];
 }
 
 export interface ReviewFilters {

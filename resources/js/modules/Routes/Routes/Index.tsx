@@ -40,6 +40,9 @@ interface RouteStockItem {
 interface LoadHistoryItem {
     id: number;
     isInitial: boolean;
+    /** A load written down short, fixed from Revisión; it carries the admin's reason. */
+    isCorrection: boolean;
+    reason: string | null;
     loadedAt: string | null;
     productName: string;
     quantity: number;
@@ -99,6 +102,11 @@ interface Props {
         totalCompletedStops: number;
         globalProgress: number;
     };
+}
+
+/** A correction alone is not a first load: the next load the admin registers is still the initial one. */
+function hasLoads(route: RouteItem): boolean {
+    return route.loadHistory.some((load) => !load.isCorrection);
 }
 
 export default function RoutesIndex({
@@ -349,7 +357,7 @@ export default function RoutesIndex({
                                                         className="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs font-medium shadow-sm cursor-pointer dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
                                                     >
                                                         <PackagePlus className="w-3.5 h-3.5" />
-                                                        {routeItem.loadHistory.length === 0 ? 'Registrar carga inicial' : 'Registrar recarga'}
+                                                        {hasLoads(routeItem) ? 'Registrar recarga' : 'Registrar carga inicial'}
                                                     </button>
                                                 )}
                                             </h4>
@@ -402,7 +410,18 @@ export default function RoutesIndex({
                                                                         {load.loadedAt ?? '—'}
                                                                     </td>
                                                                     <td className="px-4 py-2.5 text-ink-secondary">
-                                                                        {load.isInitial ? 'Inicial' : 'Recarga'}
+                                                                        {load.isCorrection ? (
+                                                                            <>
+                                                                                Corrección
+                                                                                {load.reason && (
+                                                                                    <span className="block text-xs text-ink-muted">{load.reason}</span>
+                                                                                )}
+                                                                            </>
+                                                                        ) : load.isInitial ? (
+                                                                            'Inicial'
+                                                                        ) : (
+                                                                            'Recarga'
+                                                                        )}
                                                                     </td>
                                                                     <td className="px-4 py-2.5 font-medium text-ink">
                                                                         {load.productName}
@@ -507,7 +526,7 @@ export default function RoutesIndex({
             <RouteStockLoadModal
                 routeId={loadingRoute?.id ?? null}
                 driverName={loadingRoute?.driver.name ?? ''}
-                isFirstLoad={(loadingRoute?.loadHistory.length ?? 0) === 0}
+                isFirstLoad={loadingRoute === null || !hasLoads(loadingRoute)}
                 products={products}
                 onClose={() => setLoadingRoute(null)}
             />
