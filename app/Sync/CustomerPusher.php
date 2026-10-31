@@ -8,16 +8,28 @@ use App\Accounts\Models\Driver;
 use App\Accounts\Models\User;
 use App\Customers\Customers\AddressLocation;
 use App\Customers\Customers\CustomerAddressDetails;
-use App\Customers\Customers\CustomerEdit;
+use App\Customers\Customers\CustomerAppEdit;
 use App\Customers\Customers\CustomerIntake;
 use App\Customers\Customers\CustomerRegistration;
+use App\Customers\Customers\FieldMerge;
 use App\Customers\Customers\InvalidCustomerChange;
 use App\Customers\Customers\Models\Customer;
 use App\Review\ReviewReason;
+use Illuminate\Database\Eloquent\Model;
 
 class CustomerPusher extends EntityPusher
 {
-    public function __construct(private readonly CustomerIntake $intake) {}
+    public function __construct(private readonly CustomerIntake $intake, private readonly PullService $pull) {}
+
+    /**
+     * Customer fields an edit may carry; any one it leaves out is never touched.
+     */
+    private const array FIELDS = ['name', 'phone_number'];
+
+    /**
+     * Primary address fields an edit may carry under `address`.
+     */
+    private const array ADDRESS_FIELDS = ['street', 'apartment', 'floor', 'visual_reference', 'neighborhood', 'latitude', 'longitude'];
 
     protected function handle(Driver $driver, User $user, array $record): array
     {
@@ -25,16 +37,38 @@ class CustomerPusher extends EntityPusher
 
         try {
             if ($customer === null) {
+                $this->assertValid($record, [
+                    'name' => ['required'],
+                    'address' => ['required', 'array'],
+                    'address.street' => ['required'],
+                ]);
                 $customer = $this->create($driver, $user, $record);
-            } else {
-                $this->flagForReviewIfForeign($customer, $driver);
-                $this->edit($customer, $user, $record);
+
+                return $this->accepted($record['uuid'], $customer->id, $this->pendingReason($customer));
             }
+
+            $this->flagForReviewIfForeign($customer, $driver);
+            $merge = $this->edit($customer, $user, $record);
         } catch (InvalidCustomerChange $invalid) {
             throw new RejectedRecord($invalid->getMessage());
         }
 
-        return $this->accepted($record['uuid'], $customer->id, $this->pendingReason($customer));
+        return $merge->isOutdated()
+            ? $this->outdated($record['uuid'], $customer->id, $this->pendingReason($customer))
+            : $this->accepted($record['uuid'], $customer->id, $this->pendingReason($customer));
+    }
+
+    /**
+     * The customer as the pull sends it plus its primary address, as the pull sends it, under `address`: the same
+     * place a customer edit carries the primary address fields it changed. Null when it has none.
+     *
+     * @param  Customer  $row
+     */
+    protected function current(Model $row): array
+    {
+        $address = $row->primaryAddress()->first();
+
+        return [...$this->pull->row($row), 'address' => $address === null ? null : $this->pull->row($address)];
     }
 
     /**
@@ -56,37 +90,38 @@ class CustomerPusher extends EntityPusher
     }
 
     /**
-     * Last write wins: an edit only applies when it is newer than what the server holds.
+     * Last write wins per field: only the fields the edit carries, each when it is newer than the server's.
      *
      * @param  array<string, mixed>  $record
      */
-    private function edit(Customer $customer, User $user, array $record): void
+    private function edit(Customer $customer, User $user, array $record): FieldMerge
     {
-        $modifiedAt = $this->modifiedAt($record);
+        $fields = array_intersect_key($record, array_flip(self::FIELDS));
 
-        if (! $modifiedAt->greaterThan($customer->updated_at)) {
-            return;
+        // The app may disable a customer, never enable one: an `enabled` true is ignored.
+        if (($record['enabled'] ?? null) === false) {
+            $fields['enabled'] = false;
         }
 
-        $disable = ($record['enabled'] ?? null) === false && $customer->enabled;
+        $address = array_intersect_key((array) ($record['address'] ?? []), array_flip(self::ADDRESS_FIELDS));
+        $wasEnabled = $customer->enabled;
 
-        $this->intake->update($customer, new CustomerEdit(
-            name: $record['name'],
-            phoneNumber: $record['phone_number'] ?? null,
-            address: $this->addressDetails((array) $record['address']),
+        $merge = $this->intake->mergeAppEdit($customer, new CustomerAppEdit(
+            fields: $fields,
+            address: $address === [] ? null : $address,
+            modifiedAt: $this->modifiedAt($record),
             modifiedBy: $user,
-            reassignDriver: false,
             clientUuid: $record['uuid'],
-            appModifiedAt: $modifiedAt,
-            disable: $disable,
             addressClientUuid: $record['address']['uuid'] ?? null,
         ));
 
         // Accept-and-mark (ADR 0001): the driver's disable applies at once and the admin can enable the customer again.
-        if ($disable) {
+        if ($wasEnabled && ! $customer->enabled) {
             $customer->timestamps = false;
             $customer->flag(ReviewReason::DriverDisabledCustomer);
         }
+
+        return $merge;
     }
 
     /**
@@ -119,6 +154,8 @@ class CustomerPusher extends EntityPusher
     }
 
     /**
+     * The shape of what a record carries; a create also needs its name and street (see handle).
+     *
      * @return array<string, array<int, string>>
      */
     protected function rules(): array
@@ -126,19 +163,19 @@ class CustomerPusher extends EntityPusher
         return [
             'uuid' => ['required', 'uuid'],
             'server_id' => ['nullable', 'integer'],
-            'name' => ['required', 'string', 'max:160'],
-            'phone_number' => ['nullable', 'string', 'max:20'],
+            'name' => ['sometimes', 'required', 'string', 'max:160'],
+            'phone_number' => ['sometimes', 'nullable', 'string', 'max:20'],
             'modified_at' => ['required', 'date'],
-            'enabled' => ['nullable', 'boolean:strict'],
-            'address' => ['required', 'array'],
+            'enabled' => ['sometimes', 'nullable', 'boolean:strict'],
+            'address' => ['sometimes', 'array'],
             'address.uuid' => ['nullable', 'uuid'],
-            'address.street' => ['required', 'string'],
-            'address.apartment' => ['nullable', 'string'],
-            'address.floor' => ['nullable', 'string', 'max:20'],
-            'address.visual_reference' => ['nullable', 'string'],
-            'address.neighborhood' => ['nullable', 'string'],
-            'address.latitude' => ['nullable', 'numeric', 'between:-90,90'],
-            'address.longitude' => ['nullable', 'numeric', 'between:-180,180'],
+            'address.street' => ['sometimes', 'required', 'string'],
+            'address.apartment' => ['sometimes', 'nullable', 'string'],
+            'address.floor' => ['sometimes', 'nullable', 'string', 'max:20'],
+            'address.visual_reference' => ['sometimes', 'nullable', 'string'],
+            'address.neighborhood' => ['sometimes', 'nullable', 'string'],
+            'address.latitude' => ['sometimes', 'nullable', 'numeric', 'between:-90,90'],
+            'address.longitude' => ['sometimes', 'nullable', 'numeric', 'between:-180,180'],
         ];
     }
 }

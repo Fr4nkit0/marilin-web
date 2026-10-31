@@ -11,13 +11,14 @@ use App\Customers\Customers\CustomerPreferenceChange;
 use App\Customers\Customers\InvalidCustomerChange;
 use App\Customers\Customers\Models\Customer;
 use App\Customers\Customers\Models\CustomerPreference;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * A delivery preference the driver added or changed: created, or edited with last write wins like the customer itself.
  */
 class CustomerPreferencePusher extends EntityPusher
 {
-    public function __construct(private readonly CustomerIntake $intake) {}
+    public function __construct(private readonly CustomerIntake $intake, private readonly PullService $pull) {}
 
     protected function handle(Driver $driver, User $user, array $record): array
     {
@@ -47,6 +48,15 @@ class CustomerPreferencePusher extends EntityPusher
         }
 
         return $this->accepted($record['uuid'], $preference->id, $this->pendingReason($customer));
+    }
+
+    /**
+     * Only a record that points at its own server row gets it back: an insert rejected because its day and start are
+     * taken (audit E6b) has no row on the server, so it answers no `current` and the app drops its local row.
+     */
+    protected function current(Model $row): array
+    {
+        return $this->pull->row($row);
     }
 
     protected function rules(): array

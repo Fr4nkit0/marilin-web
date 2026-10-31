@@ -17,6 +17,13 @@ class CustomerAddress extends Model
     /** @use HasFactory<CustomerAddressFactory> */
     use HasFactory;
 
+    /**
+     * The fields the app edits, each with its own clock in `field_modified_at`.
+     *
+     * @var list<string>
+     */
+    public const array SYNCED_FIELDS = ['street', 'apartment', 'floor', 'visual_reference', 'neighborhood', 'latitude', 'longitude', 'is_primary', 'enabled'];
+
     protected function casts(): array
     {
         return [
@@ -26,6 +33,7 @@ class CustomerAddress extends Model
             'is_primary' => 'boolean',
             'enabled' => 'boolean',
             'received_at' => 'datetime',
+            'field_modified_at' => 'array',
         ];
     }
 

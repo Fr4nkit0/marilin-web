@@ -18,7 +18,7 @@ beforeEach(function (): void {
     $this->travelTo('2026-10-22 12:00:00');
     $this->user = User::factory()->create(['enabled' => true]);
     $this->driver = Driver::factory()->create(['user_id' => $this->user->id, 'enabled' => true]);
-    $this->customer = Customer::factory()->create(['driver_id' => $this->driver->id, 'updated_at' => '2026-10-20 10:00:00']);
+    $this->customer = Customer::factory()->create(['driver_id' => $this->driver->id, 'created_at' => '2026-10-20 10:00:00', 'updated_at' => '2026-10-20 10:00:00']);
     $this->primary = serverAddress($this->customer, null, true);
     Sanctum::actingAs($this->user, ['*']);
 });
@@ -52,6 +52,7 @@ function serverAddress(Customer $customer, ?string $uuid = null, bool $primary =
         'client_uuid' => $uuid,
         'street' => 'Calle del servidor',
         'is_primary' => $primary,
+        'created_at' => '2026-10-20 10:00:00',
         'updated_at' => '2026-10-20 10:00:00',
     ]);
 }
@@ -155,7 +156,7 @@ test('push applies a newer edit found by server id and adopts the app uuid', fun
         ->and(CustomerAddress::query()->count())->toBe(1);
 });
 
-test('push ignores an edit older than the server version but still accepts it', function (): void {
+test('push ignores an edit older than the server version and answers outdated with its server id', function (): void {
     $uuid = (string) Str::uuid();
     $address = serverAddress($this->customer, $uuid);
     $before = addressState($address);
@@ -166,7 +167,7 @@ test('push ignores an edit older than the server version but still accepts it', 
         'is_primary' => true,
         'modified_at' => '2026-10-20T09:00:00-03:00',
     ])]])->assertOk()
-        ->assertJsonPath('data.customer_addresses.0.status', 'accepted')
+        ->assertJsonPath('data.customer_addresses.0.status', 'outdated')
         ->assertJsonPath('data.customer_addresses.0.server_id', $address->id);
 
     expect(addressState($address))->toEqual($before)

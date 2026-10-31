@@ -26,6 +26,8 @@ return new class extends Migration
             $table->text('review_reason')->nullable();
             $table->timestamp('reviewed_at')->nullable();
             $table->foreignId('reviewed_by')->nullable()->constrained('users')->nullOnDelete();
+            // When each field last changed, so an offline edit only overwrites what it changed (last write wins per field).
+            $table->jsonb('field_modified_at')->nullable();
 
             $table->index('updated_at');
         });

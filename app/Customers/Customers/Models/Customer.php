@@ -31,6 +31,13 @@ class Customer extends Model
 
     use Reviewable;
 
+    /**
+     * The fields the app edits, each with its own clock in `field_modified_at`.
+     *
+     * @var list<string>
+     */
+    public const array SYNCED_FIELDS = ['name', 'phone_number', 'enabled'];
+
     public static function reviewSource(): ReviewSource
     {
         return ReviewSource::customer('customer', 'updated_at');
@@ -41,6 +48,7 @@ class Customer extends Model
         return [
             'enabled' => 'boolean',
             'received_at' => 'datetime',
+            'field_modified_at' => 'array',
         ];
     }
 

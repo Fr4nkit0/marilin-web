@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Customers\Customers;
 
+use App\Accounts\Models\User;
 use App\Catalog\Models\ContainerType;
 use App\Customers\Customers\Models\Customer;
 use App\Customers\Customers\Models\CustomerAddress;
@@ -71,45 +72,112 @@ class CustomerIntake
         });
     }
 
+    /**
+     * The admin's edit from the web. Only the fields whose value changes get a new clock, so an older offline edit
+     * of the other fields still applies.
+     */
     public function update(Customer $customer, CustomerEdit $input): Customer
     {
         return DB::transaction(function () use ($customer, $input): Customer {
-            $stamps = $input->appModifiedAt === null ? [] : ['updated_at' => $input->appModifiedAt];
-
-            $customer->timestamps = $input->appModifiedAt === null;
             $customer->forceFill([
-                'client_uuid' => $customer->client_uuid ?? $input->clientUuid,
                 'name' => $input->name,
                 'phone_number' => $input->phoneNumber,
                 'last_modified_by' => $input->modifiedBy->id,
                 ...($input->reassignDriver ? ['driver_id' => $input->driverId] : []),
-                ...($input->disable ? ['enabled' => false] : []),
-                ...($input->appModifiedAt === null ? [] : ['received_at' => now()]),
-                ...$stamps,
-            ])->save();
-
-            $address = $customer->primaryAddress ?? new CustomerAddress([
-                'customer_id' => $customer->id,
-                'is_primary' => true,
-                'created_by' => $input->modifiedBy->id,
-                'enabled' => true,
             ]);
+            FieldClock::stampDirty($customer, Customer::SYNCED_FIELDS, now());
+            $customer->save();
 
-            $addressClientUuid = $address->client_uuid ?? $input->addressClientUuid;
-            $this->assertAddressUuidIsFree($addressClientUuid, $address);
+            $address = $customer->primaryAddress ?? $this->newPrimaryAddress($customer, $input->modifiedBy);
 
-            $address->timestamps = $input->appModifiedAt === null;
             $address->forceFill([
                 ...$this->addressAttributes($input->address),
-                'client_uuid' => $addressClientUuid,
                 'last_modified_by' => $input->modifiedBy->id,
-                ...($input->appModifiedAt === null ? [] : ['received_at' => now()]),
-                ...$stamps,
-            ])->save();
+            ]);
+            FieldClock::stampDirty($address, CustomerAddress::SYNCED_FIELDS, now());
+            $address->save();
 
             $this->addPreferences($customer, $input->preferences);
 
             return $customer;
+        });
+    }
+
+    /**
+     * The app's offline edit: each field it carries applies only when it is newer than that field's clock
+     * (last write wins per field); the fields it does not carry are never touched. The rows it changes keep
+     * their latest update date and are marked as received now, so the pull still sends them.
+     */
+    public function mergeAppEdit(Customer $customer, CustomerAppEdit $input): FieldMerge
+    {
+        return DB::transaction(function () use ($customer, $input): FieldMerge {
+            $customerMerge = FieldClock::merge($customer, $input->fields, $input->modifiedAt);
+            $address = null;
+            $addressMerge = new FieldMerge;
+
+            if ($input->address !== null) {
+                $address = $customer->primaryAddress ?? $this->newPrimaryAddress($customer, $input->modifiedBy);
+                $addressClientUuid = $address->client_uuid ?? $input->addressClientUuid;
+                $this->assertAddressUuidIsFree($addressClientUuid, $address);
+
+                $addressMerge = FieldClock::merge($address, $input->address, $input->modifiedAt);
+                $address->forceFill(['client_uuid' => $addressClientUuid]);
+            }
+
+            $merge = $customerMerge->plus($addressMerge);
+
+            if (! $merge->changedAny()) {
+                return $merge;
+            }
+
+            $customer->forceFill(['client_uuid' => $customer->client_uuid ?? $input->clientUuid]);
+
+            if ($customerMerge->changedAny()) {
+                $this->stampAppChange($customer, $input->modifiedAt, $input->modifiedBy);
+            }
+
+            $customer->timestamps = false;
+            $customer->save();
+
+            if ($address !== null && $addressMerge->changedAny()) {
+                $this->stampAppChange($address, $input->modifiedAt, $input->modifiedBy);
+                $address->save();
+            }
+
+            return $merge;
+        });
+    }
+
+    /**
+     * The app's offline edit of an address, merged field by field like the customer's. A customer always keeps
+     * exactly one primary address, and it stays enabled.
+     */
+    public function mergeAppAddressEdit(Customer $customer, CustomerAddress $address, CustomerAddressAppEdit $input): FieldMerge
+    {
+        return DB::transaction(function () use ($customer, $address, $input): FieldMerge {
+            $merge = FieldClock::merge($address, $input->fields, $input->modifiedAt);
+
+            if (! $merge->changedAny()) {
+                return $merge;
+            }
+
+            if (! $address->enabled && ($address->is_primary || $address->getOriginal('is_primary'))) {
+                throw new InvalidCustomerChange('The primary address cannot be disabled.');
+            }
+
+            if ($address->is_primary && $merge->wasApplied('is_primary')) {
+                $this->unsetOtherPrimaries($customer, $address, $input->modifiedBy, $input->modifiedAt);
+            }
+
+            $address->forceFill(['client_uuid' => $address->client_uuid ?? $input->clientUuid]);
+            $this->stampAppChange($address, $input->modifiedAt, $input->modifiedBy);
+            $address->save();
+
+            if (! $customer->addresses()->where('is_primary', true)->exists()) {
+                throw new InvalidCustomerChange('A customer needs a primary address.');
+            }
+
+            return $merge;
         });
     }
 
@@ -182,18 +250,7 @@ class CustomerIntake
             }
 
             if ($input->isPrimary) {
-                $customer->addresses()
-                    ->where('is_primary', true)
-                    ->when($address !== null, fn ($query) => $query->whereKeyNot($address->id))
-                    ->get()
-                    ->each(function (CustomerAddress $previous) use ($input): void {
-                        $previous->timestamps = $input->appModifiedAt === null;
-                        $previous->forceFill([
-                            'is_primary' => false,
-                            'last_modified_by' => $input->modifiedBy->id,
-                            ...$this->appStamps($input->appModifiedAt),
-                        ])->save();
-                    });
+                $this->unsetOtherPrimaries($customer, $address, $input->modifiedBy, $input->appModifiedAt);
             }
 
             $address ??= new CustomerAddress(['customer_id' => $customer->id, 'created_by' => $input->modifiedBy->id]);
@@ -206,7 +263,13 @@ class CustomerIntake
                 'enabled' => $input->enabled,
                 ...($address->exists ? ['last_modified_by' => $input->modifiedBy->id] : []),
                 ...$this->appStamps($input->appModifiedAt, created: ! $address->exists),
-            ])->save();
+            ]);
+
+            if ($input->appModifiedAt === null) {
+                FieldClock::stampDirty($address, CustomerAddress::SYNCED_FIELDS, now());
+            }
+
+            $address->save();
 
             if (! $customer->addresses()->where('is_primary', true)->exists()) {
                 throw new InvalidCustomerChange('A customer needs a primary address.');
@@ -214,6 +277,54 @@ class CustomerIntake
 
             return $address;
         });
+    }
+
+    /**
+     * Making an address primary unsets the customer's previous primary; from the app, its flag is dated by the edit.
+     */
+    private function unsetOtherPrimaries(Customer $customer, ?CustomerAddress $kept, User $modifiedBy, ?CarbonInterface $appModifiedAt): void
+    {
+        $customer->addresses()
+            ->where('is_primary', true)
+            ->when($kept?->exists, fn ($query) => $query->whereKeyNot($kept->id))
+            ->get()
+            ->each(function (CustomerAddress $previous) use ($modifiedBy, $appModifiedAt): void {
+                $previous->forceFill(['is_primary' => false, 'last_modified_by' => $modifiedBy->id]);
+                FieldClock::stamp($previous, ['is_primary'], $appModifiedAt ?? now());
+
+                if ($appModifiedAt !== null) {
+                    $this->stampAppChange($previous, $appModifiedAt, $modifiedBy);
+                }
+
+                $previous->save();
+            });
+    }
+
+    private function newPrimaryAddress(Customer $customer, User $createdBy): CustomerAddress
+    {
+        return new CustomerAddress([
+            'customer_id' => $customer->id,
+            'is_primary' => true,
+            'created_by' => $createdBy->id,
+            'enabled' => true,
+        ]);
+    }
+
+    /**
+     * A row an offline edit changed: it keeps its latest update date (the edit may be older than a later web change)
+     * and is marked as received now, so the pull sends it whatever that date is.
+     */
+    private function stampAppChange(Customer|CustomerAddress $row, CarbonInterface $modifiedAt, User $modifiedBy): void
+    {
+        $updatedAt = $row->getAttributes()['updated_at'] ?? null;
+
+        $row->timestamps = false;
+        $row->forceFill([
+            'last_modified_by' => $modifiedBy->id,
+            'received_at' => now(),
+            'updated_at' => $updatedAt === null ? $modifiedAt : Carbon::parse($updatedAt)->max($modifiedAt),
+            ...($row->exists ? [] : ['created_at' => $modifiedAt]),
+        ]);
     }
 
     /**
