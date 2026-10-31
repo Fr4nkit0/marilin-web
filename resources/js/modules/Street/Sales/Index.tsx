@@ -16,7 +16,7 @@ import {
     Clock,
     CircleDollarSign,
 } from 'lucide-react';
-import { date, money, time } from '@/lib/format';
+import { date, money, paymentMethodsLabel, time } from '@/lib/format';
 import { useListFilters } from '@/lib/useListFilters';
 import DataTable, { type Column } from '@/ui/DataTable';
 import Pagination from '@/ui/Pagination';
@@ -24,6 +24,7 @@ import type { PaginatedData } from '@/types';
 import { DriverFilterSelect, SalesPaymentsTabs } from '../components/SalesPaymentsNav';
 import CancelRecordModal, { type CancelTarget } from '../components/CancelRecordModal';
 import Button from '@/ui/Button';
+import type { LinkedPayment } from '../types';
 
 interface SaleDetail {
     id: number;
@@ -62,11 +63,10 @@ interface SaleItem {
         name: string;
     } | null;
     details?: SaleDetail[];
-    payments?: {
-        payment_method?: {
-            name: string;
-        };
-    }[];
+    /** Every method the sale was paid with, in the order paid, without repeats. */
+    payment_methods: string[];
+    /** The sale's payments still in force: cancelling the sale does not cancel them. */
+    active_payments: LinkedPayment[];
 }
 
 interface Props {
@@ -114,6 +114,8 @@ export default function SalesIndex({ sales, metrics, filters, repartidores, canC
         { header: 'Fecha / Hora', className: 'text-ink-muted whitespace-nowrap', cell: (sale) => `${time(sale.date)} hs` },
         {
             header: 'Cliente',
+            // A long customer name wraps so the row actions stay inside the table at 1440 px.
+            className: 'whitespace-normal min-w-[10rem]',
             cell: (sale) =>
                 sale.customer ? (
                     <Link href={route('customers.show', sale.customer.id)} className="font-medium text-ink hover:text-ink-secondary transition">
@@ -145,7 +147,7 @@ export default function SalesIndex({ sales, metrics, filters, repartidores, canC
             align: 'center',
             cell: (sale) =>
                 sale.status === 'confirmed' ? (
-                    <PaymentMethodBadge method={sale.payments?.[0]?.payment_method?.name || (sale.is_credit_sale ? 'Crédito Ruta' : 'Efectivo')} />
+                    <PaymentMethodBadge method={paymentMethodsLabel(sale.payment_methods) || (sale.is_credit_sale ? 'Crédito Ruta' : 'Efectivo')} />
                 ) : (
                     <StatusBadge status="cancelado" label="Anulada" />
                 ),
@@ -172,6 +174,7 @@ export default function SalesIndex({ sales, metrics, filters, repartidores, canC
                                           url: route('sales.cancel', sale.id),
                                           title: `Anular venta #${sale.id}`,
                                           summary: `${sale.customer?.name ?? 'Consumidor Final'} · ${money(sale.total)} · ${date(sale.date)}`,
+                                          linkedPayments: sale.active_payments,
                                       })
                                   }
                               >

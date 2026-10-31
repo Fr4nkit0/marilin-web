@@ -60,7 +60,7 @@ test('a payment dated more than five minutes after the server time is rejected a
         ->assertJsonPath('data.payments.0.status', 'rejected')
         ->assertJsonPath('data.payments.0.server_id', null)
         ->assertJsonPath('data.payments.0.review_reasons', [])
-        ->assertJsonPath('data.payments.0.error', 'The payment date is in the future.');
+        ->assertJsonPath('data.payments.0.error', 'La fecha del cobro es posterior a la actual.');
 
     expect(Payment::query()->count())->toBe(0)
         ->and(checkedBalance())->toBe(1000.0);
@@ -81,7 +81,7 @@ test('a payment larger than the debt plus the day\'s sales is accepted and left 
     $response = push(['payments' => [$payment]])
         ->assertOk()
         ->assertJsonPath('data.payments.0.status', 'accepted')
-        ->assertJsonPath('data.payments.0.review_reasons', ["Payment exceeds the customer's debt."]);
+        ->assertJsonPath('data.payments.0.review_reasons', ['El cobro supera la deuda del cliente y la venta del día.']);
 
     $record = Payment::query()->where('client_uuid', $payment['uuid'])->sole();
 
@@ -117,7 +117,7 @@ test('the day\'s sales count once, through the balance they already raised', fun
         ->assertOk()
         ->assertJsonPath('data.payments.0.review_reasons', [])
         // The first payment settled the whole debt, the day's sale included: anything more is over the debt.
-        ->assertJsonPath('data.payments.1.review_reasons', ["Payment exceeds the customer's debt."]);
+        ->assertJsonPath('data.payments.1.review_reasons', ['El cobro supera la deuda del cliente y la venta del día.']);
 });
 
 test('an over-debt payment on another driver\'s customer carries both reasons', function (): void {
@@ -125,5 +125,5 @@ test('an over-debt payment on another driver\'s customer carries both reasons', 
 
     push(['payments' => [checkedPayment(['amount' => 5000])]])
         ->assertOk()
-        ->assertJsonPath('data.payments.0.review_reasons', ['Customer is assigned to another driver.', "Payment exceeds the customer's debt."]);
+        ->assertJsonPath('data.payments.0.review_reasons', ['El cliente está asignado a otro repartidor.', 'El cobro supera la deuda del cliente y la venta del día.']);
 });

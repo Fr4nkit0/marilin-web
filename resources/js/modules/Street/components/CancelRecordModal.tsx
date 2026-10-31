@@ -4,6 +4,8 @@ import { X } from 'lucide-react';
 import Modal, { ModalTitle } from '@/ui/Modal';
 import Button from '@/ui/Button';
 import { Field, Textarea } from '@/ui/Field';
+import { money, paymentMethodLabel } from '@/lib/format';
+import type { LinkedPayment } from '../types';
 
 /** What is being cancelled, as the confirmation shows it. */
 export interface CancelTarget {
@@ -13,6 +15,8 @@ export interface CancelTarget {
     title: string;
     /** Who and how much, so the admin knows which record they are about to cancel. */
     summary: string;
+    /** A sale's payments still in force: they are not cancelled with it, so the admin is warned about them. */
+    linkedPayments?: LinkedPayment[];
 }
 
 interface Props {
@@ -68,6 +72,29 @@ export default function CancelRecordModal({ target, consequence, onClose }: Prop
                         <p className="rounded-lg border border-amber-200/60 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/15 px-3 py-2 text-sm text-amber-800 dark:text-amber-200">
                             {consequence} La anulación queda registrada con tu usuario y llega a la app del repartidor.
                         </p>
+
+                        {target.linkedPayments && target.linkedPayments.length > 0 && (
+                            <div
+                                role="alert"
+                                className="rounded-lg border border-amber-300/70 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-500/15 px-3 py-2 text-sm text-amber-900 dark:text-amber-100"
+                            >
+                                <p className="font-medium">
+                                    {target.linkedPayments.length === 1
+                                        ? 'Esta venta tiene un cobro que sigue vigente:'
+                                        : `Esta venta tiene ${target.linkedPayments.length} cobros que siguen vigentes:`}
+                                </p>
+                                <ul className="mt-1 space-y-0.5">
+                                    {target.linkedPayments.map((payment) => (
+                                        <li key={payment.id} className="tabular-nums">
+                                            {money(payment.amount)} · {payment.method ? paymentMethodLabel(payment.method) : 'Sin método'}
+                                        </li>
+                                    ))}
+                                </ul>
+                                <p className="mt-1">
+                                    Anular la venta no los anula: el cliente queda con saldo a favor hasta que los anules en Cobros.
+                                </p>
+                            </div>
+                        )}
 
                         <Field label="Motivo" error={errors.reason} hint="Obligatorio. Queda guardado en el registro.">
                             <Textarea

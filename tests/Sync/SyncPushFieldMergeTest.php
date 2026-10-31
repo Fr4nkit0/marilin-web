@@ -331,7 +331,7 @@ test('S5: an edit by server id of a row another app record already owns is rejec
         ->assertJsonPath('data.customers.0.uuid', $stranger)
         ->assertJsonPath('data.customers.0.status', 'rejected')
         ->assertJsonPath('data.customers.0.server_id', null)
-        ->assertJsonPath('data.customers.0.error', 'The server_id belongs to another app record.');
+        ->assertJsonPath('data.customers.0.error', 'El identificador del servidor pertenece a otro registro de la app.');
 
     push(['customer_addresses' => [[
         'uuid' => $stranger,
@@ -341,7 +341,7 @@ test('S5: an edit by server id of a row another app record already owns is rejec
         'modified_at' => '2026-10-21T11:00:00-03:00',
     ]]])->assertOk()
         ->assertJsonPath('data.customer_addresses.0.status', 'rejected')
-        ->assertJsonPath('data.customer_addresses.0.error', 'The server_id belongs to another app record.');
+        ->assertJsonPath('data.customer_addresses.0.error', 'El identificador del servidor pertenece a otro registro de la app.');
 
     expect(customerSnapshot($this->customer))->toEqual($before)
         ->and(Customer::query()->where('client_uuid', $stranger)->exists())->toBeFalse();
@@ -368,7 +368,7 @@ test('S5: a preference edit by server id of a preference another app record owns
         'modified_at' => '2026-10-21T11:00:00-03:00',
     ]]])->assertOk()
         ->assertJsonPath('data.customer_preferences.0.status', 'rejected')
-        ->assertJsonPath('data.customer_preferences.0.error', 'The server_id belongs to another app record.');
+        ->assertJsonPath('data.customer_preferences.0.error', 'El identificador del servidor pertenece a otro registro de la app.');
 
     $preference->refresh();
     expect($preference->time_window_end)->toBe('15:00:00')
@@ -420,7 +420,7 @@ test('a disable carried alone applies and flags the customer, an older one does 
     push(['customers' => [mergeEdit($this->customerUuid, $this->customer->id, '2026-10-21T11:00:00-03:00', ['enabled' => false])]])
         ->assertOk()
         ->assertJsonPath('data.customers.0.status', 'accepted')
-        ->assertJsonPath('data.customers.0.review_reasons', ['Customer disabled by a driver.']);
+        ->assertJsonPath('data.customers.0.review_reasons', ['El repartidor dio de baja al cliente.']);
 
     $customer = $this->customer->fresh();
     expect($customer->enabled)->toBeFalse()

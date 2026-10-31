@@ -143,7 +143,7 @@ test('a sale cancellation rejected by the date rule gives no containers back', f
     push(['sale_cancellations' => [['uuid' => (string) Str::uuid(), 'sale_uuid' => $sale['uuid'], 'cancelled_at' => '2026-10-23T11:00:00Z']]])
         ->assertOk()
         ->assertJsonPath('data.sale_cancellations.0.status', 'rejected')
-        ->assertJsonPath('data.sale_cancellations.0.error', "The cancellation was not made on the record's day.");
+        ->assertJsonPath('data.sale_cancellations.0.error', 'La anulación no se hizo el día del registro.');
 
     expect(containerBalance($this->bidon))->toBe(5)
         ->and(ContainerMovement::query()->whereNotNull('reverses_movement_id')->exists())->toBeFalse()
@@ -190,7 +190,7 @@ test('push rejects a container movement whose sale is already cancelled and move
 
     expect($result['status'])->toBe('rejected')
         ->and($result['server_id'])->toBeNull()
-        ->and($result['error'])->toBe('The sale is cancelled.')
+        ->and($result['error'])->toBe('La venta está anulada.')
         ->and(ContainerMovement::query()->where('client_uuid', $movement['uuid'])->exists())->toBeFalse()
         ->and(ContainerMovement::query()->count())->toBe(2)
         ->and(containerBalance($this->bidon))->toBe(3);
@@ -242,7 +242,7 @@ test('push rejects a container movement whose sale is of another customer or mat
 
     expect($result['status'])->toBe('rejected')
         ->and($result['server_id'])->toBeNull()
-        ->and($result['error'])->toBe($case === 'unknown' ? 'The sale reference does not match any record.' : 'The sale belongs to another customer.')
+        ->and($result['error'])->toBe($case === 'unknown' ? 'La venta referida no existe.' : 'La venta pertenece a otro cliente.')
         ->and(ContainerMovement::query()->where('client_uuid', $movement['uuid'])->exists())->toBeFalse()
         ->and(containerBalance($this->bidon))->toBe(3);
 })->with(['another customer by id', 'another customer by uuid', 'unknown']);

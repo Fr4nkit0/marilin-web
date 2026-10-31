@@ -8,6 +8,7 @@ use App\Catalog\Models\PaymentMethod;
 use App\Catalog\Models\Product;
 use App\Customers\Agreements\Models\CustomerAgreement;
 use App\Customers\Customers\Models\Customer;
+use App\Review\ReviewReason;
 use App\Routes\Routes\Models\Route;
 use App\Routes\Visits\Models\Visit;
 use App\Street\Ledger\Models\CustomerAccountEntry;
@@ -187,7 +188,7 @@ test('push accepts a :entity on a customer of another driver or a disabled one, 
 
     expect($reason)->toBeString()->not->toBeEmpty()
         ->and($record->needs_review)->toBeTrue()
-        ->and($record->review_reasons)->toBe([$reason])
+        ->and(ReviewReason::labels($record->review_reasons))->toBe([$reason])
         ->and(CustomerAccountEntry::query()->where('customer_id', $customer->id)->count())->toBe(1);
 })->with([
     'sale of another driver' => ['sales', 'other driver'],
@@ -263,8 +264,8 @@ test('push rejects a payment that points at a sale of another customer and a sal
         ->assertJsonPath('data.sales.0.status', 'rejected')
         ->assertJsonPath('data.payments.0.status', 'rejected');
 
-    expect($response->json('data.payments.0.error'))->toContain('sale')
-        ->and($response->json('data.sales.0.error'))->toContain('visit')
+    expect($response->json('data.payments.0.error'))->toBe('La venta pertenece a otro cliente.')
+        ->and($response->json('data.sales.0.error'))->toBe('La visita pertenece a otro cliente.')
         ->and(Payment::query()->count())->toBe(0)
         ->and(Sale::query()->where('client_uuid', $sale['uuid'])->exists())->toBeFalse()
         ->and(CustomerAccountEntry::query()->count())->toBe(1);
@@ -330,7 +331,7 @@ test('push rejects a sale whose line agreement belongs to another customer and l
     $result = push(['sales' => [$payload]])->assertOk()->json('data.sales.0');
 
     expect($result['status'])->toBe('rejected')
-        ->and($result['error'])->toBe('The customer agreement belongs to another customer.')
+        ->and($result['error'])->toBe('El acuerdo de precio pertenece a otro cliente.')
         ->and(Sale::query()->count())->toBe(0)
         ->and(CustomerAgreement::query()->count())->toBe(1);
 })->with(['uuid', 'id']);

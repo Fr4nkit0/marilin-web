@@ -49,7 +49,7 @@ test('active driver can login successfully and receive sanctum token', function 
             'message',
         ]);
 
-    expect($response->json('message'))->toBe('Login successful');
+    expect($response->json('message'))->toBe('Sesión iniciada.');
     expect($response->json('data.user.email'))->toBe('driver@marilin.app');
 });
 
@@ -92,7 +92,7 @@ test('login fails when user is disabled', function (): void {
     ]);
 
     $response->assertStatus(422)
-        ->assertJsonValidationErrors(['email']);
+        ->assertJsonValidationErrors(['email' => 'Tu cuenta está deshabilitada.']);
 });
 
 test('login fails when user has no driver profile or driver is disabled', function (): void {
@@ -109,7 +109,7 @@ test('login fails when user has no driver profile or driver is disabled', functi
     ]);
 
     $response->assertStatus(422)
-        ->assertJsonValidationErrors(['email']);
+        ->assertJsonValidationErrors(['email' => 'El usuario no es un repartidor activo.']);
 
     // Disabled driver record
     Driver::factory()->create([
@@ -123,7 +123,7 @@ test('login fails when user has no driver profile or driver is disabled', functi
     ]);
 
     $response2->assertStatus(422)
-        ->assertJsonValidationErrors(['email']);
+        ->assertJsonValidationErrors(['email' => 'El usuario no es un repartidor activo.']);
 });
 
 test('authenticated driver can access profile via me endpoint', function (): void {
@@ -165,7 +165,7 @@ test('authenticated user can logout successfully', function (): void {
     $response->assertOk()
         ->assertJson([
             'data' => null,
-            'message' => 'Logged out successfully',
+            'message' => 'Sesión cerrada.',
         ]);
 
     expect($user->tokens()->count())->toBe(0);

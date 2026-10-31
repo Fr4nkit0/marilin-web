@@ -54,7 +54,7 @@ test('push accepts an agreement of the driver, marks it for review and stores it
         'uuid' => $payload['uuid'],
         'status' => 'accepted',
         'server_id' => $agreement->id,
-        'review_reasons' => ['Agreement created by a driver.'],
+        'review_reasons' => ['Acuerdo de precio creado por el repartidor.'],
     ])
         ->and(ReviewReason::DriverAgreement->label())->toBe('Acuerdo de precio creado por el repartidor.')
         ->and($agreement->customer_id)->toBe($this->customer->id)
@@ -113,7 +113,7 @@ test('push rejects an invalid agreement with its error and leaves the table unch
     'bad from date' => [['valid_from' => '22/10/2026'], 'El campo vigente desde debe tener el formato Y-m-d.'],
     'end before start' => [['valid_to' => '2026-10-21'], 'El campo vigente hasta debe ser una fecha posterior o igual a vigente desde.'],
     'reason too long' => [['reason' => str_repeat('a', 501)], 'El campo motivo no puede tener más de 500 caracteres.'],
-    'unknown customer' => [['customer_id' => 999999], 'customer'],
+    'unknown customer' => [['customer_id' => 999999], 'El cliente referido no existe.'],
 ]);
 
 test('push rejects an agreement without customer reference or with a bad uuid', function (): void {

@@ -10,6 +10,7 @@ use App\Routes\Visits\Models\Visit;
 use App\Street\Payments\Models\Payment;
 use App\Street\Sales\Models\Sale;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
 
 uses(RefreshDatabase::class);
@@ -171,4 +172,44 @@ test('the count of sales follows the type and customer filters', function (): vo
 
     expect($credit['metrics']['count'])->toBe(1)
         ->and($hotel['metrics']['count'])->toBe(1);
+});
+
+test('a sale paid with more than one method carries every method and its active payments, in the order they were paid', function (): void {
+    $sale = $this->juanVisitSale;
+    $paid = fn (array $attributes): Payment => Payment::factory()->create([
+        'sale_id' => $sale->id,
+        'customer_id' => $sale->customer_id,
+        'visit_id' => $this->juanVisit->id,
+        'received_by' => $this->juanUser->id,
+        'status' => 'CONFIRMED',
+        ...$attributes,
+    ]);
+    $cash = $paid(['payment_method_id' => $this->cash->id, 'amount' => 600, 'paid_at' => '2026-10-20 10:05:00']);
+    $transfer = $paid(['payment_method_id' => $this->transfer->id, 'amount' => 400, 'paid_at' => '2026-10-20 10:06:00']);
+    $paid(['payment_method_id' => $this->transfer->id, 'amount' => 50, 'paid_at' => '2026-10-20 10:07:00', 'status' => 'CANCELLED']);
+    $paid(['payment_method_id' => $this->cash->id, 'amount' => 10, 'paid_at' => '2026-10-20 10:08:00']);
+
+    $props = listProps('sales.index', 'Street/Sales/Index');
+    $listed = collect($props['sales']['data'])->firstWhere('id', $sale->id);
+
+    expect($listed['payment_methods'])->toBe(['Efectivo', 'Transferencia'])
+        ->and($listed['active_payments'])->toBe([
+            ['id' => $cash->id, 'amount' => '600.00', 'method' => 'Efectivo'],
+            ['id' => $transfer->id, 'amount' => '400.00', 'method' => 'Transferencia'],
+            ['id' => Payment::query()->where('amount', 10)->value('id'), 'amount' => '10.00', 'method' => 'Efectivo'],
+        ])
+        ->and(collect($props['sales']['data'])->firstWhere('id', $this->anaSale->id)['payment_methods'])->toBe([])
+        ->and(collect($props['sales']['data'])->firstWhere('id', $this->anaSale->id)['active_payments'])->toBe([]);
+});
+
+test('the sales list reads the payments of every sale in one query', function (): void {
+    foreach ([$this->juanLooseSale, $this->anaSale, $this->houseSale] as $sale) {
+        Payment::factory()->create(['sale_id' => $sale->id, 'customer_id' => $sale->customer_id, 'payment_method_id' => $this->cash->id, 'paid_at' => '2026-10-20 14:00:00', 'status' => 'CONFIRMED']);
+    }
+
+    DB::enableQueryLog();
+    listProps('sales.index', 'Street/Sales/Index');
+    $paymentQueries = collect(DB::getQueryLog())->pluck('query')->filter(fn (string $sql): bool => str_contains($sql, '"payments"."sale_id"'));
+
+    expect($paymentQueries)->toHaveCount(1);
 });

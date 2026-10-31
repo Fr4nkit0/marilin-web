@@ -190,7 +190,7 @@ test('push rejects a preference that points at a server id that does not exist',
         ->assertOk()
         ->assertJsonPath('data.customer_preferences.0.status', 'rejected')
         ->assertJsonPath('data.customer_preferences.0.server_id', null)
-        ->assertJsonPath('data.customer_preferences.0.error', 'The server_id does not match any customer preference.');
+        ->assertJsonPath('data.customer_preferences.0.error', 'El identificador del servidor no corresponde a ningún día y horario.');
 
     expect(CustomerPreference::query()->count())->toBe(0);
 });
@@ -199,7 +199,7 @@ test('push rejects a preference whose customer reference does not match any cust
     push(['customer_preferences' => [preferencePayload($this->customer, ['customer_id' => 999999])]])
         ->assertOk()
         ->assertJsonPath('data.customer_preferences.0.status', 'rejected')
-        ->assertJsonPath('data.customer_preferences.0.error', 'The customer reference does not match any record.');
+        ->assertJsonPath('data.customer_preferences.0.error', 'El cliente referido no existe.');
 
     expect(CustomerPreference::query()->count())->toBe(0);
 });
@@ -214,7 +214,7 @@ test('push rejects moving a preference to another customer', function (): void {
         ->assertOk()
         ->assertJsonPath('data.customer_preferences.0.status', 'rejected')
         ->assertJsonPath('data.customer_preferences.0.server_id', null)
-        ->assertJsonPath('data.customer_preferences.0.error', 'The record belongs to another customer.');
+        ->assertJsonPath('data.customer_preferences.0.error', 'El registro pertenece a otro cliente.');
 
     expect(preferenceState($preference))->toEqual($before);
 });
@@ -255,7 +255,7 @@ test('push rejects a time window that ends before it starts', function (string $
     push(['customer_preferences' => [$payload]])
         ->assertOk()
         ->assertJsonPath('data.customer_preferences.0.status', 'rejected')
-        ->assertJsonPath('data.customer_preferences.0.error', 'The time window end must be after its start.');
+        ->assertJsonPath('data.customer_preferences.0.error', 'El horario de fin debe ser posterior al de inicio.');
 
     expect(CustomerPreference::query()->count())->toBe(0);
 })->with(['09:00', '12:00']);
@@ -267,7 +267,7 @@ test('push rejects a second preference for the same customer, day and start', fu
     push(['customer_preferences' => [preferencePayload($this->customer, ['time_window_end' => '11:00'])]])
         ->assertOk()
         ->assertJsonPath('data.customer_preferences.0.status', 'rejected')
-        ->assertJsonPath('data.customer_preferences.0.error', 'The customer already has a preference for that day and time.');
+        ->assertJsonPath('data.customer_preferences.0.error', 'El cliente ya tiene una preferencia para ese día y horario.');
 
     expect(CustomerPreference::query()->count())->toBe(1)
         ->and(preferenceState($existing))->toEqual($before);
@@ -282,7 +282,7 @@ test('push rejects an edit that moves a preference onto the day and start of ano
     push(['customer_preferences' => [preferencePayload($this->customer, ['uuid' => $uuid, 'day_of_week' => 1])]])
         ->assertOk()
         ->assertJsonPath('data.customer_preferences.0.status', 'rejected')
-        ->assertJsonPath('data.customer_preferences.0.error', 'The customer already has a preference for that day and time.');
+        ->assertJsonPath('data.customer_preferences.0.error', 'El cliente ya tiene una preferencia para ese día y horario.');
 
     expect(preferenceState($moved))->toEqual($before);
 });
@@ -326,7 +326,7 @@ test('push answers the taken day and start before the overlap', function (): voi
     push(['customer_preferences' => [preferencePayload($this->customer, ['time_window_start' => '08:30', 'time_window_end' => '10:00'])]])
         ->assertOk()
         ->assertJsonPath('data.customer_preferences.0.status', 'rejected')
-        ->assertJsonPath('data.customer_preferences.0.error', 'The customer already has a preference for that day and time.');
+        ->assertJsonPath('data.customer_preferences.0.error', 'El cliente ya tiene una preferencia para ese día y horario.');
 });
 
 test('push edits a preference without overlapping with itself, and removes one even when it overlaps', function (): void {
@@ -356,7 +356,7 @@ test('push leaves a preference on a customer of another driver pending for the a
     push(['customer_preferences' => [$payload]])
         ->assertOk()
         ->assertJsonPath('data.customer_preferences.0.status', 'accepted')
-        ->assertJsonPath('data.customer_preferences.0.review_reasons', ['Customer is assigned to another driver.']);
+        ->assertJsonPath('data.customer_preferences.0.review_reasons', ['El cliente está asignado a otro repartidor.']);
 
     $foreign->refresh();
     expect(CustomerPreference::query()->where('client_uuid', $payload['uuid'])->exists())->toBeFalse()

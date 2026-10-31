@@ -250,12 +250,12 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                     <table className="w-full text-left text-sm whitespace-nowrap">
                         <thead className="bg-canvas/80 backdrop-blur-md border-b border-hairline text-ink-muted">
                             <tr>
-                                <th className="px-6 py-4 text-xs font-medium text-ink tracking-wide">Cliente</th>
-                                <th className="px-6 py-4 text-xs font-medium text-ink tracking-wide">Dirección</th>
-                                <th className="px-6 py-4 text-xs font-medium text-ink tracking-wide">Repartidor</th>
-                                <th className="px-6 py-4 text-xs font-medium text-ink tracking-wide text-center">Envases</th>
-                                <th className="px-6 py-4 text-xs font-medium text-ink tracking-wide text-right">Cuenta Corriente</th>
-                                <th className="px-6 py-4 text-xs font-medium text-ink tracking-wide text-right">Acciones</th>
+                                <th className="px-4 py-4 text-xs font-medium text-ink tracking-wide">Cliente</th>
+                                <th className="px-4 py-4 text-xs font-medium text-ink tracking-wide">Dirección</th>
+                                <th className="px-4 py-4 text-xs font-medium text-ink tracking-wide">Repartidor</th>
+                                <th className="px-4 py-4 text-xs font-medium text-ink tracking-wide text-center">Envases</th>
+                                <th className="px-4 py-4 text-xs font-medium text-ink tracking-wide text-right">Cuenta Corriente</th>
+                                <th className="px-4 py-4 text-xs font-medium text-ink tracking-wide text-right"><span className="sr-only">Acciones</span></th>
                             </tr>
                         </thead>
                         <tbody className="">
@@ -276,10 +276,10 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                     return (
                                         <tr key={c.id} className="hover:bg-canvas-soft transition-colors">
                                             {/* Name & Phone */}
-                                            <td className="px-6 py-4">
-                                                <div className="font-medium text-ink">
+                                            <td className="px-4 py-4 whitespace-normal min-w-[9rem]">
+                                                <Link href={route('customers.show', c.id)} className="font-medium text-ink hover:text-sky-700 dark:hover:text-sky-300 transition">
                                                     {c.name}
-                                                </div>
+                                                </Link>
                                                 {c.phone_number && (
                                                     <div className="flex items-center gap-1.5 text-ink-muted text-xs mt-1">
                                                         <Phone className="w-3.5 h-3.5" />
@@ -289,9 +289,9 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                             </td>
 
                                             {/* Primary Address */}
-                                            <td className="px-6 py-4 text-ink-secondary">
+                                            <td className="px-4 py-4 text-ink-secondary">
                                                 {c.primary_address ? (
-                                                    <div className="flex items-start gap-2 min-w-[14rem] max-w-xs">
+                                                    <div className="flex items-start gap-2 min-w-[12rem] max-w-[16rem]">
                                                         <MapPin className="w-4 h-4 text-ink-subtle shrink-0 mt-0.5" />
                                                         <span className="whitespace-normal">
                                                             {c.primary_address.street}
@@ -318,7 +318,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                             </td>
 
                                             {/* Repartidor / Driver */}
-                                            <td className="px-6 py-4">
+                                            <td className="px-4 py-4">
                                                 {(c.driver?.user || c.repartidor?.user) ? (
                                                     <span className="inline-flex items-center gap-2 font-medium text-ink">
                                                         <div className="w-6 h-6 rounded-lg bg-surface-1 text-ink-secondary flex items-center justify-center text-xs">
@@ -332,7 +332,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                             </td>
 
                                             {/* Containers Balance */}
-                                            <td className="px-6 py-4 text-center">
+                                            <td className="px-4 py-4 text-center">
                                                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-1 text-ink-secondary font-medium text-xs">
                                                     <Package className="w-3.5 h-3.5" />
                                                     {totalContainers} unid
@@ -340,28 +340,29 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                             </td>
 
                                             {/* Debt Status & Balance */}
-                                            <td className="px-6 py-4 text-right">
+                                            <td className="px-4 py-4 text-right">
                                                 <DebtBadge balance={balanceNum} />
                                             </td>
 
-                                            {/* Actions */}
-                                            <td className="px-6 py-4 text-right">
-                                                <div className="flex items-center justify-end gap-2">
+                                            {/* Actions: icon buttons, so the column stays narrow and the table fits a laptop screen. */}
+                                            <td className="px-4 py-4 text-right">
+                                                <div className="flex items-center justify-end gap-1.5">
                                                     <button
                                                         type="button"
                                                         onClick={() => handleOpenEditModal(c)}
-                                                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full border border-hairline bg-canvas text-ink-secondary hover:bg-canvas-soft font-medium transition cursor-pointer text-xs shadow-sm"
+                                                        aria-label={`Editar datos de ${c.name}`}
                                                         title="Editar datos del cliente"
+                                                        className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-hairline bg-canvas text-ink-secondary hover:bg-canvas-soft transition cursor-pointer shadow-sm"
                                                     >
-                                                        <SlidersHorizontal className="w-3.5 h-3.5" />
-                                                        Editar
+                                                        <SlidersHorizontal className="w-4 h-4" />
                                                     </button>
                                                     <Link
                                                         href={route('customers.show', c.id)}
-                                                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-sky-600 text-white hover:bg-sky-700 font-medium transition text-xs shadow-sm dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
+                                                        aria-label={`Ver ficha de ${c.name}`}
+                                                        title="Ver ficha"
+                                                        className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-sky-600 text-white hover:bg-sky-700 transition shadow-sm dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
                                                     >
-                                                        <Eye className="w-3.5 h-3.5" />
-                                                        Ver Ficha
+                                                        <Eye className="w-4 h-4" />
                                                     </Link>
                                                 </div>
                                             </td>
@@ -384,7 +385,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
 
             {/* Modal para Crear Nuevo Cliente */}
             <Modal show={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} maxWidth="lg">
-                <div className="bg-canvas/80 backdrop-blur-md border-b border-hairline p-5 text-ink flex items-center justify-between">
+                <div className="shrink-0 bg-canvas border-b border-hairline p-5 text-ink flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-lg bg-surface-1 text-ink flex items-center justify-center">
                             <Building2 className="w-5 h-5" />
@@ -408,216 +409,219 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                     </button>
                 </div>
 
-                <form onSubmit={handleCreateCustomer} noValidate className="p-6 space-y-5">
-                    {/* Nombre o Razón Social */}
-                    <div>
-                        <label htmlFor="create-name" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                            Nombre o Razón Social <span className="text-ink">*</span>
-                        </label>
-                        <input
-                            id="create-name"
-                            type="text"
-                            required
-                            value={data.name}
-                            onChange={(e) => setData('name', e.target.value)}
-                            placeholder="Ej: Sanatorio Los Lapachos S.A."
-                            className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
-                        />
-                        <FieldError message={errors.name} className="mt-1" />
-                    </div>
-
-                    {/* Teléfono & Repartidor */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <form onSubmit={handleCreateCustomer} noValidate className="flex min-h-0 flex-1 flex-col">
+                    {/* Only the fields scroll: the title and the buttons stay in view on a short screen. */}
+                    <div className="min-h-0 flex-1 overflow-y-auto p-6 space-y-5">
+                        {/* Nombre o Razón Social */}
                         <div>
-                            <label htmlFor="create-phone-number" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                Teléfono de Contacto
+                            <label htmlFor="create-name" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                Nombre o Razón Social <span className="text-ink">*</span>
                             </label>
                             <input
-                                id="create-phone-number"
-                                type="text"
-                                value={data.phone_number}
-                                onChange={(e) => setData('phone_number', e.target.value)}
-                                placeholder="Ej: +54 387 422-3000"
-                                className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
-                            />
-                            <FieldError message={errors.phone_number} className="mt-1" />
-                        </div>
-
-                        <div>
-                            <label htmlFor="create-repartidor-id" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                Repartidor Asignado
-                            </label>
-                            <select
-                                id="create-repartidor-id"
-                                value={data.repartidor_id}
-                                onChange={(e) => setData('repartidor_id', e.target.value)}
-                                className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  bg-canvas"
-                            >
-                                <option value="">Sin Asignar</option>
-                                {repartidores.map((rep) => (
-                                    <option key={rep.id} value={rep.id}>
-                                        {rep.name}
-                                    </option>
-                                ))}
-                            </select>
-                            <FieldError message={errors.repartidor_id} className="mt-1" />
-                        </div>
-                    </div>
-
-                    {/* Dirección */}
-                    <div className="space-y-4 pt-5 border-t border-hairline">
-                        <h4 className="text-sm font-semibold text-ink">
-                            Dirección Principal
-                        </h4>
-                        <div>
-                            <label htmlFor="create-street" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                Calle y Altura <span className="text-ink">*</span>
-                            </label>
-                            <input
-                                id="create-street"
+                                id="create-name"
                                 type="text"
                                 required
-                                value={data.street}
-                                onChange={(e) => setData('street', e.target.value)}
-                                placeholder="Ej: Belgrano 340"
+                                value={data.name}
+                                onChange={(e) => setData('name', e.target.value)}
+                                placeholder="Ej: Sanatorio Los Lapachos S.A."
                                 className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                             />
-                            <FieldError message={errors.street} className="mt-1" />
+                            <FieldError message={errors.name} className="mt-1" />
                         </div>
 
-                        <div>
-                            <label htmlFor="create-neighborhood" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                Barrio
-                            </label>
-                            <input
-                                id="create-neighborhood"
-                                type="text"
-                                list={NEIGHBORHOOD_OPTIONS}
-                                autoComplete="off"
-                                value={data.neighborhood}
-                                onChange={(e) => setData('neighborhood', e.target.value)}
-                                placeholder="Buscar barrio, ej: Tres Cerritos"
-                                className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
-                            />
-                            <FieldError message={errors.neighborhood} className="mt-1" />
+                        {/* Teléfono & Repartidor */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            <div>
+                                <label htmlFor="create-phone-number" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                    Teléfono de Contacto
+                                </label>
+                                <input
+                                    id="create-phone-number"
+                                    type="text"
+                                    value={data.phone_number}
+                                    onChange={(e) => setData('phone_number', e.target.value)}
+                                    placeholder="Ej: +54 387 422-3000"
+                                    className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
+                                />
+                                <FieldError message={errors.phone_number} className="mt-1" />
+                            </div>
+
+                            <div>
+                                <label htmlFor="create-repartidor-id" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                    Repartidor Asignado
+                                </label>
+                                <select
+                                    id="create-repartidor-id"
+                                    value={data.repartidor_id}
+                                    onChange={(e) => setData('repartidor_id', e.target.value)}
+                                    className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  bg-canvas"
+                                >
+                                    <option value="">Sin Asignar</option>
+                                    {repartidores.map((rep) => (
+                                        <option key={rep.id} value={rep.id}>
+                                            {rep.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                <FieldError message={errors.repartidor_id} className="mt-1" />
+                            </div>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                        {/* Dirección */}
+                        <div className="space-y-4 pt-5 border-t border-hairline">
+                            <h4 className="text-sm font-semibold text-ink">
+                                Dirección Principal
+                            </h4>
                             <div>
-                                <label htmlFor="create-floor" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                    Piso
+                                <label htmlFor="create-street" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                    Calle y Altura <span className="text-ink">*</span>
                                 </label>
                                 <input
-                                    id="create-floor"
+                                    id="create-street"
                                     type="text"
-                                    value={data.floor}
-                                    onChange={(e) => setData('floor', e.target.value)}
-                                    maxLength={20}
-                                    placeholder="Ej: PB, 3, Local 2"
+                                    required
+                                    value={data.street}
+                                    onChange={(e) => setData('street', e.target.value)}
+                                    placeholder="Ej: Belgrano 340"
                                     className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                 />
-                                <FieldError message={errors.floor} className="mt-1" />
+                                <FieldError message={errors.street} className="mt-1" />
                             </div>
 
                             <div>
-                                <label htmlFor="create-apartment" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                    Departamento
+                                <label htmlFor="create-neighborhood" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                    Barrio
                                 </label>
                                 <input
-                                    id="create-apartment"
+                                    id="create-neighborhood"
                                     type="text"
-                                    value={data.apartment}
-                                    onChange={(e) => setData('apartment', e.target.value)}
-                                    placeholder="Ej: 4B"
+                                    list={NEIGHBORHOOD_OPTIONS}
+                                    autoComplete="off"
+                                    value={data.neighborhood}
+                                    onChange={(e) => setData('neighborhood', e.target.value)}
+                                    placeholder="Buscar barrio, ej: Tres Cerritos"
                                     className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                 />
-                                <FieldError message={errors.apartment} className="mt-1" />
+                                <FieldError message={errors.neighborhood} className="mt-1" />
                             </div>
 
-                            <div>
-                                <label htmlFor="create-visual-reference" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                    Referencia Visual
-                                </label>
-                                <input
-                                    id="create-visual-reference"
-                                    type="text"
-                                    value={data.visual_reference}
-                                    onChange={(e) => setData('visual_reference', e.target.value)}
-                                    placeholder="Ej: Frente a Plaza Belgrano"
-                                    className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
-                                />
-                                <FieldError message={errors.visual_reference} className="mt-1" />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Saldos Iniciales & Envases Comodato */}
-                    <div className="space-y-4 pt-5 border-t border-hairline">
-                        <h4 className="text-sm font-semibold text-ink">
-                            Condiciones Iniciales
-                        </h4>
-                        <FieldError message={errors.initial_containers} className="mt-1" />
-
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                            <div>
-                                <label htmlFor="create-initial-balance" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                    Deuda Inicial ($)
-                                </label>
-                                <input
-                                    id="create-initial-balance"
-                                    type="number"
-                                    step="0.01"
-                                    min="0"
-                                    value={data.initial_balance}
-                                    onChange={(e) => setData('initial_balance', e.target.value)}
-                                    className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  font-medium"
-                                />
-                                <FieldError message={errors.initial_balance} className="mt-1" />
-                            </div>
-
-                            {containerTypes.map((type) => (
-                                <div key={type.id}>
-                                    <label
-                                        htmlFor={`initial-containers-${type.id}`}
-                                        className="block text-sm font-medium text-ink-secondary mb-1.5"
-                                    >
-                                        {type.description}
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                                <div>
+                                    <label htmlFor="create-floor" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                        Piso
                                     </label>
                                     <input
-                                        id={`initial-containers-${type.id}`}
+                                        id="create-floor"
+                                        type="text"
+                                        value={data.floor}
+                                        onChange={(e) => setData('floor', e.target.value)}
+                                        maxLength={20}
+                                        placeholder="Ej: PB, 3, Local 2"
+                                        className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
+                                    />
+                                    <FieldError message={errors.floor} className="mt-1" />
+                                </div>
+
+                                <div>
+                                    <label htmlFor="create-apartment" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                        Departamento
+                                    </label>
+                                    <input
+                                        id="create-apartment"
+                                        type="text"
+                                        value={data.apartment}
+                                        onChange={(e) => setData('apartment', e.target.value)}
+                                        placeholder="Ej: 4B"
+                                        className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
+                                    />
+                                    <FieldError message={errors.apartment} className="mt-1" />
+                                </div>
+
+                                <div>
+                                    <label htmlFor="create-visual-reference" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                        Referencia Visual
+                                    </label>
+                                    <input
+                                        id="create-visual-reference"
+                                        type="text"
+                                        value={data.visual_reference}
+                                        onChange={(e) => setData('visual_reference', e.target.value)}
+                                        placeholder="Ej: Frente a Plaza Belgrano"
+                                        className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
+                                    />
+                                    <FieldError message={errors.visual_reference} className="mt-1" />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Saldos Iniciales & Envases Comodato */}
+                        <div className="space-y-4 pt-5 border-t border-hairline">
+                            <h4 className="text-sm font-semibold text-ink">
+                                Condiciones Iniciales
+                            </h4>
+                            <FieldError message={errors.initial_containers} className="mt-1" />
+
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                                <div>
+                                    <label htmlFor="create-initial-balance" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                        Deuda Inicial ($)
+                                    </label>
+                                    <input
+                                        id="create-initial-balance"
                                         type="number"
+                                        step="0.01"
                                         min="0"
-                                        step="1"
-                                        value={data.initial_containers[type.id] ?? '0'}
-                                        onChange={(e) =>
-                                            setData('initial_containers', { ...data.initial_containers, [type.id]: e.target.value })
-                                        }
+                                        value={data.initial_balance}
+                                        onChange={(e) => setData('initial_balance', e.target.value)}
                                         className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  font-medium"
                                     />
-                                    <FieldError
-                                        message={(errors as Record<string, string>)[`initial_containers.${type.id}`]}
-                                        className="mt-1"
-                                    />
+                                    <FieldError message={errors.initial_balance} className="mt-1" />
                                 </div>
-                            ))}
-                        </div>
-                    </div>
 
-                    {/* Días y horarios */}
-                    <div className="space-y-4 pt-5 border-t border-hairline">
-                        <h4 className="text-sm font-semibold text-ink">
-                            Días y horarios de entrega
-                        </h4>
-                        <PreferenceRowsField
-                            idPrefix="create"
-                            rows={data.preferences}
-                            onChange={(rows) => setData('preferences', rows)}
-                            errors={errors as Record<string, string>}
-                        />
+                                {containerTypes.map((type) => (
+                                    <div key={type.id}>
+                                        <label
+                                            htmlFor={`initial-containers-${type.id}`}
+                                            className="block text-sm font-medium text-ink-secondary mb-1.5"
+                                        >
+                                            {type.description}
+                                        </label>
+                                        <input
+                                            id={`initial-containers-${type.id}`}
+                                            type="number"
+                                            min="0"
+                                            step="1"
+                                            value={data.initial_containers[type.id] ?? '0'}
+                                            onChange={(e) =>
+                                                setData('initial_containers', { ...data.initial_containers, [type.id]: e.target.value })
+                                            }
+                                            className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  font-medium"
+                                        />
+                                        <FieldError
+                                            message={(errors as Record<string, string>)[`initial_containers.${type.id}`]}
+                                            className="mt-1"
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Días y horarios */}
+                        <div className="space-y-4 pt-5 border-t border-hairline">
+                            <h4 className="text-sm font-semibold text-ink">
+                                Días y horarios de entrega
+                            </h4>
+                            <PreferenceRowsField
+                                idPrefix="create"
+                                rows={data.preferences}
+                                onChange={(rows) => setData('preferences', rows)}
+                                errors={errors as Record<string, string>}
+                            />
+                        </div>
                     </div>
 
                     {/* Buttons */}
-                    <div className="mt-6 flex items-center justify-end gap-3 pt-5 border-t border-hairline">
+                    <div className="shrink-0 flex items-center justify-end gap-3 px-6 py-4 border-t border-hairline">
                         <button
                             type="button"
                             onClick={() => setIsCreateModalOpen(false)}
@@ -639,7 +643,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
 
             {/* Modal para Editar Cliente Existente */}
             <Modal show={editingCustomer !== null} onClose={() => setEditingCustomer(null)} maxWidth="lg">
-                <div className="bg-canvas/80 backdrop-blur-md border-b border-hairline p-5 text-ink flex items-center justify-between">
+                <div className="shrink-0 bg-canvas border-b border-hairline p-5 text-ink flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-lg bg-surface-1 text-ink flex items-center justify-center">
                             <SlidersHorizontal className="w-5 h-5" />
@@ -663,167 +667,170 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                     </button>
                 </div>
 
-                <form onSubmit={handleUpdateCustomer} noValidate className="p-6 space-y-5">
-                    {/* Nombre o Razón Social */}
-                    <div>
-                        <label htmlFor="edit-name" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                            Nombre o Razón Social <span className="text-ink">*</span>
-                        </label>
-                        <input
-                            id="edit-name"
-                            type="text"
-                            required
-                            value={editForm.data.name}
-                            onChange={(e) => editForm.setData('name', e.target.value)}
-                            className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
-                        />
-                        <FieldError message={editForm.errors.name} className="mt-1" />
-                    </div>
-
-                    {/* Teléfono & Repartidor */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <form onSubmit={handleUpdateCustomer} noValidate className="flex min-h-0 flex-1 flex-col">
+                    {/* Only the fields scroll: the title and the buttons stay in view on a short screen. */}
+                    <div className="min-h-0 flex-1 overflow-y-auto p-6 space-y-5">
+                        {/* Nombre o Razón Social */}
                         <div>
-                            <label htmlFor="edit-phone-number" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                Teléfono de Contacto
+                            <label htmlFor="edit-name" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                Nombre o Razón Social <span className="text-ink">*</span>
                             </label>
                             <input
-                                id="edit-phone-number"
-                                type="text"
-                                value={editForm.data.phone_number}
-                                onChange={(e) => editForm.setData('phone_number', e.target.value)}
-                                placeholder="Ej: +54 387 422-3000"
-                                className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
-                            />
-                            <FieldError message={editForm.errors.phone_number} className="mt-1" />
-                        </div>
-
-                        <div>
-                            <label htmlFor="edit-repartidor-id" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                Repartidor Asignado
-                            </label>
-                            <select
-                                id="edit-repartidor-id"
-                                value={editForm.data.repartidor_id}
-                                onChange={(e) => editForm.setData('repartidor_id', e.target.value)}
-                                className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  bg-canvas"
-                            >
-                                <option value="">Sin Asignar</option>
-                                {repartidores.map((rep) => (
-                                    <option key={rep.id} value={rep.id}>
-                                        {rep.name}
-                                    </option>
-                                ))}
-                            </select>
-                            <FieldError message={editForm.errors.repartidor_id} className="mt-1" />
-                        </div>
-                    </div>
-
-                    {/* Dirección */}
-                    <div className="space-y-4 pt-5 border-t border-hairline">
-                        <h4 className="text-sm font-semibold text-ink">
-                            Dirección Principal
-                        </h4>
-                        <div>
-                            <label htmlFor="edit-street" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                Calle y Altura <span className="text-ink">*</span>
-                            </label>
-                            <input
-                                id="edit-street"
+                                id="edit-name"
                                 type="text"
                                 required
-                                value={editForm.data.street}
-                                onChange={(e) => editForm.setData('street', e.target.value)}
+                                value={editForm.data.name}
+                                onChange={(e) => editForm.setData('name', e.target.value)}
                                 className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                             />
-                            <FieldError message={editForm.errors.street} className="mt-1" />
+                            <FieldError message={editForm.errors.name} className="mt-1" />
                         </div>
 
-                        <div>
-                            <label htmlFor="edit-neighborhood" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                Barrio
-                            </label>
-                            <input
-                                id="edit-neighborhood"
-                                type="text"
-                                list={NEIGHBORHOOD_OPTIONS}
-                                autoComplete="off"
-                                value={editForm.data.neighborhood}
-                                onChange={(e) => editForm.setData('neighborhood', e.target.value)}
-                                placeholder="Buscar barrio, ej: Tres Cerritos"
-                                className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
-                            />
-                            <FieldError message={editForm.errors.neighborhood} className="mt-1" />
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                        {/* Teléfono & Repartidor */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                             <div>
-                                <label htmlFor="edit-floor" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                    Piso
+                                <label htmlFor="edit-phone-number" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                    Teléfono de Contacto
                                 </label>
                                 <input
-                                    id="edit-floor"
+                                    id="edit-phone-number"
                                     type="text"
-                                    value={editForm.data.floor}
-                                    onChange={(e) => editForm.setData('floor', e.target.value)}
-                                    maxLength={20}
-                                    placeholder="Ej: PB, 3, Local 2"
+                                    value={editForm.data.phone_number}
+                                    onChange={(e) => editForm.setData('phone_number', e.target.value)}
+                                    placeholder="Ej: +54 387 422-3000"
                                     className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                 />
-                                <FieldError message={editForm.errors.floor} className="mt-1" />
+                                <FieldError message={editForm.errors.phone_number} className="mt-1" />
                             </div>
 
                             <div>
-                                <label htmlFor="edit-apartment" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                    Departamento
+                                <label htmlFor="edit-repartidor-id" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                    Repartidor Asignado
                                 </label>
-                                <input
-                                    id="edit-apartment"
-                                    type="text"
-                                    value={editForm.data.apartment}
-                                    onChange={(e) => editForm.setData('apartment', e.target.value)}
-                                    placeholder="Ej: 4B"
-                                    className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
-                                />
-                                <FieldError message={editForm.errors.apartment} className="mt-1" />
-                            </div>
-
-                            <div>
-                                <label htmlFor="edit-visual-reference" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                    Referencia Visual
-                                </label>
-                                <input
-                                    id="edit-visual-reference"
-                                    type="text"
-                                    value={editForm.data.visual_reference}
-                                    onChange={(e) => editForm.setData('visual_reference', e.target.value)}
-                                    placeholder="Ej: Frente a Plaza Belgrano"
-                                    className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
-                                />
-                                <FieldError message={editForm.errors.visual_reference} className="mt-1" />
+                                <select
+                                    id="edit-repartidor-id"
+                                    value={editForm.data.repartidor_id}
+                                    onChange={(e) => editForm.setData('repartidor_id', e.target.value)}
+                                    className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  bg-canvas"
+                                >
+                                    <option value="">Sin Asignar</option>
+                                    {repartidores.map((rep) => (
+                                        <option key={rep.id} value={rep.id}>
+                                            {rep.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                <FieldError message={editForm.errors.repartidor_id} className="mt-1" />
                             </div>
                         </div>
-                    </div>
 
-                    {/* Días y horarios */}
-                    <div className="space-y-4 pt-5 border-t border-hairline">
-                        <div>
+                        {/* Dirección */}
+                        <div className="space-y-4 pt-5 border-t border-hairline">
                             <h4 className="text-sm font-semibold text-ink">
-                                Agregar días y horarios de entrega
+                                Dirección Principal
                             </h4>
-                            <p className="text-xs text-ink-muted mt-1">
-                                Los que ya tiene se editan o quitan desde la ficha del cliente.
-                            </p>
+                            <div>
+                                <label htmlFor="edit-street" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                    Calle y Altura <span className="text-ink">*</span>
+                                </label>
+                                <input
+                                    id="edit-street"
+                                    type="text"
+                                    required
+                                    value={editForm.data.street}
+                                    onChange={(e) => editForm.setData('street', e.target.value)}
+                                    className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
+                                />
+                                <FieldError message={editForm.errors.street} className="mt-1" />
+                            </div>
+
+                            <div>
+                                <label htmlFor="edit-neighborhood" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                    Barrio
+                                </label>
+                                <input
+                                    id="edit-neighborhood"
+                                    type="text"
+                                    list={NEIGHBORHOOD_OPTIONS}
+                                    autoComplete="off"
+                                    value={editForm.data.neighborhood}
+                                    onChange={(e) => editForm.setData('neighborhood', e.target.value)}
+                                    placeholder="Buscar barrio, ej: Tres Cerritos"
+                                    className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
+                                />
+                                <FieldError message={editForm.errors.neighborhood} className="mt-1" />
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                                <div>
+                                    <label htmlFor="edit-floor" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                        Piso
+                                    </label>
+                                    <input
+                                        id="edit-floor"
+                                        type="text"
+                                        value={editForm.data.floor}
+                                        onChange={(e) => editForm.setData('floor', e.target.value)}
+                                        maxLength={20}
+                                        placeholder="Ej: PB, 3, Local 2"
+                                        className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
+                                    />
+                                    <FieldError message={editForm.errors.floor} className="mt-1" />
+                                </div>
+
+                                <div>
+                                    <label htmlFor="edit-apartment" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                        Departamento
+                                    </label>
+                                    <input
+                                        id="edit-apartment"
+                                        type="text"
+                                        value={editForm.data.apartment}
+                                        onChange={(e) => editForm.setData('apartment', e.target.value)}
+                                        placeholder="Ej: 4B"
+                                        className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
+                                    />
+                                    <FieldError message={editForm.errors.apartment} className="mt-1" />
+                                </div>
+
+                                <div>
+                                    <label htmlFor="edit-visual-reference" className="block text-sm font-medium text-ink-secondary mb-1.5">
+                                        Referencia Visual
+                                    </label>
+                                    <input
+                                        id="edit-visual-reference"
+                                        type="text"
+                                        value={editForm.data.visual_reference}
+                                        onChange={(e) => editForm.setData('visual_reference', e.target.value)}
+                                        placeholder="Ej: Frente a Plaza Belgrano"
+                                        className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
+                                    />
+                                    <FieldError message={editForm.errors.visual_reference} className="mt-1" />
+                                </div>
+                            </div>
                         </div>
-                        <PreferenceRowsField
-                            idPrefix="edit"
-                            rows={editForm.data.preferences}
-                            onChange={(rows) => editForm.setData('preferences', rows)}
-                            errors={editForm.errors as Record<string, string>}
-                        />
+
+                        {/* Días y horarios */}
+                        <div className="space-y-4 pt-5 border-t border-hairline">
+                            <div>
+                                <h4 className="text-sm font-semibold text-ink">
+                                    Agregar días y horarios de entrega
+                                </h4>
+                                <p className="text-xs text-ink-muted mt-1">
+                                    Los que ya tiene se editan o quitan desde la ficha del cliente.
+                                </p>
+                            </div>
+                            <PreferenceRowsField
+                                idPrefix="edit"
+                                rows={editForm.data.preferences}
+                                onChange={(rows) => editForm.setData('preferences', rows)}
+                                errors={editForm.errors as Record<string, string>}
+                            />
+                        </div>
                     </div>
 
                     {/* Buttons */}
-                    <div className="mt-6 flex items-center justify-end gap-3 pt-5 border-t border-hairline">
+                    <div className="shrink-0 flex items-center justify-end gap-3 px-6 py-4 border-t border-hairline">
                         <button
                             type="button"
                             onClick={() => setEditingCustomer(null)}

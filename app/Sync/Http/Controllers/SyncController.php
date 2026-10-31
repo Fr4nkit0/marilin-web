@@ -24,7 +24,7 @@ class SyncController extends Controller
         $driver = $user->driver;
 
         if (! $driver || ! $driver->enabled) {
-            abort(403, 'Authenticated user is not an active driver.');
+            abort(403, __('Authenticated user is not an active driver.'));
         }
 
         return $driver;

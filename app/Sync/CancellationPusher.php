@@ -82,7 +82,7 @@ abstract class CancellationPusher extends EntityPusher
             $this->occurredAt($target),
             $cancelledAt,
             "The cancellation was not made on the record's day.",
-            'The cancellation is more than %d days old.',
+            'The cancellation is more than :days days old.',
         );
 
         $cancelled = $this->cancel($target, $driver, $user, $record['reason'] ?? null, $cancelledAt);

@@ -1,5 +1,20 @@
 import { describe, expect, it } from 'vitest';
-import { accountEntryTypeLabel, balanceLabel, balanceState, date, dateTime, money, paymentStatusLabel, stopStatusLabel, time, timeWindowLabel, weekdayName } from './format';
+import {
+    accountEntryTypeLabel,
+    balanceLabel,
+    balanceState,
+    date,
+    dateTime,
+    money,
+    paymentMethodLabel,
+    paymentMethodsLabel,
+    paymentStatusLabel,
+    stopResultLabel,
+    stopStatusLabel,
+    time,
+    timeWindowLabel,
+    weekdayName,
+} from './format';
 
 describe('money', () => {
     it('shows pesos with the Argentine thousands separator', () => {
@@ -64,6 +79,46 @@ describe('status labels', () => {
         expect(accountEntryTypeLabel('PAYMENT')).toBe('Cobro');
         expect(accountEntryTypeLabel('ADJUSTMENT')).toBe('Ajuste');
         expect(accountEntryTypeLabel('CREDIT_NOTE')).toBe('Nota de crédito');
+    });
+});
+
+describe('stop result', () => {
+    it('shows what happened at the visit', () => {
+        expect(stopResultLabel({ outcome: 'Ausente', done: true })).toBe('Ausente');
+        expect(stopResultLabel({ outcome: 'Ausente', done: false })).toBe('Ausente');
+    });
+
+    it('reads "Sin novedades" only for a visited stop without an outcome', () => {
+        expect(stopResultLabel({ outcome: null, done: true })).toBe('Sin novedades');
+    });
+
+    it('shows a dash for a stop not visited yet', () => {
+        expect(stopResultLabel({ outcome: null, done: false })).toBe('—');
+        expect(stopResultLabel({ done: false })).toBe('—');
+    });
+});
+
+describe('payment methods', () => {
+    it('names a method by its kind, whatever its full name', () => {
+        expect(paymentMethodLabel('Efectivo')).toBe('Efectivo');
+        expect(paymentMethodLabel('Transferencia Bancaria')).toBe('Transferencia');
+        expect(paymentMethodLabel('Tarjeta de Débito/Crédito')).toBe('Tarjeta');
+        expect(paymentMethodLabel('Mercado Pago')).toBe('Mercado Pago');
+    });
+
+    it('shows the only method of a sale in full', () => {
+        expect(paymentMethodsLabel(['Transferencia Bancaria'])).toBe('Transferencia');
+        expect(paymentMethodsLabel(['Efectivo', 'Efectivo'])).toBe('Efectivo');
+    });
+
+    it('shows every method of a mixed payment, short and in the order paid', () => {
+        expect(paymentMethodsLabel(['Efectivo', 'Transferencia Bancaria'])).toBe('Efectivo + Transf.');
+        expect(paymentMethodsLabel(['Transferencia', 'Efectivo', 'Tarjeta de Débito/Crédito', 'Efectivo'])).toBe('Transf. + Efectivo + Tarjeta');
+        expect(paymentMethodsLabel(['Efectivo', 'Mercado Pago'])).toBe('Efectivo + Mercado Pago');
+    });
+
+    it('is empty for a sale without payments', () => {
+        expect(paymentMethodsLabel([])).toBe('');
     });
 });
 

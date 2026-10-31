@@ -7,13 +7,16 @@ use App\CashDesk\DailyFigures;
 use App\CashDesk\DayScope;
 use App\Http\Controllers\Controller;
 use App\Shared\TextMatch;
+use App\Street\Payments\Models\Payment;
 use App\Street\Sales\CancelSale;
 use App\Street\Sales\Http\Requests\CancelSaleRequest;
 use App\Street\Sales\Models\Sale;
 use App\Street\StreetOperation;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -37,7 +40,8 @@ class SaleController extends Controller
                 'visit.driver.user',
                 'creator:id,name',
                 'details.product',
-                'payments.paymentMethod',
+                // Only the payments still in force: they say how the sale was paid and stay when it is cancelled.
+                'payments' => fn (HasMany $payments) => $payments->confirmed()->with('paymentMethod:id,name')->orderBy('paid_at')->orderBy('id'),
             ])
             ->where('enabled', true);
 
@@ -58,7 +62,7 @@ class SaleController extends Controller
         // A cancelled sale stays listed, marked as such, but it is not one of the day's operations.
         $confirmedCount = (clone $query)->confirmed()->count();
 
-        $sales = $query->latest('date')->paginate(15)->withQueryString();
+        $sales = $query->latest('date')->paginate(15)->withQueryString()->through(fn (Sale $sale): array => $this->listed($sale));
 
         // An empty date query parameter arrives as null and falls back to today, so the totals are always one day's.
         $day = $figures->forDay($date ?: Carbon::today()->toDateString(), $scope);
@@ -90,6 +94,27 @@ class SaleController extends Controller
             ],
             'repartidores' => $drivers,
         ]);
+    }
+
+    /**
+     * A sale as the list shows it: every method it was paid with ("Efectivo + Transf.") and the payments still in force,
+     * which the cancel modal lists because cancelling the sale does not cancel them.
+     *
+     * @return array<string, mixed>
+     */
+    private function listed(Sale $sale): array
+    {
+        $payments = $sale->payments;
+
+        return [
+            ...Arr::except($sale->toArray(), 'payments'),
+            'payment_methods' => $payments->pluck('paymentMethod.name')->filter()->unique()->values()->all(),
+            'active_payments' => $payments->map(fn (Payment $payment): array => [
+                'id' => $payment->id,
+                'amount' => $payment->amount,
+                'method' => $payment->paymentMethod?->name,
+            ])->all(),
+        ];
     }
 
     /**

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { useListFilters } from '@/lib/useListFilters';
-import { stopStatusLabel } from '@/lib/format';
+import { stopResultLabel, stopStatusLabel } from '@/lib/format';
 import AdminLayout from '@/layouts/AdminLayout';
 import { StatusBadge } from '@/ui/Badge';
 import { KpiCard } from '@/ui/KpiCard';
@@ -504,8 +504,8 @@ export default function RoutesIndex({
                                                                                 {stop.outcome}
                                                                             </span>
                                                                         ) : (
-                                                                            <span className="text-ink-subtle italic">
-                                                                                Sin novedades
+                                                                            <span className={stop.done ? 'text-ink-subtle italic' : 'text-ink-subtle'}>
+                                                                                {stopResultLabel(stop)}
                                                                             </span>
                                                                         )}
                                                                     </td>

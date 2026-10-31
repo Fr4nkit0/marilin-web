@@ -65,7 +65,7 @@ test('a refresh token gets a new pair and revokes the old one', function (): voi
     $response->assertOk()->assertJsonStructure([
         'data' => ['token', 'refresh_token', 'expires_at', 'refresh_expires_at', 'user' => ['id', 'email']],
         'message',
-    ]);
+    ])->assertJsonPath('message', 'Sesión renovada.');
     $new = $response->json('data');
 
     expect(PersonalAccessToken::findToken($old['token']))->toBeNull()

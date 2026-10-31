@@ -34,6 +34,9 @@ const DECISION_LABELS = { APPROVED: 'Aprobado', REJECTED: 'Rechazado' } as const
 const inputClass =
     'w-full py-2 px-3 text-sm border border-hairline/60 bg-canvas text-ink rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 font-medium';
 
+// px-3 would take away the room the select's chevron is drawn in; pr-9 gives it back so the text never runs under it.
+const selectClass = `${inputClass} pr-9`;
+
 function formatDate(item: ReviewItem): string {
     // A rescheduled stop belongs to a day, not to a moment of it.
     return item.type === 'route_stop' ? date(item.occurred_at) : dateTime(item.occurred_at);
@@ -88,7 +91,7 @@ export default function Index({ items, filters, drivers }: Props) {
                     <label className="sm:col-span-3 text-xs font-medium text-ink-muted">
                         Repartidor
                         <select
-                            className={`${inputClass} mt-1`}
+                            className={`${selectClass} mt-1 truncate`}
                             value={filter.values.driver_id}
                             onChange={(e) => filter.set('driver_id', e.target.value)}
                         >
@@ -124,7 +127,7 @@ export default function Index({ items, filters, drivers }: Props) {
                     <label className="sm:col-span-3 text-xs font-medium text-ink-muted">
                         Tipo
                         <select
-                            className={`${inputClass} mt-1`}
+                            className={`${selectClass} mt-1 truncate`}
                             value={filter.values.type}
                             onChange={(e) => filter.set('type', e.target.value)}
                         >
@@ -140,12 +143,12 @@ export default function Index({ items, filters, drivers }: Props) {
                     <label className="sm:col-span-2 text-xs font-medium text-ink-muted">
                         Estado
                         <select
-                            className={`${inputClass} mt-1`}
+                            className={`${selectClass} mt-1 truncate`}
                             value={filter.values.status}
                             onChange={(e) => filter.set('status', e.target.value)}
                         >
-                            <option value="pending">Pendiente de revisión</option>
-                            <option value="reviewed">Revisado</option>
+                            <option value="pending">Pendientes</option>
+                            <option value="reviewed">Revisados</option>
                             <option value="all">Todos</option>
                         </select>
                     </label>

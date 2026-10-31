@@ -9,6 +9,7 @@ use App\CashDesk\DayScope;
 use App\Catalog\Models\PaymentMethod;
 use App\Catalog\Models\Product;
 use App\Customers\Customers\Models\Customer;
+use App\Review\ReviewReason;
 use App\Routes\Routes\Models\Route;
 use App\Routes\Routes\Models\RouteStop;
 use App\Routes\Visits\Models\Visit;
@@ -117,7 +118,7 @@ test('push cancels a sale of today: status cancelled, flagged, balance and stock
         ->assertJsonPath('data.sale_cancellations.0.uuid', $payload['uuid'])
         ->assertJsonPath('data.sale_cancellations.0.status', 'accepted')
         ->assertJsonPath('data.sale_cancellations.0.server_id', $record->id)
-        ->assertJsonPath('data.sale_cancellations.0.review_reasons', ['Cancelled by a driver.']);
+        ->assertJsonPath('data.sale_cancellations.0.review_reasons', ['Anulado por el repartidor.']);
 
     $record->refresh();
     $note = CustomerAccountEntry::query()->where('entry_type', 'CREDIT_NOTE')->sole();
@@ -218,7 +219,7 @@ test('push cancels a payment of today: status cancelled, flagged, balance back, 
         ->assertJsonPath('data.payment_cancellations.0.uuid', $payload['uuid'])
         ->assertJsonPath('data.payment_cancellations.0.status', 'accepted')
         ->assertJsonPath('data.payment_cancellations.0.server_id', $record->id)
-        ->assertJsonPath('data.payment_cancellations.0.review_reasons', ['Cancelled by a driver.']);
+        ->assertJsonPath('data.payment_cancellations.0.review_reasons', ['Anulado por el repartidor.']);
 
     $record->refresh();
     $adjustment = CustomerAccountEntry::query()->where('entry_type', 'ADJUSTMENT')->sole();
@@ -265,7 +266,7 @@ test('push answers a replayed :entity cancellation with the same server id and b
         ->assertJsonPath("data.{$key}.0.uuid", $again['uuid'])
         ->assertJsonPath("data.{$key}.0.status", 'accepted')
         ->assertJsonPath("data.{$key}.0.server_id", $serverId)
-        ->assertJsonPath("data.{$key}.0.review_reasons", ['Cancelled by a driver.']);
+        ->assertJsonPath("data.{$key}.0.review_reasons", ['Anulado por el repartidor.']);
 
     expect(CustomerAccountEntry::query()->count())->toBe(2)
         ->and(cancellationBalance())->toBe(1000.0)
@@ -311,7 +312,7 @@ test('push rejects a :entity cancellation made on a later day than the record an
     $record = $model::query()->where('client_uuid', $target['uuid'])->firstOrFail();
     expect($result['status'])->toBe('rejected')
         ->and($result['server_id'])->toBeNull()
-        ->and($result['error'])->toBe("The cancellation was not made on the record's day.")
+        ->and($result['error'])->toBe('La anulación no se hizo el día del registro.')
         ->and(strtolower($record->status))->toBe('confirmed')
         ->and($record->needs_review)->toBeFalse()
         ->and([cancellationBalance(), CustomerAccountEntry::query()->count(), waterStock()])->toBe($before);
@@ -328,7 +329,7 @@ test('push rejects a :entity cancellation more than 3 days old and changes nothi
     $record = $model::query()->where('client_uuid', $target['uuid'])->firstOrFail();
     expect($result['status'])->toBe('rejected')
         ->and($result['server_id'])->toBeNull()
-        ->and($result['error'])->toBe('The cancellation is more than 3 days old.')
+        ->and($result['error'])->toBe('La anulación tiene más de 3 días.')
         ->and(strtolower($record->status))->toBe('confirmed')
         ->and($record->needs_review)->toBeFalse()
         ->and([cancellationBalance(), CustomerAccountEntry::query()->count(), waterStock()])->toBe($before);
@@ -371,7 +372,7 @@ test('push rejects cancelling a :entity of yesterday today and changes nothing',
     $record = $model::query()->where('client_uuid', $target['uuid'])->firstOrFail();
     expect($result['status'])->toBe('rejected')
         ->and($result['server_id'])->toBeNull()
-        ->and($result['error'])->toBe("The cancellation was not made on the record's day.")
+        ->and($result['error'])->toBe('La anulación no se hizo el día del registro.')
         ->and(strtolower($record->status))->toBe('confirmed')
         ->and($record->needs_review)->toBeFalse()
         ->and([cancellationBalance(), CustomerAccountEntry::query()->count(), waterStock()])->toBe($before);
@@ -411,7 +412,7 @@ test('push rejects cancelling a :entity of another driver and changes nothing', 
     $result = push([$key => [cancellation(["{$entity}_id" => $record->id])]])->assertOk()->json("data.{$key}.0");
 
     expect($result['status'])->toBe('rejected')
-        ->and($result['error'])->toBe("The {$entity} belongs to another driver.")
+        ->and($result['error'])->toBe($entity === 'sale' ? 'La venta pertenece a otro repartidor.' : 'El cobro pertenece a otro repartidor.')
         ->and(strtolower($record->fresh()->status))->toBe('confirmed')
         ->and($record->fresh()->needs_review)->toBeFalse()
         ->and(CustomerAccountEntry::query()->count())->toBe(0)
@@ -429,8 +430,8 @@ test('push rejects a :entity cancellation whose reference matches nothing or is 
     ]])->assertOk();
 
     expect($response->json("data.{$key}.0.status"))->toBe('rejected')
-        ->and($response->json("data.{$key}.0.error"))->toBe("The {$entity} reference does not match any record.")
-        ->and($response->json("data.{$key}.1.error"))->toBe("The {$entity} reference does not match any record.")
+        ->and($response->json("data.{$key}.0.error"))->toBe($missing = $entity === 'sale' ? 'La venta referida no existe.' : 'El cobro referido no existe.')
+        ->and($response->json("data.{$key}.1.error"))->toBe($missing)
         ->and($response->json("data.{$key}.2.status"))->toBe('rejected')
         ->and(CustomerAccountEntry::query()->count())->toBe(0);
 })->with(['sale', 'payment']);
@@ -467,7 +468,7 @@ test('a driver cancellation always reaches the review inbox, even on a sale alre
 
     push(['sale_cancellations' => [cancellation(['sale_uuid' => $sale['uuid']])]])->assertOk()
         ->assertJsonPath('data.sale_cancellations.0.status', 'accepted')
-        ->assertJsonPath('data.sale_cancellations.0.review_reasons', $reasons);
+        ->assertJsonPath('data.sale_cancellations.0.review_reasons', ReviewReason::labels($reasons));
 
     $stored->refresh();
     expect($stored->needs_review)->toBeTrue()

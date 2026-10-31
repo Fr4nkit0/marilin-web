@@ -42,13 +42,13 @@ class AuthController extends Controller
 
         if (! $user->enabled) {
             throw ValidationException::withMessages([
-                'email' => ['User account is disabled.'],
+                'email' => [__('User account is disabled.')],
             ]);
         }
 
         if (! $user->driver || ! $user->driver->enabled) {
             throw ValidationException::withMessages([
-                'email' => ['User is not an active driver.'],
+                'email' => [__('User is not an active driver.')],
             ]);
         }
 
@@ -66,7 +66,7 @@ class AuthController extends Controller
                 ...$issueTokens->execute($user, $sessionName),
                 'user' => new UserResource($user),
             ],
-            'message' => 'Login successful',
+            'message' => __('Login successful'),
         ]);
     }
 
@@ -100,7 +100,7 @@ class AuthController extends Controller
                 ...$tokens,
                 'user' => new UserResource($user),
             ],
-            'message' => 'Token refreshed',
+            'message' => __('Token refreshed'),
         ]);
     }
 
@@ -127,7 +127,7 @@ class AuthController extends Controller
 
         return response()->json([
             'data' => null,
-            'message' => 'Logged out successfully',
+            'message' => __('Logged out successfully'),
         ]);
     }
 }

@@ -179,7 +179,7 @@ test('push accepts an edit on a customer assigned to another driver but leaves i
 
     $customer->refresh();
 
-    expect($response->json('data.customers.0.review_reasons'))->toBe(['Customer is assigned to another driver.'])
+    expect($response->json('data.customers.0.review_reasons'))->toBe(['El cliente está asignado a otro repartidor.'])
         ->and($customer->needs_review)->toBeFalse()
         ->and($customer->name)->toBe('Nombre del servidor')
         ->and($customer->driver_id)->toBe($otherDriver->id);
@@ -236,7 +236,7 @@ test('push leaves even an old edit of a customer of another driver pending: the 
 
     $response->assertOk()->assertJsonPath('data.customers.0.status', 'accepted');
 
-    expect($response->json('data.customers.0.review_reasons'))->toBe(['Customer is assigned to another driver.'])
+    expect($response->json('data.customers.0.review_reasons'))->toBe(['El cliente está asignado a otro repartidor.'])
         ->and($customer->fresh()->name)->toBe('Nombre del servidor');
 });
 
@@ -249,7 +249,7 @@ test('push rejects an edit that points at a server id that does not exist', func
         ->assertJsonPath('data.customers.0.status', 'rejected')
         ->assertJsonPath('data.customers.0.server_id', null);
 
-    expect($response->json('data.customers.0.error'))->toContain('server_id')
+    expect($response->json('data.customers.0.error'))->toBe('El identificador del servidor no corresponde a ningún cliente.')
         ->and(Customer::query()->where('client_uuid', $payload['uuid'])->exists())->toBeFalse();
 });
 
@@ -328,7 +328,7 @@ test('push disables a customer when the app sends enabled false and flags it for
     $response->assertOk()
         ->assertJsonPath('data.customers.0.status', 'accepted')
         ->assertJsonPath('data.customers.0.server_id', $customer->id)
-        ->assertJsonPath('data.customers.0.review_reasons', ['Customer disabled by a driver.']);
+        ->assertJsonPath('data.customers.0.review_reasons', ['El repartidor dio de baja al cliente.']);
 
     $customer->refresh();
     expect($customer->enabled)->toBeFalse()

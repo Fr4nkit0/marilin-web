@@ -192,7 +192,7 @@ test('push rejects an address that points at a server id that does not exist', f
         ->assertOk()
         ->assertJsonPath('data.customer_addresses.0.status', 'rejected')
         ->assertJsonPath('data.customer_addresses.0.server_id', null)
-        ->assertJsonPath('data.customer_addresses.0.error', 'The server_id does not match any customer address.');
+        ->assertJsonPath('data.customer_addresses.0.error', 'El identificador del servidor no corresponde a ninguna dirección.');
 
     expect(CustomerAddress::query()->count())->toBe(1);
 });
@@ -206,7 +206,7 @@ test('push rejects moving an address to another customer', function (): void {
     push(['customer_addresses' => [addressPayload($other, ['uuid' => $uuid])]])
         ->assertOk()
         ->assertJsonPath('data.customer_addresses.0.status', 'rejected')
-        ->assertJsonPath('data.customer_addresses.0.error', 'The record belongs to another customer.');
+        ->assertJsonPath('data.customer_addresses.0.error', 'El registro pertenece a otro cliente.');
 
     expect(addressState($address))->toEqual($before);
 });
@@ -247,7 +247,7 @@ test('push rejects disabling the primary address', function (bool $isPrimary): v
         'enabled' => false,
     ])]])->assertOk()
         ->assertJsonPath('data.customer_addresses.0.status', 'rejected')
-        ->assertJsonPath('data.customer_addresses.0.error', 'The primary address cannot be disabled.');
+        ->assertJsonPath('data.customer_addresses.0.error', 'La dirección principal no se puede deshabilitar.');
 
     expect(addressState($this->primary))->toEqual($before);
 })->with([true, false]);
@@ -255,7 +255,7 @@ test('push rejects disabling the primary address', function (bool $isPrimary): v
 test('push rejects a new disabled primary address', function (): void {
     push(['customer_addresses' => [addressPayload($this->customer, ['is_primary' => true, 'enabled' => false])]])
         ->assertOk()
-        ->assertJsonPath('data.customer_addresses.0.error', 'The primary address cannot be disabled.');
+        ->assertJsonPath('data.customer_addresses.0.error', 'La dirección principal no se puede deshabilitar.');
 
     expect(CustomerAddress::query()->count())->toBe(1)
         ->and($this->primary->fresh()->is_primary)->toBeTrue();
@@ -267,7 +267,7 @@ test('push rejects leaving the customer without a primary address', function ():
     push(['customer_addresses' => [addressPayload($this->customer, ['server_id' => $this->primary->id, 'is_primary' => false])]])
         ->assertOk()
         ->assertJsonPath('data.customer_addresses.0.status', 'rejected')
-        ->assertJsonPath('data.customer_addresses.0.error', 'A customer needs a primary address.');
+        ->assertJsonPath('data.customer_addresses.0.error', 'El cliente necesita una dirección principal.');
 
     expect(addressState($this->primary))->toEqual($before);
 });
@@ -281,7 +281,7 @@ test('push leaves a new address on a customer of another driver pending for the 
     push(['customer_addresses' => [$payload]])
         ->assertOk()
         ->assertJsonPath('data.customer_addresses.0.status', 'accepted')
-        ->assertJsonPath('data.customer_addresses.0.review_reasons', ['Customer is assigned to another driver.']);
+        ->assertJsonPath('data.customer_addresses.0.review_reasons', ['El cliente está asignado a otro repartidor.']);
 
     $foreign->refresh();
     expect(CustomerAddress::query()->where('client_uuid', $payload['uuid'])->exists())->toBeFalse()
@@ -412,7 +412,7 @@ test('a customer push whose address uuid belongs to another address is rejected 
         ->assertOk()
         ->assertJsonPath('data.customers.0.status', 'rejected')
         ->assertJsonPath('data.customers.0.server_id', null)
-        ->assertJsonPath('data.customers.0.error', 'The address uuid belongs to another address.');
+        ->assertJsonPath('data.customers.0.error', 'El identificador de la dirección pertenece a otra dirección.');
 
     expect(addressState($other))->toEqual($otherBefore)
         ->and(addressState($this->primary))->toEqual($primaryBefore)
