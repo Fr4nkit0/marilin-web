@@ -95,10 +95,17 @@ export function PaymentMethodBadge({ method, className = '' }: PaymentMethodBadg
     let label = 'Efectivo';
     let style = 'bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-200/60 dark:border-emerald-500/30';
 
-    if (m.includes('transf')) {
+    if (method.includes(' + ')) {
+        // A sale paid with more than one method ("Efectivo + Transf."): the label is already the methods.
+        label = method;
+        style = 'bg-surface-1 text-ink-secondary border-hairline/60';
+    } else if (m.includes('transf')) {
         label = 'Transferencia';
         style = 'bg-sky-50 dark:bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-200/60 dark:border-sky-500/30';
-    } else if (m.includes('credit') || m.includes('cuenta') || m.includes('cte')) {
+    } else if (m.includes('tarjeta') || m.includes('card')) {
+        label = 'Tarjeta';
+        style = 'bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-200/60 dark:border-indigo-500/30';
+    } else if (m.includes('credit') || m.includes('crédito') || m.includes('cuenta') || m.includes('cte')) {
         label = 'Crédito / Cta Cte';
         style = 'bg-purple-50 dark:bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-200/60 dark:border-purple-500/30';
     }

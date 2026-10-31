@@ -16,7 +16,11 @@ export function ModalTitle({ className = '', children }: PropsWithChildren<{ cla
     );
 }
 
-/** A modal dialog (role="dialog", aria-modal); put a ModalTitle inside so it has a name. */
+/**
+ * A modal dialog (role="dialog", aria-modal); put a ModalTitle inside so it has a name.
+ * It never grows past the viewport: the panel is a column that scrolls when its content is taller. A long form keeps
+ * its title and buttons in view by being a `flex min-h-0 flex-col` child whose body scrolls (`min-h-0 flex-1 overflow-y-auto`).
+ */
 export default function Modal({
     children,
     show = false,
@@ -71,7 +75,7 @@ export default function Modal({
                     leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                 >
                     <DialogPanel
-                        className={`mb-6 transform overflow-hidden rounded-xl bg-canvas shadow-xl transition-all sm:mx-auto sm:w-full ${maxWidthClass}`}
+                        className={`flex max-h-[calc(100dvh-3rem)] w-full transform flex-col overflow-y-auto rounded-xl bg-canvas shadow-xl transition-all sm:mx-auto ${maxWidthClass}`}
                     >
                         {children}
                     </DialogPanel>

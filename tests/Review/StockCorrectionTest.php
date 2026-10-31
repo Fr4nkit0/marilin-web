@@ -44,7 +44,7 @@ beforeEach(function (): void {
         'total' => 3500,
         'is_credit_sale' => true,
         'details' => [['product_id' => $this->water->id, 'quantity' => 5, 'unit_price' => 700]],
-    ]]])->assertOk()->assertJsonPath('data.sales.0.review_reasons', [ReviewReason::InsufficientStock->value]);
+    ]]])->assertOk()->assertJsonPath('data.sales.0.review_reasons', ReviewReason::labels([ReviewReason::InsufficientStock->value]));
     $this->sale = Sale::query()->where('client_uuid', $uuid)->sole();
 });
 

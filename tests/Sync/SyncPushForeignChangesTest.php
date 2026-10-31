@@ -18,7 +18,10 @@ uses(RefreshDatabase::class);
 
 require_once __DIR__.'/PushHelpers.php';
 
-const FOREIGN_REASON = 'Customer is assigned to another driver.';
+// The push answers the reason as the review inbox shows it; the stored value stays.
+const FOREIGN_REASON = 'El cliente está asignado a otro repartidor.';
+
+const FOREIGN_REASON_VALUE = 'Customer is assigned to another driver.';
 
 beforeEach(function (): void {
     $this->withoutVite();
@@ -269,7 +272,7 @@ test('a sale on another driver\'s customer is still accepted and marked, not lef
     $sale = Sale::query()->where('client_uuid', $uuid)->firstOrFail();
 
     expect($sale->needs_review)->toBeTrue()
-        ->and($sale->review_reasons)->toBe([FOREIGN_REASON])
+        ->and($sale->review_reasons)->toBe([FOREIGN_REASON_VALUE])
         ->and(pendingChangeRows())->toBe([]);
 });
 

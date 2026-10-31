@@ -7,6 +7,7 @@ use App\Accounts\Models\User;
 use App\Catalog\Models\ContainerType;
 use App\Customers\Customers\Models\Customer;
 use App\Customers\Customers\Models\CustomerAddress;
+use App\Review\ReviewReason;
 use App\Routes\Routes\Models\Route;
 use App\Routes\Routes\Models\RouteStop;
 use App\Routes\Visits\Models\Visit;
@@ -180,7 +181,7 @@ test('push accepts a visit on a customer of another driver or a disabled one and
 
     expect($reason)->toBeString()->not->toBeEmpty()
         ->and($visit->needs_review)->toBeTrue()
-        ->and($visit->review_reasons)->toBe([$reason]);
+        ->and(ReviewReason::labels($visit->review_reasons))->toBe([$reason]);
 })->with(['other driver' => ['other driver'], 'disabled' => ['disabled']]);
 
 /**
@@ -237,7 +238,7 @@ test('push rejects a visit that points at a stop that does not exist and still a
         ->assertJsonPath('data.visits.0.server_id', null)
         ->assertJsonPath('data.visits.1.status', 'accepted');
 
-    expect($response->json('data.visits.0.error'))->toContain('route_stop')
+    expect($response->json('data.visits.0.error'))->toBe('La parada referida no existe.')
         ->and(Visit::query()->where('client_uuid', $broken['uuid'])->exists())->toBeFalse();
 });
 
@@ -288,7 +289,7 @@ test('push accepts a container movement on a customer of another driver or a dis
 
     expect($reason)->toBeString()->not->toBeEmpty()
         ->and($movement->needs_review)->toBeTrue()
-        ->and($movement->review_reasons)->toBe([$reason])
+        ->and(ReviewReason::labels($movement->review_reasons))->toBe([$reason])
         ->and(CustomerContainerBalance::query()->where('customer_id', $customer->id)->firstOrFail()->balance)->toBe(5);
 })->with(['other driver' => ['other driver'], 'disabled' => ['disabled']]);
 
@@ -408,7 +409,7 @@ test('push rejects an edit made on a later day than the visit and leaves it unch
     $response->assertOk()
         ->assertJsonPath('data.visits.0.status', 'rejected')
         ->assertJsonPath('data.visits.0.server_id', null)
-        ->assertJsonPath('data.visits.0.error', "The edit was not made on the visit's day.");
+        ->assertJsonPath('data.visits.0.error', 'La edición no se hizo el día de la visita.');
 
     expect(visitSnapshot($payload['uuid']))->toEqual($before);
 });
@@ -441,7 +442,7 @@ test('push rejects a visit edit made the day after the visit, synced that day, a
         ->assertOk()
         ->assertJsonPath('data.visits.0.status', 'rejected')
         ->assertJsonPath('data.visits.0.server_id', null)
-        ->assertJsonPath('data.visits.0.error', "The edit was not made on the visit's day.");
+        ->assertJsonPath('data.visits.0.error', 'La edición no se hizo el día de la visita.');
 
     expect(visitSnapshot($payload['uuid']))->toEqual($before);
 });
@@ -457,7 +458,7 @@ test('push rejects a visit edit more than 3 days old and leaves it unchanged', f
         ->assertOk()
         ->assertJsonPath('data.visits.0.status', 'rejected')
         ->assertJsonPath('data.visits.0.server_id', null)
-        ->assertJsonPath('data.visits.0.error', 'The edit is more than 3 days old.');
+        ->assertJsonPath('data.visits.0.error', 'La edición tiene más de 3 días.');
 
     expect(visitSnapshot($payload['uuid']))->toEqual($before);
 });
@@ -503,7 +504,7 @@ test('push rejects an edit of a visit of another driver and leaves it unchanged'
     $response->assertOk()
         ->assertJsonPath('data.visits.0.status', 'rejected')
         ->assertJsonPath('data.visits.0.server_id', null)
-        ->assertJsonPath('data.visits.0.error', 'The visit belongs to another driver.');
+        ->assertJsonPath('data.visits.0.error', 'La visita pertenece a otro repartidor.');
 
     expect(visitSnapshot($payload['uuid']))->toEqual($before);
 });

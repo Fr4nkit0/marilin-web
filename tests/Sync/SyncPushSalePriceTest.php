@@ -87,7 +87,7 @@ test('a sale at the list price while an agreement was valid is accepted, flagged
 
     $response->assertOk()
         ->assertJsonPath('data.sales.0.status', 'accepted')
-        ->assertJsonPath('data.sales.0.review_reasons', [ReviewReason::PriceMismatch->value]);
+        ->assertJsonPath('data.sales.0.review_reasons', [ReviewReason::PriceMismatch->label()]);
 
     $stored = Sale::query()->with('details')->where('client_uuid', $sale['uuid'])->firstOrFail();
     expect($stored->needs_review)->toBeTrue()
@@ -102,14 +102,14 @@ test('a sale at the price of an agreement that was over on the sale date is flag
 
     push(['sales' => [pricedSale(500, ['customer_agreement_id' => $expired->id])]])->assertOk()
         ->assertJsonPath('data.sales.0.status', 'accepted')
-        ->assertJsonPath('data.sales.0.review_reasons', [ReviewReason::PriceMismatch->value]);
+        ->assertJsonPath('data.sales.0.review_reasons', [ReviewReason::PriceMismatch->label()]);
 });
 
 test('a line that references an agreement but does not charge what it says is flagged', function (): void {
     $agreement = pricedAgreement();
 
     push(['sales' => [pricedSale(650, ['customer_agreement_id' => $agreement->id])]])->assertOk()
-        ->assertJsonPath('data.sales.0.review_reasons', [ReviewReason::PriceMismatch->value]);
+        ->assertJsonPath('data.sales.0.review_reasons', [ReviewReason::PriceMismatch->label()]);
 });
 
 test('a referenced agreement that was not valid but whose price equals the resolved price is not flagged', function (): void {
@@ -137,7 +137,7 @@ test('one wrong line among several flags the sale; cents are compared as two-dec
             ['product_id' => $soda->id, 'quantity' => 1, 'unit_price' => 400.51],
         ],
     ]);
-    push(['sales' => [$wrong]])->assertOk()->assertJsonPath('data.sales.0.review_reasons', [ReviewReason::PriceMismatch->value]);
+    push(['sales' => [$wrong]])->assertOk()->assertJsonPath('data.sales.0.review_reasons', [ReviewReason::PriceMismatch->label()]);
 });
 
 test('the customer reason and the price reason are both kept, the customer one first', function (): void {
@@ -147,7 +147,7 @@ test('the customer reason and the price reason are both kept, the customer one f
 
     push(['sales' => [pricedSale(800, [], ['customer_id' => $foreign->id])]])->assertOk()
         ->assertJsonPath('data.sales.0.status', 'accepted')
-        ->assertJsonPath('data.sales.0.review_reasons', [ReviewReason::ForeignCustomer->value, ReviewReason::PriceMismatch->value]);
+        ->assertJsonPath('data.sales.0.review_reasons', [ReviewReason::ForeignCustomer->label(), ReviewReason::PriceMismatch->label()]);
 });
 
 test('a flagged sale sent again returns the same reason and books nothing twice', function (): void {
@@ -159,7 +159,7 @@ test('a flagged sale sent again returns the same reason and books nothing twice'
 
     $second->assertOk()
         ->assertJsonPath('data.sales.0.server_id', $first->json('data.sales.0.server_id'))
-        ->assertJsonPath('data.sales.0.review_reasons', [ReviewReason::PriceMismatch->value]);
+        ->assertJsonPath('data.sales.0.review_reasons', [ReviewReason::PriceMismatch->label()]);
     expect(Sale::query()->count())->toBe(1)->and(CustomerAccountEntry::query()->count())->toBe(1);
 });
 

@@ -67,7 +67,7 @@ test('a sale that leaves the truck stock below zero is still accepted and booked
 
     push(['sales' => [$payload]])->assertOk()
         ->assertJsonPath('data.sales.0.status', 'accepted')
-        ->assertJsonPath('data.sales.0.review_reasons', [ReviewReason::InsufficientStock->value]);
+        ->assertJsonPath('data.sales.0.review_reasons', ReviewReason::labels([ReviewReason::InsufficientStock->value]));
 
     $sale = Sale::query()->where('client_uuid', $payload['uuid'])->sole();
 
@@ -92,7 +92,7 @@ test('a sale of a product the truck was not loaded with goes to review and its s
 
     push(['sales' => [$payload]])->assertOk()
         ->assertJsonPath('data.sales.0.status', 'accepted')
-        ->assertJsonPath('data.sales.0.review_reasons', [ReviewReason::InsufficientStock->value]);
+        ->assertJsonPath('data.sales.0.review_reasons', ReviewReason::labels([ReviewReason::InsufficientStock->value]));
 
     expect(truckStock($this->soda))->toBe(-2.0)
         ->and(truckStock($this->water))->toBe(2.0);
@@ -116,7 +116,7 @@ test('the stock reason joins the other reasons of the sale', function (): void {
     ]);
 
     push(['sales' => [stockSale([[$this->water, 4]])]])->assertOk()
-        ->assertJsonPath('data.sales.0.review_reasons', [ReviewReason::PriceMismatch->value, ReviewReason::InsufficientStock->value]);
+        ->assertJsonPath('data.sales.0.review_reasons', ReviewReason::labels([ReviewReason::PriceMismatch->value, ReviewReason::InsufficientStock->value]));
 });
 
 test('an oversold sale sent again answers the same reasons and discounts nothing twice', function (): void {
@@ -125,7 +125,7 @@ test('an oversold sale sent again answers the same reasons and discounts nothing
     $first = push(['sales' => [$payload]]);
     push(['sales' => [$payload]])->assertOk()
         ->assertJsonPath('data.sales.0.server_id', $first->json('data.sales.0.server_id'))
-        ->assertJsonPath('data.sales.0.review_reasons', [ReviewReason::InsufficientStock->value]);
+        ->assertJsonPath('data.sales.0.review_reasons', ReviewReason::labels([ReviewReason::InsufficientStock->value]));
 
     expect(truckStock($this->water))->toBe(-2.0);
 });

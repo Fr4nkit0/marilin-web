@@ -106,7 +106,7 @@ test('S8: an edit rejected by the server_id guard carries the row that server_id
         'name' => 'Otro nombre',
     ]]])->assertOk()
         ->assertJsonPath('data.customers.0.status', 'rejected')
-        ->assertJsonPath('data.customers.0.error', 'The server_id belongs to another app record.')
+        ->assertJsonPath('data.customers.0.error', 'El identificador del servidor pertenece a otro registro de la app.')
         ->json('data.customers.0');
 
     expect($result['current'])->toBe(pulledCustomer($this->customer))
@@ -130,7 +130,7 @@ test('S8: a preference edit rejected because its new slot is taken carries its o
     $result = push(['customer_preferences' => [$preference($ownUuid, '14:00', '16:00', '2026-10-21T11:00:00-03:00')]])
         ->assertOk()
         ->assertJsonPath('data.customer_preferences.0.status', 'rejected')
-        ->assertJsonPath('data.customer_preferences.0.error', 'The customer already has a preference for that day and time.')
+        ->assertJsonPath('data.customer_preferences.0.error', 'El cliente ya tiene una preferencia para ese día y horario.')
         ->json('data.customer_preferences.0');
 
     expect($result['current'])->toBe(pulledRow('customer_preferences', $own->id))
@@ -148,7 +148,7 @@ test('S8 E6b: a preference insert rejected because the slot is taken carries no 
     $result = push(['customer_preferences' => [$preference('14:00', '16:00')]])
         ->assertOk()
         ->assertJsonPath('data.customer_preferences.0.status', 'rejected')
-        ->assertJsonPath('data.customer_preferences.0.error', 'The customer already has a preference for that day and time.')
+        ->assertJsonPath('data.customer_preferences.0.error', 'El cliente ya tiene una preferencia para ese día y horario.')
         ->json('data.customer_preferences.0');
 
     expect($result)->not->toHaveKey('current')

@@ -186,3 +186,18 @@ test('the driver page totals count the sales and payments the app pushed without
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page->where('metrics.totalSalesAmount', 2950));
 });
+
+test('dispatch tells a stop not visited yet from a visited one without news: the first is not done, neither carries an outcome', function (): void {
+    $notVisited = stopWithVisit(null);
+    $visited = stopWithVisit('FINISHED');
+
+    $this->get(route('routes.index', ['date' => '2026-10-20']))
+        ->assertOk()
+        ->assertInertia(function (Assert $page) use ($notVisited, $visited): void {
+            $stops = collect($page->toArray()['props']['routes'][0]['stops'])->keyBy('id');
+
+            expect($stops[$notVisited->id])->toMatchArray(['done' => false, 'arrivedAt' => null, 'outcome' => null])
+                ->and($stops[$visited->id]['done'])->toBeTrue()
+                ->and($stops[$visited->id]['outcome'])->toBeNull();
+        });
+});

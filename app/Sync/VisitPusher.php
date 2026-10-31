@@ -110,7 +110,7 @@ class VisitPusher extends EntityPusher
             $visit->arrived_at,
             $modifiedAt,
             "The edit was not made on the visit's day.",
-            'The edit is more than %d days old.',
+            'The edit is more than :days days old.',
         );
 
         $visit->update([

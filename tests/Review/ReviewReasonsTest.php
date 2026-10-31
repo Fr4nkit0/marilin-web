@@ -41,8 +41,8 @@ test('a sale on another driver\'s customer at a price off the list keeps both re
         ->assertOk()
         ->assertJsonPath('data.sales.0.status', 'accepted')
         ->assertJsonPath('data.sales.0.review_reasons', [
-            'Customer is assigned to another driver.',
-            'Sale price differs from the agreement or list price.',
+            'El cliente está asignado a otro repartidor.',
+            'Venta con precio distinto al acordado o de lista.',
         ]);
 
     $record = Sale::query()->where('client_uuid', $sale['uuid'])->sole();
@@ -62,8 +62,8 @@ test('a sale on another driver\'s customer at a price off the list keeps both re
     // A replay answers the same reasons.
     Sanctum::actingAs($this->user, ['*']);
     push(['sales' => [$sale]])->assertJsonPath('data.sales.0.review_reasons', [
-        'Customer is assigned to another driver.',
-        'Sale price differs from the agreement or list price.',
+        'El cliente está asignado a otro repartidor.',
+        'Venta con precio distinto al acordado o de lista.',
     ]);
 });
 

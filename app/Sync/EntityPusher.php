@@ -81,11 +81,11 @@ abstract class EntityPusher
             } catch (QueryException $failure) {
                 report($failure);
 
-                return $this->rejected($uuid, 'The record could not be saved.');
+                return $this->rejected($uuid, __('The record could not be saved.'));
             }
         }
 
-        return $this->rejected($uuid, 'The record could not be saved.');
+        return $this->rejected($uuid, __('The record could not be saved.'));
     }
 
     /**
@@ -137,7 +137,7 @@ abstract class EntityPusher
 
     /**
      * An offline cancellation or edit is judged by when the driver acted, not by when the push arrives: it must be made
-     * on the record's local day and be at most `sync.offline_action_max_age_days` old.
+     * on the record's local day and be at most `sync.offline_action_max_age_days` old (`:days` in the too old message).
      */
     protected function assertActedOnRecordDay(CarbonInterface $recordAt, CarbonInterface $actedAt, string $notOnDay, string $tooOld): void
     {
@@ -148,11 +148,13 @@ abstract class EntityPusher
         $maxAgeDays = (int) config('sync.offline_action_max_age_days');
 
         if ($actedAt->lessThan(now()->subDays($maxAgeDays))) {
-            throw new RejectedRecord(sprintf($tooOld, $maxAgeDays));
+            throw new RejectedRecord($tooOld, ['days' => $maxAgeDays]);
         }
     }
 
     /**
+     * The review reasons are answered as the admin reads them in the review inbox (Spanish); the stored values stay.
+     *
      * @param  ?int  $serverId  null only for a new row held for the admin (see heldForAdmin)
      * @param  list<string>  $reviewReasons  every reason the record waits for review, empty when it is clean
      * @return array<string, mixed>
@@ -163,7 +165,7 @@ abstract class EntityPusher
             'uuid' => $uuid,
             'status' => 'accepted',
             'server_id' => $serverId,
-            'review_reasons' => $reviewReasons,
+            'review_reasons' => ReviewReason::labels($reviewReasons),
         ];
     }
 

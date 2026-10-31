@@ -164,7 +164,7 @@ export default function Dashboard({ metrics }: Props) {
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 
                 {/* Repartidores En Ruta Table */}
-                <div className="lg:col-span-3 bg-canvas rounded-2xl border border-hairline/60 shadow-sm overflow-hidden ">
+                <div className="lg:col-span-3 min-w-0 bg-canvas rounded-2xl border border-hairline/60 shadow-sm overflow-hidden ">
                     <div className="px-6 py-5 border-b border-hairline flex items-center justify-between">
                         <h2 className="text-base font-semibold text-ink">
                             Repartidores en ruta
@@ -178,30 +178,30 @@ export default function Dashboard({ metrics }: Props) {
                         <table className="w-full text-left text-sm whitespace-nowrap">
                             <thead className="bg-canvas-soft/50 border-b border-hairline">
                                 <tr>
-                                    <th className="px-6 py-3 text-xs font-medium text-ink-muted w-1/4">
+                                    <th className="px-4 py-3 text-xs font-medium text-ink-muted">
                                         Repartidor
                                     </th>
-                                    <th className="px-6 py-3 text-xs font-medium text-ink-muted w-1/4">
+                                    <th className="px-4 py-3 text-xs font-medium text-ink-muted">
                                         Progreso
                                     </th>
-                                    <th className="px-6 py-3 text-xs font-medium text-ink-muted w-1/4">
+                                    <th className="px-4 py-3 text-xs font-medium text-ink-muted">
                                         Estado
                                     </th>
-                                    <th className="px-6 py-3 text-xs font-medium text-ink-muted text-right">
+                                    <th className="px-4 py-3 text-xs font-medium text-ink-muted text-right">
                                         Vendido
                                     </th>
-                                    <th className="px-6 py-3 text-xs font-medium text-ink-muted text-right">
+                                    <th className="px-4 py-3 text-xs font-medium text-ink-muted text-right">
                                         Cobrado
                                     </th>
-                                    <th className="px-6 py-3 text-xs font-medium text-ink-muted w-1/4 text-right">
-                                        Acciones
+                                    <th className="px-4 py-3 text-xs font-medium text-ink-muted text-right">
+                                        <span className="sr-only">Acciones</span>
                                     </th>
                                 </tr>
                             </thead>
                             <tbody className="bg-canvas divide-y divide-hairline">
                                 {repartidores.length === 0 && !casaHasActivity ? (
                                     <tr>
-                                        <td colSpan={6} className="px-6 py-8 text-center text-sm font-medium text-ink-subtle">
+                                        <td colSpan={6} className="px-4 py-8 text-center text-sm font-medium text-ink-subtle">
                                             <span className="table-empty">No hay repartidores activos en este momento.</span>
                                         </td>
                                     </tr>
@@ -213,7 +213,7 @@ export default function Dashboard({ metrics }: Props) {
                                             className="hover:bg-canvas-soft transition-colors cursor-pointer"
                                             title="Ver cierre de caja del día"
                                         >
-                                            <td className="px-6 py-4">
+                                            <td className="px-4 py-4">
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-8 h-8 bg-surface-1 text-ink-secondary flex items-center justify-center font-semibold text-xs rounded-full">
                                                         {rep.name.substring(0,2).toUpperCase()}
@@ -221,13 +221,13 @@ export default function Dashboard({ metrics }: Props) {
                                                     <span className="font-medium text-ink">{rep.name}</span>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center gap-4">
+                                            <td className="px-4 py-4">
+                                                <div className="flex items-center gap-3">
                                                     <div className="flex flex-col">
                                                         <span className="text-sm font-medium text-ink">{rep.completedStops} / {rep.totalStops}</span>
                                                         <span className="text-xs text-ink-muted">Paradas</span>
                                                     </div>
-                                                    <div className="w-24 h-2 bg-surface-1 rounded-full overflow-hidden">
+                                                    <div className="w-16 h-2 bg-surface-1 rounded-full overflow-hidden">
                                                         <div
                                                             className="h-full bg-sky-600 transition-all duration-300 rounded-full dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
                                                             style={{ width: `${rep.progressPercent}%` }}
@@ -235,8 +235,9 @@ export default function Dashboard({ metrics }: Props) {
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center gap-3">
+                                            <td className="px-4 py-4">
+                                                {/* The start time sits under the badge, so the money columns keep their room. */}
+                                                <div className="flex flex-col items-start gap-1">
                                                     <StatusBadge status={rep.status} />
                                                     {rep.startedAt && (
                                                         <span className="text-xs text-ink-muted">
@@ -245,9 +246,9 @@ export default function Dashboard({ metrics }: Props) {
                                                     )}
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 text-right font-medium text-ink">{money(rep.totalSales)}</td>
-                                            <td className="px-6 py-4 text-right font-medium text-ink">{money(rep.totalCollected)}</td>
-                                            <td className="px-6 py-4 text-right">
+                                            <td className="px-4 py-4 text-right font-medium text-ink tabular-nums">{money(rep.totalSales)}</td>
+                                            <td className="px-4 py-4 text-right font-medium text-ink tabular-nums">{money(rep.totalCollected)}</td>
+                                            <td className="px-4 py-4 text-right">
                                                 <Link
                                                     href={route('cash-close.index', { repartidor_id: rep.id, date: metrics.date })}
                                                     onClick={(e) => e.stopPropagation()}
@@ -262,7 +263,7 @@ export default function Dashboard({ metrics }: Props) {
                                 )}
                                 {casaHasActivity && (
                                 <tr title="Ventas y cobros hechos en la casa, sin repartidor">
-                                    <td className="px-6 py-4">
+                                    <td className="px-4 py-4">
                                         <div className="flex items-center gap-3">
                                             <div className="w-8 h-8 bg-surface-1 text-ink-secondary flex items-center justify-center font-semibold text-xs rounded-full">
                                                 {metrics.casa.name.substring(0, 2).toUpperCase()}
@@ -270,11 +271,11 @@ export default function Dashboard({ metrics }: Props) {
                                             <span className="font-medium text-ink">{metrics.casa.name}</span>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 text-xs text-ink-muted">Sin ruta</td>
-                                    <td className="px-6 py-4"></td>
-                                    <td className="px-6 py-4 text-right font-medium text-ink">{money(metrics.casa.totalSales)}</td>
-                                    <td className="px-6 py-4 text-right font-medium text-ink">{money(metrics.casa.totalCollected)}</td>
-                                    <td className="px-6 py-4"></td>
+                                    <td className="px-4 py-4 text-xs text-ink-muted">Sin ruta</td>
+                                    <td className="px-4 py-4"></td>
+                                    <td className="px-4 py-4 text-right font-medium text-ink tabular-nums">{money(metrics.casa.totalSales)}</td>
+                                    <td className="px-4 py-4 text-right font-medium text-ink tabular-nums">{money(metrics.casa.totalCollected)}</td>
+                                    <td className="px-4 py-4"></td>
                                 </tr>
                                 )}
                             </tbody>

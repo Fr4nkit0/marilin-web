@@ -51,6 +51,15 @@ export function stopStatusLabel(status: StopStatus): string {
     return STOP_STATUS_LABELS[status];
 }
 
+/**
+ * What dispatch shows as a stop's result: the visit's outcome, "Sin novedades" for a visited stop without one,
+ * and a dash for a stop not visited yet.
+ */
+export function stopResultLabel(stop: { outcome?: string | null; done: boolean }): string {
+    if (stop.outcome) return stop.outcome;
+    return stop.done ? 'Sin novedades' : '—';
+}
+
 export function accountEntryTypeLabel(type: AccountEntryType): string {
     return ACCOUNT_ENTRY_TYPE_LABELS[type];
 }
@@ -93,6 +102,45 @@ export function timeWindowLabel(start: string | null, end: string | null): strin
 /** Anything but a confirmed payment reads as annulled: the web says "Anulado" for both stored values. */
 export function paymentStatusLabel(status: PaymentStatus): string {
     return status === 'CONFIRMED' ? 'Confirmado' : 'Anulado';
+}
+
+type PaymentMethodKind = 'cash' | 'transfer' | 'card';
+
+const PAYMENT_METHOD_NAMES: Record<PaymentMethodKind, { full: string; short: string }> = {
+    cash: { full: 'Efectivo', short: 'Efectivo' },
+    transfer: { full: 'Transferencia', short: 'Transf.' },
+    card: { full: 'Tarjeta', short: 'Tarjeta' },
+};
+
+/** The kind of a payment method from its configured name ("Transferencia Bancaria", "Tarjeta de Débito/Crédito"). */
+function paymentMethodKind(name: string): PaymentMethodKind | null {
+    const lower = name.toLowerCase();
+    if (lower.includes('efectivo')) return 'cash';
+    if (lower.includes('transf')) return 'transfer';
+    if (lower.includes('tarjeta')) return 'card';
+    return null;
+}
+
+/** A payment method by its kind: "Efectivo", "Transferencia", "Tarjeta"; any other method by its own name. */
+export function paymentMethodLabel(name: string): string {
+    const kind = paymentMethodKind(name);
+    return kind ? PAYMENT_METHOD_NAMES[kind].full : name;
+}
+
+/**
+ * Every method a sale was paid with, in the order paid: one in full ("Transferencia"), several short and joined
+ * ("Efectivo + Transf."); empty when the sale has no payment.
+ */
+export function paymentMethodsLabel(names: string[]): string {
+    const labels = [...new Set(names.map(paymentMethodLabel))];
+    if (labels.length <= 1) return labels[0] ?? '';
+
+    return labels
+        .map((label) => {
+            const kind = paymentMethodKind(label);
+            return kind ? PAYMENT_METHOD_NAMES[kind].short : label;
+        })
+        .join(' + ');
 }
 
 /**
