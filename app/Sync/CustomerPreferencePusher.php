@@ -8,6 +8,8 @@ use App\Accounts\Models\Driver;
 use App\Accounts\Models\User;
 use App\Customers\Customers\CustomerIntake;
 use App\Customers\Customers\CustomerPreferenceChange;
+use App\Customers\Customers\Enums\CustomerChangeTarget;
+use App\Customers\Customers\ForeignCustomerChanges;
 use App\Customers\Customers\InvalidCustomerChange;
 use App\Customers\Customers\Models\Customer;
 use App\Customers\Customers\Models\CustomerPreference;
@@ -18,7 +20,11 @@ use Illuminate\Database\Eloquent\Model;
  */
 class CustomerPreferencePusher extends EntityPusher
 {
-    public function __construct(private readonly CustomerIntake $intake, private readonly PullService $pull) {}
+    public function __construct(
+        private readonly CustomerIntake $intake,
+        private readonly ForeignCustomerChanges $foreignChanges,
+        private readonly PullService $pull,
+    ) {}
 
     protected function handle(Driver $driver, User $user, array $record): array
     {
@@ -27,9 +33,15 @@ class CustomerPreferencePusher extends EntityPusher
         /** @var Customer $customer */
         $customer = $this->reference(Customer::class, $record, 'customer');
         $this->assertBelongsToCustomer($preference, $customer, 'record');
-        $this->flagForReviewIfForeign($customer, $driver);
 
         $modifiedAt = $this->modifiedAt($record);
+
+        if ($this->isForeign($customer, $driver)) {
+            $fields = array_intersect_key($record, array_flip(ForeignCustomerChanges::PREFERENCE_FIELDS));
+            $this->foreignChanges->propose($customer, CustomerChangeTarget::Preference, $preference, $record['uuid'], $fields, $modifiedAt, $user);
+
+            return $this->heldForAdmin($record['uuid'], $preference?->id);
+        }
 
         if ($preference === null || $modifiedAt->greaterThan($preference->updated_at)) {
             try {

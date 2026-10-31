@@ -11,11 +11,13 @@ use App\Street\Payments\Models\Payment;
 use App\Street\Sales\Models\Sale;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 
 #[Fillable(['name', 'email', 'username', 'password', 'phone_number', 'is_super_user', 'enabled'])]
@@ -68,6 +70,16 @@ class User extends Authenticatable
     public function accountEntriesCreated(): HasMany
     {
         return $this->hasMany(CustomerAccountEntry::class, 'created_by');
+    }
+
+    /**
+     * The user with that email whatever its letter case; the email is kept as it was stored.
+     *
+     * @param  Builder<static>  $query
+     */
+    public function scopeEmailIs(Builder $query, string $email): void
+    {
+        $query->whereRaw('lower(email) = ?', [Str::lower($email)]);
     }
 
     public function scopeEnabled($query)

@@ -86,7 +86,13 @@ class CustomerIntake
                 ...($input->reassignDriver ? ['driver_id' => $input->driverId] : []),
             ]);
             FieldClock::stampDirty($customer, Customer::SYNCED_FIELDS, now());
+            $reassigned = $customer->isDirty('driver_id');
+            $previousDriverId = $customer->getOriginal('driver_id');
             $customer->save();
+
+            if ($reassigned) {
+                $this->recordReassignment($customer, $previousDriverId, $input->modifiedBy);
+            }
 
             $address = $customer->primaryAddress ?? $this->newPrimaryAddress($customer, $input->modifiedBy);
 
@@ -303,6 +309,19 @@ class CustomerIntake
 
                 $previous->save();
             });
+    }
+
+    /**
+     * The pull tells the driver the customer left (customers_removed) and sends it whole to the new one.
+     */
+    private function recordReassignment(Customer $customer, ?int $previousDriverId, User $reassignedBy): void
+    {
+        $customer->reassignments()->create([
+            'from_driver_id' => $previousDriverId,
+            'to_driver_id' => $customer->driver_id,
+            'reassigned_by' => $reassignedBy->id,
+            'reassigned_at' => now(),
+        ]);
     }
 
     private function newPrimaryAddress(Customer $customer, User $createdBy): CustomerAddress

@@ -77,6 +77,14 @@ class Customer extends Model
         return $this->hasOne(CustomerAddress::class)->where('is_primary', true);
     }
 
+    /**
+     * Every change of its driver.
+     */
+    public function reassignments(): HasMany
+    {
+        return $this->hasMany(CustomerReassignment::class);
+    }
+
     public function preferences(): HasMany
     {
         return $this->hasMany(CustomerPreference::class);

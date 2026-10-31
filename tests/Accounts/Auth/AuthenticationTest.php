@@ -39,3 +39,23 @@ test('users can logout', function () {
     $this->assertGuest();
     $response->assertRedirect('/');
 });
+
+test('users can authenticate with their email written in other letter case', function () {
+    $user = User::factory()->create(['email' => 'marcos.morales@marilin.com']);
+
+    $this->post('/login', [
+        'email' => 'Marcos.Morales@marilin.com',
+        'password' => 'password',
+    ])->assertRedirect(route('dashboard', absolute: false));
+
+    $this->assertAuthenticatedAs($user);
+    expect($user->fresh()->email)->toBe('marcos.morales@marilin.com');
+});
+
+test('a stored email with capitals authenticates when typed in lowercase', function () {
+    $user = User::factory()->create(['email' => 'Esteban.Ruiz@marilin.com']);
+
+    $this->post('/login', ['email' => 'esteban.ruiz@marilin.com', 'password' => 'password']);
+
+    $this->assertAuthenticatedAs($user);
+});

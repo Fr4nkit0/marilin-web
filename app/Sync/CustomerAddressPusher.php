@@ -11,6 +11,8 @@ use App\Customers\Customers\CustomerAddressAppEdit;
 use App\Customers\Customers\CustomerAddressChange;
 use App\Customers\Customers\CustomerAddressDetails;
 use App\Customers\Customers\CustomerIntake;
+use App\Customers\Customers\Enums\CustomerChangeTarget;
+use App\Customers\Customers\ForeignCustomerChanges;
 use App\Customers\Customers\InvalidCustomerChange;
 use App\Customers\Customers\Models\Customer;
 use App\Customers\Customers\Models\CustomerAddress;
@@ -22,7 +24,11 @@ use Illuminate\Database\Eloquent\Model;
  */
 class CustomerAddressPusher extends EntityPusher
 {
-    public function __construct(private readonly CustomerIntake $intake, private readonly PullService $pull) {}
+    public function __construct(
+        private readonly CustomerIntake $intake,
+        private readonly ForeignCustomerChanges $foreignChanges,
+        private readonly PullService $pull,
+    ) {}
 
     protected function handle(Driver $driver, User $user, array $record): array
     {
@@ -31,15 +37,24 @@ class CustomerAddressPusher extends EntityPusher
         /** @var Customer $customer */
         $customer = $this->reference(Customer::class, $record, 'customer');
         $this->assertBelongsToCustomer($address, $customer, 'record');
-        $this->flagForReviewIfForeign($customer, $driver);
+
+        if ($address === null) {
+            $this->assertValid($record, [
+                'street' => ['required'],
+                'is_primary' => ['required'],
+                'enabled' => ['required'],
+            ]);
+        }
+
+        if ($this->isForeign($customer, $driver)) {
+            $fields = array_intersect_key($record, array_flip(CustomerAddress::SYNCED_FIELDS));
+            $this->foreignChanges->propose($customer, CustomerChangeTarget::Address, $address, $record['uuid'], $fields, $this->modifiedAt($record), $user);
+
+            return $this->heldForAdmin($record['uuid'], $address?->id);
+        }
 
         try {
             if ($address === null) {
-                $this->assertValid($record, [
-                    'street' => ['required'],
-                    'is_primary' => ['required'],
-                    'enabled' => ['required'],
-                ]);
                 $address = $this->create($customer, $user, $record);
 
                 return $this->accepted($record['uuid'], $address->id, $this->pendingReasons($customer));

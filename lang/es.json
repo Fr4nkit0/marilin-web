@@ -3,5 +3,6 @@
     "The customer already has a preference for that day and time.": "El cliente ya tiene una preferencia para ese día y horario.",
     "The primary address cannot be disabled.": "La dirección principal no se puede deshabilitar.",
     "A customer needs a primary address.": "El cliente necesita una dirección principal.",
-    "The address uuid belongs to another address.": "El identificador de la dirección pertenece a otra dirección."
+    "The address uuid belongs to another address.": "El identificador de la dirección pertenece a otra dirección.",
+    "The record the change edits no longer exists.": "El registro que edita el cambio ya no existe."
 }

@@ -14,12 +14,12 @@ final readonly class CustomerAddressAppEdit
 {
     /**
      * @param  array<string, mixed>  $fields  the address fields it carries (see CustomerAddress::SYNCED_FIELDS)
-     * @param  string  $clientUuid  adopted only when the address has none yet
+     * @param  ?string  $clientUuid  adopted only when the address has none yet; null for an approved change of another driver (it adopts no id)
      */
     public function __construct(
         public array $fields,
         public CarbonInterface $modifiedAt,
         public User $modifiedBy,
-        public string $clientUuid,
+        public ?string $clientUuid = null,
     ) {}
 }

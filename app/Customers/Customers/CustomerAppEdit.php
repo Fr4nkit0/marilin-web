@@ -15,7 +15,7 @@ final readonly class CustomerAppEdit
     /**
      * @param  array<string, mixed>  $fields  the customer fields it carries (see Customer::SYNCED_FIELDS); `enabled` may only be false
      * @param  ?array<string, mixed>  $address  the primary address fields it carries, or null when it carries none
-     * @param  string  $clientUuid  adopted only when the customer has none yet
+     * @param  ?string  $clientUuid  adopted only when the customer has none yet; null for an approved change of another driver (it adopts no id)
      * @param  ?string  $addressClientUuid  the app's id of the primary address, adopted only when it has none yet
      */
     public function __construct(
@@ -23,7 +23,7 @@ final readonly class CustomerAppEdit
         public ?array $address,
         public CarbonInterface $modifiedAt,
         public User $modifiedBy,
-        public string $clientUuid,
+        public ?string $clientUuid = null,
         public ?string $addressClientUuid = null,
     ) {}
 }

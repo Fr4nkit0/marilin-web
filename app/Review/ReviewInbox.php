@@ -7,7 +7,9 @@ namespace App\Review;
 use App\Accounts\Models\Driver;
 use App\Accounts\Models\User;
 use App\Customers\Agreements\Models\CustomerAgreement;
+use App\Customers\Customers\ForeignCustomerChanges;
 use App\Customers\Customers\Models\Customer;
+use App\Customers\Customers\Models\PendingCustomerChange;
 use App\Routes\Routes\Models\RouteStop;
 use App\Routes\Visits\Models\Visit;
 use App\Street\Containers\Models\ContainerMovement;
@@ -28,7 +30,12 @@ use InvalidArgumentException;
  */
 class ReviewInbox
 {
-    public const array TYPES = ['visit', 'sale', 'payment', 'route_stop', 'customer', 'container_movement', 'customer_agreement'];
+    public const array TYPES = ['visit', 'sale', 'payment', 'route_stop', 'customer', 'container_movement', 'customer_agreement', 'customer_change'];
+
+    /**
+     * Types the admin decides instead of just marking reviewed: a pending customer change is approved or rejected.
+     */
+    public const array DECIDED_TYPES = ['customer_change'];
 
     /**
      * The reviewable models, in the order the types are listed. Each one declares its own type, date and driver (Reviewable::reviewSource()).
@@ -43,11 +50,23 @@ class ReviewInbox
         Customer::class,
         ContainerMovement::class,
         CustomerAgreement::class,
+        PendingCustomerChange::class,
     ];
 
     public function __construct(
         private readonly StreetOperation $operation,
+        private readonly ForeignCustomerChanges $foreignChanges,
     ) {}
+
+    /**
+     * The types whose records the admin marks reviewed.
+     *
+     * @return list<string>
+     */
+    public static function markableTypes(): array
+    {
+        return array_values(array_diff(self::TYPES, self::DECIDED_TYPES));
+    }
 
     /**
      * The drivers the admin can filter by.
@@ -111,16 +130,41 @@ class ReviewInbox
 
         $requestedStops = $this->requestedStops($page->items());
         $stockCorrections = $this->stockCorrections($page->items());
+        $changes = $this->customerChanges($page->items());
 
         return $page
-            ->through(function (object $row) use ($requestedStops, $stockCorrections): object {
+            ->through(function (object $row) use ($requestedStops, $stockCorrections, $changes): object {
                 $requested = $row->type === RouteStop::reviewSource()->type && isset($requestedStops[$row->id]);
                 $row->stock_correction = $row->type === Sale::reviewSource()->type ? ($stockCorrections[$row->id] ?? null) : null;
                 $row->reasons = ReviewReason::labels(json_decode((string) $row->reasons, true) ?? [], $requested);
+                $row->change = $row->type === PendingCustomerChange::reviewSource()->type ? $changes[$row->id] ?? null : null;
 
                 return $row;
             })
             ->withQueryString();
+    }
+
+    /**
+     * What each of the page's pending customer changes proposes next to the current values, by id.
+     *
+     * @param  array<int, object>  $rows
+     * @return array<int, array{entity: string, status: string, adds: bool, fields: list<array{field: string, current: mixed, proposed: mixed}>}>
+     */
+    private function customerChanges(array $rows): array
+    {
+        $ids = collect($rows)->where('type', PendingCustomerChange::reviewSource()->type)->pluck('id');
+
+        return $ids->isEmpty() ? [] : PendingCustomerChange::query()
+            ->with('customer.primaryAddress')
+            ->whereIn('id', $ids)
+            ->get()
+            ->mapWithKeys(fn (PendingCustomerChange $change): array => [$change->id => [
+                'entity' => $change->target->value,
+                'status' => $change->status->value,
+                'adds' => $change->target_id === null,
+                'fields' => $this->foreignChanges->compare($change),
+            ]])
+            ->all();
     }
 
     /**

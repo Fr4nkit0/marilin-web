@@ -100,6 +100,7 @@ test('a new account needs a unique email, a unique username and a confirmed pass
     'missing name' => [['name' => ''], 'name'],
     'invalid email' => [['email' => 'not-an-email'], 'email'],
     'taken email' => [['email' => 'taken@marilin.com'], 'email'],
+    'taken email in another letter case' => [['email' => 'Taken@Marilin.com'], 'email'],
     'taken username' => [['username' => 'taken'], 'username'],
     'short password' => [['password' => 'short', 'password_confirmation' => 'short'], 'password'],
     'unconfirmed password' => [['password_confirmation' => 'other-pass'], 'password'],

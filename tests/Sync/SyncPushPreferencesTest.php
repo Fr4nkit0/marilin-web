@@ -348,7 +348,7 @@ test('push edits a preference without overlapping with itself, and removes one e
         ->and($preference->fresh()->time_window_end)->toBe('13:00:00');
 });
 
-test('push applies a preference on a customer of another driver and flags the customer for review', function (): void {
+test('push leaves a preference on a customer of another driver pending for the admin (S3)', function (): void {
     $otherDriver = Driver::factory()->create(['enabled' => true]);
     $foreign = Customer::factory()->create(['driver_id' => $otherDriver->id]);
     $payload = preferencePayload($foreign);
@@ -359,9 +359,8 @@ test('push applies a preference on a customer of another driver and flags the cu
         ->assertJsonPath('data.customer_preferences.0.review_reasons', ['Customer is assigned to another driver.']);
 
     $foreign->refresh();
-    expect(CustomerPreference::query()->where('client_uuid', $payload['uuid'])->value('customer_id'))->toBe($foreign->id)
-        ->and($foreign->needs_review)->toBeTrue()
-        ->and($foreign->review_reasons)->toBe(['Customer is assigned to another driver.'])
+    expect(CustomerPreference::query()->where('client_uuid', $payload['uuid'])->exists())->toBeFalse()
+        ->and($foreign->needs_review)->toBeFalse()
         ->and($foreign->driver_id)->toBe($otherDriver->id);
 });
 

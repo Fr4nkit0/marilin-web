@@ -153,10 +153,11 @@ abstract class EntityPusher
     }
 
     /**
+     * @param  ?int  $serverId  null only for a new row held for the admin (see heldForAdmin)
      * @param  list<string>  $reviewReasons  every reason the record waits for review, empty when it is clean
      * @return array<string, mixed>
      */
-    protected function accepted(string $uuid, int $serverId, array $reviewReasons = []): array
+    protected function accepted(string $uuid, ?int $serverId, array $reviewReasons = []): array
     {
         return [
             'uuid' => $uuid,
@@ -284,16 +285,24 @@ abstract class EntityPusher
     }
 
     /**
-     * Accept-and-mark (ADR 0001): a record on another driver's customer is applied and left for review, even a stale one.
+     * The customer is assigned to another driver (or to none): the driver's changes to its data wait for the admin.
      */
-    protected function flagForReviewIfForeign(Customer $customer, Driver $driver): void
+    protected function isForeign(Customer $customer, Driver $driver): bool
     {
-        if ($customer->driver_id === $driver->id || ! $customer->canBeFlagged()) {
-            return;
-        }
+        return $customer->driver_id !== $driver->id;
+    }
 
-        $customer->timestamps = false;
-        $customer->flag(ReviewReason::ForeignCustomer);
+    /**
+     * A change to another driver's customer data, held for the admin and applied only when approved (ADR 0001,
+     * exception). It is answered accepted, so the app keeps it as sent, with the foreign customer reason so it can
+     * show it as pending; `server_id` is the row it edits, null when it adds one (approval creates it with the
+     * record's uuid).
+     *
+     * @return array<string, mixed>
+     */
+    protected function heldForAdmin(string $uuid, ?int $serverId): array
+    {
+        return $this->accepted($uuid, $serverId, ReviewReason::values(ReviewReason::ForeignCustomer));
     }
 
     /**

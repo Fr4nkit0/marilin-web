@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import AdminLayout from '@/layouts/AdminLayout';
 import { StatusBadge } from '@/ui/Badge';
-import { CheckCheck, PackagePlus } from 'lucide-react';
+import { Check, CheckCheck, PackagePlus, X } from 'lucide-react';
+import Button from '@/ui/Button';
+import CustomerChangeFields from './components/CustomerChangeFields';
 import { PaginatedData } from '@/types';
 import { ReviewFilters, ReviewItem, ReviewType } from './types';
 import { date, dateTime } from '@/lib/format';
 import { useListFilters } from '@/lib/useListFilters';
 import Pagination from '@/ui/Pagination';
-import Button from '@/ui/Button';
 import CorrectLoadModal from './components/CorrectLoadModal';
 
 interface Props {
@@ -25,7 +26,10 @@ const TYPE_LABELS: Record<ReviewType, string> = {
     customer: 'Cliente',
     container_movement: 'Movimiento de envases',
     customer_agreement: 'Acuerdo',
+    customer_change: 'Cambio de cliente ajeno',
 };
+
+const DECISION_LABELS = { APPROVED: 'Aprobado', REJECTED: 'Rechazado' } as const;
 
 const inputClass =
     'w-full py-2 px-3 text-sm border border-hairline/60 bg-canvas text-ink rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 font-medium';
@@ -49,9 +53,20 @@ export default function Index({ items, filters, drivers }: Props) {
     );
 
     const [correcting, setCorrecting] = useState<ReviewItem | null>(null);
+    const pageErrors = usePage().props.errors as Record<string, string>;
 
     const markReviewed = (item: ReviewItem) => {
         router.patch(route('review.reviewed', { type: item.type, id: item.id }), {}, { preserveScroll: true });
+    };
+
+    const decide = (item: ReviewItem, decision: 'approve' | 'reject') => {
+        router.post(route(`review.customer-changes.${decision}`, item.id), {}, { preserveScroll: true });
+    };
+
+    const reviewedLabel = (item: ReviewItem): string => {
+        const verb = item.change && item.change.status !== 'PENDING' ? DECISION_LABELS[item.change.status] : 'Revisado';
+
+        return `${verb}${item.reviewed_by ? ` por ${item.reviewed_by}` : ''}`;
     };
 
     return (
@@ -137,6 +152,15 @@ export default function Index({ items, filters, drivers }: Props) {
                 </div>
             </div>
 
+            {pageErrors.change && (
+                <p
+                    role="alert"
+                    className="mb-4 rounded-lg border border-rose-200/60 dark:border-rose-500/30 bg-rose-50 dark:bg-rose-500/15 px-4 py-3 text-sm text-rose-700 dark:text-rose-300"
+                >
+                    No se pudo aprobar el cambio: {pageErrors.change}
+                </p>
+            )}
+
             {/* List */}
             <div className="bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden ">
                 <div className="table-scroll">
@@ -179,13 +203,25 @@ export default function Index({ items, filters, drivers }: Props) {
                                                     ))}
                                                 </ul>
                                             )}
+                                            {item.change && <CustomerChangeFields change={item.change} />}
                                         </td>
                                         <td className="px-6 py-4 text-right whitespace-nowrap">
                                             {item.reviewed_at ? (
                                                 <StatusBadge
-                                                    status="finalizado"
-                                                    label={`Revisado${item.reviewed_by ? ` por ${item.reviewed_by}` : ''}`}
+                                                    status={item.change?.status === 'REJECTED' ? 'cancelado' : 'finalizado'}
+                                                    label={reviewedLabel(item)}
                                                 />
+                                            ) : item.change ? (
+                                                <div className="inline-flex gap-2">
+                                                    <Button size="sm" variant="secondary" onClick={() => decide(item, 'reject')}>
+                                                        <X className="w-3.5 h-3.5" />
+                                                        Rechazar
+                                                    </Button>
+                                                    <Button size="sm" onClick={() => decide(item, 'approve')}>
+                                                        <Check className="w-3.5 h-3.5" />
+                                                        Aprobar
+                                                    </Button>
+                                                </div>
                                             ) : (
                                                 <div className="inline-flex items-center gap-2">
                                                     {item.stock_correction && (
