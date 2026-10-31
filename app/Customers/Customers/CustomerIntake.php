@@ -199,7 +199,8 @@ class CustomerIntake
     }
 
     /**
-     * Adds a delivery preference when `$preference` is null, or changes it. A customer has one preference per day and start.
+     * Adds a delivery preference when `$preference` is null, or changes it. A customer has one preference per day and start,
+     * and the windows of its enabled preferences of a day never overlap.
      */
     public function savePreference(Customer $customer, ?CustomerPreference $preference, CustomerPreferenceChange $input): CustomerPreference
     {
@@ -219,6 +220,10 @@ class CustomerIntake
 
             if ($taken) {
                 throw new InvalidCustomerChange('The customer already has a preference for that day and time.', 'day_of_week');
+            }
+
+            if ($input->enabled) {
+                $this->assertWindowIsFree($customer, $preference, $input->dayOfWeek, $start, $end);
             }
 
             $preference ??= new CustomerPreference(['customer_id' => $customer->id, 'created_by' => $input->modifiedBy->id]);
@@ -388,6 +393,39 @@ class CustomerIntake
         if ($taken) {
             throw new InvalidCustomerChange('The address uuid belongs to another address.');
         }
+    }
+
+    /**
+     * Windows are half open, [start, end): one that ends when another starts does not overlap it. A window without
+     * a start runs from midnight and one without an end until midnight. Removed preferences never block.
+     * The message is the app's, in Spanish (it names the window, so it is not a translation key).
+     */
+    private function assertWindowIsFree(Customer $customer, ?CustomerPreference $preference, int $dayOfWeek, ?string $start, ?string $end): void
+    {
+        $overlapping = $customer->preferences()
+            ->where('enabled', true)
+            ->where('day_of_week', $dayOfWeek)
+            ->when($preference?->exists, fn ($query) => $query->whereKeyNot($preference->id))
+            ->orderByRaw('time_window_start nulls first')
+            ->get()
+            ->first(fn (CustomerPreference $other): bool => ($start ?? '00:00:00') < ($other->time_window_end ?? '24:00:00')
+                && ($other->time_window_start ?? '00:00:00') < ($end ?? '24:00:00'));
+
+        if ($overlapping === null) {
+            return;
+        }
+
+        $from = $overlapping->time_window_start === null ? null : substr($overlapping->time_window_start, 0, 5);
+        $until = $overlapping->time_window_end === null ? null : substr($overlapping->time_window_end, 0, 5);
+
+        $window = match (true) {
+            $from !== null && $until !== null => "{$from}–{$until}",
+            $from !== null => "desde {$from}",
+            $until !== null => "hasta {$until}",
+            default => 'todo el día',
+        };
+
+        throw new InvalidCustomerChange("Se superpone con {$window}.", 'time_window_start');
     }
 
     private function timeOfDay(?string $time): ?string

@@ -22,7 +22,19 @@ class Driver extends Model
     {
         return [
             'enabled' => 'boolean',
+            'last_synced_at' => 'datetime',
         ];
+    }
+
+    /**
+     * The driver's app synced with the server (bootstrap, pull or push answered OK). A contact, not an edit of the driver,
+     * so its update date stays.
+     */
+    public function markSynced(): void
+    {
+        $this->timestamps = false;
+        $this->forceFill(['last_synced_at' => now()])->save();
+        $this->timestamps = true;
     }
 
     public function user(): BelongsTo

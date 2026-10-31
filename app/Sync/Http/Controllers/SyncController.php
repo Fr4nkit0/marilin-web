@@ -32,20 +32,21 @@ class SyncController extends Controller
 
     public function bootstrap(Request $request, BootstrapService $bootstrap): JsonResponse
     {
+        $driver = $this->resolveDriver($request);
+        $data = $bootstrap->build($driver);
+        $driver->markSynced();
+
         return response()->json([
-            'data' => $bootstrap->build($this->resolveDriver($request)),
+            'data' => $data,
             'message' => null,
         ]);
     }
 
     public function pull(PullRequest $request, PullService $pull): JsonResponse
     {
-        $result = $pull->page(
-            $this->resolveDriver($request),
-            $request->cursor(),
-            $request->until(),
-            $request->page(),
-        );
+        $driver = $this->resolveDriver($request);
+        $result = $pull->page($driver, $request->cursor(), $request->until(), $request->page());
+        $driver->markSynced();
 
         return response()->json([
             'data' => $result['data'],
@@ -59,8 +60,12 @@ class SyncController extends Controller
         /** @var User $user */
         $user = $request->user();
 
+        $driver = $this->resolveDriver($request);
+        $data = $push->push($driver, $user, $request->records());
+        $driver->markSynced();
+
         return response()->json([
-            'data' => $push->push($this->resolveDriver($request), $user, $request->records()),
+            'data' => $data,
             'message' => null,
         ]);
     }

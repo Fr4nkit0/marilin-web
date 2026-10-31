@@ -49,11 +49,20 @@ test('a driver on route today who never synced is listed, linked by id', functio
 test('a driver on route who synced within the half hour is not listed, one quiet for longer is', function (): void {
     $juan = routeDriver('Juan Pérez');
     $esteban = routeDriver('Esteban Benítez');
-    $juan->user->createToken('android')->accessToken->forceFill(['last_used_at' => now()->subMinutes(4)])->save();
-    $esteban->user->createToken('android')->accessToken->forceFill(['last_used_at' => now()->subMinutes(45)])->save();
+    $juan->forceFill(['last_synced_at' => now()->subMinutes(4)])->save();
+    $esteban->forceFill(['last_synced_at' => now()->subMinutes(45)])->save();
 
     expect(sharedNotifications()['unsyncedDrivers'])->toBe([
         ['id' => $esteban->id, 'name' => 'Esteban Benítez', 'lastSyncAt' => '2026-10-20T17:15:00-03:00'],
+    ]);
+});
+
+test('a driver on route whose token was used without a sync is still listed as never synced', function (): void {
+    $juan = routeDriver('Juan Pérez');
+    $juan->user->createToken('android')->accessToken->forceFill(['last_used_at' => now()->subMinutes(2)])->save();
+
+    expect(sharedNotifications()['unsyncedDrivers'])->toBe([
+        ['id' => $juan->id, 'name' => 'Juan Pérez', 'lastSyncAt' => null],
     ]);
 });
 

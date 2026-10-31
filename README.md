@@ -105,11 +105,21 @@ cd marilin-web
 
 ### 4. Tareas programadas
 
-El scheduler de Laravel tiene que estar corriendo (`./vendor/bin/sail artisan schedule:work` en local, o un cron con `schedule:run` cada minuto en el servidor):
+El scheduler de Laravel tiene que estar corriendo para que existan las rutas del día:
 
-- `routes:generate` (00:30): crea la ruta del día de cada repartidor habilitado con sus clientes que tienen ese día de visita, usando la dirección principal y ordenando las paradas por el inicio de la franja horaria. No modifica rutas que ya existen. Se puede correr a mano para otra fecha con `--date=YYYY-MM-DD`.
+- **Local (Sail):** el servicio `scheduler` de `compose.yaml` corre `php artisan schedule:work` y arranca con `./vendor/bin/sail up -d`. Para ver qué corrió: `./vendor/bin/sail logs -f scheduler`.
+- **Producción:** una línea de cron que llama a `schedule:run` cada minuto, con el usuario que corre la aplicación:
+
+  ```cron
+  * * * * * cd /path/to/marilin-web && php artisan schedule:run >> /dev/null 2>&1
+  ```
+
+Tareas que corre (definidas en `routes/console.php`):
+
+- `routes:generate` (00:30): crea la ruta del día de cada repartidor habilitado con sus clientes que tienen ese día de visita, usando la dirección principal y ordenando las paradas por el inicio de la franja horaria. Si el repartidor ya tiene ruta ese día y sigue planificada (por ejemplo, la creó una visita agendada para hoy), le agrega las paradas por preferencia que falten sin duplicar clientes; una ruta ya iniciada, completada o cancelada no se toca. Se puede correr a mano para otra fecha con `--date=YYYY-MM-DD`.
 - `review:flag-rescheduled-stops` (01:00): manda a revisión las paradas reprogramadas que terminaron el día sin visita.
 - `review:flag-unvisited-stops` (01:00): manda a revisión las paradas de días anteriores que quedaron sin visita (la app solo muestra la ruta de hoy).
+- `routes:close-past` (01:00): completa las rutas de días anteriores que quedaron planificadas o en curso.
 
 Los horarios son de Argentina (`APP_TIMEZONE`, por defecto `America/Argentina/Buenos_Aires`).
 

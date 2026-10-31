@@ -7,6 +7,7 @@ namespace App\Routes\Routes;
 use App\Accounts\Models\Driver;
 use App\Customers\Customers\Models\Customer;
 use App\Routes\Routes\Enums\RouteStatus;
+use App\Routes\Routes\Models\Route;
 use App\Routes\ScheduledVisits\Models\ScheduledVisit;
 use App\Routes\ScheduledVisits\VisitScheduler;
 use Carbon\CarbonInterface;
@@ -15,7 +16,8 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Builds each enabled driver's route for a date from the customers' visit preferences and the visits scheduled that date.
- * Drivers that already have a route that day are left untouched.
+ * A driver's route that already exists that day (a same-day scheduled visit creates it) is completed with the missing
+ * preference stops while it is still planned; a route already started, completed or cancelled is left untouched.
  */
 final class GenerateDailyRoutesAction
 {
@@ -30,8 +32,18 @@ final class GenerateDailyRoutesAction
 
         Driver::query()
             ->enabled()
-            ->whereDoesntHave('routes', fn ($routes) => $routes->whereDate('date', $date))
+            ->with(['routes' => fn ($routes) => $routes->whereDate('date', $date)])
             ->each(function (Driver $driver) use ($date, &$created): void {
+                $existing = $driver->routes->first();
+
+                if ($existing !== null) {
+                    if ($existing->status === RouteStatus::Planned->value) {
+                        $this->complete($existing, $this->stopsFor($driver, $date->dayOfWeek));
+                    }
+
+                    return;
+                }
+
                 $stops = $this->stopsFor($driver, $date->dayOfWeek);
                 $scheduledVisits = $this->scheduledVisitsFor($driver, $date);
 
@@ -55,6 +67,35 @@ final class GenerateDailyRoutesAction
             });
 
         return $created;
+    }
+
+    /**
+     * Adds the preference stops the planned route is missing. A customer that already has an enabled, not done stop
+     * keeps that one stop, at the earliest of its time and its preference's.
+     *
+     * @param  Collection<int, array{customer_id: int, address_id: int, scheduled_time: ?string}>  $stops
+     */
+    private function complete(Route $route, Collection $stops): void
+    {
+        DB::transaction(function () use ($route, $stops): void {
+            $current = $route->stops()->enabled()->notDone()->orderBy('id')->get()->unique('customer_id')->keyBy('customer_id');
+
+            $stops->each(function (array $stop) use ($route, $current): void {
+                $existing = $current->get($stop['customer_id']);
+
+                if ($existing === null) {
+                    $route->stops()->create($stop);
+
+                    return;
+                }
+
+                $earliest = collect([$existing->scheduled_time, $stop['scheduled_time']])->filter()->min();
+
+                if ($earliest !== $existing->scheduled_time) {
+                    $existing->update(['scheduled_time' => $earliest]);
+                }
+            });
+        });
     }
 
     /**
