@@ -44,6 +44,7 @@ class NotDoneStopFlagger
         return $stops
             ->whereHas('route', fn ($route) => $route->whereDate('date', '<', today())->where('status', '!=', RouteStatus::Cancelled->value))
             ->notDone()
-            ->update(ReviewReason::columns($reason));
+            // A query update skips the model's casts, so the list is stored as JSON here.
+            ->update(['needs_review' => true, 'review_reasons' => json_encode(ReviewReason::values($reason))]);
     }
 }

@@ -17,15 +17,43 @@ enum ReviewReason: string
     case PriceMismatch = 'Sale price differs from the agreement or list price.';
     case DriverDisabledCustomer = 'Customer disabled by a driver.';
     case DriverCancellation = 'Cancelled by a driver.';
+    case PaymentExceedsDebt = "Payment exceeds the customer's debt.";
 
     /**
-     * The columns that mark a record for review, or leave it clean when there is no reason: the one rule every writer of those columns follows.
+     * The columns that mark a record for review with every reason given, or leave it clean when there is none:
+     * the one rule every writer of those columns follows.
      *
-     * @return array{needs_review: bool, review_reason: string|null}
+     * @return array{needs_review: bool, review_reasons: list<string>}
      */
-    public static function columns(?self $reason): array
+    public static function columns(?self ...$reasons): array
     {
-        return ['needs_review' => $reason !== null, 'review_reason' => $reason?->value];
+        $values = self::values(...$reasons);
+
+        return ['needs_review' => $values !== [], 'review_reasons' => $values];
+    }
+
+    /**
+     * The stored values of the reasons given, in order, without repeats; a null reason (nothing to review) is left out.
+     *
+     * @return list<string>
+     */
+    public static function values(?self ...$reasons): array
+    {
+        return array_values(array_unique(array_map(
+            fn (self $reason): string => $reason->value,
+            array_filter($reasons, fn (?self $reason): bool => $reason !== null),
+        )));
+    }
+
+    /**
+     * What the admin reads for each stored reason; a value no case knows any more is shown as it was stored.
+     *
+     * @param  list<string>  $values
+     * @return list<string>
+     */
+    public static function labels(array $values, bool $requestedStop = false): array
+    {
+        return array_map(fn (string $value): string => self::tryFrom($value)?->label($requestedStop) ?? $value, $values);
     }
 
     /**
@@ -47,6 +75,7 @@ enum ReviewReason: string
             self::PriceMismatch => 'Venta con precio distinto al acordado o de lista.',
             self::DriverDisabledCustomer => 'El repartidor dio de baja al cliente.',
             self::DriverCancellation => 'Anulado por el repartidor.',
+            self::PaymentExceedsDebt => 'El cobro supera la deuda del cliente y la venta del día.',
         };
     }
 }

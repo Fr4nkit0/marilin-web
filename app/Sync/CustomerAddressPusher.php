@@ -42,7 +42,7 @@ class CustomerAddressPusher extends EntityPusher
                 ]);
                 $address = $this->create($customer, $user, $record);
 
-                return $this->accepted($record['uuid'], $address->id, $this->pendingReason($customer));
+                return $this->accepted($record['uuid'], $address->id, $this->pendingReasons($customer));
             }
 
             // Last write wins per field: only the fields the edit carries, each when it is newer than the server's.
@@ -57,8 +57,8 @@ class CustomerAddressPusher extends EntityPusher
         }
 
         return $merge->isOutdated()
-            ? $this->outdated($record['uuid'], $address->id, $this->pendingReason($customer))
-            : $this->accepted($record['uuid'], $address->id, $this->pendingReason($customer));
+            ? $this->outdated($record['uuid'], $address->id, $this->pendingReasons($customer))
+            : $this->accepted($record['uuid'], $address->id, $this->pendingReasons($customer));
     }
 
     protected function current(Model $row): array

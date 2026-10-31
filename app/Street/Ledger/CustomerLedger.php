@@ -30,19 +30,19 @@ class CustomerLedger
     }
 
     /**
-     * Reverses a cancelled sale: a credit note for its whole total, linked to the sale.
+     * Reverses a cancelled sale: a credit note for its whole total, linked to the sale and saying who cancelled it.
      */
-    public function bookSaleCancellation(Customer $customer, Sale $sale, User $user, ?string $reason): CustomerAccountEntry
+    public function bookSaleCancellation(Customer $customer, Sale $sale, User $user, ?string $reason, bool $byAdmin = false): CustomerAccountEntry
     {
-        return $this->book($customer, 'CREDIT_NOTE', -1, (string) $sale->total, $user, sale: $sale, description: $this->withReason('Venta anulada por el repartidor', $reason));
+        return $this->book($customer, 'CREDIT_NOTE', -1, (string) $sale->total, $user, sale: $sale, description: $this->withReason('Venta anulada '.$this->by($byAdmin), $reason));
     }
 
     /**
-     * Reverses a cancelled payment: an adjustment that puts its amount back on the account, linked to the payment.
+     * Reverses a cancelled payment: an adjustment that puts its amount back on the account, linked to the payment and saying who cancelled it.
      */
-    public function bookPaymentCancellation(Customer $customer, Payment $payment, User $user, ?string $reason): CustomerAccountEntry
+    public function bookPaymentCancellation(Customer $customer, Payment $payment, User $user, ?string $reason, bool $byAdmin = false): CustomerAccountEntry
     {
-        return $this->book($customer, 'ADJUSTMENT', 1, (string) $payment->amount, $user, payment: $payment, description: $this->withReason('Cobro anulado por el repartidor', $reason));
+        return $this->book($customer, 'ADJUSTMENT', 1, (string) $payment->amount, $user, payment: $payment, description: $this->withReason('Cobro anulado '.$this->by($byAdmin), $reason));
     }
 
     /**
@@ -83,6 +83,11 @@ class CustomerLedger
             ]);
 
         return $entry;
+    }
+
+    private function by(bool $admin): string
+    {
+        return $admin ? 'por la administración' : 'por el repartidor';
     }
 
     private function withReason(string $description, ?string $reason): string

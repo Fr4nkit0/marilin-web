@@ -134,7 +134,7 @@ export default function Dashboard({ metrics }: Props) {
                     value={money(kpis.totalCollected)}
                     icon={CircleDollarSign}
                     variant="success"
-                    subtitle={`EFE: ${money(kpis.cashPayments)} | TRF: ${money(kpis.transferPayments)}`}
+                    subtitle={`EFE: ${money(kpis.cashPayments)} | TRF: ${money(kpis.transferPayments)} | TAR: ${money(kpis.cardPayments)}`}
                 />
 
                 <KpiCard

@@ -5,7 +5,6 @@ namespace App\Dashboard;
 use App\CashDesk\DailyFigures;
 use App\CashDesk\DayFigures;
 use App\CashDesk\DayScope;
-use App\Catalog\Enums\PaymentMethodCode;
 use App\Routes\Routes\Models\Route as DeliveryRoute;
 use App\Routes\Routes\Models\RouteStop;
 use App\Street\Containers\Enums\ContainerMovementType;
@@ -73,6 +72,7 @@ class GetDailyDashboardMetricsAction
                 'totalCollected' => $day->totalCollected,
                 'cashPayments' => $day->cashAmount,
                 'transferPayments' => $day->transferAmount,
+                'cardPayments' => $day->cardAmount,
                 'totalStops' => $totalStops,
                 'completedStops' => $completedStops,
                 'stopsProgressPercent' => $totalStops > 0 ? round(($completedStops / $totalStops) * 100) : 0,
@@ -118,8 +118,8 @@ class GetDailyDashboardMetricsAction
                     'credit' => (bool) $sale->is_credit_sale,
                 ])
                 ->all(),
+            // Every confirmed payment, as "Total cobrado" counts them.
             'payments' => $day->payments
-                ->filter(fn (Payment $payment): bool => in_array($payment->paymentMethod?->code, [PaymentMethodCode::Cash->value, PaymentMethodCode::Transfer->value], true))
                 ->map(fn (Payment $payment): array => [
                     'id' => $payment->id,
                     'customer' => $payment->customer?->name,

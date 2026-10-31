@@ -76,7 +76,7 @@ test('push creates a secondary address with the app modification date and the mo
         ->assertJsonPath('data.customer_addresses.0.uuid', $payload['uuid'])
         ->assertJsonPath('data.customer_addresses.0.status', 'accepted')
         ->assertJsonPath('data.customer_addresses.0.server_id', $stored->id)
-        ->assertJsonPath('data.customer_addresses.0.review_reason', null);
+        ->assertJsonPath('data.customer_addresses.0.review_reasons', []);
 
     expect($stored->only(['customer_id', 'street', 'apartment', 'floor', 'visual_reference', 'neighborhood', 'latitude', 'longitude', 'is_primary', 'enabled']))->toBe([
         'customer_id' => $this->customer->id,
@@ -281,12 +281,12 @@ test('push applies an address on a customer of another driver and flags the cust
     push(['customer_addresses' => [$payload]])
         ->assertOk()
         ->assertJsonPath('data.customer_addresses.0.status', 'accepted')
-        ->assertJsonPath('data.customer_addresses.0.review_reason', 'Customer is assigned to another driver.');
+        ->assertJsonPath('data.customer_addresses.0.review_reasons', ['Customer is assigned to another driver.']);
 
     $foreign->refresh();
     expect(CustomerAddress::query()->where('client_uuid', $payload['uuid'])->value('customer_id'))->toBe($foreign->id)
         ->and($foreign->needs_review)->toBeTrue()
-        ->and($foreign->review_reason)->toBe('Customer is assigned to another driver.');
+        ->and($foreign->review_reasons)->toBe(['Customer is assigned to another driver.']);
 });
 
 test('the customer push keeps editing the primary address after the app moved it', function (): void {

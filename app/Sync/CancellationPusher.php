@@ -73,7 +73,7 @@ abstract class CancellationPusher extends EntityPusher
 
         // Before the date, so a replay arriving the next day is still answered as accepted.
         if ($this->isCancelled($target)) {
-            return $this->accepted($record['uuid'], $target->getKey(), $this->pendingReason($target));
+            return $this->accepted($record['uuid'], $target->getKey(), $this->pendingReasons($target));
         }
 
         $cancelledAt = ClientTime::parse($record['cancelled_at'])->min(now());
@@ -87,7 +87,7 @@ abstract class CancellationPusher extends EntityPusher
 
         $cancelled = $this->cancel($target, $driver, $user, $record['reason'] ?? null, $cancelledAt);
 
-        return $this->accepted($record['uuid'], $cancelled->getKey(), $this->pendingReason($cancelled));
+        return $this->accepted($record['uuid'], $cancelled->getKey(), $this->pendingReasons($cancelled));
     }
 
     protected function reviewReason(): ReviewReason

@@ -23,7 +23,7 @@ beforeEach(function (): void {
 });
 
 test('the pending review scope and predicate match flagged records that nobody reviewed', function (): void {
-    $pending = Sale::factory()->create(['needs_review' => true, 'review_reason' => ReviewReason::ForeignCustomer->value]);
+    $pending = Sale::factory()->create(['needs_review' => true, 'review_reasons' => [ReviewReason::ForeignCustomer->value]]);
     $reviewed = Sale::factory()->create(['needs_review' => true, 'reviewed_at' => now(), 'reviewed_by' => User::factory()->create()->id]);
     $clean = Sale::factory()->create(['needs_review' => false]);
 
@@ -39,15 +39,15 @@ test('flag marks a clean record with the reason', function (): void {
     $sale->flag(ReviewReason::DisabledCustomer);
 
     expect($sale->fresh()->needs_review)->toBeTrue()
-        ->and($sale->fresh()->review_reason)->toBe(ReviewReason::DisabledCustomer->value);
+        ->and($sale->fresh()->review_reasons)->toBe([ReviewReason::DisabledCustomer->value]);
 });
 
-test('flag does not change a record that is already flagged', function (): void {
-    $sale = Sale::factory()->create(['needs_review' => true, 'review_reason' => ReviewReason::ForeignCustomer->value]);
+test('flag adds a new reason to a record that is already flagged and keeps the earlier one', function (): void {
+    $sale = Sale::factory()->create(['needs_review' => true, 'review_reasons' => [ReviewReason::ForeignCustomer->value]]);
 
     $sale->flag(ReviewReason::DisabledCustomer);
 
-    expect($sale->fresh()->review_reason)->toBe(ReviewReason::ForeignCustomer->value);
+    expect($sale->fresh()->review_reasons)->toBe([ReviewReason::ForeignCustomer->value, ReviewReason::DisabledCustomer->value]);
 });
 
 test('flag does not re-flag a record the admin already reviewed', function (): void {
@@ -56,7 +56,7 @@ test('flag does not re-flag a record the admin already reviewed', function (): v
     $sale->flag(ReviewReason::DisabledCustomer);
 
     expect($sale->fresh()->needs_review)->toBeFalse()
-        ->and($sale->fresh()->review_reason)->toBeNull();
+        ->and($sale->fresh()->review_reasons)->toBe([]);
 });
 
 test('mark reviewed saves who and when and keeps the first reviewer', function (): void {

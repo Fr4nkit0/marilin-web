@@ -18,7 +18,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['client_uuid', 'transaction_id', 'customer_id', 'visit_id', 'sale_id', 'payment_method_id', 'amount', 'received_by', 'paid_at', 'status', 'needs_review', 'review_reason'])]
+#[Fillable(['client_uuid', 'transaction_id', 'customer_id', 'visit_id', 'sale_id', 'payment_method_id', 'amount', 'received_by', 'paid_at', 'status', 'needs_review', 'review_reasons', 'cancelled_at', 'cancelled_by', 'cancellation_reason'])]
 class Payment extends Model
 {
     /** @use HasFactory<PaymentFactory> */
@@ -36,6 +36,7 @@ class Payment extends Model
         return [
             'amount' => 'decimal:2',
             'paid_at' => 'datetime',
+            'cancelled_at' => 'datetime',
         ];
     }
 

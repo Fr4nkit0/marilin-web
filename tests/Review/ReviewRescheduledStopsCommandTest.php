@@ -50,7 +50,7 @@ test('the daily task flags a rescheduled stop whose day ended without a visit an
     $this->artisan('review:flag-rescheduled-stops')->assertSuccessful();
 
     expect($unvisited->fresh()->needs_review)->toBeTrue()
-        ->and($unvisited->fresh()->review_reason)->toBeString()->not->toBeEmpty()
+        ->and($unvisited->fresh()->review_reasons)->toHaveCount(1)
         ->and($visited->fresh()->needs_review)->toBeFalse()
         ->and($today->fresh()->needs_review)->toBeFalse()
         ->and($notRescheduled->fresh()->needs_review)->toBeFalse()
@@ -79,11 +79,11 @@ test('the daily task does not flag the stops of a cancelled route', function ():
 
 test('the daily task does not flag again a stop the admin already reviewed', function (): void {
     $stop = stopOn('2026-10-22', stopOn('2026-10-22'));
-    $stop->forceFill(['needs_review' => true, 'review_reason' => 'x', 'reviewed_at' => '2026-10-23 00:10:00'])->save();
+    $stop->forceFill(['needs_review' => true, 'review_reasons' => ['x'], 'reviewed_at' => '2026-10-23 00:10:00'])->save();
 
     $this->artisan('review:flag-rescheduled-stops')->assertSuccessful();
 
-    expect($stop->fresh()->review_reason)->toBe('x');
+    expect($stop->fresh()->review_reasons)->toBe(['x']);
 });
 
 test('the daily task is scheduled to run every day', function (): void {

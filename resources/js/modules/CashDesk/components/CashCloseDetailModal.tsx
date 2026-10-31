@@ -8,6 +8,7 @@ import {
     CashCloseDetails,
     CashCloseOrigin,
     CashClosePaymentRow,
+    CashClosePostCloseRow,
 } from '../types';
 import { money } from '@/lib/format';
 
@@ -20,7 +21,12 @@ interface Props {
 const TITLES: Record<CashCloseDetailKind, { title: string; description: string }> = {
     cash: { title: 'Rendición en efectivo', description: 'Cobros en efectivo que forman el total a rendir.' },
     transfer: { title: 'Transferencias verificadas', description: 'Cobros por transferencia de la jornada.' },
+    card: { title: 'Cobros con tarjeta', description: 'Cobros con tarjeta de la jornada.' },
     credit: { title: 'Ventas a crédito', description: 'Ventas fiadas que suman al saldo deudor de cada cliente.' },
+    postClose: {
+        title: 'Ventas post-cierre',
+        description: 'Ventas hechas después de completar la ruta. Descontaron stock del camión y ya están en el total de ventas.',
+    },
     containers: { title: 'Balance de envases', description: 'Envases entregados y retirados en la jornada.' },
 };
 
@@ -150,6 +156,53 @@ function CreditTable({ rows }: { rows: CashCloseCreditRow[] }) {
     );
 }
 
+function PostCloseTable({ rows }: { rows: CashClosePostCloseRow[] }) {
+    const total = rows.reduce((sum, row) => sum + row.amount, 0);
+
+    return (
+        <div className="table-scroll">
+            <table className="w-full text-left text-sm">
+                <thead className="border-b border-hairline">
+                    <tr>
+                        <th className={thClass}>Hora</th>
+                        <th className={thClass}>Cliente</th>
+                        <th className={thClass}>Venta</th>
+                        <th className={thClass}>Tipo</th>
+                        <th className={thClass}>Origen</th>
+                        <th className={`${thClass} text-right`}>Monto</th>
+                    </tr>
+                </thead>
+                <tbody className="divide-y divide-hairline">
+                    {rows.length === 0 ? (
+                        <EmptyRow colSpan={6} />
+                    ) : (
+                        rows.map((row) => (
+                            <tr key={row.id}>
+                                <td className={`${tdClass} whitespace-nowrap`}>{time(row.at)}</td>
+                                <td className={`${tdClass} font-medium text-ink`}>{row.customer ?? '—'}</td>
+                                <td className={tdClass}>#{row.id}</td>
+                                <td className={tdClass}>{row.credit ? 'Fiado' : 'Contado'}</td>
+                                <td className={tdClass}>
+                                    <OriginBadge origin={row.origin} />
+                                </td>
+                                <td className={`${tdClass} text-right font-semibold text-ink`}>{money(row.amount)}</td>
+                            </tr>
+                        ))
+                    )}
+                </tbody>
+                <tfoot className="border-t border-hairline">
+                    <tr>
+                        <td colSpan={5} className="px-4 py-3 text-sm font-medium text-ink-secondary">
+                            Total ({rows.length} {rows.length === 1 ? 'venta' : 'ventas'})
+                        </td>
+                        <td className="px-4 py-3 text-right font-semibold text-ink">{money(total)}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    );
+}
+
 function ContainerTable({ rows }: { rows: CashCloseContainerRow[] }) {
     const delivered = rows.filter((row) => row.movement === 'DELIVERED').reduce((sum, row) => sum + row.quantity, 0);
     const returned = rows.filter((row) => row.movement === 'RETURNED').reduce((sum, row) => sum + row.quantity, 0);
@@ -228,8 +281,9 @@ export default function CashCloseDetailModal({ kind, details, onClose }: Props) 
                         </button>
                     </div>
                     <div className="max-h-[60vh] overflow-auto">
-                        {(kind === 'cash' || kind === 'transfer') && <PaymentTable rows={details[kind]} />}
+                        {(kind === 'cash' || kind === 'transfer' || kind === 'card') && <PaymentTable rows={details[kind]} />}
                         {kind === 'credit' && <CreditTable rows={details.credit} />}
+                        {kind === 'postClose' && <PostCloseTable rows={details.postClose} />}
                         {kind === 'containers' && <ContainerTable rows={details.containers} />}
                     </div>
                 </div>

@@ -66,8 +66,11 @@ class SalePusher extends EntityPusher
         }, $record['details']);
 
         $date = ClientTime::parse($record['date']);
-        $reason = $this->reviewReasonForCustomer($customer, $driver)
-            ?? ($this->chargesAnotherPrice($customer, $record['details'], $date) ? ReviewReason::PriceMismatch : null);
+        // Every reason the sale needs the admin's eyes for, so the inbox shows them all.
+        $reasons = [
+            $this->reviewReasonForCustomer($customer, $driver),
+            $this->chargesAnotherPrice($customer, $record['details'], $date) ? ReviewReason::PriceMismatch : null,
+        ];
 
         $sale = $this->operation->recordSale(new RecordSale(
             customer: $customer,
@@ -86,10 +89,10 @@ class SalePusher extends EntityPusher
             notes: $record['notes'] ?? null,
             recordedBy: $user,
             clientUuid: $record['uuid'],
-            reviewReason: $reason,
+            reviewReasons: $reasons,
         ));
 
-        return $this->accepted($record['uuid'], $sale->id, $reason?->value);
+        return $this->accepted($record['uuid'], $sale->id, ReviewReason::values(...$reasons));
     }
 
     /**

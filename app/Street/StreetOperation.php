@@ -69,7 +69,7 @@ class StreetOperation
                 'notes' => $input->notes,
                 'created_by' => $input->recordedBy->id,
                 'enabled' => true,
-                ...ReviewReason::columns($input->reviewReason),
+                ...ReviewReason::columns(...$input->reviewReasons),
             ]);
 
             foreach ($input->lines as $line) {
@@ -94,7 +94,7 @@ class StreetOperation
     /**
      * Cancels a sale: a credit note reverses it on the ledger, its stock goes back to the route it was discounted from
      * (none when it discounted none) and the containers moved with it go back with the opposite movement. Its payments are left alone.
-     * A sale already cancelled is returned as it is, nothing is booked again.
+     * Who cancelled it, when and why are stored on the sale. A sale already cancelled is returned as it is, nothing is booked again.
      */
     public function cancelSale(CancelSale $input): Sale
     {
@@ -105,19 +105,27 @@ class StreetOperation
                 return $sale;
             }
 
-            $sale->fill(['status' => SaleStatus::Cancelled->value, 'last_modified_by' => $input->cancelledBy->id])->save();
+            $cancelledAt = $input->cancelledAt ?? now();
+
+            $sale->fill([
+                'status' => SaleStatus::Cancelled->value,
+                'last_modified_by' => $input->cancelledBy->id,
+                'cancelled_at' => $cancelledAt,
+                'cancelled_by' => $input->cancelledBy->id,
+                'cancellation_reason' => $input->reason,
+            ])->save();
 
             if ($input->reviewReason !== null) {
                 $sale->reopenReview($input->reviewReason);
             }
 
-            $this->ledger->bookSaleCancellation($sale->customer, $sale, $input->cancelledBy, $input->reason);
+            $this->ledger->bookSaleCancellation($sale->customer, $sale, $input->cancelledBy, $input->reason, $input->byAdmin);
 
             if ($sale->stock_route_id !== null) {
                 $this->stock->restore($sale->stock_route_id, $this->soldQuantities($sale));
             }
 
-            $this->giveContainersBack($sale, $input->cancelledBy, $input->cancelledAt ?? now());
+            $this->giveContainersBack($sale, $input->cancelledBy, $cancelledAt);
 
             return $sale;
         });
@@ -139,7 +147,7 @@ class StreetOperation
                 'received_by' => $input->receivedBy->id,
                 'paid_at' => $input->paidAt,
                 'status' => PaymentStatus::Confirmed->value,
-                ...ReviewReason::columns($input->reviewReason),
+                ...ReviewReason::columns(...$input->reviewReasons),
             ]);
 
             $this->ledger->bookPayment($input->customer, $payment, $input->receivedBy);
@@ -149,7 +157,8 @@ class StreetOperation
     }
 
     /**
-     * Cancels a payment: an adjustment puts its amount back on the ledger. A payment already cancelled is returned as it is.
+     * Cancels a payment: an adjustment puts its amount back on the ledger, and who cancelled it, when and why are stored on it.
+     * A payment already cancelled is returned as it is.
      */
     public function cancelPayment(CancelPayment $input): Payment
     {
@@ -160,13 +169,18 @@ class StreetOperation
                 return $payment;
             }
 
-            $payment->fill(['status' => PaymentStatus::Cancelled->value])->save();
+            $payment->fill([
+                'status' => PaymentStatus::Cancelled->value,
+                'cancelled_at' => $input->cancelledAt ?? now(),
+                'cancelled_by' => $input->cancelledBy->id,
+                'cancellation_reason' => $input->reason,
+            ])->save();
 
             if ($input->reviewReason !== null) {
                 $payment->reopenReview($input->reviewReason);
             }
 
-            $this->ledger->bookPaymentCancellation($payment->customer, $payment, $input->cancelledBy, $input->reason);
+            $this->ledger->bookPaymentCancellation($payment->customer, $payment, $input->cancelledBy, $input->reason, $input->byAdmin);
 
             return $payment;
         });
@@ -198,7 +212,7 @@ class StreetOperation
                 'direction' => $direction,
                 'created_by' => $input->recordedBy->id,
                 'enabled' => true,
-                ...ReviewReason::columns($input->reviewReason),
+                ...ReviewReason::columns(...$input->reviewReasons),
             ]);
 
             if ($at !== null) {

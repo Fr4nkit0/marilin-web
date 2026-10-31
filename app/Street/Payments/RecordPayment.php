@@ -22,6 +22,7 @@ final readonly class RecordPayment
         public CarbonInterface $paidAt,
         public User $receivedBy,
         public ?string $clientUuid = null,
-        public ?ReviewReason $reviewReason = null,
+        /** @var list<ReviewReason|null> why the record is left for the admin's review; none (or only nulls) leaves it clean */
+        public array $reviewReasons = [],
     ) {}
 }

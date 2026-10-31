@@ -51,7 +51,7 @@ test('push accepts a new customer, assigns a server id and stores it with its pr
         ->assertJsonPath('data.customers.0.uuid', $customer['uuid'])
         ->assertJsonPath('data.customers.0.status', 'accepted')
         ->assertJsonPath('data.customers.0.server_id', $stored->id)
-        ->assertJsonPath('data.customers.0.review_reason', null);
+        ->assertJsonPath('data.customers.0.review_reasons', []);
 
     expect($stored->driver_id)->toBe($this->driver->id)
         ->and($stored->name)->toBe('Almacen Don Pepe');
@@ -177,12 +177,12 @@ test('push accepts an edit on a customer assigned to another driver and flags it
         ->assertJsonPath('data.customers.0.status', 'accepted')
         ->assertJsonPath('data.customers.0.server_id', $customer->id);
 
-    $reason = $response->json('data.customers.0.review_reason');
+    $reason = $response->json('data.customers.0.review_reasons.0');
     $customer->refresh();
 
     expect($reason)->toBeString()->not->toBeEmpty()
         ->and($customer->needs_review)->toBeTrue()
-        ->and($customer->review_reason)->toBe($reason)
+        ->and($customer->review_reasons)->toBe([$reason])
         ->and($customer->name)->toBe('Editado en la calle')
         ->and($customer->driver_id)->toBe($otherDriver->id);
 });
@@ -238,7 +238,7 @@ test('push flags a customer of another driver for review even when the edit is o
 
     $response->assertOk()->assertJsonPath('data.customers.0.status', 'outdated');
 
-    expect($response->json('data.customers.0.review_reason'))->toBeString()->not->toBeEmpty()
+    expect($response->json('data.customers.0.review_reasons.0'))->toBeString()->not->toBeEmpty()
         ->and($customer->fresh()->needs_review)->toBeTrue()
         ->and($customer->fresh()->name)->toBe('Nombre del servidor');
 });
@@ -331,12 +331,12 @@ test('push disables a customer when the app sends enabled false and flags it for
     $response->assertOk()
         ->assertJsonPath('data.customers.0.status', 'accepted')
         ->assertJsonPath('data.customers.0.server_id', $customer->id)
-        ->assertJsonPath('data.customers.0.review_reason', 'Customer disabled by a driver.');
+        ->assertJsonPath('data.customers.0.review_reasons', ['Customer disabled by a driver.']);
 
     $customer->refresh();
     expect($customer->enabled)->toBeFalse()
         ->and($customer->needs_review)->toBeTrue()
-        ->and($customer->review_reason)->toBe('Customer disabled by a driver.')
+        ->and($customer->review_reasons)->toBe(['Customer disabled by a driver.'])
         ->and($customer->updated_at->toIso8601String())->toBe('2026-10-20T11:00:00-03:00');
 });
 
@@ -349,7 +349,7 @@ test('push ignores a disable older than the server version and answers outdated'
         'modified_at' => '2026-10-20T09:00:00-03:00',
     ])]])->assertOk()
         ->assertJsonPath('data.customers.0.status', 'outdated')
-        ->assertJsonPath('data.customers.0.review_reason', null);
+        ->assertJsonPath('data.customers.0.review_reasons', []);
 
     $customer->refresh();
     expect($customer->enabled)->toBeTrue()

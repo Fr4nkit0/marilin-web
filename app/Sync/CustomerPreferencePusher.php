@@ -47,7 +47,7 @@ class CustomerPreferencePusher extends EntityPusher
             }
         }
 
-        return $this->accepted($record['uuid'], $preference->id, $this->pendingReason($customer));
+        return $this->accepted($record['uuid'], $preference->id, $this->pendingReasons($customer));
     }
 
     /**

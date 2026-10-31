@@ -85,18 +85,27 @@ class CashCloseExport
                 ['Ventas fiadas', $settlement['creditSales']],
                 ['Efectivo', $settlement['cashAmount']],
                 ['Transferencias', $settlement['transferAmount']],
+                ['Tarjeta', $settlement['cardAmount']],
                 ['Total cobrado', $settlement['totalCollected']],
                 ['Cobro de deudas', $settlement['debtCollected']],
                 ['Envases entregados', $settlement['containersDelivered']],
                 ['Envases devueltos', $settlement['containersReturned']],
+                ['Ventas post-cierre', $settlement['postCloseSales']],
             ],
             'Efectivo' => $payments($details['cash']),
             'Transferencias' => $payments($details['transfer']),
+            'Tarjeta' => $payments($details['card']),
             'Fiado' => [
                 ['Hora', 'Cliente', 'Importe', 'Origen'],
                 ...array_map(fn (array $row): array => [
                     $this->hour($row['at']), $row['customer'], $row['amount'], self::ORIGINS[$row['origin']],
                 ], $details['credit']),
+            ],
+            'Post-cierre' => [
+                ['Hora', 'Cliente', 'Importe', 'Tipo', 'Origen'],
+                ...array_map(fn (array $row): array => [
+                    $this->hour($row['at']), $row['customer'], $row['amount'], $row['credit'] ? 'Fiado' : 'Contado', self::ORIGINS[$row['origin']],
+                ], $details['postClose']),
             ],
             'Envases' => [
                 ['Hora', 'Cliente', 'Envase', 'Movimiento', 'Cantidad', 'Origen'],

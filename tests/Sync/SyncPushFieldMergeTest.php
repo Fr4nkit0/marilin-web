@@ -147,9 +147,9 @@ test('S7: an edit whose every field is older than the server answers outdated an
         ->assertJsonPath('data.customers.0.uuid', $this->customerUuid)
         ->assertJsonPath('data.customers.0.status', 'outdated')
         ->assertJsonPath('data.customers.0.server_id', $this->customer->id)
-        ->assertJsonPath('data.customers.0.review_reason', null);
+        ->assertJsonPath('data.customers.0.review_reasons', []);
 
-    expect($response->json('data.customers.0'))->toHaveKeys(['uuid', 'status', 'server_id', 'review_reason'])
+    expect($response->json('data.customers.0'))->toHaveKeys(['uuid', 'status', 'server_id', 'review_reasons'])
         ->and(customerSnapshot($this->customer))->toEqual($before);
 });
 
@@ -420,7 +420,7 @@ test('a disable carried alone applies and flags the customer, an older one does 
     push(['customers' => [mergeEdit($this->customerUuid, $this->customer->id, '2026-10-21T11:00:00-03:00', ['enabled' => false])]])
         ->assertOk()
         ->assertJsonPath('data.customers.0.status', 'accepted')
-        ->assertJsonPath('data.customers.0.review_reason', 'Customer disabled by a driver.');
+        ->assertJsonPath('data.customers.0.review_reasons', ['Customer disabled by a driver.']);
 
     $customer = $this->customer->fresh();
     expect($customer->enabled)->toBeFalse()

@@ -36,6 +36,7 @@ class CashCloseReport
         }
 
         $day = $this->figures->forDay($date, DayScope::driver($driver));
+        $postClose = $this->postCloseSales($route, $day->sales);
 
         return [
             'routeId' => $route->id,
@@ -44,10 +45,12 @@ class CashCloseReport
             'creditSales' => $day->creditSales,
             'cashAmount' => $day->cashAmount,
             'transferAmount' => $day->transferAmount,
+            'cardAmount' => $day->cardAmount,
             'totalCollected' => $day->totalCollected,
             'debtCollected' => $day->debtCollected,
             'containersDelivered' => $day->containersDelivered,
             'containersReturned' => $day->containersReturned,
+            'postCloseSales' => (float) $postClose->sum('total'),
             // The first load and every reload of a product add up to what the truck took out.
             'stockLoaded' => $route->inventoryLoads
                 ->groupBy('product_id')
@@ -64,11 +67,20 @@ class CashCloseReport
             'details' => [
                 'cash' => $this->paymentRows($day->cashPayments),
                 'transfer' => $this->paymentRows($day->transferPayments),
+                'card' => $this->paymentRows($day->cardPayments),
                 'credit' => $day->creditSaleRows->map(fn (Sale $sale): array => [
                     'id' => $sale->id,
                     'customer' => $sale->customer?->name,
                     'at' => $this->minute($sale->date),
                     'amount' => (float) $sale->total,
+                    'origin' => $this->origin($sale->visit_id),
+                ])->values()->all(),
+                'postClose' => $postClose->map(fn (Sale $sale): array => [
+                    'id' => $sale->id,
+                    'customer' => $sale->customer?->name,
+                    'at' => $this->minute($sale->date),
+                    'amount' => (float) $sale->total,
+                    'credit' => (bool) $sale->is_credit_sale,
                     'origin' => $this->origin($sale->visit_id),
                 ])->values()->all(),
                 'containers' => $day->containerMovements->map(fn (ContainerMovement $movement): array => [
@@ -82,6 +94,24 @@ class CashCloseReport
                 ])->values()->all(),
             ],
         ];
+    }
+
+    /**
+     * The sales the driver made after the route was completed (S6): they still discount the route's stock, because the
+     * truck still carries it, but the close shows them apart. "After" is judged by the sale's date, the moment the driver
+     * sold on the phone, like the completion, which is the last visit's arrival; the moment the server received the sale
+     * would make an offline sale made on the open route look late.
+     *
+     * @param  Collection<int, Sale>  $sales
+     * @return Collection<int, Sale>
+     */
+    private function postCloseSales(DeliveryRoute $route, Collection $sales): Collection
+    {
+        if ($route->completed_at === null) {
+            return new Collection;
+        }
+
+        return $sales->filter(fn (Sale $sale): bool => $sale->stock_route_id === $route->id && $sale->date->greaterThan($route->completed_at))->values();
     }
 
     /**

@@ -77,7 +77,7 @@ test('push accepts a sale with its details, unit prices and the date the app set
         ->assertJsonPath('data.sales.0.uuid', $payload['uuid'])
         ->assertJsonPath('data.sales.0.status', 'accepted')
         ->assertJsonPath('data.sales.0.server_id', $sale->id)
-        ->assertJsonPath('data.sales.0.review_reason', null);
+        ->assertJsonPath('data.sales.0.review_reasons', []);
 
     expect($sale->customer_id)->toBe($this->customer->id)
         ->and($sale->date->toIso8601String())->toBe('2026-10-22T07:30:00-03:00')
@@ -168,17 +168,19 @@ test('push accepts a :entity on a customer of another driver or a disabled one, 
     $payload = $entity === 'sales'
         ? salePayload(['customer_id' => $customer->id])
         : paymentPayload(['customer_id' => $customer->id]);
+    // The customer owes more than the payment, so the customer reason is the only one (S4).
+    CustomerBalance::factory()->create(['customer_id' => $customer->id, 'current_balance' => 100000]);
 
     $response = push([$entity => [$payload]]);
 
     $response->assertOk()->assertJsonPath("data.{$entity}.0.status", 'accepted');
 
     $record = ($entity === 'sales' ? Sale::class : Payment::class)::query()->where('client_uuid', $payload['uuid'])->firstOrFail();
-    $reason = $response->json("data.{$entity}.0.review_reason");
+    $reason = $response->json("data.{$entity}.0.review_reasons.0");
 
     expect($reason)->toBeString()->not->toBeEmpty()
         ->and($record->needs_review)->toBeTrue()
-        ->and($record->review_reason)->toBe($reason)
+        ->and($record->review_reasons)->toBe([$reason])
         ->and(CustomerAccountEntry::query()->where('customer_id', $customer->id)->count())->toBe(1);
 })->with([
     'sale of another driver' => ['sales', 'other driver'],

@@ -12,6 +12,7 @@ use Carbon\CarbonInterface;
 /**
  * A sale to cancel. Its stock goes back to the route it was discounted from (the sale stores it); a sale that discounted
  * from none gives nothing back. The containers moved with it are given back dated when it was cancelled (now when not given).
+ * Who, when and why are stored on the sale; the driver cancels from the app, the admin from the web.
  */
 final readonly class CancelSale
 {
@@ -21,5 +22,6 @@ final readonly class CancelSale
         public ?string $reason = null,
         public ?ReviewReason $reviewReason = null,
         public ?CarbonInterface $cancelledAt = null,
+        public bool $byAdmin = false,
     ) {}
 }

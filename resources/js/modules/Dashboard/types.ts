@@ -76,9 +76,11 @@ export interface DashboardMetrics {
     kpis: {
         totalSales: number;
         salesDelta: number;
+        /** Every confirmed payment of the day (cash, transfer and card): the same "cobrado" Ventas y cobros and the cash close show. */
         totalCollected: number;
         cashPayments: number;
         transferPayments: number;
+        cardPayments: number;
         totalStops: number;
         completedStops: number;
         stopsProgressPercent: number;

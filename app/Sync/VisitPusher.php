@@ -7,6 +7,7 @@ namespace App\Sync;
 use App\Accounts\Models\Driver;
 use App\Accounts\Models\User;
 use App\Customers\Customers\Models\Customer;
+use App\Review\ReviewReason;
 use App\Routes\Routes\Models\RouteStop;
 use App\Routes\Routes\RouteProgress;
 use App\Routes\Visits\Enums\VisitStatus;
@@ -41,7 +42,7 @@ class VisitPusher extends EntityPusher
             $this->edit($existing, $driver, $user, $record);
             $this->recalculateRoute($existing);
 
-            return $this->accepted($record['uuid'], $existing->id, $this->pendingReason($existing));
+            return $this->accepted($record['uuid'], $existing->id, $this->pendingReasons($existing));
         }
 
         if ($replay = $this->alreadyPushed(Visit::class, $record)) {
@@ -74,7 +75,7 @@ class VisitPusher extends EntityPusher
 
         $this->recalculateRoute($visit);
 
-        return $this->accepted($record['uuid'], $visit->id, $reason?->value);
+        return $this->accepted($record['uuid'], $visit->id, ReviewReason::values($reason));
     }
 
     /**

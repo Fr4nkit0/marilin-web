@@ -49,7 +49,7 @@ test('a stop of a past day without a visit goes to the review inbox', function (
     $this->artisan('review:flag-unvisited-stops')->assertSuccessful();
 
     expect($unvisited->fresh()->needs_review)->toBeTrue()
-        ->and($unvisited->fresh()->review_reason)->toBe(ReviewReason::UnvisitedStop->value)
+        ->and($unvisited->fresh()->review_reasons)->toBe([ReviewReason::UnvisitedStop->value])
         ->and($visited->fresh()->needs_review)->toBeFalse()
         ->and($today->fresh()->needs_review)->toBeFalse();
 });
@@ -64,17 +64,17 @@ test('it leaves out cancelled routes, disabled stops and rescheduled stops', fun
 
     expect($cancelled->fresh()->needs_review)->toBeFalse()
         ->and($disabled->fresh()->needs_review)->toBeFalse()
-        ->and($rescheduled->fresh()->review_reason)->toBeNull()
+        ->and($rescheduled->fresh()->review_reasons)->toBe([])
         ->and($original->fresh()->needs_review)->toBeFalse();
 });
 
 test('it does not flag again a stop the admin already reviewed', function (): void {
     $stop = routeStopOn('2026-10-22');
-    $stop->forceFill(['needs_review' => true, 'review_reason' => 'x', 'reviewed_at' => '2026-10-23 00:10:00'])->save();
+    $stop->forceFill(['needs_review' => true, 'review_reasons' => ['x'], 'reviewed_at' => '2026-10-23 00:10:00'])->save();
 
     $this->artisan('review:flag-unvisited-stops')->assertSuccessful();
 
-    expect($stop->fresh()->review_reason)->toBe('x');
+    expect($stop->fresh()->review_reasons)->toBe(['x']);
 });
 
 test('the admin reads why the stop is in the inbox', function (): void {
@@ -100,7 +100,7 @@ test('a stop whose only visit was cancelled or left in progress is flagged, a do
     $this->artisan('review:flag-unvisited-stops')->assertSuccessful();
 
     expect($cancelled->fresh()->needs_review)->toBeTrue()
-        ->and($cancelled->fresh()->review_reason)->toBe(ReviewReason::UnvisitedStop->value)
+        ->and($cancelled->fresh()->review_reasons)->toBe([ReviewReason::UnvisitedStop->value])
         ->and($inProgress->fresh()->needs_review)->toBeTrue()
         ->and($done->fresh()->needs_review)->toBeFalse();
 });
@@ -115,6 +115,6 @@ test('a rescheduled stop with only a cancelled visit is flagged, one with a fini
     $this->artisan('review:flag-rescheduled-stops')->assertSuccessful();
 
     expect($cancelled->fresh()->needs_review)->toBeTrue()
-        ->and($cancelled->fresh()->review_reason)->toBe(ReviewReason::UnvisitedRescheduledStop->value)
+        ->and($cancelled->fresh()->review_reasons)->toBe([ReviewReason::UnvisitedRescheduledStop->value])
         ->and($done->fresh()->needs_review)->toBeFalse();
 });

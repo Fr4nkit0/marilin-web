@@ -19,6 +19,10 @@ return new class extends Migration
             $table->dateTime('date')->useCurrent();
             $table->decimal('total', 14, 2);
             $table->string('status', 30)->default('confirmed'); // confirmed, cancelled, annulled
+            // Who cancelled the record, when and why: the driver from the app or the admin from the web.
+            $table->timestamp('cancelled_at')->nullable();
+            $table->foreignId('cancelled_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->text('cancellation_reason')->nullable();
             $table->boolean('is_credit_sale')->default(false);
             $table->text('notes')->nullable();
             $table->foreignId('created_by')->constrained('users');
@@ -27,7 +31,7 @@ return new class extends Migration
             $table->timestamps();
             $table->uuid('client_uuid')->nullable()->unique();
             $table->boolean('needs_review')->default(false);
-            $table->text('review_reason')->nullable();
+            $table->jsonb('review_reasons')->default('[]'); // every reason the record was flagged for, in order, without repeats
             $table->timestamp('reviewed_at')->nullable();
             $table->foreignId('reviewed_by')->nullable()->constrained('users')->nullOnDelete();
 

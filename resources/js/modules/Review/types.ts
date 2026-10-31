@@ -7,7 +7,8 @@ export interface ReviewItem {
     driver: string | null;
     customer: string;
     occurred_at: string;
-    reason: string | null;
+    /** Every reason the record waits for review, in the panel's language and in the order they were raised. */
+    reasons: string[];
     reviewed_at: string | null;
     reviewed_by: string | null;
 }

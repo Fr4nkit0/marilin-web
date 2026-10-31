@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Sync;
 
 use App\Accounts\Models\Driver;
+use App\CashDesk\DayScope;
 use App\Catalog\Models\ContainerType;
 use App\Catalog\Models\PaymentMethod;
 use App\Catalog\Models\Product;
@@ -18,7 +19,11 @@ use App\Routes\Routes\Models\RouteStop;
 use App\Routes\Visits\Models\VisitOutcome;
 use App\Street\Containers\Models\CustomerContainerBalance;
 use App\Street\Ledger\Models\CustomerBalance;
+use App\Street\Payments\Enums\PaymentStatus;
+use App\Street\Payments\Models\Payment;
 use App\Street\RouteStock\Models\RouteInventory;
+use App\Street\Sales\Enums\SaleStatus;
+use App\Street\Sales\Models\Sale;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
@@ -45,6 +50,17 @@ class PullService
         'customers' => [null],
         'customer_addresses' => [null, 'customer'],
         'customer_preferences' => [null],
+    ];
+
+    /**
+     * Cancellation events: the id key each one carries. They travel when the sale or payment was cancelled (or touched
+     * afterwards) inside the window; applying one twice is harmless, so the app marks the record cancelled every time.
+     *
+     * @var array<string, string>
+     */
+    private const array CANCELLATION_KEYS = [
+        'sale_cancellations' => 'sale_id',
+        'payment_cancellations' => 'payment_id',
     ];
 
     /**
@@ -101,7 +117,9 @@ class PullService
                 $data[$name] = $data[$name]->map(fn (RouteStop $stop): RouteStop => $this->withDerivedFields($stop));
             }
 
-            $data[$name] = $data[$name]->map(fn (Model $row): array => $this->row($row));
+            $data[$name] = isset(self::CANCELLATION_KEYS[$name])
+                ? $data[$name]->map(fn (Sale|Payment $record): array => $this->cancellationEvent($record, self::CANCELLATION_KEYS[$name], $driver))
+                : $data[$name]->map(fn (Model $row): array => $this->row($row));
         }
 
         return [
@@ -146,11 +164,35 @@ class PullService
             'customer_agreements' => CustomerAgreement::query()->whereHas('customer', $ownCustomer),
             'customer_balances' => CustomerBalance::query()->whereHas('customer', $ownCustomer),
             'customer_container_balances' => CustomerContainerBalance::query()->whereHas('customer', $ownCustomer),
+            // The driver's own sales and payments, as the cash close counts them: on their visits or recorded by them without one.
+            'sale_cancellations' => Sale::query()
+                ->where('status', SaleStatus::Cancelled->value)
+                ->tap(fn (Builder $query) => DayScope::driver($driver)->apply($query, 'created_by')),
+            'payment_cancellations' => Payment::query()
+                ->where('status', PaymentStatus::Cancelled->value)
+                ->tap(fn (Builder $query) => DayScope::driver($driver)->apply($query, 'received_by')),
             'products' => Product::query(),
             'container_types' => ContainerType::query(),
             'payment_methods' => PaymentMethod::query(),
             'visit_outcomes' => VisitOutcome::query(),
             'neighborhoods' => Neighborhood::query(),
+        ];
+    }
+
+    /**
+     * What the app needs to mark its record cancelled: the server id, its own uuid, when, why and whether the admin
+     * (anyone but the driver) cancelled it. The stock, balance and containers it gave back travel in their own entities.
+     *
+     * @return array{sale_id?: int, payment_id?: int, client_uuid: string|null, cancelled_at: string|null, reason: string|null, cancelled_by_admin: bool}
+     */
+    private function cancellationEvent(Sale|Payment $record, string $idKey, Driver $driver): array
+    {
+        return [
+            $idKey => $record->id,
+            'client_uuid' => $record->client_uuid,
+            'cancelled_at' => $record->cancelled_at?->toJSON(),
+            'reason' => $record->cancellation_reason,
+            'cancelled_by_admin' => $record->cancelled_by !== $driver->user_id,
         ];
     }
 
