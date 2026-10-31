@@ -8,12 +8,15 @@ use App\Accounts\Models\Driver;
 use App\Accounts\Models\User;
 use App\Customers\Customers\Models\Customer;
 use App\Routes\Routes\Models\RouteStop;
+use App\Routes\Routes\RouteProgress;
 use App\Routes\Visits\Enums\VisitStatus;
 use App\Routes\Visits\Models\Visit;
 use App\Shared\ClientTime;
 
 class VisitPusher extends EntityPusher
 {
+    public function __construct(private readonly RouteProgress $progress) {}
+
     protected function rules(): array
     {
         return [
@@ -36,6 +39,7 @@ class VisitPusher extends EntityPusher
 
         if ($existing !== null && isset($record['modified_at'])) {
             $this->edit($existing, $driver, $user, $record);
+            $this->recalculateRoute($existing);
 
             return $this->accepted($record['uuid'], $existing->id, $this->pendingReason($existing));
         }
@@ -68,7 +72,19 @@ class VisitPusher extends EntityPusher
             ...$this->reviewAttributes($reason),
         ]);
 
+        $this->recalculateRoute($visit);
+
         return $this->accepted($record['uuid'], $visit->id, $reason?->value);
+    }
+
+    /**
+     * A visit on a stop moves the stop's route; a loose visit (no stop) belongs to no route.
+     */
+    private function recalculateRoute(Visit $visit): void
+    {
+        if ($visit->route_stop_id !== null) {
+            $this->progress->recalculate($visit->routeStop->route_id);
+        }
     }
 
     /**

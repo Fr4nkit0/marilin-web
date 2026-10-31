@@ -16,3 +16,6 @@ Schedule::command('review:flag-rescheduled-stops')->dailyAt('01:00');
 
 // Planned stops whose day ended without a visit go to the review inbox; the app only shows today's route.
 Schedule::command('review:flag-unvisited-stops')->dailyAt('01:00');
+
+// Routes of a past day still planned or in progress are completed; their not done stops stay in the review inbox.
+Schedule::command('routes:close-past')->dailyAt('01:00');
