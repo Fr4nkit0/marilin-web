@@ -12,7 +12,9 @@ use App\Routes\Routes\Models\RouteStop;
 use App\Routes\Visits\Models\Visit;
 use App\Street\Containers\Models\ContainerMovement;
 use App\Street\Payments\Models\Payment;
+use App\Street\RouteStock\Models\RouteInventory;
 use App\Street\Sales\Models\Sale;
+use App\Street\StreetOperation;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -43,6 +45,10 @@ class ReviewInbox
         CustomerAgreement::class,
     ];
 
+    public function __construct(
+        private readonly StreetOperation $operation,
+    ) {}
+
     /**
      * The drivers the admin can filter by.
      *
@@ -69,6 +75,28 @@ class ReviewInbox
     }
 
     /**
+     * The admin fixes the truck load a sale left below zero (the load was written down short): the missing units go
+     * to the sale's route as a correction with the admin's reason, and the sale is marked reviewed, in one go.
+     *
+     * @param  array<int, int>  $quantities  quantity keyed by product id
+     *
+     * @throws ModelNotFoundException when the sale is not waiting for review because of the truck stock
+     */
+    public function correctTruckLoad(int $saleId, array $quantities, string $reason, User $admin): void
+    {
+        DB::transaction(function () use ($saleId, $quantities, $reason, $admin): void {
+            $sale = Sale::query()->pendingReview()->whereNotNull('stock_route_id')->lockForUpdate()->findOrFail($saleId);
+
+            if (! in_array(ReviewReason::InsufficientStock->value, $sale->pendingReviewReasons(), true)) {
+                throw (new ModelNotFoundException)->setModel(Sale::class, [$saleId]);
+            }
+
+            $this->operation->correctRouteLoad($sale->stockRoute, $quantities, $reason, $admin);
+            $sale->markReviewed($admin);
+        });
+    }
+
+    /**
      * @param  array{driver_id?: int|null, from?: string|null, to?: string|null, type?: string|null, status?: string|null}  $filters
      */
     public function page(array $filters, int $perPage = 15): LengthAwarePaginator
@@ -82,10 +110,12 @@ class ReviewInbox
             ->paginate($perPage);
 
         $requestedStops = $this->requestedStops($page->items());
+        $stockCorrections = $this->stockCorrections($page->items());
 
         return $page
-            ->through(function (object $row) use ($requestedStops): object {
+            ->through(function (object $row) use ($requestedStops, $stockCorrections): object {
                 $requested = $row->type === RouteStop::reviewSource()->type && isset($requestedStops[$row->id]);
+                $row->stock_correction = $row->type === Sale::reviewSource()->type ? ($stockCorrections[$row->id] ?? null) : null;
                 $row->reasons = ReviewReason::labels(json_decode((string) $row->reasons, true) ?? [], $requested);
 
                 return $row;
@@ -109,6 +139,41 @@ class ReviewInbox
             ->pluck('id')
             ->flip()
             ->all();
+    }
+
+    /**
+     * For each pending sale of the page that left the truck below zero, keyed by sale id: its route and the truck stock
+     * of every product it sold, so the admin can correct the load from the inbox.
+     *
+     * @param  array<int, object>  $rows
+     * @return array<int, array{route_id: int, products: list<array{id: int, name: string, current: float}>}>
+     */
+    private function stockCorrections(array $rows): array
+    {
+        $saleIds = collect($rows)
+            ->where('type', Sale::reviewSource()->type)
+            ->whereNull('reviewed_at')
+            ->filter(fn (object $row): bool => in_array(ReviewReason::InsufficientStock->value, json_decode((string) $row->reasons, true) ?? [], true))
+            ->pluck('id');
+
+        if ($saleIds->isEmpty()) {
+            return [];
+        }
+
+        $sales = Sale::query()->whereIn('id', $saleIds)->whereNotNull('stock_route_id')->with('details.product:id,name')->get();
+        $stock = RouteInventory::query()
+            ->whereIn('route_id', $sales->pluck('stock_route_id')->unique())
+            ->get()
+            ->keyBy(fn (RouteInventory $inventory): string => "{$inventory->route_id}-{$inventory->product_id}");
+
+        return $sales->mapWithKeys(fn (Sale $sale): array => [$sale->id => [
+            'route_id' => $sale->stock_route_id,
+            'products' => $sale->details->unique('product_id')->sortBy('product_id')->map(fn ($detail): array => [
+                'id' => $detail->product_id,
+                'name' => $detail->product?->name ?? 'Producto',
+                'current' => (float) ($stock->get("{$sale->stock_route_id}-{$detail->product_id}")?->current_quantity ?? 0),
+            ])->values()->all(),
+        ]])->all();
     }
 
     /**

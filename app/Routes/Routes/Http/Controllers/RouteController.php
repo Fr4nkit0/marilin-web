@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Routes\Routes\Enums\RouteStatus;
 use App\Routes\Routes\Models\Route as DeliveryRoute;
 use App\Routes\Routes\Models\RouteStop;
+use App\Street\RouteStock\Models\RouteInventoryLoad;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -80,9 +81,13 @@ class RouteController extends Controller
                     'current' => (float) $inv->current_quantity,
                 ])->values(),
                 // The first load of the day is the one registered at the earliest moment; later ones are reloads.
-                'loadHistory' => $route->inventoryLoads->map(fn ($load) => [
+                // A correction (from Revisión) fixes a load written down short and is never the initial one.
+                'loadHistory' => $route->inventoryLoads->map(fn (RouteInventoryLoad $load) => [
                     'id' => $load->id,
-                    'isInitial' => $load->loaded_at?->equalTo($route->inventoryLoads->first()->loaded_at) ?? false,
+                    'isInitial' => ! $load->isCorrection()
+                        && ($load->loaded_at?->equalTo($route->inventoryLoads->reject->isCorrection()->first()->loaded_at) ?? false),
+                    'isCorrection' => $load->isCorrection(),
+                    'reason' => $load->reason,
                     'loadedAt' => $load->loaded_at?->format('H:i'),
                     'productName' => $load->product?->name ?? 'Producto',
                     'quantity' => (float) $load->quantity,

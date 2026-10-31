@@ -44,6 +44,13 @@ beforeEach(function (): void {
         'current_quantity' => 20,
         'created_by' => $this->user->id,
     ]);
+    // The truck carries what the sales here sell, so a sale with stock left goes to review only for what each test is about.
+    RouteInventory::query()->create([
+        'route_id' => $this->route->id,
+        'product_id' => $this->soda->id,
+        'current_quantity' => 20,
+        'created_by' => $this->user->id,
+    ]);
 });
 
 /**

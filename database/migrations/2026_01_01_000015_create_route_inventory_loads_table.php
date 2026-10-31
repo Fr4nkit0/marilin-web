@@ -16,6 +16,9 @@ return new class extends Migration
             $table->foreignId('route_id')->constrained('routes')->cascadeOnDelete();
             $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
             $table->decimal('quantity', 14, 2);
+            // A correction fixes a load written down wrong (from Revisión) and keeps the admin's reason.
+            $table->string('type', 20)->default('load');
+            $table->text('reason')->nullable();
             $table->dateTime('loaded_at')->useCurrent();
             $table->foreignId('created_by')->constrained('users');
             $table->timestamps();

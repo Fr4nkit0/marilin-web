@@ -92,7 +92,8 @@ class SalePusher extends EntityPusher
             reviewReasons: $reasons,
         ));
 
-        return $this->accepted($record['uuid'], $sale->id, ReviewReason::values(...$reasons));
+        // The sale may gain a reason while it is recorded (the truck stock it leaves below zero).
+        return $this->accepted($record['uuid'], $sale->id, $sale->pendingReviewReasons());
     }
 
     /**
