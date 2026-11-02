@@ -30,7 +30,7 @@ class UserFactory extends Factory
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'username' => fake()->unique()->userName(),
-            'phone_number' => fake()->phoneNumber(),
+            'phone_number' => fake()->numerify('387 ###-####'),
             'is_super_user' => false,
             'enabled' => true,
             'email_verified_at' => now(),

@@ -106,7 +106,7 @@ test('S3: an app edit of the phone only keeps the visual reference the admin set
         ->assertJsonPath('data.customers.0.server_id', $this->customer->id);
 
     $customer = $this->customer->fresh();
-    expect($customer->phone_number)->toBe('3875999999')
+    expect($customer->phone_number)->toBe('387 599-9999')
         ->and($customer->name)->toBe('Almacen Don Pepe')
         ->and($customer->primaryAddress->visual_reference)->toBe('Porton AZUL web')
         ->and($customer->primaryAddress->street)->toBe('Av Belgrano 100');
@@ -126,7 +126,7 @@ test('a field older than its own clock is skipped while a newer field of the sam
 
     $customer = $this->customer->fresh();
     expect($customer->name)->toBe('Nombre nuevo')
-        ->and($customer->phone_number)->toBe('3875111111')
+        ->and($customer->phone_number)->toBe('387 511-1111')
         ->and($customer->primaryAddress->visual_reference)->toBe('Porton rojo')
         ->and($customer->field_modified_at)->toHaveKeys(['name', 'phone_number'])
         ->and($customer->primaryAddress->field_modified_at)->toHaveKey('visual_reference');
@@ -180,7 +180,7 @@ test('an edit leaves every field it does not carry untouched', function (): void
 
     $customer = $this->customer->fresh();
     expect($customer->name)->toBe('Solo el nombre')
-        ->and($customer->phone_number)->toBe('3874001122')
+        ->and($customer->phone_number)->toBe('387 400-1122')
         ->and($customer->enabled)->toBeTrue()
         ->and($customer->primaryAddress->only(['street', 'apartment', 'visual_reference', 'neighborhood']))->toBe([
             'street' => 'Av Belgrano 100',
@@ -286,7 +286,7 @@ test('a web edit stamps only the fields it changed, so an older app edit of othe
 
     $customer = $this->customer->fresh();
     expect($customer->name)->toBe('Nombre de la calle')
-        ->and($customer->phone_number)->toBe('3870000000')
+        ->and($customer->phone_number)->toBe('387 000-0000')
         ->and($customer->primaryAddress->visual_reference)->toBe('Porton rojo');
 });
 
@@ -391,7 +391,7 @@ test('S5: a row created in the web is adopted by its first app edit by server id
         ->assertJsonPath('data.customers.0.server_id', $web->id);
 
     expect($web->fresh()->client_uuid)->toBe($uuid)
-        ->and($web->fresh()->phone_number)->toBe('3871234567');
+        ->and($web->fresh()->phone_number)->toBe('387 123-4567');
 });
 
 test('a replayed edit answers accepted again and changes nothing more', function (): void {

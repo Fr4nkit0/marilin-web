@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Accounts\Models\User;
 use App\CashDesk\DailyFigures;
 use App\CashDesk\DayScope;
 use App\Catalog\Models\Product;
@@ -70,9 +71,16 @@ test('the seeded visit outcomes are absent, refused and reschedule, and only res
 
     expect($outcomes)->toBe([
         ['absent', 'Ausente', false],
-        ['refused', 'No quiso', false],
+        ['refused', 'Sin pedido', false],
         ['reschedule', 'Reprogramar', true],
     ]);
+});
+
+test('every seeded customer and user phone reads 387 XXX-XXXX', function (): void {
+    $phones = Customer::query()->pluck('phone_number')->merge(User::query()->pluck('phone_number'))->filter();
+
+    expect($phones)->not->toBeEmpty()
+        ->and($phones->reject(fn (string $phone): bool => preg_match('/^\d{3} \d{3}-\d{4}$/', $phone) === 1)->all())->toBe([]);
 });
 
 test('the first pull of Esteban carries the disabled customer', function (): void {
@@ -117,7 +125,7 @@ test('the seeded customers live in Salta capital, in neighborhoods of the catalo
         ->and($addresses->filter(fn (CustomerAddress $address): bool => collect([$address->street, $address->neighborhood, $address->visual_reference, $address->customer->name])
             ->contains(fn (?string $text): bool => $text !== null && stripos($text, 'Jujuy') !== false))->pluck('street')->all())->toBe([])
         ->and($addresses->every(fn (CustomerAddress $address): bool => abs((float) $address->latitude + 24.78) < 0.1 && abs((float) $address->longitude + 65.41) < 0.1))->toBeTrue()
-        ->and(Customer::query()->where('phone_number', 'not like', '+54 387 %')->pluck('name')->all())->toBe([]);
+        ->and(Customer::query()->where('phone_number', 'not like', '387 %')->pluck('name')->all())->toBe([]);
 });
 
 test('the seeded trucks are loaded in the morning, before their route starts', function (): void {

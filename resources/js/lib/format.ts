@@ -144,6 +144,28 @@ export function paymentMethodsLabel(names: string[]): string {
 }
 
 /**
+ * A Salta phone as the server stores it, "387 587-4823", formatted while it is typed. A complete number with the
+ * country prefix (54, 549) or the trunk 0 drops it; one still being typed with a prefix, or longer than ten digits,
+ * is left as typed.
+ */
+export function formatPhone(value: string): string {
+    const digits = value.replace(/\D/g, '');
+    const local =
+        digits.length === 13 && digits.startsWith('549')
+            ? digits.slice(3)
+            : digits.length === 12 && digits.startsWith('54')
+              ? digits.slice(2)
+              : digits.length === 11 && digits.startsWith('0')
+                ? digits.slice(1)
+                : digits;
+
+    if (local.length === 10) return `${local.slice(0, 3)} ${local.slice(3, 6)}-${local.slice(6)}`;
+    if (local.length > 10 || local === '' || /^\s*[+0]/.test(value)) return value;
+
+    return local.slice(0, 3) + (local.length > 3 ? ` ${local.slice(3, 6)}` : '') + (local.length > 6 ? `-${local.slice(6)}` : '');
+}
+
+/**
  * The server sends ISO 8601, and some timestamps with a space instead of the "T".
  * A plain day ("2026-10-29") is read as local midnight, not UTC, so it never shows as the day before.
  */

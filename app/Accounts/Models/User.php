@@ -6,12 +6,14 @@ namespace App\Accounts\Models;
 use App\Accounts\Database\Factories\UserFactory;
 use App\Customers\Customers\Models\Customer;
 use App\Routes\Visits\Models\Visit;
+use App\Shared\PhoneNumber;
 use App\Street\Ledger\Models\CustomerAccountEntry;
 use App\Street\Payments\Models\Payment;
 use App\Street\Sales\Models\Sale;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -40,6 +42,14 @@ class User extends Authenticatable
             'is_super_user' => 'boolean',
             'enabled' => 'boolean',
         ];
+    }
+
+    /**
+     * Stored as "387 587-4823" whichever way it was typed (see PhoneNumber).
+     */
+    protected function phoneNumber(): Attribute
+    {
+        return Attribute::set(fn (?string $value): ?string => PhoneNumber::normalize($value));
     }
 
     public function driver(): HasOne

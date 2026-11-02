@@ -79,7 +79,7 @@ test('an admin creates a driver account that can log into the app right away', f
     $user = User::query()->where('email', 'juan@marilin.com')->sole();
     expect($user->name)->toBe('Juan Pérez')
         ->and($user->username)->toBe('juanp')
-        ->and($user->phone_number)->toBe('3874000000')
+        ->and($user->phone_number)->toBe('387 400-0000')
         ->and($user->is_super_user)->toBeFalse()
         ->and($user->enabled)->toBeTrue()
         ->and(Hash::check('secret-pass', $user->password))->toBeTrue()
@@ -132,7 +132,7 @@ test('an admin edits the name, email, username and phone of a driver account', f
     expect($user->name)->toBe('Nombre nuevo')
         ->and($user->email)->toBe('new@marilin.com')
         ->and($user->username)->toBe('new')
-        ->and($user->phone_number)->toBe('3870000001')
+        ->and($user->phone_number)->toBe('387 000-0001')
         ->and($user->password)->toBe($password);
 });
 

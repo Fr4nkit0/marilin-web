@@ -17,6 +17,7 @@ use App\Customers\Customers\ForeignCustomerChanges;
 use App\Customers\Customers\InvalidCustomerChange;
 use App\Customers\Customers\Models\Customer;
 use App\Review\ReviewReason;
+use App\Shared\PhoneNumber;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 
@@ -164,7 +165,8 @@ class CustomerPusher extends EntityPusher
     }
 
     /**
-     * Builds before the floor became text send it as a JSON number; it is kept in its text form.
+     * Builds before the floor became text send it as a JSON number; it is kept in its text form. The phone is written
+     * the server's way before anything compares it, so a change held for the admin shows it as it will be stored.
      *
      * @param  array<string, mixed>  $record
      * @return array<string, mixed>
@@ -173,6 +175,10 @@ class CustomerPusher extends EntityPusher
     {
         if (is_int($record['address']['floor'] ?? null)) {
             $record['address']['floor'] = (string) $record['address']['floor'];
+        }
+
+        if (is_string($record['phone_number'] ?? null)) {
+            $record['phone_number'] = PhoneNumber::normalize($record['phone_number']);
         }
 
         return $record;

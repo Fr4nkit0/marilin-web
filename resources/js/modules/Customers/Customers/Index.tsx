@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useListFilters } from '@/lib/useListFilters';
+import { formatPhone } from '@/lib/format';
 import Pagination from '@/ui/Pagination';
 import type { PaginatedData } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
@@ -439,8 +440,8 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                     id="create-phone-number"
                                     type="text"
                                     value={data.phone_number}
-                                    onChange={(e) => setData('phone_number', e.target.value)}
-                                    placeholder="Ej: +54 387 422-3000"
+                                    onChange={(e) => setData('phone_number', formatPhone(e.target.value))}
+                                    placeholder="Ej: 387 422-3000"
                                     className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                 />
                                 <FieldError message={errors.phone_number} className="mt-1" />
@@ -696,8 +697,8 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                     id="edit-phone-number"
                                     type="text"
                                     value={editForm.data.phone_number}
-                                    onChange={(e) => editForm.setData('phone_number', e.target.value)}
-                                    placeholder="Ej: +54 387 422-3000"
+                                    onChange={(e) => editForm.setData('phone_number', formatPhone(e.target.value))}
+                                    placeholder="Ej: 387 422-3000"
                                     className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
                                 />
                                 <FieldError message={editForm.errors.phone_number} className="mt-1" />
