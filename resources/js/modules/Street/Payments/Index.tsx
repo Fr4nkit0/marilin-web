@@ -13,7 +13,6 @@ import {
     Filter,
     User,
     ArrowUpRight,
-    CreditCard,
 } from 'lucide-react';
 import { date, money, paymentStatusLabel, time, type PaymentStatus } from '@/lib/format';
 import { useListFilters } from '@/lib/useListFilters';
@@ -56,7 +55,6 @@ interface Props {
         totalCollected: number;
         cashTotal: number;
         transferTotal: number;
-        cardTotal: number;
     };
     /** Only the admin cancels a payment from the web. */
     canCancel: boolean;
@@ -160,13 +158,13 @@ export default function PaymentsIndex({ payments, metrics, filters, paymentMetho
             <SalesPaymentsTabs current="payments" filters={{ search: filters.search, date: filters.date, repartidor_id: filters.repartidor_id }} />
 
             {/* Metrics */}
-            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 mb-6">
+            <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 mb-6">
                 <KpiCard
                     title="Cobrado"
                     value={money(metrics.totalCollected)}
                     icon={CircleDollarSign}
                     variant="success"
-                    subtitle="Cobros confirmados del día: efectivo, transferencia y tarjeta"
+                    subtitle="Cobros confirmados del día: efectivo y transferencia"
                 />
                 <KpiCard
                     title="Efectivo en Mano"
@@ -181,13 +179,6 @@ export default function PaymentsIndex({ payments, metrics, filters, paymentMetho
                     icon={CheckCircle2}
                     variant="accent"
                     subtitle="Acreditadas en cuenta"
-                />
-                <KpiCard
-                    title="Tarjeta"
-                    value={money(metrics.cardTotal)}
-                    icon={CreditCard}
-                    variant="slate"
-                    subtitle="Débito o crédito"
                 />
             </div>
 

@@ -74,7 +74,6 @@ class PaymentController extends Controller
                 'totalCollected' => $totalCollected,
                 'cashTotal' => $cashTotal,
                 'transferTotal' => $transferTotal,
-                'cardTotal' => $day->cardAmount,
             ],
             'canCancel' => $request->user()->can('cancel-street-records'),
             'filters' => [

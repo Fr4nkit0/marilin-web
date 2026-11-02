@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('payment_methods', function (Blueprint $table) {
             $table->id();
-            $table->string('code', 50)->unique(); // EFECTIVO, TRANSFERENCIA, TARJETA
+            $table->string('code', 50)->unique(); // CASH, TRANSFER
             $table->string('name', 80);
             $table->boolean('enabled')->default(true);
             $table->timestamps();

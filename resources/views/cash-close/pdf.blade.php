@@ -8,7 +8,7 @@
     $remaining = collect($settlement['stockRemaining'])->pluck('quantity', 'product');
     $loaded = collect($settlement['stockLoaded'])->keyBy('product');
     $products = $loaded->keys()->merge($remaining->keys())->unique();
-    $paymentSections = ['Efectivo' => $details['cash'], 'Transferencias' => $details['transfer'], 'Tarjeta' => $details['card']];
+    $paymentSections = ['Efectivo' => $details['cash'], 'Transferencias' => $details['transfer']];
 @endphp
 <!DOCTYPE html>
 <html lang="es">
@@ -42,7 +42,6 @@
         <tr><td>Ventas fiadas (cuenta corriente)</td><td class="num">{{ $money($settlement['creditSales']) }}</td></tr>
         <tr><td>Cobro de deudas</td><td class="num">{{ $money($settlement['debtCollected']) }}</td></tr>
         <tr><td>Transferencias</td><td class="num">{{ $money($settlement['transferAmount']) }}</td></tr>
-        <tr><td>Tarjeta</td><td class="num">{{ $money($settlement['cardAmount']) }}</td></tr>
         <tr><td>Total cobrado</td><td class="num">{{ $money($settlement['totalCollected']) }}</td></tr>
         <tr class="total"><td>Efectivo a entregar</td><td class="num">{{ $money($settlement['cashAmount']) }}</td></tr>
         <tr><td>Ventas post-cierre</td><td class="num">{{ $money($settlement['postCloseSales']) }}</td></tr>

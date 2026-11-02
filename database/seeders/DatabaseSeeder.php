@@ -168,11 +168,6 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Transferencia Bancaria', 'enabled' => true]
         );
 
-        $cardMethod = PaymentMethod::firstOrCreate(
-            ['code' => 'CREDIT_CARD'],
-            ['name' => 'Tarjeta de Débito/Crédito', 'enabled' => true]
-        );
-
         // 5. Visit Outcomes: what happened when there was no sale. Only rescheduling reopens the stop later.
         $outcomeAbsent = VisitOutcome::firstOrCreate(
             ['code' => 'absent'],

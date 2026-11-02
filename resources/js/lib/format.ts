@@ -104,24 +104,22 @@ export function paymentStatusLabel(status: PaymentStatus): string {
     return status === 'CONFIRMED' ? 'Confirmado' : 'Anulado';
 }
 
-type PaymentMethodKind = 'cash' | 'transfer' | 'card';
+type PaymentMethodKind = 'cash' | 'transfer';
 
 const PAYMENT_METHOD_NAMES: Record<PaymentMethodKind, { full: string; short: string }> = {
     cash: { full: 'Efectivo', short: 'Efectivo' },
     transfer: { full: 'Transferencia', short: 'Transf.' },
-    card: { full: 'Tarjeta', short: 'Tarjeta' },
 };
 
-/** The kind of a payment method from its configured name ("Transferencia Bancaria", "Tarjeta de Débito/Crédito"). */
+/** The kind of a payment method from its configured name ("Transferencia Bancaria"). */
 function paymentMethodKind(name: string): PaymentMethodKind | null {
     const lower = name.toLowerCase();
     if (lower.includes('efectivo')) return 'cash';
     if (lower.includes('transf')) return 'transfer';
-    if (lower.includes('tarjeta')) return 'card';
     return null;
 }
 
-/** A payment method by its kind: "Efectivo", "Transferencia", "Tarjeta"; any other method by its own name. */
+/** A payment method by its kind: "Efectivo", "Transferencia"; any other method by its own name. */
 export function paymentMethodLabel(name: string): string {
     const kind = paymentMethodKind(name);
     return kind ? PAYMENT_METHOD_NAMES[kind].full : name;

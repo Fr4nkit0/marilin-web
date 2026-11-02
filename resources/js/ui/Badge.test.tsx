@@ -13,13 +13,11 @@ describe('PaymentMethodBadge', () => {
         render(
             <>
                 <PaymentMethodBadge method="Transferencia Bancaria" />
-                <PaymentMethodBadge method="Tarjeta de Débito/Crédito" />
                 <PaymentMethodBadge method="Crédito Ruta" />
             </>,
         );
 
         expect(screen.getByText('Transferencia')).toBeTruthy();
-        expect(screen.getByText('Tarjeta')).toBeTruthy();
         expect(screen.getByText('Crédito / Cta Cte')).toBeTruthy();
     });
 });

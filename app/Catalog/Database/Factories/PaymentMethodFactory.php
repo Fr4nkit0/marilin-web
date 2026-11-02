@@ -37,12 +37,4 @@ class PaymentMethodFactory extends Factory
             'name' => 'Transferencia Bancaria',
         ]);
     }
-
-    public function tarjeta(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'code' => PaymentMethodCode::Card->value,
-            'name' => 'Tarjeta Débito / Crédito',
-        ]);
-    }
 }

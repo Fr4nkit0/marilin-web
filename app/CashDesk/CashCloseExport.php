@@ -85,7 +85,6 @@ class CashCloseExport
                 ['Ventas fiadas', $settlement['creditSales']],
                 ['Efectivo', $settlement['cashAmount']],
                 ['Transferencias', $settlement['transferAmount']],
-                ['Tarjeta', $settlement['cardAmount']],
                 ['Total cobrado', $settlement['totalCollected']],
                 ['Cobro de deudas', $settlement['debtCollected']],
                 ['Envases entregados', $settlement['containersDelivered']],
@@ -94,7 +93,6 @@ class CashCloseExport
             ],
             'Efectivo' => $payments($details['cash']),
             'Transferencias' => $payments($details['transfer']),
-            'Tarjeta' => $payments($details['card']),
             'Fiado' => [
                 ['Hora', 'Cliente', 'Importe', 'Origen'],
                 ...array_map(fn (array $row): array => [

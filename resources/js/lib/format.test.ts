@@ -103,7 +103,6 @@ describe('payment methods', () => {
     it('names a method by its kind, whatever its full name', () => {
         expect(paymentMethodLabel('Efectivo')).toBe('Efectivo');
         expect(paymentMethodLabel('Transferencia Bancaria')).toBe('Transferencia');
-        expect(paymentMethodLabel('Tarjeta de Débito/Crédito')).toBe('Tarjeta');
         expect(paymentMethodLabel('Mercado Pago')).toBe('Mercado Pago');
     });
 
@@ -114,7 +113,7 @@ describe('payment methods', () => {
 
     it('shows every method of a mixed payment, short and in the order paid', () => {
         expect(paymentMethodsLabel(['Efectivo', 'Transferencia Bancaria'])).toBe('Efectivo + Transf.');
-        expect(paymentMethodsLabel(['Transferencia', 'Efectivo', 'Tarjeta de Débito/Crédito', 'Efectivo'])).toBe('Transf. + Efectivo + Tarjeta');
+        expect(paymentMethodsLabel(['Transferencia', 'Efectivo', 'Efectivo'])).toBe('Transf. + Efectivo');
         expect(paymentMethodsLabel(['Efectivo', 'Mercado Pago'])).toBe('Efectivo + Mercado Pago');
     });
 

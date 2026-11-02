@@ -108,10 +108,9 @@ test('a route not completed has no post-close sales', function (): void {
         ->and($settlement['details']['postClose'])->toBe([]);
 });
 
-test('cobrado is the day\'s confirmed payments of every method and the panel, sales and payments lists and cash close agree', function (): void {
+test('cobrado is the day\'s confirmed payments in cash and by transfer and the panel, sales and payments lists and cash close agree', function (): void {
     $cash = PaymentMethod::factory()->efectivo()->create();
     $transfer = PaymentMethod::factory()->transferencia()->create();
-    $card = PaymentMethod::factory()->create(['code' => 'CREDIT_CARD', 'name' => 'Tarjeta']);
     $payment = fn (int $method, float $amount, string $status = 'CONFIRMED'): Payment => Payment::factory()->create([
         'customer_id' => $this->customer->id,
         'received_by' => $this->driverUser->id,
@@ -122,7 +121,6 @@ test('cobrado is the day\'s confirmed payments of every method and the panel, sa
     ]);
     $payment($cash->id, 300);
     $payment($transfer->id, 70);
-    $payment($card->id, 50);
     $payment($cash->id, 999, 'CANCELLED');
     // Sales on account and at the counter: what was sold is not what was collected.
     Sale::factory()->create(['customer_id' => $this->customer->id, 'created_by' => $this->driverUser->id, 'date' => '2026-10-30 10:00:00', 'total' => 1000, 'is_credit_sale' => false]);
@@ -134,14 +132,15 @@ test('cobrado is the day\'s confirmed payments of every method and the panel, sa
     $payments = pageProps('payments.index', 'Street/Payments/Index', $filter)['metrics'];
     $settlement = pageProps('cash-close.index', 'CashDesk/Index', $filter)['settlement'];
 
-    expect($dashboard['kpis']['totalCollected'])->toEqual(420)
-        ->and($dashboard['repartidores'][0]['totalCollected'])->toEqual(420)
-        ->and($sales['collectedAmount'])->toEqual(420)
+    expect($dashboard['kpis']['totalCollected'])->toEqual(370)
+        ->and($dashboard['kpis'])->not->toHaveKey('cardPayments')
+        ->and($dashboard['repartidores'][0]['totalCollected'])->toEqual(370)
+        ->and($sales['collectedAmount'])->toEqual(370)
         ->and($sales['immediateSalesAmount'])->toEqual(1000)
-        ->and($payments['totalCollected'])->toEqual(420)
-        ->and($payments['cardTotal'])->toEqual(50)
-        ->and($settlement['totalCollected'])->toEqual(420)
-        ->and($settlement['cardAmount'])->toEqual(50)
-        ->and($settlement['details']['card'])->toHaveCount(1)
-        ->and(collect($dashboard['details']['payments'])->sum('amount'))->toEqual(420);
+        ->and($payments['totalCollected'])->toEqual(370)
+        ->and($payments)->not->toHaveKey('cardTotal')
+        ->and($settlement['totalCollected'])->toEqual(370)
+        ->and($settlement)->not->toHaveKey('cardAmount')
+        ->and($settlement['details'])->not->toHaveKey('card')
+        ->and(collect($dashboard['details']['payments'])->sum('amount'))->toEqual(370);
 });

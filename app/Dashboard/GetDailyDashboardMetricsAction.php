@@ -72,7 +72,6 @@ class GetDailyDashboardMetricsAction
                 'totalCollected' => $day->totalCollected,
                 'cashPayments' => $day->cashAmount,
                 'transferPayments' => $day->transferAmount,
-                'cardPayments' => $day->cardAmount,
                 'totalStops' => $totalStops,
                 'completedStops' => $completedStops,
                 'stopsProgressPercent' => $totalStops > 0 ? round(($completedStops / $totalStops) * 100) : 0,
