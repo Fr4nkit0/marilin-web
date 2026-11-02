@@ -124,7 +124,7 @@ export default function RepartidoresIndex({ repartidores, filters }: Props) {
                                 <th className="px-6 py-4">Estado Ruta Hoy</th>
                                 <th className="px-6 py-4">Progreso de Entregas</th>
                                 <th className="px-6 py-4 text-center">Clientes Asignados</th>
-                                <th className="px-6 py-4">Horario Salida</th>
+                                <th className="px-6 py-4">Primera parada</th>
                                 <th className="px-6 py-4 text-right">Acción</th>
                             </tr>
                         </thead>

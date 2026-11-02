@@ -154,7 +154,7 @@ export default function CashCloseIndex({
                             subtitle="Dinero físico a ingresar en tesorería"
                         />
                         <KpiCard
-                            title="Transferencias Verificadas"
+                            title="Transferencias"
                             onClick={() => setOpenDetail('transfer')}
                             value={money(settlement.transferAmount)}
                             icon={CheckCircle2}
@@ -224,20 +224,8 @@ export default function CashCloseIndex({
                                     <span className="text-ink-secondary font-medium">Menos: Transferencias:</span>
                                     <span className="font-semibold text-ink-muted">-{money(settlement.transferAmount)}</span>
                                 </div>
-                                {settlement.cardAmount > 0 && (
-                                    <div className="flex justify-between py-2 border-b border-hairline last:border-0">
-                                        <button
-                                            type="button"
-                                            onClick={() => setOpenDetail('card')}
-                                            className="text-ink-secondary font-medium hover:text-ink underline-offset-2 hover:underline cursor-pointer"
-                                        >
-                                            Menos: Tarjeta:
-                                        </button>
-                                        <span className="font-semibold text-ink-muted">-{money(settlement.cardAmount)}</span>
-                                    </div>
-                                )}
                                 <div className="flex justify-between py-2 border-b border-hairline last:border-0">
-                                    <span className="text-ink-secondary font-medium">Total cobrado (efectivo, transferencia y tarjeta):</span>
+                                    <span className="text-ink-secondary font-medium">Total cobrado (efectivo y transferencia):</span>
                                     <span className="font-semibold text-ink">{money(settlement.totalCollected)}</span>
                                 </div>
                                 <div className="flex justify-between items-center py-4 bg-canvas-soft border border-hairline px-5 rounded-xl mt-4 shadow-sm">

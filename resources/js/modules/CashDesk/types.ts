@@ -41,7 +41,6 @@ export interface CashCloseContainerRow {
 export interface CashCloseDetails {
     cash: CashClosePaymentRow[];
     transfer: CashClosePaymentRow[];
-    card: CashClosePaymentRow[];
     credit: CashCloseCreditRow[];
     postClose: CashClosePostCloseRow[];
     containers: CashCloseContainerRow[];
@@ -56,8 +55,7 @@ export interface SettlementData {
     creditSales: number;
     cashAmount: number;
     transferAmount: number;
-    cardAmount: number;
-    /** Every confirmed payment of the day (cash, transfer and card): the same "cobrado" the panel and Ventas y cobros show. */
+    /** Every confirmed payment of the day (cash and transfer): the same "cobrado" the panel and Ventas y cobros show. */
     totalCollected: number;
     debtCollected: number;
     containersDelivered: number;

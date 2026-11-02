@@ -102,9 +102,6 @@ export function PaymentMethodBadge({ method, className = '' }: PaymentMethodBadg
     } else if (m.includes('transf')) {
         label = 'Transferencia';
         style = 'bg-sky-50 dark:bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-200/60 dark:border-sky-500/30';
-    } else if (m.includes('tarjeta') || m.includes('card')) {
-        label = 'Tarjeta';
-        style = 'bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-200/60 dark:border-indigo-500/30';
     } else if (m.includes('credit') || m.includes('crédito') || m.includes('cuenta') || m.includes('cte')) {
         label = 'Crédito / Cta Cte';
         style = 'bg-purple-50 dark:bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-200/60 dark:border-purple-500/30';

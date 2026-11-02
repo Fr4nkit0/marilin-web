@@ -280,7 +280,7 @@ export default function RoutesIndex({
                                                 {routeItem.startedAt ? (
                                                     <span className="flex items-center gap-1.5 text-ink-secondary">
                                                         <Clock className="w-3.5 h-3.5" />
-                                                        Salida: {routeItem.startedAt} hs
+                                                        Primera parada: {routeItem.startedAt} hs
                                                     </span>
                                                 ) : (
                                                     <span>Sin iniciar</span>
@@ -288,7 +288,7 @@ export default function RoutesIndex({
                                                 {routeItem.completedAt && (
                                                     <>
                                                         <span className="text-ink-subtle">•</span>
-                                                        <span className="text-ink-secondary">Llegada: {routeItem.completedAt} hs</span>
+                                                        <span className="text-ink-secondary">Última parada: {routeItem.completedAt} hs</span>
                                                     </>
                                                 )}
                                             </div>

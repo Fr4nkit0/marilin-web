@@ -226,7 +226,7 @@ export default function SalesIndex({ sales, metrics, filters, repartidores, canC
                     value={money(metrics.collectedAmount)}
                     icon={CircleDollarSign}
                     variant="accent"
-                    subtitle="Cobros del día: efectivo, transferencia y tarjeta"
+                    subtitle="Cobros del día: efectivo y transferencia"
                 />
                 <KpiCard
                     title="A Crédito / Cta Cte"

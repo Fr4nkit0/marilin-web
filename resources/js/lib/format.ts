@@ -99,29 +99,30 @@ export function timeWindowLabel(start: string | null, end: string | null): strin
     return 'Todo el día';
 }
 
-/** Anything but a confirmed payment reads as annulled: the web says "Anulado" for both stored values. */
-export function paymentStatusLabel(status: PaymentStatus): string {
-    return status === 'CONFIRMED' ? 'Confirmado' : 'Anulado';
+/**
+ * A payment is in force from the moment it is recorded (stored as CONFIRMED; nobody confirms it), so only an annulled
+ * one carries a label: the web says "Anulado" for both stored values.
+ */
+export function paymentStatusLabel(status: PaymentStatus): string | null {
+    return status === 'CONFIRMED' ? null : 'Anulado';
 }
 
-type PaymentMethodKind = 'cash' | 'transfer' | 'card';
+type PaymentMethodKind = 'cash' | 'transfer';
 
 const PAYMENT_METHOD_NAMES: Record<PaymentMethodKind, { full: string; short: string }> = {
     cash: { full: 'Efectivo', short: 'Efectivo' },
     transfer: { full: 'Transferencia', short: 'Transf.' },
-    card: { full: 'Tarjeta', short: 'Tarjeta' },
 };
 
-/** The kind of a payment method from its configured name ("Transferencia Bancaria", "Tarjeta de Débito/Crédito"). */
+/** The kind of a payment method from its configured name ("Transferencia Bancaria"). */
 function paymentMethodKind(name: string): PaymentMethodKind | null {
     const lower = name.toLowerCase();
     if (lower.includes('efectivo')) return 'cash';
     if (lower.includes('transf')) return 'transfer';
-    if (lower.includes('tarjeta')) return 'card';
     return null;
 }
 
-/** A payment method by its kind: "Efectivo", "Transferencia", "Tarjeta"; any other method by its own name. */
+/** A payment method by its kind: "Efectivo", "Transferencia"; any other method by its own name. */
 export function paymentMethodLabel(name: string): string {
     const kind = paymentMethodKind(name);
     return kind ? PAYMENT_METHOD_NAMES[kind].full : name;

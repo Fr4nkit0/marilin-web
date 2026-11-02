@@ -45,7 +45,6 @@ class CashCloseReport
             'creditSales' => $day->creditSales,
             'cashAmount' => $day->cashAmount,
             'transferAmount' => $day->transferAmount,
-            'cardAmount' => $day->cardAmount,
             'totalCollected' => $day->totalCollected,
             'debtCollected' => $day->debtCollected,
             'containersDelivered' => $day->containersDelivered,
@@ -67,7 +66,6 @@ class CashCloseReport
             'details' => [
                 'cash' => $this->paymentRows($day->cashPayments),
                 'transfer' => $this->paymentRows($day->transferPayments),
-                'card' => $this->paymentRows($day->cardPayments),
                 'credit' => $day->creditSaleRows->map(fn (Sale $sale): array => [
                     'id' => $sale->id,
                     'customer' => $sale->customer?->name,

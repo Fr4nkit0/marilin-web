@@ -21,7 +21,6 @@ interface Props {
 const TITLES: Record<CashCloseDetailKind, { title: string; description: string }> = {
     cash: { title: 'Rendición en efectivo', description: 'Cobros en efectivo que forman el total a rendir.' },
     transfer: { title: 'Transferencias verificadas', description: 'Cobros por transferencia de la jornada.' },
-    card: { title: 'Cobros con tarjeta', description: 'Cobros con tarjeta de la jornada.' },
     credit: { title: 'Ventas a crédito', description: 'Ventas fiadas que suman al saldo deudor de cada cliente.' },
     postClose: {
         title: 'Ventas post-cierre',
@@ -281,7 +280,7 @@ export default function CashCloseDetailModal({ kind, details, onClose }: Props) 
                         </button>
                     </div>
                     <div className="max-h-[60vh] overflow-auto">
-                        {(kind === 'cash' || kind === 'transfer' || kind === 'card') && <PaymentTable rows={details[kind]} />}
+                        {(kind === 'cash' || kind === 'transfer') && <PaymentTable rows={details[kind]} />}
                         {kind === 'credit' && <CreditTable rows={details.credit} />}
                         {kind === 'postClose' && <PostCloseTable rows={details.postClose} />}
                         {kind === 'containers' && <ContainerTable rows={details.containers} />}
