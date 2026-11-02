@@ -69,8 +69,8 @@ describe('status labels', () => {
         expect(stopStatusLabel('CANCELLED')).toBe('Cancelada');
     });
 
-    it('names payment statuses', () => {
-        expect(paymentStatusLabel('CONFIRMED')).toBe('Confirmado');
+    it('labels only an annulled payment: a payment in force has no status label', () => {
+        expect(paymentStatusLabel('CONFIRMED')).toBeNull();
         expect(paymentStatusLabel('CANCELLED')).toBe('Anulado');
         expect(paymentStatusLabel('ANNULLED')).toBe('Anulado');
     });

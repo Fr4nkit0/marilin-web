@@ -19,7 +19,7 @@ interface Props {
 
 const TITLES: Record<DashboardDetailKind, { title: string; description: string }> = {
     sales: { title: 'Ventas del día', description: 'Cada venta registrada, con su cliente y repartidor.' },
-    payments: { title: 'Total cobrado', description: 'Cobros confirmados en efectivo y por transferencia.' },
+    payments: { title: 'Total cobrado', description: 'Cobros del día en efectivo y por transferencia, sin los anulados.' },
     stops: { title: 'Paradas de ruta', description: 'Las paradas de cada repartidor y en qué estado están.' },
     containers: { title: 'Movimiento de envases', description: 'Envases entregados y retirados en el día.' },
 };

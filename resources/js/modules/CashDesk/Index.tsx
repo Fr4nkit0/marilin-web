@@ -154,7 +154,7 @@ export default function CashCloseIndex({
                             subtitle="Dinero físico a ingresar en tesorería"
                         />
                         <KpiCard
-                            title="Transferencias Verificadas"
+                            title="Transferencias"
                             onClick={() => setOpenDetail('transfer')}
                             value={money(settlement.transferAmount)}
                             icon={CheckCircle2}

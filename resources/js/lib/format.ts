@@ -99,9 +99,12 @@ export function timeWindowLabel(start: string | null, end: string | null): strin
     return 'Todo el día';
 }
 
-/** Anything but a confirmed payment reads as annulled: the web says "Anulado" for both stored values. */
-export function paymentStatusLabel(status: PaymentStatus): string {
-    return status === 'CONFIRMED' ? 'Confirmado' : 'Anulado';
+/**
+ * A payment is in force from the moment it is recorded (stored as CONFIRMED; nobody confirms it), so only an annulled
+ * one carries a label: the web says "Anulado" for both stored values.
+ */
+export function paymentStatusLabel(status: PaymentStatus): string | null {
+    return status === 'CONFIRMED' ? null : 'Anulado';
 }
 
 type PaymentMethodKind = 'cash' | 'transfer';

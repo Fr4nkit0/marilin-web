@@ -107,9 +107,11 @@ export default function PaymentsIndex({ payments, metrics, filters, paymentMetho
         {
             header: 'Estado',
             align: 'center',
-            cell: (payment) => (
-                <StatusBadge status={payment.status === 'CONFIRMED' ? 'FINALIZADO' : 'CANCELADO'} label={paymentStatusLabel(payment.status)} />
-            ),
+            cell: (payment) => {
+                const label = paymentStatusLabel(payment.status);
+
+                return label ? <StatusBadge status="CANCELADO" label={label} /> : null;
+            },
         },
         { header: 'Monto Recaudado', align: 'right', className: 'font-semibold text-ink', cell: (payment) => `+${money(payment.amount)}` },
         ...(canCancel
@@ -164,7 +166,7 @@ export default function PaymentsIndex({ payments, metrics, filters, paymentMetho
                     value={money(metrics.totalCollected)}
                     icon={CircleDollarSign}
                     variant="success"
-                    subtitle="Cobros confirmados del día: efectivo y transferencia"
+                    subtitle="Cobros del día: efectivo y transferencia"
                 />
                 <KpiCard
                     title="Efectivo en Mano"
@@ -245,7 +247,7 @@ export default function PaymentsIndex({ payments, metrics, filters, paymentMetho
                             className="w-full py-2 px-3 text-sm font-medium border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-canvas text-ink shadow-sm transition-all"
                         >
                             <option value="all">Todos los estados</option>
-                            <option value="CONFIRMED">Confirmados</option>
+                            <option value="CONFIRMED">Vigentes</option>
                             <option value="CANCELLED">Anulados</option>
                         </select>
                     </div>
