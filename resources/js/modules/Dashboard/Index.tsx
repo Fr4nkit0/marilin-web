@@ -236,12 +236,12 @@ export default function Dashboard({ metrics }: Props) {
                                                 </div>
                                             </td>
                                             <td className="px-4 py-4">
-                                                {/* The start time sits under the badge, so the money columns keep their room. */}
+                                                {/* The first stop time sits under the badge, so the money columns keep their room. */}
                                                 <div className="flex flex-col items-start gap-1">
                                                     <StatusBadge status={rep.status} />
                                                     {rep.startedAt && (
                                                         <span className="text-xs text-ink-muted">
-                                                            desde {rep.startedAt}
+                                                            primera parada {rep.startedAt}
                                                         </span>
                                                     )}
                                                 </div>
