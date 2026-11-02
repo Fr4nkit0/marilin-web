@@ -19,7 +19,7 @@ class CustomerFactory extends Factory
         return [
             'driver_id' => Driver::factory(),
             'name' => fake()->company(),
-            'phone_number' => fake()->phoneNumber(),
+            'phone_number' => fake()->numerify('387 ###-####'),
             'created_by' => User::factory(),
             'last_modified_by' => null,
             'enabled' => true,

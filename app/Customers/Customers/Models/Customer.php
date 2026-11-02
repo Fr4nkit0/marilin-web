@@ -10,6 +10,7 @@ use App\Review\Reviewable;
 use App\Review\ReviewSource;
 use App\Routes\Routes\Models\RouteStop;
 use App\Routes\Visits\Models\Visit;
+use App\Shared\PhoneNumber;
 use App\Street\Containers\Models\ContainerMovement;
 use App\Street\Containers\Models\CustomerContainerBalance;
 use App\Street\Ledger\Models\CustomerAccountEntry;
@@ -17,6 +18,7 @@ use App\Street\Ledger\Models\CustomerBalance;
 use App\Street\Payments\Models\Payment;
 use App\Street\Sales\Models\Sale;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -50,6 +52,14 @@ class Customer extends Model
             'received_at' => 'datetime',
             'field_modified_at' => 'array',
         ];
+    }
+
+    /**
+     * Stored as "387 587-4823" whichever way it was typed (see PhoneNumber).
+     */
+    protected function phoneNumber(): Attribute
+    {
+        return Attribute::set(fn (?string $value): ?string => PhoneNumber::normalize($value));
     }
 
     public function driver(): BelongsTo

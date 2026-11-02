@@ -54,7 +54,7 @@ class DatabaseSeeder extends Seeder
             [
                 'name' => 'Administrador Marilin',
                 'username' => 'admin',
-                'phone_number' => '+54 387 400-0001',
+                'phone_number' => '387 400-0001',
                 'is_super_user' => true,
                 'enabled' => true,
                 'password' => Hash::make('password'),
@@ -66,25 +66,25 @@ class DatabaseSeeder extends Seeder
                 'email' => 'juan.perez@marilin.com',
                 'name' => 'Juan Pérez',
                 'username' => 'jperez',
-                'phone' => '+54 387 421-1001',
+                'phone' => '387 421-1001',
             ],
             [
                 'email' => 'carlos.gomez@marilin.com',
                 'name' => 'Carlos Gómez',
                 'username' => 'cgomez',
-                'phone' => '+54 387 421-1002',
+                'phone' => '387 421-1002',
             ],
             [
                 'email' => 'marcos.morales@marilin.com',
                 'name' => 'Marcos Morales',
                 'username' => 'mmorales',
-                'phone' => '+54 387 421-1003',
+                'phone' => '387 421-1003',
             ],
             [
                 'email' => 'esteban.benitez@marilin.com',
                 'name' => 'Esteban Benítez',
                 'username' => 'ebenitez',
-                'phone' => '+54 387 421-1004',
+                'phone' => '387 421-1004',
             ],
         ];
 
@@ -181,7 +181,7 @@ class DatabaseSeeder extends Seeder
 
         VisitOutcome::firstOrCreate(
             ['code' => 'refused'],
-            ['name' => 'No quiso', 'triggers_reschedule' => false, 'enabled' => true]
+            ['name' => 'Sin pedido', 'triggers_reschedule' => false, 'enabled' => true]
         );
 
         $outcomeReschedule = VisitOutcome::firstOrCreate(
@@ -194,7 +194,7 @@ class DatabaseSeeder extends Seeder
             // A. Empresas & Instituciones (Deudores / Cta Cte)
             [
                 'name' => 'Sanatorio Nuestra Señora del Rosario',
-                'phone' => '+54 387 422-3000',
+                'phone' => '387 422-3000',
                 'rep' => $repJuan,
                 'street' => 'Caseros 450',
                 'ref' => 'Frente a Plaza 9 de Julio',
@@ -208,7 +208,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Clínica Los Lapachos',
-                'phone' => '+54 387 423-4500',
+                'phone' => '387 423-4500',
                 'rep' => $repJuan,
                 'street' => 'Av. Bolivia 4300',
                 'ref' => 'Entrada por guardia',
@@ -222,7 +222,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Hotel Cerro San Bernardo',
-                'phone' => '+54 387 426-1500',
+                'phone' => '387 426-1500',
                 'rep' => $repJuan,
                 'street' => 'Av. Virrey Toledo 640',
                 'ref' => 'Al pie del cerro',
@@ -236,7 +236,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Distribuidora del Norte S.R.L.',
-                'phone' => '+54 387 425-8800',
+                'phone' => '387 425-8800',
                 'rep' => $repCarlos,
                 'street' => 'Av. Bolivia 5200',
                 'ref' => 'Depósito con portón azul',
@@ -250,7 +250,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Estudio Jurídico Alvear & Asoc.',
-                'phone' => '+54 387 422-9900',
+                'phone' => '387 422-9900',
                 'rep' => $repJuan,
                 'street' => 'España 740',
                 'ref' => 'Edificio con portero',
@@ -266,7 +266,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Taller Mecánico Tavella Motors',
-                'phone' => '+54 387 427-4400',
+                'phone' => '387 427-4400',
                 'rep' => $repMarcos,
                 'street' => 'Av. Tavella 3320',
                 'ref' => 'Al lado de la gomería',
@@ -282,7 +282,7 @@ class DatabaseSeeder extends Seeder
             // B. Salud & Gimnasios
             [
                 'name' => 'Gimnasio Go Fitness Salta',
-                'phone' => '+54 387 501-2233',
+                'phone' => '387 501-2233',
                 'rep' => $repCarlos,
                 'street' => 'Av. Entre Ríos 1280',
                 'ref' => 'Primer piso, subir por la escalera',
@@ -296,7 +296,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Crossfit Sur Box',
-                'phone' => '+54 387 502-3344',
+                'phone' => '387 502-3344',
                 'rep' => $repMarcos,
                 'street' => 'Av. Paraguay 2510',
                 'ref' => 'Galpón con mural',
@@ -310,7 +310,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Laboratorio BioSalta',
-                'phone' => '+54 387 424-1122',
+                'phone' => '387 424-1122',
                 'rep' => $repJuan,
                 'street' => 'Zuviría 540',
                 'ref' => 'Timbre de recepción',
@@ -326,7 +326,7 @@ class DatabaseSeeder extends Seeder
             // C. Comercios & Gastronomía
             [
                 'name' => 'Panadería y Confitería La Unión',
-                'phone' => '+54 387 425-6677',
+                'phone' => '387 425-6677',
                 'rep' => $repCarlos,
                 'street' => 'Mitre 1450',
                 'ref' => 'Entrada por la cuadra de atrás',
@@ -340,7 +340,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Café Martínez Belgrano',
-                'phone' => '+54 387 422-8811',
+                'phone' => '387 422-8811',
                 'rep' => $repJuan,
                 'street' => 'Av. Belgrano 680',
                 'ref' => 'Esquina con Alberdi',
@@ -355,7 +355,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Restaurante Viracocha',
-                'phone' => '+54 387 423-7744',
+                'phone' => '387 423-7744',
                 'rep' => $repJuan,
                 'street' => 'Alberdi 820',
                 'ref' => 'Peatonal Alberdi',
@@ -369,7 +369,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Kiosco El Sol',
-                'phone' => '+54 387 510-4455',
+                'phone' => '387 510-4455',
                 'rep' => $repCarlos,
                 'street' => 'Balcarce 1980',
                 'ref' => 'Frente a parada de colectivos',
@@ -385,7 +385,7 @@ class DatabaseSeeder extends Seeder
             // D. Clientes Residenciales
             [
                 'name' => 'Familia Calisaya',
-                'phone' => '+54 387 411-2233',
+                'phone' => '387 411-2233',
                 'rep' => $repJuan,
                 'street' => 'Pasaje Los Ceibos 245',
                 'ref' => 'Casa con jardín al frente',
@@ -399,7 +399,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Familia Tolaba',
-                'phone' => '+54 387 412-3344',
+                'phone' => '387 412-3344',
                 'rep' => $repJuan,
                 'street' => 'Los Álamos 120',
                 'ref' => 'Portón negro',
@@ -413,7 +413,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Familia Ramírez',
-                'phone' => '+54 387 413-4455',
+                'phone' => '387 413-4455',
                 'rep' => $repCarlos,
                 'street' => 'Pasaje Los Tarcos 630',
                 'ref' => 'Casa esquina',
@@ -427,7 +427,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Familia Morales',
-                'phone' => '+54 387 414-5566',
+                'phone' => '387 414-5566',
                 'rep' => $repMarcos,
                 'street' => 'Los Gladiolos 420',
                 'ref' => 'Casa de dos plantas',
@@ -443,7 +443,7 @@ class DatabaseSeeder extends Seeder
             // E. Limache: Esteban's day, still to be worked from the mobile app
             [
                 'name' => 'Supermercado El Tunal',
-                'phone' => '+54 387 431-2200',
+                'phone' => '387 431-2200',
                 'rep' => $repEsteban,
                 'street' => 'Av. Paraguay 3520',
                 'ref' => 'Portón de carga lateral',
@@ -458,7 +458,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Escuela N° 4032 Limache',
-                'phone' => '+54 387 431-4320',
+                'phone' => '387 431-4320',
                 'rep' => $repEsteban,
                 'street' => 'Av. Chile 1800',
                 'ref' => 'Entrada por portería',
@@ -473,7 +473,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Familia Quispe',
-                'phone' => '+54 387 415-6677',
+                'phone' => '387 415-6677',
                 'rep' => $repEsteban,
                 'street' => 'Pasaje Los Molles 45',
                 'ref' => 'Casa de rejas verdes',
@@ -489,7 +489,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Familia Mamaní',
-                'phone' => '+54 387 416-7788',
+                'phone' => '387 416-7788',
                 'rep' => $repEsteban,
                 'street' => 'Av. Las Palmeras 2100',
                 'ref' => 'Monoblock 4',
@@ -505,7 +505,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Consultorio Odontológico Sonrisas',
-                'phone' => '+54 387 432-1100',
+                'phone' => '387 432-1100',
                 'rep' => $repEsteban,
                 'street' => 'Av. Paraguay 3800',
                 'ref' => 'Galería Limache',
@@ -520,7 +520,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Verdulería Los Andes',
-                'phone' => '+54 387 433-5544',
+                'phone' => '387 433-5544',
                 'rep' => $repEsteban,
                 'street' => 'Calle 12 de Octubre 310',
                 'ref' => 'Frente a la feria',
@@ -534,7 +534,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Kiosco Don Ramón',
-                'phone' => '+54 387 434-9900',
+                'phone' => '387 434-9900',
                 'rep' => $repEsteban,
                 'street' => 'Av. Las Palmeras 2400',
                 'ref' => 'Cerró el local',

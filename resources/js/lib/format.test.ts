@@ -5,6 +5,7 @@ import {
     balanceState,
     date,
     dateTime,
+    formatPhone,
     money,
     paymentMethodLabel,
     paymentMethodsLabel,
@@ -153,5 +154,34 @@ describe('delivery preferences', () => {
     it('shows a window open at one end', () => {
         expect(timeWindowLabel('08:00', null)).toBe('Desde 08:00');
         expect(timeWindowLabel(null, '12:00')).toBe('Hasta 12:00');
+    });
+});
+
+describe('formatPhone', () => {
+    it('writes a Salta number as 387 587-4823 whichever way it was typed', () => {
+        expect(formatPhone('+54 387 421-1001')).toBe('387 421-1001');
+        expect(formatPhone('+543874239999')).toBe('387 423-9999');
+        expect(formatPhone('+54 9 387 587-4823')).toBe('387 587-4823');
+        expect(formatPhone('0387 4211001')).toBe('387 421-1001');
+        expect(formatPhone('387-587-4823')).toBe('387 587-4823');
+        expect(formatPhone('3875874823')).toBe('387 587-4823');
+        expect(formatPhone('387 587-4823')).toBe('387 587-4823');
+    });
+
+    it('formats the digits as they are typed', () => {
+        expect(formatPhone('38')).toBe('38');
+        expect(formatPhone('3875')).toBe('387 5');
+        expect(formatPhone('387 5874')).toBe('387 587-4');
+        expect(formatPhone('387 587-48')).toBe('387 587-48');
+    });
+
+    it('leaves a number with a prefix as typed until it is complete', () => {
+        expect(formatPhone('+54 38')).toBe('+54 38');
+        expect(formatPhone('0387')).toBe('0387');
+    });
+
+    it('leaves a number longer than ten digits and an empty one as typed', () => {
+        expect(formatPhone('387 587-48231')).toBe('387 587-48231');
+        expect(formatPhone('')).toBe('');
     });
 });

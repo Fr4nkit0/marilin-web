@@ -1,6 +1,7 @@
 import React, { FormEvent, useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
 import { FieldError } from '@/ui/Field';
+import { formatPhone } from '@/lib/format';
 import { X } from 'lucide-react';
 import Modal, { ModalTitle } from '@/ui/Modal';
 import { DriverAccount } from '@/modules/Accounts/types';
@@ -82,7 +83,7 @@ export default function DriverAccountFormModal({ show, account, onClose }: Props
             <input
                 type={type}
                 value={data[key]}
-                onChange={(e) => setData(key, e.target.value)}
+                onChange={(e) => setData(key, key === 'phone_number' ? formatPhone(e.target.value) : e.target.value)}
                 className={inputClass}
                 autoComplete={type === 'password' ? 'new-password' : 'off'}
             />

@@ -53,7 +53,15 @@ class CustomerController extends Controller
             ])
             ->where('enabled', true);
 
-        TextMatch::search($query, ['name', 'phone_number', 'primaryAddress.street'], $search);
+        $query->where(function ($match) use ($search): void {
+            TextMatch::search($match, ['name', 'phone_number', 'primaryAddress.street'], $search);
+
+            // Phones are stored as "387 411-2233", so digits typed across the space or hyphen match too.
+            $digits = preg_replace('/\D/', '', (string) $search);
+            if ($digits !== '') {
+                $match->orWhereRaw("regexp_replace(customers.phone_number, '\\D', '', 'g') like ?", ['%'.$digits.'%']);
+            }
+        });
 
         if ($driverId) {
             $query->where('driver_id', $driverId);
