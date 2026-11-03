@@ -86,6 +86,12 @@ class DatabaseSeeder extends Seeder
                 'username' => 'ebenitez',
                 'phone' => '387 421-1004',
             ],
+            [
+                'email' => 'lucia.fernandez@marilin.com',
+                'name' => 'Lucía Fernández',
+                'username' => 'lfernandez',
+                'phone' => '387 421-1005',
+            ],
         ];
 
         $drivers = [];
@@ -114,6 +120,8 @@ class DatabaseSeeder extends Seeder
         $repCarlos = $drivers[1];
         $repMarcos = $drivers[2];
         $repEsteban = $drivers[3];
+        // Starts her day with the route planned but not dispatched: the truck is not loaded yet.
+        $repLucia = $drivers[4];
 
         // 2. Container Types
         $bidon20L = ContainerType::firstOrCreate(
@@ -541,6 +549,53 @@ class DatabaseSeeder extends Seeder
                 'price_agua' => 5800.00,
                 'initial_debt' => 0.00,
                 'enabled' => false,
+            ],
+        ];
+
+        // E. Lucía's customers: her route waits for the truck load and the dispatch.
+        $customersConfig = [
+            ...$customersConfig,
+            [
+                'name' => 'Familia Guaymás',
+                'phone' => '387 433-7781',
+                'rep' => $repLucia,
+                'street' => 'Avenida Bolivia 3120',
+                'ref' => 'Portón verde',
+                'neighborhood' => 'Tres Cerritos',
+                'lat' => -24.76800,
+                'lng' => -65.40200,
+                'bidon_balance' => 2,
+                'sifon_balance' => 0,
+                'price_agua' => 6000.00,
+                'initial_debt' => 0.00,
+            ],
+            [
+                'name' => 'Almacén Doña Rosa',
+                'phone' => '387 433-7782',
+                'rep' => $repLucia,
+                'street' => 'Urquiza 820',
+                'ref' => 'Esquina, cartel rojo',
+                'neighborhood' => 'Centro',
+                'lat' => -24.79100,
+                'lng' => -65.41300,
+                'bidon_balance' => 6,
+                'sifon_balance' => 3,
+                'price_agua' => 5600.00,
+                'initial_debt' => 12000.00,
+            ],
+            [
+                'name' => 'Familia Cruz',
+                'phone' => '387 433-7783',
+                'rep' => $repLucia,
+                'street' => 'Pasaje Las Rosas 45',
+                'ref' => 'Casa de rejas blancas',
+                'neighborhood' => 'El Huaico',
+                'lat' => -24.73800,
+                'lng' => -65.40300,
+                'bidon_balance' => 1,
+                'sifon_balance' => 0,
+                'price_agua' => 6000.00,
+                'initial_debt' => 0.00,
             ],
         ];
 
@@ -1342,6 +1397,22 @@ class DatabaseSeeder extends Seeder
             ['route_id' => $routeEsteban->id, 'customer_id' => $absentCustomer->id, 'is_rescheduled_from' => $absentStop->id],
             ['address_id' => $absentStop->address_id, 'scheduled_time' => '16:00', 'enabled' => true]
         );
+
+        // --- ROUTE 5: Lucía Fernández (PLANNED, not dispatched) ---
+        // As routes:generate leaves it at 00:30: the admin loads the truck and dispatches it from /routes, then the app gets it.
+        $routeLucia = DeliveryRoute::firstOrCreate(
+            ['assigned_driver_id' => $repLucia->id, 'date' => $today->toDateString()],
+            ['status' => 'PLANNED', 'enabled' => true]
+        );
+
+        foreach (['Familia Guaymás' => '08:30', 'Almacén Doña Rosa' => '09:15', 'Familia Cruz' => '10:00'] as $customerName => $scheduledTime) {
+            $cust = $createdCustomers[$customerName];
+
+            RouteStop::firstOrCreate(
+                ['route_id' => $routeLucia->id, 'customer_id' => $cust->id, 'is_rescheduled_from' => null],
+                ['address_id' => $cust->primaryAddress->id, 'scheduled_time' => $scheduledTime, 'enabled' => true]
+            );
+        }
     }
 
     /**
