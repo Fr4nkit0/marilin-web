@@ -3,6 +3,7 @@
 namespace App\Routes\Routes\Models;
 
 use App\Accounts\Models\Driver;
+use App\Accounts\Models\User;
 use App\Routes\Routes\Database\Factories\RouteFactory;
 use App\Routes\Routes\Enums\RouteStatus;
 use App\Street\RouteStock\Models\RouteInventory;
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['assigned_driver_id', 'date', 'status', 'started_at', 'completed_at', 'enabled'])]
+#[Fillable(['assigned_driver_id', 'date', 'status', 'started_at', 'completed_at', 'dispatched_at', 'dispatched_by', 'enabled'])]
 class Route extends Model
 {
     /** @use HasFactory<RouteFactory> */
@@ -25,6 +26,7 @@ class Route extends Model
             'date' => 'date',
             'started_at' => 'datetime',
             'completed_at' => 'datetime',
+            'dispatched_at' => 'datetime',
             'enabled' => 'boolean',
         ];
     }
@@ -32,6 +34,11 @@ class Route extends Model
     public function driver(): BelongsTo
     {
         return $this->belongsTo(Driver::class, 'assigned_driver_id');
+    }
+
+    public function dispatcher(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'dispatched_by');
     }
 
     public function stops(): HasMany
@@ -76,6 +83,14 @@ class Route extends Model
     public function scopeCompleted($query)
     {
         return $query->where('status', RouteStatus::Completed->value);
+    }
+
+    /**
+     * The routes the admin released to the app: only these, their stops and their inventory reach the driver.
+     */
+    public function scopeDispatched($query)
+    {
+        return $query->whereNotNull('dispatched_at');
     }
 
     public function scopeEnabled($query)

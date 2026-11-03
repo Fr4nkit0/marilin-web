@@ -32,6 +32,7 @@ test('sync bootstrap returns driver active route, stops, catalog and truck inven
         'assigned_driver_id' => $this->driver->id,
         'date' => now()->toDateString(),
         'status' => 'IN_PROGRESS',
+        'dispatched_at' => now(),
         'enabled' => true,
     ]);
 

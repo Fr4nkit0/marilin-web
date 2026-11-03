@@ -18,6 +18,9 @@ return new class extends Migration
             $table->string('status', 30)->default('PLANNED'); // PLANNED, IN_PROGRESS, COMPLETED, CANCELLED
             $table->dateTime('started_at')->nullable();
             $table->dateTime('completed_at')->nullable();
+            // The admin releases the route to the app once the truck is loaded; until then sync hides it.
+            $table->dateTime('dispatched_at')->nullable();
+            $table->foreignId('dispatched_by')->nullable()->constrained('users');
             $table->boolean('enabled')->default(true);
             $table->timestamps();
 

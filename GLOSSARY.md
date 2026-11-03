@@ -28,6 +28,10 @@ _Avoid_: Entrega, atención
 Los productos cargados para una ruta y lo que queda de ellos. No existe la noción de camión como entidad.
 _Avoid_: Inventario del camión, stock del camión, carga
 
+**Despachar**:
+Liberar la ruta a la app del repartidor una vez cargado su inventario de ruta; lo hace a mano quien carga la camioneta. Hasta entonces la ruta existe en la web pero la app no la recibe.
+_Avoid_: Publicar, enviar, habilitar la ruta
+
 **Envase**:
 Recipiente retornable (bidón o sifón) que el cliente recibe y devuelve; se lleva un saldo de envases por cliente.
 _Avoid_: Container, botella, retornable
@@ -51,7 +55,7 @@ _Avoid_: Rendición, caja del día, liquidación
 ## Sincronización
 
 **Bajada**:
-Lo que la app recibe del servidor: ruta del día, clientes asignados con su saldo, catálogo e inventario de ruta, incluidas las bajas.
+Lo que la app recibe del servidor: ruta del día una vez despachada, clientes asignados con su saldo, catálogo e inventario de ruta, incluidas las bajas.
 _Avoid_: Pull, descarga, bootstrap
 
 **Subida**:

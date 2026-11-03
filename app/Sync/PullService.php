@@ -40,6 +40,14 @@ class PullService
     ];
 
     /**
+     * Rows of a route that reach the app only once the admin dispatches it. They were created hours before (stops at 00:30,
+     * the truck load in the morning), so the dispatch itself also puts them in the window.
+     *
+     * @var array<int, string>
+     */
+    private const array TRAVEL_ON_DISPATCH = ['route_stops', 'route_inventories'];
+
+    /**
      * Entities pushed by the app carry the app's own modification date in updated_at, which can be hours old,
      * so the moment the server received them also puts them in the window. Value: where received_at is read, null for the row itself
      * or a relation (an address also travels when the customer push edited its customer).
@@ -156,6 +164,10 @@ class PullService
                 $q->orWhereHas($relation, $inWindow);
             }
 
+            if (in_array($name, self::TRAVEL_ON_DISPATCH, true)) {
+                $q->orWhereHas('route', $inColumnWindow('dispatched_at'));
+            }
+
             if (array_key_exists($name, self::ARRIVE_WITH_CUSTOMER)) {
                 $reassignedHere = fn (Builder $b) => $b->whereHas('reassignments', fn (Builder $r) => $r
                     ->where('to_driver_id', $driver->id)
@@ -231,10 +243,11 @@ class PullService
     private function entities(Driver $driver): array
     {
         $ownCustomer = fn (Builder $query) => $query->where('driver_id', $driver->id);
-        $ownRoute = fn (Builder $query) => $query->where('assigned_driver_id', $driver->id);
+        // A route not dispatched yet has no stock on the truck: neither it nor its stops or inventory reach the app.
+        $ownRoute = fn (Builder $query) => $query->where('assigned_driver_id', $driver->id)->whereNotNull('dispatched_at');
 
         return [
-            'routes' => Route::query()->where('assigned_driver_id', $driver->id),
+            'routes' => Route::query()->tap($ownRoute),
             'route_stops' => RouteStop::query()
                 ->whereHas('route', $ownRoute)
                 ->whereHas('customer', fn (Builder $query) => $query->where('driver_id', $driver->id)->where('enabled', true)),

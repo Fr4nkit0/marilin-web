@@ -29,6 +29,7 @@ class RouteController extends Controller
             ->whereDate('date', $date)
             ->with([
                 'driver.user',
+                'dispatcher',
                 'activeStops.customer.primaryAddress',
                 'activeStops.visit.outcome',
                 'activeStops.rescheduledTo',
@@ -48,7 +49,9 @@ class RouteController extends Controller
 
         $canLoad = $request->user()?->can('load-trucks') ?? false;
 
-        $routes = $routesQuery->get()->map(function ($route) use ($canLoad) {
+        $routes = $routesQuery->get()->map(function (DeliveryRoute $route) use ($canLoad) {
+            $isOpen = ! in_array($route->status, [RouteStatus::Completed->value, RouteStatus::Cancelled->value], true);
+
             $totalStops = $route->activeStops->count();
             $completedStops = $route->activeStops->filter(fn (RouteStop $stop) => $stop->isDone())->count();
 
@@ -62,6 +65,11 @@ class RouteController extends Controller
                 'rawDate' => $route->date?->toDateString(),
                 'startedAt' => $route->started_at?->format('H:i'),
                 'completedAt' => $route->completed_at?->format('H:i'),
+                // The app gets the route only once dispatched; it can be once the truck has its first load.
+                'dispatchedAt' => $route->dispatched_at?->format('H:i'),
+                'dispatchedBy' => $route->dispatcher?->name,
+                'canDispatch' => $canLoad && $isOpen && $route->dispatched_at === null
+                    && $route->inventoryLoads->contains(fn (RouteInventoryLoad $load) => ! $load->isCorrection()),
                 'driver' => [
                     'id' => $route->driver?->id,
                     'name' => $route->driver?->user?->name ?? 'Sin repartidor',
@@ -93,7 +101,7 @@ class RouteController extends Controller
                     'quantity' => (float) $load->quantity,
                     'loadedBy' => $load->creator?->name,
                 ])->values(),
-                'canLoad' => $canLoad && ! in_array($route->status, [RouteStatus::Completed->value, RouteStatus::Cancelled->value], true),
+                'canLoad' => $canLoad && $isOpen,
                 'currentStock' => $route->inventories->map(fn ($inv) => [
                     'id' => $inv->id,
                     'productName' => $inv->product?->name ?? 'Producto',

@@ -721,6 +721,8 @@ class DatabaseSeeder extends Seeder
             [
                 'status' => 'IN_PROGRESS',
                 'started_at' => $today->copy()->setHour(8)->setMinute(15),
+                'dispatched_at' => $today->copy()->setHour(8),
+                'dispatched_by' => $admin->id,
                 'enabled' => true,
             ]
         );
@@ -964,6 +966,8 @@ class DatabaseSeeder extends Seeder
             [
                 'status' => 'COMPLETED',
                 'started_at' => $today->copy()->setHour(7)->setMinute(45),
+                'dispatched_at' => $today->copy()->setHour(7)->setMinute(30),
+                'dispatched_by' => $admin->id,
                 'completed_at' => $today->copy()->setHour(14)->setMinute(30),
                 'enabled' => true,
             ]
@@ -1139,6 +1143,8 @@ class DatabaseSeeder extends Seeder
             [
                 'status' => 'IN_PROGRESS',
                 'started_at' => $today->copy()->setHour(8)->setMinute(30),
+                'dispatched_at' => $today->copy()->setHour(8)->setMinute(15),
+                'dispatched_by' => $admin->id,
                 'enabled' => true,
             ]
         );
@@ -1273,6 +1279,8 @@ class DatabaseSeeder extends Seeder
             [
                 'status' => 'IN_PROGRESS',
                 'started_at' => $today->copy()->setHour(8),
+                'dispatched_at' => $today->copy()->setHour(7)->setMinute(45),
+                'dispatched_by' => $admin->id,
                 'enabled' => true,
             ]
         );
@@ -1361,7 +1369,7 @@ class DatabaseSeeder extends Seeder
 
         $route = DeliveryRoute::firstOrCreate(
             ['assigned_driver_id' => $driver->id, 'date' => $day->toDateString()],
-            ['status' => 'COMPLETED', 'started_at' => $at($startedAt), 'completed_at' => $at($completedAt), 'enabled' => true]
+            ['status' => 'COMPLETED', 'started_at' => $at($startedAt), 'completed_at' => $at($completedAt), 'dispatched_at' => $at($startedAt)->subMinutes(15), 'enabled' => true]
         );
 
         $sold = ['agua' => 0, 'soda' => 0];
