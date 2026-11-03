@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useListFilters } from '@/lib/useListFilters';
 import { stopResultLabel, stopStatusLabel } from '@/lib/format';
 import AdminLayout from '@/layouts/AdminLayout';
@@ -21,6 +21,7 @@ import {
     ChevronUp,
     Filter,
     PackagePlus,
+    Send,
 } from 'lucide-react';
 import RequestedVisitMark from './components/RequestedVisitMark';
 import type { RouteStatus, RouteStopRow } from './types';
@@ -62,6 +63,10 @@ interface RouteItem {
     rawDate: string;
     startedAt?: string;
     completedAt?: string;
+    /** The app gets the route only once the admin dispatches it, after the truck load. */
+    dispatchedAt: string | null;
+    dispatchedBy: string | null;
+    canDispatch: boolean;
     driver: {
         id?: number;
         name: string;
@@ -118,6 +123,16 @@ export default function RoutesIndex({
     kpis,
 }: Props) {
     const [loadingRoute, setLoadingRoute] = useState<RouteItem | null>(null);
+    const [dispatchingRouteId, setDispatchingRouteId] = useState<number | null>(null);
+    const pageErrors = usePage().props.errors as Record<string, string>;
+
+    const dispatchRoute = (routeItem: RouteItem) => {
+        router.post(route('routes.dispatch', routeItem.id), {}, {
+            preserveScroll: true,
+            onStart: () => setDispatchingRouteId(routeItem.id),
+            onFinish: () => setDispatchingRouteId(null),
+        });
+    };
     const filter = useListFilters(
         'routes.index',
         { date: selectedDate, status: filters.status || 'all', driver_id: filters.driver_id || '' },
@@ -273,10 +288,22 @@ export default function RoutesIndex({
                                                     {routeItem.driver.name}
                                                 </h3>
                                                 <StatusBadge status={routeItem.status} />
+                                                {!routeItem.dispatchedAt && routeItem.status === 'PLANNED' && (
+                                                    <StatusBadge status="pendiente" label="Sin despachar" />
+                                                )}
                                             </div>
                                             <div className="flex items-center gap-3 text-sm text-ink-muted mt-1">
                                                 <span className="font-medium">Ruta #{routeItem.id}</span>
                                                 <span className="text-ink-subtle">•</span>
+                                                {routeItem.dispatchedAt && (
+                                                    <>
+                                                        <span className="flex items-center gap-1.5 text-ink-secondary">
+                                                            <Send className="w-3.5 h-3.5" />
+                                                            Despachada: {routeItem.dispatchedAt} hs
+                                                        </span>
+                                                        <span className="text-ink-subtle">•</span>
+                                                    </>
+                                                )}
                                                 {routeItem.startedAt ? (
                                                     <span className="flex items-center gap-1.5 text-ink-secondary">
                                                         <Clock className="w-3.5 h-3.5" />
@@ -360,7 +387,28 @@ export default function RoutesIndex({
                                                         {hasLoads(routeItem) ? 'Registrar recarga' : 'Registrar carga inicial'}
                                                     </button>
                                                 )}
+                                                {routeItem.canDispatch && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => dispatchRoute(routeItem)}
+                                                        disabled={dispatchingRouteId === routeItem.id}
+                                                        className={`${routeItem.canLoad ? '' : 'ml-auto '}inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-canvas border border-sky-600 text-sky-700 hover:bg-sky-50 dark:border-sky-500/50 dark:text-sky-300 dark:hover:bg-sky-500/15 text-xs font-medium shadow-sm cursor-pointer disabled:opacity-60 disabled:cursor-wait`}
+                                                    >
+                                                        <Send className="w-3.5 h-3.5" />
+                                                        Despachar ruta
+                                                    </button>
+                                                )}
                                             </h4>
+                                            {!routeItem.dispatchedAt && routeItem.status === 'PLANNED' && (
+                                                <p className="text-sm text-ink-muted mb-4">
+                                                    El repartidor recibe la ruta en la app cuando la despachás, después de registrar la carga inicial.
+                                                </p>
+                                            )}
+                                            {pageErrors.route && dispatchingRouteId === null && expandedRouteId === routeItem.id && (
+                                                <p role="alert" className="text-sm text-rose-600 dark:text-rose-400 mb-4">
+                                                    {pageErrors.route}
+                                                </p>
+                                            )}
                                             {routeItem.routeStock.length === 0 ? (
                                                 <p className="text-sm text-ink-muted mb-4">
                                                     Todavía no se registró ninguna carga para esta ruta.

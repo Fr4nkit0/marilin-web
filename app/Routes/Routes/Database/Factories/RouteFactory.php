@@ -21,8 +21,20 @@ class RouteFactory extends Factory
             'status' => 'PLANNED',
             'started_at' => null,
             'completed_at' => null,
+            'dispatched_at' => now(),
             'enabled' => true,
         ];
+    }
+
+    /**
+     * A route the admin has not released to the app yet, as routes:generate creates it.
+     */
+    public function undispatched(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'dispatched_at' => null,
+            'dispatched_by' => null,
+        ]);
     }
 
     public function inProgress(): static

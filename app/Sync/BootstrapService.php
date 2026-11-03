@@ -54,8 +54,9 @@ class BootstrapService
     private function currentRoute(Driver $driver, string $today): ?Route
     {
         // Only today's route: the app shows the day's route, and stops left unvisited on
-        // earlier days go to the review inbox (review:flag-unvisited-stops).
+        // earlier days go to the review inbox (review:flag-unvisited-stops). It waits for the admin to dispatch it once loaded.
         return Route::query()
+            ->dispatched()
             ->where('assigned_driver_id', $driver->id)
             ->whereDate('date', $today)
             ->first();

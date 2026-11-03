@@ -146,7 +146,7 @@ test('a visit for a future date whose route already exists is added at once', fu
     expect(RouteStop::query()->sole()->route_id)->toBe($route->id);
 });
 
-test('a visit for today without a route creates the planned route with the stop', function (): void {
+test('a visit for today without a route creates the planned route with the stop, waiting for the dispatch', function (): void {
     $customer = schedulableCustomer($this->driver);
 
     $visit = $this->scheduler->schedule($customer, CarbonImmutable::parse(WEDNESDAY_TODAY), '16:30', null, $this->admin);
@@ -155,6 +155,7 @@ test('a visit for today without a route creates the planned route with the stop'
     expect($route->assigned_driver_id)->toBe($this->driver->id)
         ->and($route->date->toDateString())->toBe(WEDNESDAY_TODAY)
         ->and($route->status)->toBe('PLANNED')
+        ->and($route->dispatched_at)->toBeNull()
         ->and(RouteStop::query()->sole()->scheduled_visit_id)->toBe($visit->id)
         ->and(RouteStop::query()->sole()->scheduled_time)->toBe('16:30:00');
 });
@@ -210,6 +211,7 @@ test('scheduling is rejected with a message for the web and stores nothing', fun
 ]);
 
 test('cancelling a visit disables the stop created only for it and pull sends the change', function (): void {
+    todayRoute($this->driver);
     $customer = schedulableCustomer($this->driver);
     $visit = $this->scheduler->schedule($customer, CarbonImmutable::parse(WEDNESDAY_TODAY), null, 'Llamó', $this->admin);
     $stop = RouteStop::query()->sole();
@@ -272,6 +274,7 @@ test('a visit already done or already cancelled cannot be cancelled', function (
 });
 
 test('pull sends the requested mark, the note and the scheduled visit of a stop', function (): void {
+    todayRoute($this->driver);
     $visit = $this->scheduler->schedule(schedulableCustomer($this->driver), CarbonImmutable::parse(WEDNESDAY_TODAY), null, 'Timbre roto', $this->admin);
 
     Sanctum::actingAs($this->driverUser, ['*']);
