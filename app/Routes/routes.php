@@ -4,6 +4,7 @@ use App\Routes\Routes\Http\Controllers\DriverController;
 use App\Routes\Routes\Http\Controllers\RouteController;
 use App\Routes\Routes\Http\Controllers\RouteDispatchController;
 use App\Routes\ScheduledVisits\Http\Controllers\ScheduledVisitController;
+use App\Routes\Visits\Http\Controllers\VisitOutcomeController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
@@ -26,4 +27,12 @@ Route::middleware('auth')->group(function () {
     // Visitas agendadas: the admin asks the customer's driver to come by on a date.
     Route::post('/customers/{customer}/scheduled-visits', [ScheduledVisitController::class, 'store'])->name('scheduled-visits.store');
     Route::patch('/scheduled-visits/{scheduledVisit}/cancel', [ScheduledVisitController::class, 'cancel'])->name('scheduled-visits.cancel');
+
+    // Configuración: resultados de visita. Nothing is deleted, an outcome is disabled; its code is never editable.
+    Route::middleware('can:manage-settings')->group(function () {
+        Route::get('/settings/visit-outcomes', [VisitOutcomeController::class, 'index'])->name('visit-outcomes.index');
+        Route::post('/settings/visit-outcomes', [VisitOutcomeController::class, 'store'])->name('visit-outcomes.store');
+        Route::patch('/settings/visit-outcomes/{visitOutcome}', [VisitOutcomeController::class, 'update'])->name('visit-outcomes.update');
+        Route::patch('/settings/visit-outcomes/{visitOutcome}/status', [VisitOutcomeController::class, 'status'])->name('visit-outcomes.status');
+    });
 });
