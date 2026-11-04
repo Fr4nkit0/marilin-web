@@ -60,6 +60,24 @@ test('the seeded driver Esteban gets a full day to work from the app', function 
         ->and($response->json('data.truck_inventory'))->toHaveCount(2);
 });
 
+test('the seeded driver Lucía has her route planned but not dispatched, so the app waits for the truck load', function (): void {
+    $route = Route::query()->whereDate('date', '2026-10-20')
+        ->whereHas('driver.user', fn ($user) => $user->where('email', 'lucia.fernandez@marilin.com'))
+        ->withCount(['stops', 'inventoryLoads'])
+        ->sole();
+
+    expect($route->status)->toBe('PLANNED')
+        ->and($route->dispatched_at)->toBeNull()
+        ->and($route->stops_count)->toBe(3)
+        ->and($route->inventory_loads_count)->toBe(0);
+
+    $this->withToken(appLogin('lucia.fernandez@marilin.com'))->getJson('/api/v1/sync/bootstrap')
+        ->assertOk()
+        ->assertJsonPath('data.route', null)
+        ->assertJsonPath('data.stops', [])
+        ->assertJsonCount(3, 'data.customers');
+});
+
 test('the seeded visit outcomes are absent, refused and reschedule, and only reschedule triggers a reschedule', function (): void {
     $response = $this->withToken(appLogin('esteban.benitez@marilin.com'))->getJson('/api/v1/sync/bootstrap')->assertOk();
 
