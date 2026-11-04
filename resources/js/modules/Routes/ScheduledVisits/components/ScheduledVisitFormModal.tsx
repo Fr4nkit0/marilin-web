@@ -36,7 +36,14 @@ export default function ScheduledVisitFormModal({ show, customerId, customerName
 
     const submit = (e: FormEvent) => {
         e.preventDefault();
-        post(route('scheduled-visits.store', customerId), { preserveScroll: true, onSuccess: onClose });
+        post(route('scheduled-visits.store', customerId), {
+            preserveScroll: true,
+            onSuccess: () => {
+                // Inertia makes the submitted values the new defaults unless the form is reset here; the next opening starts blank.
+                reset();
+                onClose();
+            },
+        });
     };
 
     return (

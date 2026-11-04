@@ -46,7 +46,14 @@ export default function CancelRecordModal({ target, consequence, onClose }: Prop
         if (target === null) {
             return;
         }
-        post(target.url, { preserveScroll: true, onSuccess: onClose });
+        post(target.url, {
+            preserveScroll: true,
+            onSuccess: () => {
+                // Inertia makes the submitted values the new defaults unless the form is reset here; the next opening starts blank.
+                reset();
+                onClose();
+            },
+        });
     };
 
     return (

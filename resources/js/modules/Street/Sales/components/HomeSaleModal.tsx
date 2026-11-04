@@ -70,7 +70,14 @@ export default function HomeSaleModal({ show, customerId, customerName, products
 
     const submit = (e: FormEvent) => {
         e.preventDefault();
-        post(route('customers.home-sales.store', customerId), { preserveScroll: true, onSuccess: onClose });
+        post(route('customers.home-sales.store', customerId), {
+            preserveScroll: true,
+            onSuccess: () => {
+                // Inertia makes the submitted values the new defaults unless the form is reset here; the next opening starts blank.
+                reset();
+                onClose();
+            },
+        });
     };
 
     const formErrors = Object.entries(errors).filter(([key]) => key !== 'quantities' && key !== 'payment_method_id');

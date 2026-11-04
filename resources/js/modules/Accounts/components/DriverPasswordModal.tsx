@@ -27,7 +27,14 @@ export default function DriverPasswordModal({ account, onClose }: Props) {
     const submit = (e: FormEvent) => {
         e.preventDefault();
         if (account === null) return;
-        patch(route('users.password', account.id), { preserveScroll: true, onSuccess: onClose });
+        patch(route('users.password', account.id), {
+            preserveScroll: true,
+            onSuccess: () => {
+                // Inertia makes the submitted values the new defaults unless the form is reset here; the next opening starts blank.
+                reset();
+                onClose();
+            },
+        });
     };
 
     return (
