@@ -13,7 +13,7 @@ uses(RefreshDatabase::class);
 beforeEach(function (): void {
     $this->withoutVite();
     $this->admin = User::factory()->superUser()->create();
-    $this->user = User::factory()->create(['email' => 'juan@marilin.com', 'password' => 'old-password', 'is_super_user' => false, 'enabled' => true]);
+    $this->user = User::factory()->create(['email' => 'juan@marilin.com', 'username' => 'juan', 'password' => 'old-password', 'is_super_user' => false, 'enabled' => true]);
     $this->driver = Driver::factory()->create(['user_id' => $this->user->id, 'enabled' => true]);
 });
 
@@ -22,7 +22,7 @@ beforeEach(function (): void {
  */
 function driverAppLogin(string $password): int
 {
-    return test()->postJson('/api/v1/auth/login', ['email' => 'juan@marilin.com', 'password' => $password])->status();
+    return test()->postJson('/api/v1/auth/login', ['username' => 'juan', 'password' => $password])->status();
 }
 
 /**

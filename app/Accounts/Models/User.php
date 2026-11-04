@@ -92,6 +92,16 @@ class User extends Authenticatable
         $query->whereRaw('lower(email) = ?', [Str::lower($email)]);
     }
 
+    /**
+     * The user with that username whatever its letter case; the username is kept as it was stored.
+     *
+     * @param  Builder<static>  $query
+     */
+    public function scopeUsernameIs(Builder $query, string $username): void
+    {
+        $query->whereRaw('lower(username) = ?', [Str::lower($username)]);
+    }
+
     public function scopeEnabled($query)
     {
         return $query->where('enabled', true);

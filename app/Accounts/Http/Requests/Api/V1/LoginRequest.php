@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 
 /**
- * The app's login, throttled like the web one: 5 failed attempts per minute per email (any letter case) and IP.
+ * The drivers' app login, by username, throttled like the web one: 5 failed attempts per minute per username (any letter case) and IP.
  */
 class LoginRequest extends FormRequest
 {
@@ -28,15 +28,15 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
+            'username' => ['required', 'string', 'max:255'],
             'password' => ['required', 'string'],
             'device_name' => ['nullable', 'string', 'max:100'],
         ];
     }
 
     /**
-     * A locked email and IP is answered 429 with the seconds to wait, in the `Retry-After` header and in `retry_after`,
-     * and the web's message under `errors.email`, so the app can show it like any other login error.
+     * A locked username and IP is answered 429 with the seconds to wait, in the `Retry-After` header and in `retry_after`,
+     * and the web's message under `errors.username`, so the app can show it like any other login error.
      *
      * @throws HttpResponseException
      */
@@ -53,7 +53,7 @@ class LoginRequest extends FormRequest
 
         throw new HttpResponseException(response()->json([
             'message' => $message,
-            'errors' => ['email' => [$message]],
+            'errors' => ['username' => [$message]],
             'retry_after' => $seconds,
         ], 429, ['Retry-After' => $seconds]));
     }
@@ -70,6 +70,6 @@ class LoginRequest extends FormRequest
 
     private function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('email')).'|'.$this->ip());
+        return Str::transliterate(Str::lower($this->string('username')).'|'.$this->ip());
     }
 }

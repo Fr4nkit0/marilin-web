@@ -11,108 +11,103 @@ uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
     $this->user = User::factory()->create([
-        'email' => 'marcos.morales@marilin.com',
+        'email' => null,
+        'username' => 'mmorales',
         'password' => 'secret123',
         'enabled' => true,
     ]);
     Driver::factory()->create(['user_id' => $this->user->id, 'enabled' => true]);
 });
 
-function apiLogin(string $email, string $password, string $ip = '10.0.0.1'): TestResponse
+function apiLogin(string $username, string $password, string $ip = '10.0.0.1'): TestResponse
 {
     return test()->withServerVariables(['REMOTE_ADDR' => $ip])
-        ->postJson('/api/v1/auth/login', ['email' => $email, 'password' => $password]);
+        ->postJson('/api/v1/auth/login', ['username' => $username, 'password' => $password]);
 }
 
-test('the api login answers 429 with the seconds to wait after 5 failed attempts for the same email and ip', function (): void {
+test('the api login answers 429 with the seconds to wait after 5 failed attempts for the same username and ip', function (): void {
     foreach (range(1, 5) as $attempt) {
-        apiLogin('marcos.morales@marilin.com', 'wrong')->assertStatus(422)->assertJsonValidationErrors(['email']);
+        apiLogin('mmorales', 'wrong')->assertStatus(422)->assertJsonValidationErrors(['username']);
     }
 
-    $response = apiLogin('marcos.morales@marilin.com', 'wrong');
+    $response = apiLogin('mmorales', 'wrong');
 
     $response->assertStatus(429)
         ->assertHeader('Retry-After')
-        ->assertJsonValidationErrors(['email']);
+        ->assertJsonValidationErrors(['username']);
 
     $seconds = (int) $response->headers->get('Retry-After');
 
     expect($seconds)->toBeGreaterThan(0)->toBeLessThanOrEqual(60)
         ->and($response->json('retry_after'))->toBe($seconds)
-        ->and($response->json('errors.email.0'))->toBe("Demasiados intentos de inicio de sesión. Intente de nuevo en {$seconds} segundos.");
+        ->and($response->json('errors.username.0'))->toBe("Demasiados intentos de inicio de sesión. Intente de nuevo en {$seconds} segundos.");
 });
 
 test('the api login stays locked even with the right password once the limit is reached, and issues no token', function (): void {
     foreach (range(1, 5) as $attempt) {
-        apiLogin('marcos.morales@marilin.com', 'wrong');
+        apiLogin('mmorales', 'wrong');
     }
 
-    apiLogin('marcos.morales@marilin.com', 'secret123')->assertStatus(429)->assertJsonMissingPath('data.token');
+    apiLogin('mmorales', 'secret123')->assertStatus(429)->assertJsonMissingPath('data.token');
 
     expect($this->user->tokens()->count())->toBe(0);
 });
 
-test('the api login lock counts the email case-insensitively', function (): void {
+test('the api login lock counts the username case-insensitively', function (): void {
     foreach (range(1, 5) as $attempt) {
-        apiLogin($attempt % 2 === 0 ? 'MARCOS.MORALES@marilin.com' : 'marcos.morales@marilin.com', 'wrong');
+        apiLogin($attempt % 2 === 0 ? 'MMORALES' : 'mmorales', 'wrong');
     }
 
-    apiLogin('Marcos.Morales@marilin.com', 'wrong')->assertStatus(429);
+    apiLogin('MMorales', 'wrong')->assertStatus(429);
 });
 
-test('the api login lock is per email and ip: another ip or another email is not locked', function (): void {
-    $other = User::factory()->create(['email' => 'juan@marilin.com', 'password' => 'secret123', 'enabled' => true]);
+test('the api login lock is per username and ip: another ip or another username is not locked', function (): void {
+    $other = User::factory()->create(['email' => null, 'username' => 'jperez', 'password' => 'secret123', 'enabled' => true]);
     Driver::factory()->create(['user_id' => $other->id, 'enabled' => true]);
 
     foreach (range(1, 5) as $attempt) {
-        apiLogin('marcos.morales@marilin.com', 'wrong');
+        apiLogin('mmorales', 'wrong');
     }
 
-    apiLogin('marcos.morales@marilin.com', 'secret123', '10.0.0.2')->assertOk();
-    apiLogin('juan@marilin.com', 'secret123')->assertOk();
+    apiLogin('mmorales', 'secret123', '10.0.0.2')->assertOk();
+    apiLogin('jperez', 'secret123')->assertOk();
 });
 
 test('a successful api login clears the failed attempts', function (): void {
     foreach (range(1, 4) as $attempt) {
-        apiLogin('marcos.morales@marilin.com', 'wrong');
+        apiLogin('mmorales', 'wrong');
     }
 
-    apiLogin('marcos.morales@marilin.com', 'secret123')->assertOk();
+    apiLogin('mmorales', 'secret123')->assertOk();
 
     foreach (range(1, 4) as $attempt) {
-        apiLogin('marcos.morales@marilin.com', 'wrong')->assertStatus(422);
+        apiLogin('mmorales', 'wrong')->assertStatus(422);
     }
 
-    apiLogin('marcos.morales@marilin.com', 'secret123')->assertOk();
+    apiLogin('mmorales', 'secret123')->assertOk();
 });
 
-test('the api login finds the email case-insensitively without changing the stored email', function (): void {
-    $response = apiLogin('Marcos.Morales@marilin.com', 'secret123');
+test('the api login finds a stored username with capitals when the app sends it lowercased', function (): void {
+    $this->user->forceFill(['username' => 'ERuiz'])->save();
 
-    $response->assertOk()->assertJsonPath('data.user.email', 'marcos.morales@marilin.com');
+    apiLogin('eruiz', 'secret123')->assertOk()->assertJsonPath('data.user.username', 'ERuiz');
 
-    expect($this->user->fresh()->email)->toBe('marcos.morales@marilin.com');
+    expect($this->user->fresh()->username)->toBe('ERuiz');
 });
 
-test('the api login finds a stored email with capitals when the app sends it lowercased', function (): void {
-    $this->user->forceFill(['email' => 'Esteban.Ruiz@marilin.com'])->save();
-
-    apiLogin('esteban.ruiz@marilin.com', 'secret123')->assertOk()->assertJsonPath('data.user.email', 'Esteban.Ruiz@marilin.com');
-});
-
-test('a case-insensitive email with a wrong password still fails with the usual message', function (): void {
-    apiLogin('Marcos.Morales@marilin.com', 'wrong')
+test('a case-insensitive username with a wrong password still fails with the usual message', function (): void {
+    apiLogin('MMorales', 'wrong')
         ->assertStatus(422)
-        ->assertJsonPath('errors.email.0', __('auth.failed'));
+        ->assertJsonPath('errors.username.0', __('auth.failed'));
 });
 
-test('forwarded headers and padded or recased emails do not dodge the api lock', function (): void {
-    foreach ([' MARCOS.MORALES@MARILIN.COM ', 'Marcos.Morales@marilin.com', 'marcos.MORALES@marilin.com', 'marcos.morales@marilin.com', 'MARCOS.morales@marilin.com'] as $i => $email) {
+test('forwarded headers and padded or recased usernames do not dodge the api lock', function (): void {
+    foreach ([' MMORALES ', 'MMorales', 'mMORALES', 'mmorales', 'MMORales'] as $i => $username) {
         test()->withServerVariables(['REMOTE_ADDR' => '10.0.0.1'])->withHeaders(['X-Forwarded-For' => "1.2.3.{$i}"])
-            ->postJson('/api/v1/auth/login', ['email' => $email, 'password' => 'wrong'])->assertStatus(422);
+            ->postJson('/api/v1/auth/login', ['username' => $username, 'password' => 'wrong'])->assertStatus(422);
     }
 
     test()->withServerVariables(['REMOTE_ADDR' => '10.0.0.1'])->withHeaders(['X-Forwarded-For' => '9.9.9.9'])
-        ->postJson('/api/v1/auth/login', ['email' => 'marcos.morales@marilin.com', 'password' => 'secret123'])
+        ->postJson('/api/v1/auth/login', ['username' => 'mmorales', 'password' => 'secret123'])
         ->assertStatus(429)->assertHeader('Retry-After');
 });

@@ -85,7 +85,7 @@ test('an admin creates a driver account that can log into the app right away', f
         ->and(Hash::check('secret-pass', $user->password))->toBeTrue()
         ->and($user->driver->enabled)->toBeTrue();
 
-    $this->postJson('/api/v1/auth/login', ['email' => 'juan@marilin.com', 'password' => 'secret-pass'])->assertOk();
+    $this->postJson('/api/v1/auth/login', ['username' => 'juanp', 'password' => 'secret-pass'])->assertOk();
 });
 
 test('a new account needs a unique email, a unique username and a confirmed password of 8 characters', function (array $overrides, string $field): void {
