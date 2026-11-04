@@ -3,6 +3,7 @@
 use App\Customers\Agreements\Http\Controllers\CustomerAgreementController;
 use App\Customers\Customers\Http\Controllers\CustomerController;
 use App\Customers\Customers\Http\Controllers\CustomerPreferenceController;
+use App\Customers\Neighborhoods\Http\Controllers\NeighborhoodController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
@@ -21,4 +22,12 @@ Route::middleware('auth')->group(function () {
         Route::patch('/customers/{customer}/agreements/{agreement}/end', [CustomerAgreementController::class, 'end'])->name('customers.agreements.end');
     });
     Route::get('/customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
+
+    // Configuración: barrios. Nothing is deleted, a neighborhood is disabled.
+    Route::middleware('can:manage-settings')->group(function () {
+        Route::get('/settings/neighborhoods', [NeighborhoodController::class, 'index'])->name('neighborhoods.index');
+        Route::post('/settings/neighborhoods', [NeighborhoodController::class, 'store'])->name('neighborhoods.store');
+        Route::patch('/settings/neighborhoods/{neighborhood}', [NeighborhoodController::class, 'update'])->name('neighborhoods.update');
+        Route::patch('/settings/neighborhoods/{neighborhood}/status', [NeighborhoodController::class, 'status'])->name('neighborhoods.status');
+    });
 });

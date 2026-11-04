@@ -58,6 +58,9 @@ class AppServiceProvider extends ServiceProvider
         // Driver accounts are created and switched on or off by the admin only.
         Gate::define('manage-users', fn (User $user): bool => $user->is_super_user);
 
+        // The configuration catalogs (neighborhoods, visit outcomes, container types, payment methods) reach every app.
+        Gate::define('manage-settings', fn (User $user): bool => $user->is_super_user);
+
         Vite::prefetch(concurrency: 3);
     }
 }
