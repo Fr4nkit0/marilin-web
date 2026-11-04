@@ -214,3 +214,11 @@ test('every seeded sale charges the price the customer had that day', function (
 test('no seeded visit is left in progress, since the app only pushes finished visits', function (): void {
     expect(Visit::query()->where('status', 'IN_PROGRESS')->count())->toBe(0);
 });
+
+test('the seeded drivers have a username and no email, and the admin keeps the email', function (): void {
+    $drivers = User::query()->whereHas('driver')->orderBy('username')->get(['username', 'email']);
+
+    expect($drivers->pluck('username')->all())->toBe(['cgomez', 'ebenitez', 'jperez', 'lfernandez', 'mmorales'])
+        ->and($drivers->whereNotNull('email'))->toBeEmpty()
+        ->and(User::query()->where('is_super_user', true)->value('email'))->toBe('admin@marilin.com');
+});

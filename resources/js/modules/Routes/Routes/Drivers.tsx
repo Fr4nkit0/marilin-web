@@ -21,7 +21,7 @@ import type { RouteStatus } from './types';
 interface RepartidorItem {
     id: number;
     name: string;
-    email?: string;
+    username: string | null;
     totalCustomers: number;
     currentRoute?: {
         id: number;
@@ -108,7 +108,7 @@ export default function RepartidoresIndex({ repartidores, filters }: Props) {
                         value={filter.values.search}
                         onChange={(e) => filter.draft('search', e.target.value)}
                         aria-label="Buscar repartidor"
-                        placeholder="Buscar por nombre de repartidor o email..."
+                        placeholder="Buscar por nombre de repartidor..."
                         className="w-full pl-10 pr-4 py-2.5 text-sm bg-canvas border border-hairline text-ink font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 placeholder-ink-subtle"
                     />
                 </form>
@@ -153,9 +153,9 @@ export default function RepartidoresIndex({ repartidores, filters }: Props) {
                                                         <p className="font-semibold text-ink">
                                                             {rep.name}
                                                         </p>
-                                                        {rep.email && (
+                                                        {rep.username && (
                                                             <p className="text-xs text-ink-muted mt-0.5">
-                                                                {rep.email}
+                                                                {rep.username}
                                                             </p>
                                                         )}
                                                     </div>

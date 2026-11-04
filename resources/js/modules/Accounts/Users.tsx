@@ -77,7 +77,7 @@ export default function Index({ users, filters }: Props) {
                         type="search"
                         value={filter.values.search}
                         onChange={(e) => filter.draft('search', e.target.value)}
-                        placeholder="Buscar por nombre, email o usuario"
+                        placeholder="Buscar por nombre o usuario"
                         aria-label="Buscar usuarios"
                         className="w-full py-2 pl-9 pr-3 text-sm border border-hairline/60 bg-canvas text-ink rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600"
                     />
@@ -129,7 +129,6 @@ export default function Index({ users, filters }: Props) {
                                             <div className={`font-medium ${account.enabled ? 'text-ink' : 'text-ink-subtle'}`}>
                                                 {account.name}
                                             </div>
-                                            <div className="text-xs text-ink-muted">{account.email}</div>
                                         </td>
                                         <td className="px-6 py-4 text-ink-secondary">{account.username ?? '—'}</td>
                                         <td className="px-6 py-4 text-ink-secondary">{account.phone_number ?? '—'}</td>

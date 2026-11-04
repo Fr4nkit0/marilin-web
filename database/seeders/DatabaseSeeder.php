@@ -63,31 +63,26 @@ class DatabaseSeeder extends Seeder
 
         $driverUsers = [
             [
-                'email' => 'juan.perez@marilin.com',
                 'name' => 'Juan Pérez',
                 'username' => 'jperez',
                 'phone' => '387 421-1001',
             ],
             [
-                'email' => 'carlos.gomez@marilin.com',
                 'name' => 'Carlos Gómez',
                 'username' => 'cgomez',
                 'phone' => '387 421-1002',
             ],
             [
-                'email' => 'marcos.morales@marilin.com',
                 'name' => 'Marcos Morales',
                 'username' => 'mmorales',
                 'phone' => '387 421-1003',
             ],
             [
-                'email' => 'esteban.benitez@marilin.com',
                 'name' => 'Esteban Benítez',
                 'username' => 'ebenitez',
                 'phone' => '387 421-1004',
             ],
             [
-                'email' => 'lucia.fernandez@marilin.com',
                 'name' => 'Lucía Fernández',
                 'username' => 'lfernandez',
                 'phone' => '387 421-1005',
@@ -96,11 +91,11 @@ class DatabaseSeeder extends Seeder
 
         $drivers = [];
         foreach ($driverUsers as $du) {
+            // Drivers sign in to the app with the username and have no email.
             $user = User::firstOrCreate(
-                ['email' => $du['email']],
+                ['username' => $du['username']],
                 [
                     'name' => $du['name'],
-                    'username' => $du['username'],
                     'phone_number' => $du['phone'],
                     'is_super_user' => false,
                     'enabled' => true,

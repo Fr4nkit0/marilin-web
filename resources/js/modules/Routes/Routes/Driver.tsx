@@ -30,7 +30,7 @@ interface Props {
     repartidor: {
         id: number;
         name: string;
-        email?: string;
+        username: string | null;
         totalAssignedCustomers: number;
     };
     route?: {
@@ -98,8 +98,8 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
                                 {deliveryRoute && <StatusBadge status={deliveryRoute.status} />}
                             </div>
                             <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-ink-muted mt-2 tracking-wide">
-                                {repartidor.email && (
-                                    <span>{repartidor.email}</span>
+                                {repartidor.username && (
+                                    <span>{repartidor.username}</span>
                                 )}
                                 <span className="text-ink-subtle">•</span>
                                 <div className="flex items-center gap-1.5">

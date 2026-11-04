@@ -5,7 +5,7 @@ import type { DriverAccount } from '@/modules/Accounts/types';
 import DriverPasswordModal from './DriverPasswordModal';
 
 function driver(id: number, name: string): DriverAccount {
-    return { id, name, email: `driver${id}@example.com`, username: null, phone_number: null, enabled: true, created_at: null };
+    return { id, name, username: `driver${id}`, phone_number: null, enabled: true, created_at: null };
 }
 
 function modal(account: DriverAccount | null, onClose: () => void = () => {}) {
