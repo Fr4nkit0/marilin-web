@@ -92,20 +92,20 @@ test('enabling an account turns the user and the driver back on', function (): v
         ->and(driverAppLogin('old-password'))->toBe(200);
 });
 
-test('a disabled user cannot log into the web', function (): void {
-    $this->user->update(['enabled' => false]);
+test('a disabled admin cannot log into the web', function (): void {
+    $this->admin->update(['enabled' => false]);
 
-    $this->post('/login', ['email' => 'juan@marilin.com', 'password' => 'old-password'])
+    $this->post('/login', ['email' => $this->admin->email, 'password' => 'password'])
         ->assertSessionHasErrors(['email' => 'Tu cuenta está deshabilitada.']);
 
     $this->assertGuest();
 });
 
-test('an enabled user still logs into the web', function (): void {
-    $this->post('/login', ['email' => 'juan@marilin.com', 'password' => 'old-password'])
+test('an enabled admin still logs into the web', function (): void {
+    $this->post('/login', ['email' => $this->admin->email, 'password' => 'password'])
         ->assertSessionHasNoErrors();
 
-    $this->assertAuthenticatedAs($this->user);
+    $this->assertAuthenticatedAs($this->admin);
 });
 
 test('a user disabled while logged in is logged out on the next request', function (): void {
