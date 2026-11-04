@@ -25,7 +25,11 @@ import {
     MapPin,
     AlertTriangle,
     ClipboardCheck,
+    Settings,
 } from 'lucide-react';
+
+// The configuration catalogs share one sidebar entry; the settings tabs move between them.
+const SETTINGS_ROUTES = ['neighborhoods.*', 'visit-outcomes.*', 'container-types.*', 'payment-methods.*'];
 
 function notificationItems(notifications: Notifications | undefined): NotificationItem[] {
     if (!notifications) return [];
@@ -125,6 +129,12 @@ export default function AdminLayout({
                       href: route('users.index'),
                       icon: UserCog,
                       active: route().current('users.*') || false,
+                  },
+                  {
+                      name: 'Configuración',
+                      href: route('neighborhoods.index'),
+                      icon: Settings,
+                      active: SETTINGS_ROUTES.some((name) => route().current(name)),
                   },
               ]
             : []),
