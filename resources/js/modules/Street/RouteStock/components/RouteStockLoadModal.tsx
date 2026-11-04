@@ -20,7 +20,7 @@ interface Props {
 type LoadForm = { quantities: Record<number, string> };
 
 export default function RouteStockLoadModal({ routeId, driverName, isFirstLoad, products, onClose }: Props) {
-    const { data, setData, post, processing, errors, reset, clearErrors, transform } = useForm<LoadForm>({
+    const { data, setData, post, processing, errors, reset, clearErrors, transform, setDefaults } = useForm<LoadForm>({
         quantities: {},
     });
 
@@ -41,7 +41,15 @@ export default function RouteStockLoadModal({ routeId, driverName, isFirstLoad, 
     const submit = (e: FormEvent) => {
         e.preventDefault();
         if (routeId === null) return;
-        post(route('routes.loads.store', routeId), { preserveScroll: true, onSuccess: onClose });
+        post(route('routes.loads.store', routeId), {
+            preserveScroll: true,
+            onSuccess: () => {
+                // Inertia makes the submitted quantities the new defaults; the next load starts empty, not as a copy of this one.
+                setDefaults({ quantities: {} });
+                reset();
+                onClose();
+            },
+        });
     };
 
     const errorList = Object.entries(errors as Record<string, string>);
