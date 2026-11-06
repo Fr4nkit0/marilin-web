@@ -31,15 +31,14 @@ class UserController extends Controller
         $users = User::query()
             ->where('is_super_user', false)
             ->whereHas('driver')
-            ->tap(fn ($query) => TextMatch::search($query, ['name', 'email', 'username'], $search))
+            ->tap(fn ($query) => TextMatch::search($query, ['name', 'username'], $search))
             ->when($status === 'enabled', fn ($query) => $query->where('enabled', true))
             ->when($status === 'disabled', fn ($query) => $query->where('enabled', false))
             ->orderBy('name')
-            ->get(['id', 'name', 'email', 'username', 'phone_number', 'enabled', 'created_at'])
+            ->get(['id', 'name', 'username', 'phone_number', 'enabled', 'created_at'])
             ->map(fn (User $user): array => [
                 'id' => $user->id,
                 'name' => $user->name,
-                'email' => $user->email,
                 'username' => $user->username,
                 'phone_number' => $user->phone_number,
                 'enabled' => $user->enabled,

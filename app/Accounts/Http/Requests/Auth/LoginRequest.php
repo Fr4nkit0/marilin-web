@@ -11,8 +11,13 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * The web login, for the admin only: drivers sign in to the app with their username.
+ */
 class LoginRequest extends FormRequest
 {
+    public const string NOT_ADMIN_MESSAGE = 'Esta cuenta entra desde la app.';
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -57,6 +62,14 @@ class LoginRequest extends FormRequest
 
             throw ValidationException::withMessages([
                 'email' => EnsureUserIsEnabled::MESSAGE,
+            ]);
+        }
+
+        if (! Auth::user()->is_super_user) {
+            Auth::guard('web')->logout();
+
+            throw ValidationException::withMessages([
+                'email' => self::NOT_ADMIN_MESSAGE,
             ]);
         }
 

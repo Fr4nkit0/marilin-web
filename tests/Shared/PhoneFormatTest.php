@@ -91,7 +91,6 @@ test('a driver account phone is stored as 387 XXX-XXXX', function (): void {
     $this->actingAs($this->admin)
         ->post(route('users.store'), [
             'name' => 'Juan Pérez',
-            'email' => 'juan@marilin.com',
             'username' => 'juanp',
             'phone_number' => '+54 387 421-1001',
             'password' => 'secret-pass',
@@ -99,5 +98,5 @@ test('a driver account phone is stored as 387 XXX-XXXX', function (): void {
         ])
         ->assertSessionHasNoErrors();
 
-    expect(User::query()->where('email', 'juan@marilin.com')->firstOrFail()->phone_number)->toBe('387 421-1001');
+    expect(User::query()->where('username', 'juanp')->firstOrFail()->phone_number)->toBe('387 421-1001');
 });

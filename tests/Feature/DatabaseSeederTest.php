@@ -32,15 +32,15 @@ beforeEach(function (): void {
 /**
  * Logs into the API like the mobile app does and returns the bearer token.
  */
-function appLogin(string $email): string
+function appLogin(string $username): string
 {
-    return test()->postJson('/api/v1/auth/login', ['email' => $email, 'password' => 'password'])
+    return test()->postJson('/api/v1/auth/login', ['username' => $username, 'password' => 'password'])
         ->assertOk()
         ->json('data.token');
 }
 
 test('the seeded driver Esteban gets a full day to work from the app', function (): void {
-    $response = $this->withToken(appLogin('esteban.benitez@marilin.com'))->getJson('/api/v1/sync/bootstrap')->assertOk();
+    $response = $this->withToken(appLogin('ebenitez'))->getJson('/api/v1/sync/bootstrap')->assertOk();
 
     $stops = collect($response->json('data.stops'));
     $customers = collect($response->json('data.customers'))->keyBy('name');
@@ -62,7 +62,7 @@ test('the seeded driver Esteban gets a full day to work from the app', function 
 
 test('the seeded driver Lucía has her route planned but not dispatched, so the app waits for the truck load', function (): void {
     $route = Route::query()->whereDate('date', '2026-10-20')
-        ->whereHas('driver.user', fn ($user) => $user->where('email', 'lucia.fernandez@marilin.com'))
+        ->whereHas('driver.user', fn ($user) => $user->where('username', 'lfernandez'))
         ->withCount(['stops', 'inventoryLoads'])
         ->sole();
 
@@ -71,7 +71,7 @@ test('the seeded driver Lucía has her route planned but not dispatched, so the 
         ->and($route->stops_count)->toBe(3)
         ->and($route->inventory_loads_count)->toBe(0);
 
-    $this->withToken(appLogin('lucia.fernandez@marilin.com'))->getJson('/api/v1/sync/bootstrap')
+    $this->withToken(appLogin('lfernandez'))->getJson('/api/v1/sync/bootstrap')
         ->assertOk()
         ->assertJsonPath('data.route', null)
         ->assertJsonPath('data.stops', [])
@@ -79,7 +79,7 @@ test('the seeded driver Lucía has her route planned but not dispatched, so the 
 });
 
 test('the seeded visit outcomes are absent, refused and reschedule, and only reschedule triggers a reschedule', function (): void {
-    $response = $this->withToken(appLogin('esteban.benitez@marilin.com'))->getJson('/api/v1/sync/bootstrap')->assertOk();
+    $response = $this->withToken(appLogin('ebenitez'))->getJson('/api/v1/sync/bootstrap')->assertOk();
 
     $outcomes = collect($response->json('data.visit_outcomes'))
         ->map(fn (array $outcome): array => [$outcome['code'], $outcome['name'], $outcome['triggers_reschedule']])
@@ -102,7 +102,7 @@ test('every seeded customer and user phone reads 387 XXX-XXXX', function (): voi
 });
 
 test('the first pull of Esteban carries the disabled customer', function (): void {
-    $response = $this->withToken(appLogin('esteban.benitez@marilin.com'))->getJson('/api/v1/sync/pull')->assertOk();
+    $response = $this->withToken(appLogin('ebenitez'))->getJson('/api/v1/sync/pull')->assertOk();
 
     $customer = collect($response->json('data.customers'))->firstWhere('name', 'Kiosco Don Ramón');
 
@@ -177,7 +177,7 @@ test('yesterday every driver closed a route with visited stops, sales and paymen
 });
 
 test('the seeded driver Juan gets one requested stop today, synced to the app with its note', function (): void {
-    $response = $this->withToken(appLogin('juan.perez@marilin.com'))->getJson('/api/v1/sync/bootstrap')->assertOk();
+    $response = $this->withToken(appLogin('jperez'))->getJson('/api/v1/sync/bootstrap')->assertOk();
 
     $requested = collect($response->json('data.stops'))->where('is_requested', true);
 
@@ -213,4 +213,12 @@ test('every seeded sale charges the price the customer had that day', function (
 
 test('no seeded visit is left in progress, since the app only pushes finished visits', function (): void {
     expect(Visit::query()->where('status', 'IN_PROGRESS')->count())->toBe(0);
+});
+
+test('the seeded drivers have a username and no email, and the admin keeps the email', function (): void {
+    $drivers = User::query()->whereHas('driver')->orderBy('username')->get(['username', 'email']);
+
+    expect($drivers->pluck('username')->all())->toBe(['cgomez', 'ebenitez', 'jperez', 'lfernandez', 'mmorales'])
+        ->and($drivers->whereNotNull('email'))->toBeEmpty()
+        ->and(User::query()->where('is_super_user', true)->value('email'))->toBe('admin@marilin.com');
 });

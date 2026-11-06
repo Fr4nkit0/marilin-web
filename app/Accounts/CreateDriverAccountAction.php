@@ -9,19 +9,19 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Creates a driver's login together with its driver record, so the account can use the app at once.
+ * The driver signs in with the username and has no email.
  */
 final class CreateDriverAccountAction
 {
     /**
-     * @param  array{name: string, email: string, username?: ?string, phone_number?: ?string, password: string}  $data
+     * @param  array{name: string, username: string, phone_number?: ?string, password: string}  $data
      */
     public function execute(array $data): User
     {
         return DB::transaction(function () use ($data): User {
             $user = User::query()->create([
                 'name' => $data['name'],
-                'email' => $data['email'],
-                'username' => $data['username'] ?? null,
+                'username' => $data['username'],
                 'phone_number' => $data['phone_number'] ?? null,
                 'password' => $data['password'],
                 'is_super_user' => false,

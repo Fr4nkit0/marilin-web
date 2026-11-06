@@ -11,7 +11,7 @@ uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
     $this->travelTo('2026-10-21 10:00:00');
-    $this->user = User::factory()->create(['email' => 'driver@marilin.app', 'password' => 'secret123', 'enabled' => true]);
+    $this->user = User::factory()->create(['email' => null, 'username' => 'driver', 'password' => 'secret123', 'enabled' => true]);
     $this->driver = Driver::factory()->create(['user_id' => $this->user->id, 'enabled' => true]);
 });
 
@@ -23,7 +23,7 @@ beforeEach(function (): void {
 function loginTokens(): array
 {
     return test()->postJson('/api/v1/auth/login', [
-        'email' => 'driver@marilin.app',
+        'username' => 'driver',
         'password' => 'secret123',
         'device_name' => 'android-phone',
     ])->assertOk()->json('data');
@@ -63,7 +63,7 @@ test('a refresh token gets a new pair and revokes the old one', function (): voi
     $response = $this->postJson('/api/v1/auth/refresh', [], bearer($old['refresh_token']));
 
     $response->assertOk()->assertJsonStructure([
-        'data' => ['token', 'refresh_token', 'expires_at', 'refresh_expires_at', 'user' => ['id', 'email']],
+        'data' => ['token', 'refresh_token', 'expires_at', 'refresh_expires_at', 'user' => ['id', 'username']],
         'message',
     ])->assertJsonPath('message', 'Sesión renovada.');
     $new = $response->json('data');

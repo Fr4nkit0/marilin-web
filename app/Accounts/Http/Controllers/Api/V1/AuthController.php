@@ -29,26 +29,26 @@ class AuthController extends Controller
         /** @var User|null $user */
         $user = User::query()
             ->with('driver')
-            ->emailIs($request->string('email')->toString())
+            ->usernameIs($request->string('username')->toString())
             ->first();
 
         if (! $user || ! Hash::check($request->string('password')->toString(), $user->password)) {
             $request->hitRateLimit();
 
             throw ValidationException::withMessages([
-                'email' => [__('auth.failed')],
+                'username' => [__('auth.failed')],
             ]);
         }
 
         if (! $user->enabled) {
             throw ValidationException::withMessages([
-                'email' => [__('User account is disabled.')],
+                'username' => [__('User account is disabled.')],
             ]);
         }
 
         if (! $user->driver || ! $user->driver->enabled) {
             throw ValidationException::withMessages([
-                'email' => [__('User is not an active driver.')],
+                'username' => [__('User is not an active driver.')],
             ]);
         }
 

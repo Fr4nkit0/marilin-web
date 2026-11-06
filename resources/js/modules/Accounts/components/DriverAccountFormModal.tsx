@@ -15,7 +15,6 @@ interface Props {
 
 type AccountForm = {
     name: string;
-    email: string;
     username: string;
     phone_number: string;
     password: string;
@@ -29,7 +28,6 @@ export default function DriverAccountFormModal({ show, account, onClose }: Props
     const isNew = account === null;
     const { data, setData, post, patch, processing, errors, reset, clearErrors, transform } = useForm<AccountForm>({
         name: '',
-        email: '',
         username: '',
         phone_number: '',
         password: '',
@@ -41,7 +39,6 @@ export default function DriverAccountFormModal({ show, account, onClose }: Props
         clearErrors();
         setData({
             name: account?.name ?? '',
-            email: account?.email ?? '',
             username: account?.username ?? '',
             phone_number: account?.phone_number ?? '',
             password: '',
@@ -49,11 +46,10 @@ export default function DriverAccountFormModal({ show, account, onClose }: Props
         });
     }, [show, account]);
 
-    // Empty optional fields are stored as null; an edit never sends a password.
+    // Drivers have no email: they sign in to the app with the username. Empty optional fields are stored as null; an edit never sends a password.
     transform((form) => ({
         name: form.name,
-        email: form.email,
-        username: form.username || null,
+        username: form.username,
         phone_number: form.phone_number || null,
         ...(isNew ? { password: form.password, password_confirmation: form.password_confirmation } : {}),
     }));
@@ -86,6 +82,7 @@ export default function DriverAccountFormModal({ show, account, onClose }: Props
                 onChange={(e) => setData(key, key === 'phone_number' ? formatPhone(e.target.value) : e.target.value)}
                 className={inputClass}
                 autoComplete={type === 'password' ? 'new-password' : 'off'}
+                autoCapitalize={key === 'username' ? 'none' : undefined}
             />
             <FieldError message={errors[key]} className="mt-1" />
         </label>
@@ -101,7 +98,7 @@ export default function DriverAccountFormModal({ show, account, onClose }: Props
                         </ModalTitle>
                         <p className="text-sm text-ink-muted mt-1">
                             {isNew
-                                ? 'Con este email y contraseña el repartidor entra a la app.'
+                                ? 'Con este usuario y contraseña el repartidor entra a la app.'
                                 : 'Los cambios valen para el próximo ingreso a la app.'}
                         </p>
                     </div>
@@ -117,8 +114,7 @@ export default function DriverAccountFormModal({ show, account, onClose }: Props
 
                 <div className="px-6 py-5 space-y-4">
                     {field('name', 'Nombre')}
-                    {field('email', 'Email', 'email')}
-                    {field('username', 'Usuario', 'text', true)}
+                    {field('username', 'Usuario')}
                     {field('phone_number', 'Teléfono', 'tel', true)}
                     {isNew && field('password', 'Contraseña', 'password')}
                     {isNew && field('password_confirmation', 'Repetir contraseña', 'password')}

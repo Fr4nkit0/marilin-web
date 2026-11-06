@@ -9,9 +9,10 @@ use Laravel\Sanctum\Sanctum;
 
 uses(RefreshDatabase::class);
 
-test('active driver can login successfully and receive sanctum token', function (): void {
+test('active driver can login with the username and receive sanctum token', function (): void {
     $user = User::factory()->create([
-        'email' => 'driver@marilin.app',
+        'email' => null,
+        'username' => 'jperez',
         'password' => 'secret123',
         'enabled' => true,
     ]);
@@ -22,7 +23,7 @@ test('active driver can login successfully and receive sanctum token', function 
     ]);
 
     $response = $this->postJson('/api/v1/auth/login', [
-        'email' => 'driver@marilin.app',
+        'username' => 'jperez',
         'password' => 'secret123',
         'device_name' => 'test-device',
     ]);
@@ -49,13 +50,42 @@ test('active driver can login successfully and receive sanctum token', function 
             'message',
         ]);
 
-    expect($response->json('message'))->toBe('Sesión iniciada.');
-    expect($response->json('data.user.email'))->toBe('driver@marilin.app');
+    expect($response->json('message'))->toBe('Sesión iniciada.')
+        ->and($response->json('data.user.username'))->toBe('jperez')
+        ->and($response->json('data.user.email'))->toBeNull()
+        ->and($user->tokens()->count())->toBe(2);
+});
+
+test('the app login finds the username whatever its letter case without changing it', function (): void {
+    $user = User::factory()->create(['email' => null, 'username' => 'JPerez', 'password' => 'secret123', 'enabled' => true]);
+    Driver::factory()->create(['user_id' => $user->id, 'enabled' => true]);
+
+    $this->postJson('/api/v1/auth/login', ['username' => 'jperez', 'password' => 'secret123'])
+        ->assertOk()
+        ->assertJsonPath('data.user.username', 'JPerez');
+
+    expect($user->fresh()->username)->toBe('JPerez');
+});
+
+test('the app login no longer takes the email', function (): void {
+    $user = User::factory()->create(['email' => 'driver@marilin.app', 'username' => 'jperez', 'password' => 'secret123', 'enabled' => true]);
+    Driver::factory()->create(['user_id' => $user->id, 'enabled' => true]);
+
+    $this->postJson('/api/v1/auth/login', ['email' => 'driver@marilin.app', 'password' => 'secret123'])
+        ->assertStatus(422)
+        ->assertJsonValidationErrors(['username'])
+        ->assertJsonMissingPath('data.token');
+
+    $this->postJson('/api/v1/auth/login', ['username' => 'driver@marilin.app', 'password' => 'secret123'])
+        ->assertStatus(422)
+        ->assertJsonPath('errors.username.0', __('auth.failed'));
+
+    expect($user->tokens()->count())->toBe(0);
 });
 
 test('login fails with invalid credentials', function (): void {
     $user = User::factory()->create([
-        'email' => 'driver@marilin.app',
+        'username' => 'jperez',
         'password' => 'secret123',
         'enabled' => true,
     ]);
@@ -66,17 +96,19 @@ test('login fails with invalid credentials', function (): void {
     ]);
 
     $response = $this->postJson('/api/v1/auth/login', [
-        'email' => 'driver@marilin.app',
+        'username' => 'jperez',
         'password' => 'wrong-password',
     ]);
 
     $response->assertStatus(422)
-        ->assertJsonValidationErrors(['email']);
+        ->assertJsonPath('errors.username.0', __('auth.failed'));
+
+    expect($user->tokens()->count())->toBe(0);
 });
 
 test('login fails when user is disabled', function (): void {
     $user = User::factory()->create([
-        'email' => 'driver@marilin.app',
+        'username' => 'jperez',
         'password' => 'secret123',
         'enabled' => false,
     ]);
@@ -87,29 +119,31 @@ test('login fails when user is disabled', function (): void {
     ]);
 
     $response = $this->postJson('/api/v1/auth/login', [
-        'email' => 'driver@marilin.app',
+        'username' => 'jperez',
         'password' => 'secret123',
     ]);
 
     $response->assertStatus(422)
-        ->assertJsonValidationErrors(['email' => 'Tu cuenta está deshabilitada.']);
+        ->assertJsonValidationErrors(['username' => 'Tu cuenta está deshabilitada.']);
+
+    expect($user->tokens()->count())->toBe(0);
 });
 
 test('login fails when user has no driver profile or driver is disabled', function (): void {
     $user = User::factory()->create([
-        'email' => 'nodriver@marilin.app',
+        'username' => 'nodriver',
         'password' => 'secret123',
         'enabled' => true,
     ]);
 
     // No driver record
     $response = $this->postJson('/api/v1/auth/login', [
-        'email' => 'nodriver@marilin.app',
+        'username' => 'nodriver',
         'password' => 'secret123',
     ]);
 
     $response->assertStatus(422)
-        ->assertJsonValidationErrors(['email' => 'El usuario no es un repartidor activo.']);
+        ->assertJsonValidationErrors(['username' => 'El usuario no es un repartidor activo.']);
 
     // Disabled driver record
     Driver::factory()->create([
@@ -118,12 +152,14 @@ test('login fails when user has no driver profile or driver is disabled', functi
     ]);
 
     $response2 = $this->postJson('/api/v1/auth/login', [
-        'email' => 'nodriver@marilin.app',
+        'username' => 'nodriver',
         'password' => 'secret123',
     ]);
 
     $response2->assertStatus(422)
-        ->assertJsonValidationErrors(['email' => 'El usuario no es un repartidor activo.']);
+        ->assertJsonValidationErrors(['username' => 'El usuario no es un repartidor activo.']);
+
+    expect($user->tokens()->count())->toBe(0);
 });
 
 test('authenticated driver can access profile via me endpoint', function (): void {
@@ -138,7 +174,7 @@ test('authenticated driver can access profile via me endpoint', function (): voi
         ->assertJson([
             'data' => [
                 'id' => $user->id,
-                'email' => $user->email,
+                'username' => $user->username,
                 'driver' => [
                     'id' => $driver->id,
                 ],

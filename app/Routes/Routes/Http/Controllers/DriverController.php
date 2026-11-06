@@ -59,7 +59,7 @@ class DriverController extends Controller
                     'id' => $driver->id,
                     'name' => $driver->user?->name ?? 'Sin nombre',
                     'phone_number' => $driver->user?->phone_number,
-                    'email' => $driver->user?->email,
+                    'username' => $driver->user?->username,
                     'totalCustomers' => $driver->customers->count(),
                     'currentRoute' => $routeData,
                     'todayRoute' => $routeData,
@@ -145,7 +145,7 @@ class DriverController extends Controller
             'repartidor' => [
                 'id' => $repartidor->id,
                 'name' => $repartidor->user?->name ?? 'Sin nombre',
-                'email' => $repartidor->user?->email,
+                'username' => $repartidor->user?->username,
                 'totalAssignedCustomers' => $repartidor->customers->count(),
             ],
             'route' => $formattedRoute,
