@@ -60,11 +60,34 @@ export function FieldError({ message, className = '', id }: { message?: string; 
     ) : null;
 }
 
-export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement> & Invalid>(function Input(
-    { invalid, className = '', ...rest },
-    ref,
-) {
-    return <input ref={ref} aria-invalid={invalid || undefined} className={`${CONTROL} ${invalid ? INVALID : ''} ${className}`.trim()} {...rest} />;
+type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'prefix'> &
+    Invalid & {
+        /** A short mark inside the control before the value, such as "$"; the input keeps the id, so its label still names it. */
+        prefix?: ReactNode;
+    };
+
+export const Input = forwardRef<HTMLInputElement, InputProps>(function Input({ invalid, prefix, className = '', ...rest }, ref) {
+    const input = (
+        <input
+            ref={ref}
+            aria-invalid={invalid || undefined}
+            className={`${CONTROL} ${invalid ? INVALID : ''} ${prefix ? 'pl-7' : ''} ${className}`.trim()}
+            {...rest}
+        />
+    );
+
+    if (!prefix) {
+        return input;
+    }
+
+    return (
+        <div className="relative">
+            <span aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-muted">
+                {prefix}
+            </span>
+            {input}
+        </div>
+    );
 });
 
 export function Checkbox({ className = '', ...rest }: InputHTMLAttributes<HTMLInputElement>) {
