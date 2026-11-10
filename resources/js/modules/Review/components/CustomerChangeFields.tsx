@@ -12,7 +12,7 @@ const FIELD_LABELS: Record<string, string> = {
     phone_number: 'Teléfono',
     enabled: 'Activo',
     street: 'Calle',
-    apartment: 'Depto.',
+    apartment: 'Depto/Lote',
     floor: 'Piso',
     visual_reference: 'Referencia',
     neighborhood: 'Barrio',

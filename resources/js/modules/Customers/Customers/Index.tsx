@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useListFilters } from '@/lib/useListFilters';
 import { listSort } from '@/lib/sort';
 import SortableTh from '@/ui/SortableTh';
-import { formatPhone } from '@/lib/format';
 import Pagination from '@/ui/Pagination';
 import type { PaginatedData } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
@@ -11,10 +10,11 @@ import { DebtBadge } from '@/ui/Badge';
 import { PageHeader } from '@/ui/PageHeader';
 import { Field, FieldError, Input } from '@/ui/Field';
 import Button from '@/ui/Button';
-import Modal, { ModalTitle } from '@/ui/Modal';
+import Modal from '@/ui/Modal';
 import PreferenceRowsField from './components/PreferenceRowsField';
 import CustomerFormFields, { FormSection } from './components/CustomerFormFields';
 import CustomerModalHeader from './components/CustomerModalHeader';
+import InitialConditionsFields from './components/InitialConditionsFields';
 import { PreferenceInput } from './types';
 import {
     Search,
@@ -24,7 +24,6 @@ import {
     Phone,
     Package,
     SlidersHorizontal,
-    X,
     Building2,
     Save,
 } from 'lucide-react';
@@ -327,7 +326,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                                             )}
                                                             {c.primary_address.apartment && (
                                                                 <span className="text-ink-subtle">
-                                                                    , Depto {c.primary_address.apartment}
+                                                                    , Depto/Lote {c.primary_address.apartment}
                                                                 </span>
                                                             )}
                                                             {c.primary_address.neighborhood && (
@@ -432,47 +431,14 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                             <p className="-mt-2 text-xs text-ink-muted">
                                 Para un cliente que ya existía antes del sistema: su deuda y los envases que tiene en su casa.
                             </p>
-                            <FieldError message={errors.initial_containers} />
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                <Field label="Deuda inicial" htmlFor="create-initial-balance" error={errors.initial_balance}>
-                                    <div className="relative">
-                                        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-muted">$</span>
-                                        <Input
-                                            id="create-initial-balance"
-                                            type="number"
-                                            inputMode="decimal"
-                                            step="0.01"
-                                            min="0"
-                                            value={data.initial_balance}
-                                            invalid={Boolean(errors.initial_balance)}
-                                            onChange={(e) => setData('initial_balance', e.target.value)}
-                                            className="pl-7 tabular-nums"
-                                        />
-                                    </div>
-                                </Field>
-
-                                {containerTypes.map((type) => {
-                                    const error = (errors as Record<string, string>)[`initial_containers.${type.id}`];
-
-                                    return (
-                                        <Field key={type.id} label={type.description} htmlFor={`initial-containers-${type.id}`} error={error}>
-                                            <Input
-                                                id={`initial-containers-${type.id}`}
-                                                type="number"
-                                                inputMode="numeric"
-                                                min="0"
-                                                step="1"
-                                                value={data.initial_containers[type.id] ?? '0'}
-                                                invalid={Boolean(error)}
-                                                onChange={(e) =>
-                                                    setData('initial_containers', { ...data.initial_containers, [type.id]: e.target.value })
-                                                }
-                                                className="tabular-nums"
-                                            />
-                                        </Field>
-                                    );
-                                })}
-                            </div>
+                            <InitialConditionsFields
+                                balance={data.initial_balance}
+                                containers={data.initial_containers}
+                                containerTypes={containerTypes}
+                                onBalanceChange={(value) => setData('initial_balance', value)}
+                                onContainersChange={(containers) => setData('initial_containers', containers)}
+                                errors={errors as Record<string, string>}
+                            />
                         </FormSection>
 
                         <FormSection title="Días y horarios de entrega">

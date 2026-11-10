@@ -107,4 +107,17 @@ describe('Field', () => {
         expect((screen.getByLabelText('Recordarme') as HTMLInputElement).type).toBe('checkbox');
         expect(container.querySelectorAll('p')).toHaveLength(0);
     });
+
+    it('keeps the label on the input when the input shows a prefix', () => {
+        render(
+            <Field label="Deuda inicial" hint="Lo que ya debía.">
+                <Input prefix="$" defaultValue="0" />
+            </Field>,
+        );
+
+        const input = screen.getByLabelText('Deuda inicial');
+        expect(input.tagName).toBe('INPUT');
+        expect(input.getAttribute('aria-describedby')).toBeTruthy();
+        expect(screen.getByText('$').getAttribute('aria-hidden')).toBe('true');
+    });
 });

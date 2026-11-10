@@ -133,13 +133,13 @@ export default function CustomerFormFields({ idPrefix, data, setData, errors, re
                         />
                     </Field>
 
-                    <Field label="Depto." htmlFor={id('apartment')} error={errors.apartment}>
+                    <Field label="Depto/Lote" htmlFor={id('apartment')} error={errors.apartment}>
                         <Input
                             id={id('apartment')}
                             value={data.apartment}
                             invalid={Boolean(errors.apartment)}
                             onChange={(e) => setData('apartment', e.target.value)}
-                            placeholder="4B"
+                            placeholder="4B, Lote 12"
                         />
                     </Field>
 

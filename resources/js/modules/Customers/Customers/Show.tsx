@@ -226,7 +226,7 @@ export default function CustomerShow({
                                         <span>
                                             {customer.primary_address.street}
                                             {customer.primary_address.floor && ` (Piso ${customer.primary_address.floor})`}
-                                            {customer.primary_address.apartment && ` (Depto ${customer.primary_address.apartment})`}
+                                            {customer.primary_address.apartment && ` (Depto/Lote ${customer.primary_address.apartment})`}
                                             {customer.primary_address.neighborhood && `, ${customer.primary_address.neighborhood}`}
                                             {customer.primary_address.visual_reference && ` - ${customer.primary_address.visual_reference}`}
                                         </span>
