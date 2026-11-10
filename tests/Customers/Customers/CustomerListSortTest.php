@@ -23,7 +23,7 @@ beforeEach(function (): void {
  * @param  array<string, string>  $query
  * @return list<string>
  */
-function listedCustomers(object $test, array $query = [], int $page = 1): array
+function sortedCustomerNames(object $test, array $query = [], int $page = 1): array
 {
     $names = [];
 
@@ -42,7 +42,7 @@ test('without a sort the list stays in alphabetical order and echoes no sort', f
         Customer::factory()->create(['name' => $name]);
     }
 
-    expect(listedCustomers($this))->toBe(['Ana', 'Beto', 'Carla']);
+    expect(sortedCustomerNames($this))->toBe(['Ana', 'Beto', 'Carla']);
 
     $this->actingAs($this->user)
         ->get(route('customers.index'))
@@ -56,7 +56,7 @@ test('the list sorts by name both ways', function (): void {
         Customer::factory()->create(['name' => $name]);
     }
 
-    expect(listedCustomers($this, ['sort' => 'name', 'direction' => 'desc']))->toBe(['Carla', 'Beto', 'Ana']);
+    expect(sortedCustomerNames($this, ['sort' => 'name', 'direction' => 'desc']))->toBe(['Carla', 'Beto', 'Ana']);
 
     $this->actingAs($this->user)
         ->get(route('customers.index', ['sort' => 'name', 'direction' => 'desc']))
@@ -74,9 +74,9 @@ test('the list sorts by the current account balance, a customer without one coun
     CustomerBalance::factory()->create(['customer_id' => $credit->id, 'current_balance' => -500]);
     Customer::factory()->create(['name' => 'Sin cuenta']);
 
-    expect(listedCustomers($this, ['sort' => 'balance', 'direction' => 'desc']))
+    expect(sortedCustomerNames($this, ['sort' => 'balance', 'direction' => 'desc']))
         ->toBe(['Debe mucho', 'Debe poco', 'Sin cuenta', 'A favor']);
-    expect(listedCustomers($this, ['sort' => 'balance', 'direction' => 'asc']))
+    expect(sortedCustomerNames($this, ['sort' => 'balance', 'direction' => 'asc']))
         ->toBe(['A favor', 'Sin cuenta', 'Debe poco', 'Debe mucho']);
 });
 
@@ -88,7 +88,7 @@ test('the list sorts by the containers a customer holds, adding every container 
     CustomerContainerBalance::factory()->create(['customer_id' => $few->id, 'balance' => 6]);
     Customer::factory()->create(['name' => 'Ninguno']);
 
-    expect(listedCustomers($this, ['sort' => 'containers', 'direction' => 'desc']))->toBe(['Muchos', 'Pocos', 'Ninguno']);
+    expect(sortedCustomerNames($this, ['sort' => 'containers', 'direction' => 'desc']))->toBe(['Muchos', 'Pocos', 'Ninguno']);
 });
 
 test('the list sorts by the driver name and by the street of the primary address', function (): void {
@@ -99,8 +99,8 @@ test('the list sorts by the driver name and by the street of the primary address
     CustomerAddress::factory()->create(['customer_id' => $first->id, 'is_primary' => true, 'street' => 'Alvarado 10']);
     CustomerAddress::factory()->create(['customer_id' => $second->id, 'is_primary' => true, 'street' => 'Mitre 50']);
 
-    expect(listedCustomers($this, ['sort' => 'driver', 'direction' => 'asc']))->toBe(['De Abel', 'De Zoe']);
-    expect(listedCustomers($this, ['sort' => 'address', 'direction' => 'asc']))->toBe(['De Zoe', 'De Abel']);
+    expect(sortedCustomerNames($this, ['sort' => 'driver', 'direction' => 'asc']))->toBe(['De Abel', 'De Zoe']);
+    expect(sortedCustomerNames($this, ['sort' => 'address', 'direction' => 'asc']))->toBe(['De Zoe', 'De Abel']);
 });
 
 test('the sort covers the whole list, not just the page, and every page keeps it', function (): void {
@@ -108,8 +108,8 @@ test('the sort covers the whole list, not just the page, and every page keeps it
         Customer::factory()->create(['name' => sprintf('Cliente %02d', $number)]);
     }
 
-    expect(listedCustomers($this, ['sort' => 'name', 'direction' => 'desc'])[0])->toBe('Cliente 16');
-    expect(listedCustomers($this, ['sort' => 'name', 'direction' => 'desc'], page: 2))->toBe(['Cliente 01']);
+    expect(sortedCustomerNames($this, ['sort' => 'name', 'direction' => 'desc'])[0])->toBe('Cliente 16');
+    expect(sortedCustomerNames($this, ['sort' => 'name', 'direction' => 'desc'], page: 2))->toBe(['Cliente 01']);
 });
 
 test('an unknown column or direction falls back to the alphabetical order', function (array $query): void {
@@ -117,7 +117,7 @@ test('an unknown column or direction falls back to the alphabetical order', func
         Customer::factory()->create(['name' => $name]);
     }
 
-    expect(listedCustomers($this, $query))->toBe(['Ana', 'Beto', 'Carla']);
+    expect(sortedCustomerNames($this, $query))->toBe(['Ana', 'Beto', 'Carla']);
 
     $this->actingAs($this->user)
         ->get(route('customers.index', $query))

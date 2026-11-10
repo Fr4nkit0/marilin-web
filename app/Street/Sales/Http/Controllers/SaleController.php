@@ -5,7 +5,9 @@ namespace App\Street\Sales\Http\Controllers;
 use App\Accounts\Models\Driver;
 use App\CashDesk\DailyFigures;
 use App\CashDesk\DayScope;
+use App\Customers\Customers\Models\Customer;
 use App\Http\Controllers\Controller;
+use App\Shared\ListSort;
 use App\Shared\TextMatch;
 use App\Street\Payments\Models\Payment;
 use App\Street\Sales\CancelSale;
@@ -13,6 +15,7 @@ use App\Street\Sales\Http\Requests\CancelSaleRequest;
 use App\Street\Sales\Models\Sale;
 use App\Street\StreetOperation;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -62,7 +65,27 @@ class SaleController extends Controller
         // A cancelled sale stays listed, marked as such, but it is not one of the day's operations.
         $confirmedCount = (clone $query)->confirmed()->count();
 
-        $sales = $query->latest('date')->paginate(15)->withQueryString()->through(fn (Sale $sale): array => $this->listed($sale));
+        $sort = ListSort::apply($query, $request->query('sort'), $request->query('direction'), [
+            'date' => 'date',
+            'customer' => fn (Builder $sorted, string $direction) => $sorted->orderBy(
+                Customer::query()->select('name')->whereColumn('customers.id', 'sales.customer_id'),
+                $direction,
+            ),
+            // The name the list shows under "Registrada por": the driver of the visit, else whoever loaded the sale.
+            'registered_by' => fn (Builder $sorted, string $direction) => $sorted->orderByRaw(
+                '(select coalesce('
+                .'(select users.name from visits join drivers on drivers.id = visits.driver_id join users on users.id = drivers.user_id where visits.id = sales.visit_id), '
+                .'(select users.name from users where users.id = sales.created_by)'
+                .")) {$direction}",
+            ),
+            'type' => 'is_credit_sale',
+            'total' => 'total',
+        ]);
+
+        $sales = ($sort === null ? $query->latest('date') : $query)
+            ->paginate(15)
+            ->withQueryString()
+            ->through(fn (Sale $sale): array => $this->listed($sale));
 
         // An empty date query parameter arrives as null and falls back to today, so the totals are always one day's.
         $day = $figures->forDay($date ?: Carbon::today()->toDateString(), $scope);
@@ -91,6 +114,8 @@ class SaleController extends Controller
                 'date' => $date,
                 'repartidor_id' => $driverFilter,
                 'sale_type' => $saleType ?? 'all',
+                'sort' => $sort['sort'] ?? null,
+                'direction' => $sort['direction'] ?? null,
             ],
             'repartidores' => $drivers,
         ]);

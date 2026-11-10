@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { date, money, paymentMethodsLabel, time } from '@/lib/format';
 import { useListFilters } from '@/lib/useListFilters';
+import { listSort } from '@/lib/sort';
 import DataTable, { type Column } from '@/ui/DataTable';
 import Pagination from '@/ui/Pagination';
 import type { PaginatedData } from '@/types';
@@ -87,6 +88,8 @@ interface Props {
         date: string;
         repartidor_id?: string;
         sale_type?: string;
+        sort?: string | null;
+        direction?: string | null;
     };
     repartidores: { id: number; name: string }[];
 }
@@ -101,9 +104,13 @@ export default function SalesIndex({ sales, metrics, filters, repartidores, canC
             date: filters.date || '',
             repartidor_id: filters.repartidor_id || '',
             sale_type: filters.sale_type || 'all',
+            sort: filters.sort || '',
+            direction: filters.direction || '',
         },
-        { search: '', date: '', repartidor_id: '', sale_type: 'all' },
+        { search: '', date: '', repartidor_id: '', sale_type: 'all', sort: '', direction: '' },
     );
+    const sort = listSort(filter.values, filter.setMany);
+    const sortBy = (key: string) => ({ direction: sort.directionOf(key), onSort: () => sort.toggle(key) });
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -111,9 +118,10 @@ export default function SalesIndex({ sales, metrics, filters, repartidores, canC
     };
 
     const columns: Column<SaleItem>[] = [
-        { header: 'Fecha / Hora', className: 'text-ink-muted whitespace-nowrap', cell: (sale) => `${time(sale.date)} hs` },
+        { header: 'Fecha / Hora', className: 'text-ink-muted whitespace-nowrap', sort: sortBy('date'), cell: (sale) => `${time(sale.date)} hs` },
         {
             header: 'Cliente',
+            sort: sortBy('customer'),
             // A long customer name wraps so the row actions stay inside the table at 1440 px.
             className: 'whitespace-normal min-w-[10rem]',
             cell: (sale) =>
@@ -125,7 +133,7 @@ export default function SalesIndex({ sales, metrics, filters, repartidores, canC
                     <span className="text-ink-subtle font-medium italic">Consumidor Final</span>
                 ),
         },
-        { header: 'Registrada por', className: 'text-ink-secondary', cell: (sale) => sale.visit?.driver?.user?.name || sale.creator?.name || '-' },
+        { header: 'Registrada por', className: 'text-ink-secondary', sort: sortBy('registered_by'), cell: (sale) => sale.visit?.driver?.user?.name || sale.creator?.name || '-' },
         {
             header: 'Detalle Productos',
             className: 'text-ink-secondary',
@@ -145,6 +153,7 @@ export default function SalesIndex({ sales, metrics, filters, repartidores, canC
         {
             header: 'Tipo / Método',
             align: 'center',
+            sort: sortBy('type'),
             cell: (sale) =>
                 sale.status === 'confirmed' ? (
                     <PaymentMethodBadge method={paymentMethodsLabel(sale.payment_methods) || (sale.is_credit_sale ? 'Crédito Ruta' : 'Efectivo')} />
@@ -155,6 +164,7 @@ export default function SalesIndex({ sales, metrics, filters, repartidores, canC
         {
             header: 'Total',
             align: 'right',
+            sort: sortBy('total'),
             className: 'font-semibold text-ink',
             // A cancelled sale moved no money: its amount stays visible but struck through, outside the totals.
             cell: (sale) => (sale.status === 'confirmed' ? money(sale.total) : <s className="font-normal text-ink-muted">{money(sale.total)}</s>),
