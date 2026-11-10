@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useListFilters } from '@/lib/useListFilters';
+import { listSort } from '@/lib/sort';
+import SortableTh from '@/ui/SortableTh';
 import { formatPhone } from '@/lib/format';
 import Pagination from '@/ui/Pagination';
 import type { PaginatedData } from '@/types';
@@ -72,6 +74,8 @@ interface Props {
         search?: string;
         repartidor_id?: string;
         debt_status?: string;
+        sort?: string | null;
+        direction?: string | null;
     };
     repartidores: { id: number; name: string }[];
     neighborhoods: string[];
@@ -83,9 +87,16 @@ const NEIGHBORHOOD_OPTIONS = 'neighborhood-options';
 export default function CustomersIndex({ customers, filters, repartidores, neighborhoods, containerTypes }: Props) {
     const filter = useListFilters(
         'customers.index',
-        { search: filters.search || '', repartidor_id: filters.repartidor_id || '', debt_status: filters.debt_status || 'all' },
-        { search: '', repartidor_id: '', debt_status: 'all' },
+        {
+            search: filters.search || '',
+            repartidor_id: filters.repartidor_id || '',
+            debt_status: filters.debt_status || 'all',
+            sort: filters.sort || '',
+            direction: filters.direction || '',
+        },
+        { search: '', repartidor_id: '', debt_status: 'all', sort: '', direction: '' },
     );
+    const sort = listSort(filter.values, filter.setMany);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [editingCustomer, setEditingCustomer] = useState<CustomerItem | null>(null);
 
@@ -251,11 +262,21 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                     <table className="w-full text-left text-sm whitespace-nowrap">
                         <thead className="bg-canvas/80 backdrop-blur-md border-b border-hairline text-ink-muted">
                             <tr>
-                                <th className="px-4 py-4 text-xs font-medium text-ink tracking-wide">Cliente</th>
-                                <th className="px-4 py-4 text-xs font-medium text-ink tracking-wide">Dirección</th>
-                                <th className="px-4 py-4 text-xs font-medium text-ink tracking-wide">Repartidor</th>
-                                <th className="px-4 py-4 text-xs font-medium text-ink tracking-wide text-center">Envases</th>
-                                <th className="px-4 py-4 text-xs font-medium text-ink tracking-wide text-right">Cuenta Corriente</th>
+                                <SortableTh direction={sort.directionOf('name')} onSort={() => sort.toggle('name')} className="px-4 py-4 text-xs font-medium text-ink tracking-wide">
+                                    Cliente
+                                </SortableTh>
+                                <SortableTh direction={sort.directionOf('address')} onSort={() => sort.toggle('address')} className="px-4 py-4 text-xs font-medium text-ink tracking-wide">
+                                    Dirección
+                                </SortableTh>
+                                <SortableTh direction={sort.directionOf('driver')} onSort={() => sort.toggle('driver')} className="px-4 py-4 text-xs font-medium text-ink tracking-wide">
+                                    Repartidor
+                                </SortableTh>
+                                <SortableTh direction={sort.directionOf('containers')} onSort={() => sort.toggle('containers')} align="center" className="px-4 py-4 text-xs font-medium text-ink tracking-wide">
+                                    Envases
+                                </SortableTh>
+                                <SortableTh direction={sort.directionOf('balance')} onSort={() => sort.toggle('balance')} align="right" className="px-4 py-4 text-xs font-medium text-ink tracking-wide">
+                                    Cuenta Corriente
+                                </SortableTh>
                                 <th className="px-4 py-4 text-xs font-medium text-ink tracking-wide text-right"><span className="sr-only">Acciones</span></th>
                             </tr>
                         </thead>

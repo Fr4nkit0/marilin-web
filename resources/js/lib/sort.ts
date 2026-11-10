@@ -66,3 +66,22 @@ export function useSort<T, K extends string>(rows: readonly T[], columns: Record
         toggle: (key: K) => setSort((current) => nextSort(current, key)),
     };
 }
+
+/**
+ * A paginated list's sort, kept in the URL with its filters (`?sort=name&direction=desc`): the server sorts the whole
+ * list, so a click only asks for the next order. Empty values mean the list's own default order.
+ */
+export function listSort(values: { sort: string; direction: string }, set: (changes: { sort: string; direction: string }) => void) {
+    const sorted: SortState<string> = {
+        key: values.sort || null,
+        direction: values.direction === 'desc' ? 'desc' : 'asc',
+    };
+
+    return {
+        directionOf: (key: string): SortDirection | null => (values.sort === key ? sorted.direction : null),
+        toggle: (key: string) => {
+            const next = nextSort(sorted, key);
+            set({ sort: key, direction: next.direction });
+        },
+    };
+}

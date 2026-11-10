@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
-import { nextSort, sortRows, useSort } from './sort';
+import { describe, expect, it, vi } from 'vitest';
+import { listSort, nextSort, sortRows, useSort } from './sort';
 
 describe('nextSort', () => {
     it('starts a new column ascending and flips the same column', () => {
@@ -35,6 +35,28 @@ describe('sortRows', () => {
 
         expect(sortRows(rows, (r) => r.status, 'desc').map((r) => r.id)).toEqual([1, 3, 2]);
         expect(rows.map((r) => r.id)).toEqual([1, 2, 3]);
+    });
+});
+
+describe('listSort', () => {
+    it('asks the server for the next order of a column and reports the current one', () => {
+        const set = vi.fn();
+        const sort = listSort({ sort: 'name', direction: 'desc' }, set);
+
+        expect(sort.directionOf('name')).toBe('desc');
+        expect(sort.directionOf('balance')).toBeNull();
+
+        sort.toggle('name');
+        expect(set).toHaveBeenLastCalledWith({ sort: 'name', direction: 'asc' });
+
+        sort.toggle('balance');
+        expect(set).toHaveBeenLastCalledWith({ sort: 'balance', direction: 'asc' });
+    });
+
+    it('reports no sorted column while the list keeps its default order', () => {
+        const sort = listSort({ sort: '', direction: '' }, vi.fn());
+
+        expect(sort.directionOf('name')).toBeNull();
     });
 });
 

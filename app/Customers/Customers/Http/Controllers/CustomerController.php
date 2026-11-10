@@ -3,6 +3,7 @@
 namespace App\Customers\Customers\Http\Controllers;
 
 use App\Accounts\Models\Driver;
+use App\Accounts\Models\User;
 use App\Catalog\Enums\PaymentMethodCode;
 use App\Catalog\Models\ContainerType;
 use App\Catalog\Models\PaymentMethod;
@@ -24,9 +25,13 @@ use App\Customers\Neighborhoods\Models\Neighborhood;
 use App\Http\Controllers\Controller;
 use App\Routes\ScheduledVisits\Enums\ScheduledVisitDisplayStatus;
 use App\Routes\ScheduledVisits\Models\ScheduledVisit;
+use App\Shared\ListSort;
 use App\Shared\TextMatch;
+use App\Street\Containers\Models\CustomerContainerBalance;
 use App\Street\Ledger\Models\CustomerAccountEntry;
+use App\Street\Ledger\Models\CustomerBalance;
 use App\Street\Sales\Models\SaleDetail;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -76,7 +81,29 @@ class CustomerController extends Controller
             });
         }
 
-        $customers = $query->orderBy('name')->paginate(15)->withQueryString();
+        // Balances, containers, drivers and addresses live in other tables: a subquery per customer sorts by them.
+        $sort = ListSort::apply($query, $request->query('sort'), $request->query('direction'), [
+            'name' => 'name',
+            'address' => fn (Builder $sorted, string $direction) => $sorted->orderBy(
+                CustomerAddress::query()->select('street')->whereColumn('customer_addresses.customer_id', 'customers.id')->where('is_primary', true)->limit(1),
+                $direction,
+            ),
+            'driver' => fn (Builder $sorted, string $direction) => $sorted->orderBy(
+                User::query()->select('users.name')->join('drivers', 'drivers.user_id', '=', 'users.id')->whereColumn('drivers.id', 'customers.driver_id'),
+                $direction,
+            ),
+            'containers' => fn (Builder $sorted, string $direction) => $sorted->orderBy(
+                CustomerContainerBalance::query()->selectRaw('coalesce(sum(balance), 0)')->whereColumn('customer_container_balances.customer_id', 'customers.id'),
+                $direction,
+            ),
+            // An aggregate always answers a row, so a customer without a balance row sorts as owing nothing.
+            'balance' => fn (Builder $sorted, string $direction) => $sorted->orderBy(
+                CustomerBalance::query()->selectRaw('coalesce(max(current_balance), 0)')->whereColumn('customer_balances.customer_id', 'customers.id'),
+                $direction,
+            ),
+        ]);
+
+        $customers = ($sort === null ? $query->orderBy('name') : $query)->paginate(15)->withQueryString();
 
         $drivers = Driver::with('user')->get()->map(fn ($r) => [
             'id' => $r->id,
@@ -89,6 +116,8 @@ class CustomerController extends Controller
                 'search' => $search,
                 'repartidor_id' => $driverId,
                 'debt_status' => $debtStatus ?? 'all',
+                'sort' => $sort['sort'] ?? null,
+                'direction' => $sort['direction'] ?? null,
             ],
             'repartidores' => $drivers,
             'neighborhoods' => Neighborhood::query()->enabled()->orderBy('name')->pluck('name'),
