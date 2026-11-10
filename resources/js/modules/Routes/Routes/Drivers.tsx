@@ -213,9 +213,10 @@ export default function RepartidoresIndex({ repartidores, filters }: Props) {
                                             <td className="px-6 py-4 text-right">
                                                 <Link
                                                     href={route('drivers.show', rep.id)}
-                                                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-sky-600 text-white hover:bg-sky-700 font-medium text-sm transition-colors shadow-sm dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
+                                                    aria-label={`Ver ficha de ${rep.name}`}
+                                                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-sky-600 text-white hover:bg-sky-700 font-medium text-sm transition-colors shadow-sm dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
                                                 >
-                                                    Ver Detalle
+                                                    Ver ficha
                                                     <ArrowUpRight className="w-4 h-4" />
                                                 </Link>
                                             </td>
