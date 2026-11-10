@@ -1,8 +1,10 @@
 import React, { FormEvent, useState } from 'react';
 import { Head } from '@inertiajs/react';
 import { useListFilters } from '@/lib/useListFilters';
-import { KeyRound, Pencil, Plus, Power, Search } from 'lucide-react';
+import { KeyRound, Pencil, Plus, Power, Search, UserRound } from 'lucide-react';
 import AdminLayout from '@/layouts/AdminLayout';
+import Button from '@/ui/Button';
+import { PageHeader } from '@/ui/PageHeader';
 import DriverAccountFormModal from './components/DriverAccountFormModal';
 import DriverPasswordModal from './components/DriverPasswordModal';
 import DriverStatusModal from './components/DriverStatusModal';
@@ -12,6 +14,10 @@ interface Props {
     users: DriverAccount[];
     filters: { search: string; status: DriverAccountStatusFilter };
 }
+
+/** A quiet row action whose hover tint says what it does; the confirmation modal guards the change. */
+const rowAction =
+    'inline-flex h-8 items-center justify-center gap-2 rounded-md px-3 text-xs font-medium text-ink-secondary transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-600 focus-visible:ring-offset-2';
 
 const statusOptions: { value: DriverAccountStatusFilter; label: string }[] = [
     { value: null, label: 'Todas' },
@@ -31,6 +37,8 @@ export default function Index({ users, filters }: Props) {
     const [passwordFor, setPasswordFor] = useState<DriverAccount | null>(null);
     const [statusFor, setStatusFor] = useState<DriverAccount | null>(null);
 
+    const filtered = Boolean(filters.search) || filters.status !== null;
+
     const submitSearch = (e: FormEvent) => {
         e.preventDefault();
         filter.submit();
@@ -46,29 +54,20 @@ export default function Index({ users, filters }: Props) {
         setFormOpen(true);
     };
 
-    const actionClass =
-        'inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-ink-secondary hover:bg-surface-1 transition cursor-pointer';
-
     return (
         <AdminLayout header={<span className="text-sm font-medium text-ink-muted">Usuarios</span>}>
             <Head title="Usuarios" />
 
-            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                    <h1 className="text-2xl font-semibold text-ink tracking-tight">Usuarios</h1>
-                    <p className="text-sm font-medium text-ink-muted mt-1 tracking-wide">
-                        Cuentas de los repartidores para entrar a la app.
-                    </p>
-                </div>
-                <button
-                    type="button"
-                    onClick={openCreate}
-                    className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 cursor-pointer dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
-                >
-                    <Plus className="w-4 h-4" />
-                    Nuevo repartidor
-                </button>
-            </div>
+            <PageHeader
+                title="Usuarios"
+                description="Cuentas de repartidor para entrar a la app. Cada cuenta que creás acá es un perfil de repartidor."
+                actions={
+                    <Button onClick={openCreate}>
+                        <Plus className="w-4 h-4" />
+                        Nuevo repartidor
+                    </Button>
+                }
+            />
 
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <form onSubmit={submitSearch} className="relative flex-1">
@@ -79,7 +78,7 @@ export default function Index({ users, filters }: Props) {
                         onChange={(e) => filter.draft('search', e.target.value)}
                         placeholder="Buscar por nombre o usuario"
                         aria-label="Buscar usuarios"
-                        className="w-full py-2 pl-9 pr-3 text-sm border border-hairline/60 bg-canvas text-ink rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600"
+                        className="w-full h-10 pl-9 pr-3 text-sm border border-hairline bg-canvas text-ink placeholder-ink-subtle rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600"
                     />
                 </form>
                 <div className="flex gap-1 rounded-lg bg-surface-1 p-1" role="group" aria-label="Filtrar por estado">
@@ -89,10 +88,8 @@ export default function Index({ users, filters }: Props) {
                             type="button"
                             onClick={() => filter.set('status', option.value ?? '')}
                             aria-pressed={filters.status === option.value}
-                            className={`px-3 py-1.5 rounded-md text-xs font-medium transition cursor-pointer ${
-                                filters.status === option.value
-                                    ? 'bg-canvas text-ink shadow-sm'
-                                    : 'text-ink-muted hover:text-ink'
+                            className={`px-3 py-1.5 rounded-md text-xs font-medium transition cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-600 ${
+                                filters.status === option.value ? 'bg-canvas text-ink shadow-sm' : 'text-ink-muted hover:text-ink'
                             }`}
                         >
                             {option.label}
@@ -101,62 +98,114 @@ export default function Index({ users, filters }: Props) {
                 </div>
             </div>
 
-            <div className="bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden ">
-                <div className="table-scroll">
-                    <table className="w-full text-left text-sm">
-                        <thead className="bg-canvas/80 backdrop-blur-md border-b border-hairline text-ink-muted">
-                            <tr>
-                                <th className="px-6 py-4 text-xs font-medium text-ink tracking-wide">Repartidor</th>
-                                <th className="px-6 py-4 text-xs font-medium text-ink tracking-wide">Usuario</th>
-                                <th className="px-6 py-4 text-xs font-medium text-ink tracking-wide">Teléfono</th>
-                                <th className="px-6 py-4 text-xs font-medium text-ink tracking-wide">Estado</th>
-                                <th className="px-6 py-4 text-xs font-medium text-ink tracking-wide text-right">
-                                    Acciones
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {users.length === 0 ? (
+            <div className="bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden">
+                {users.length === 0 ? (
+                    <div className="px-6 py-14 text-center">
+                        <UserRound className="w-10 h-10 text-ink-subtle mx-auto mb-3" />
+                        {filtered ? (
+                            <>
+                                <h2 className="text-base font-semibold text-ink">No hay cuentas que coincidan</h2>
+                                <p className="text-sm text-ink-muted mt-1">Probá con otro nombre o cambiá el filtro de estado.</p>
+                                <Button
+                                    variant="secondary"
+                                    className="mt-5"
+                                    onClick={() => filter.setMany({ search: '', status: '' })}
+                                >
+                                    Limpiar filtros
+                                </Button>
+                            </>
+                        ) : (
+                            <>
+                                <h2 className="text-base font-semibold text-ink">Todavía no hay repartidores</h2>
+                                <p className="text-sm text-ink-muted mt-1">
+                                    Creá la cuenta de un repartidor para que pueda entrar a la app.
+                                </p>
+                                <Button className="mt-5" onClick={openCreate}>
+                                    <Plus className="w-4 h-4" />
+                                    Nuevo repartidor
+                                </Button>
+                            </>
+                        )}
+                    </div>
+                ) : (
+                    <div className="table-scroll">
+                        <table className="w-full text-left text-sm">
+                            <thead className="bg-canvas-soft border-b border-hairline text-ink-muted">
                                 <tr>
-                                    <td colSpan={5} className="px-6 py-10 text-center text-ink-muted text-sm">
-                                        <span className="table-empty">No hay cuentas que coincidan.</span>
-                                    </td>
+                                    <th className="px-5 py-3 text-xs font-medium">Repartidor</th>
+                                    <th className="px-5 py-3 text-xs font-medium">Usuario de la app</th>
+                                    <th className="px-5 py-3 text-xs font-medium">Teléfono</th>
+                                    <th className="px-5 py-3 text-xs font-medium">Estado</th>
+                                    <th className="px-5 py-3 text-xs font-medium text-right">
+                                        <span className="sr-only">Acciones</span>
+                                    </th>
                                 </tr>
-                            ) : (
-                                users.map((account) => (
-                                    <tr key={account.id} className="border-b border-hairline last:border-0">
-                                        <td className="px-6 py-4">
-                                            <div className={`font-medium ${account.enabled ? 'text-ink' : 'text-ink-subtle'}`}>
-                                                {account.name}
+                            </thead>
+                            <tbody className="divide-y divide-hairline">
+                                {users.map((account) => (
+                                    <tr key={account.id} className="hover:bg-canvas-soft/50 transition-colors">
+                                        <td className="px-5 py-3">
+                                            <div className="flex items-center gap-3">
+                                                <span
+                                                    aria-hidden="true"
+                                                    className={`flex w-9 h-9 shrink-0 items-center justify-center rounded-full bg-surface-1 font-semibold ${
+                                                        account.enabled ? 'text-ink-secondary' : 'text-ink-subtle'
+                                                    }`}
+                                                >
+                                                    {account.name.charAt(0)}
+                                                </span>
+                                                <span className={`font-medium ${account.enabled ? 'text-ink' : 'text-ink-muted'}`}>
+                                                    {account.name}
+                                                </span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-ink-secondary">{account.username ?? '—'}</td>
-                                        <td className="px-6 py-4 text-ink-secondary">{account.phone_number ?? '—'}</td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-5 py-3 text-ink-secondary">
+                                            {account.username ?? <span className="text-ink-subtle">—</span>}
+                                        </td>
+                                        <td className="px-5 py-3 text-ink-secondary tabular-nums whitespace-nowrap">
+                                            {account.phone_number ?? <span className="text-ink-subtle">—</span>}
+                                        </td>
+                                        <td className="px-5 py-3">
                                             <span
-                                                className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
+                                                className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-xs font-medium ${
                                                     account.enabled
-                                                        ? 'bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
-                                                        : 'bg-surface-1 text-ink-muted'
+                                                        ? 'bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-200/60 dark:border-emerald-500/30'
+                                                        : 'bg-surface-1 text-ink-muted border-hairline/60'
                                                 }`}
                                             >
+                                                <span className="w-1.5 h-1.5 rounded-full bg-current" />
                                                 {account.enabled ? 'Habilitada' : 'Deshabilitada'}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-5 py-3">
                                             <div className="flex justify-end gap-1">
-                                                <button type="button" onClick={() => openEdit(account)} className={actionClass}>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => openEdit(account)}
+                                                    aria-label={`Editar a ${account.name}`}
+                                                >
                                                     <Pencil className="w-3.5 h-3.5" />
                                                     Editar
-                                                </button>
-                                                <button type="button" onClick={() => setPasswordFor(account)} className={actionClass}>
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => setPasswordFor(account)}
+                                                    aria-label={`Cambiar la contraseña de ${account.name}`}
+                                                >
                                                     <KeyRound className="w-3.5 h-3.5" />
                                                     Contraseña
-                                                </button>
+                                                </Button>
                                                 <button
                                                     type="button"
                                                     onClick={() => setStatusFor(account)}
-                                                    className={`${actionClass} ${account.enabled ? 'text-red-600 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/15' : ''}`}
+                                                    aria-label={`${account.enabled ? 'Deshabilitar' : 'Habilitar'} la cuenta de ${account.name}`}
+                                                    className={`${rowAction} ${
+                                                        account.enabled
+                                                            ? 'hover:text-rose-700 hover:bg-rose-50 dark:hover:text-rose-300 dark:hover:bg-rose-500/15'
+                                                            : 'hover:text-ink hover:bg-surface-1'
+                                                    }`}
                                                 >
                                                     <Power className="w-3.5 h-3.5" />
                                                     {account.enabled ? 'Deshabilitar' : 'Habilitar'}
@@ -164,11 +213,11 @@ export default function Index({ users, filters }: Props) {
                                             </div>
                                         </td>
                                     </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </div>
 
             <DriverAccountFormModal show={formOpen} account={editing} onClose={() => setFormOpen(false)} />
