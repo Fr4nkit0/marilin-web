@@ -42,4 +42,18 @@ final class ListSort
 
         return ['sort' => $sort, 'direction' => $direction];
     }
+
+    /**
+     * Orders by a value taken from another table, with the rows that have none at the end in both directions,
+     * as the tables sorted in the browser do (Postgres would put them first when descending).
+     *
+     * @param  'asc'|'desc'  $direction  already checked by apply()
+     */
+    public static function missingLast(Builder $query, Builder $value, string $direction): void
+    {
+        $direction = $direction === 'desc' ? 'desc' : 'asc';
+        $subquery = $value->toBase();
+
+        $query->orderByRaw('('.$subquery->toSql().') '.$direction.' nulls last', $subquery->getBindings());
+    }
 }

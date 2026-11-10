@@ -84,11 +84,13 @@ class CustomerController extends Controller
         // Balances, containers, drivers and addresses live in other tables: a subquery per customer sorts by them.
         $sort = ListSort::apply($query, $request->query('sort'), $request->query('direction'), [
             'name' => 'name',
-            'address' => fn (Builder $sorted, string $direction) => $sorted->orderBy(
+            'address' => fn (Builder $sorted, string $direction) => ListSort::missingLast(
+                $sorted,
                 CustomerAddress::query()->select('street')->whereColumn('customer_addresses.customer_id', 'customers.id')->where('is_primary', true)->limit(1),
                 $direction,
             ),
-            'driver' => fn (Builder $sorted, string $direction) => $sorted->orderBy(
+            'driver' => fn (Builder $sorted, string $direction) => ListSort::missingLast(
+                $sorted,
                 User::query()->select('users.name')->join('drivers', 'drivers.user_id', '=', 'users.id')->whereColumn('drivers.id', 'customers.driver_id'),
                 $direction,
             ),

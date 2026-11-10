@@ -103,6 +103,16 @@ test('the list sorts by the driver name and by the street of the primary address
     expect(sortedCustomerNames($this, ['sort' => 'address', 'direction' => 'asc']))->toBe(['De Zoe', 'De Abel']);
 });
 
+test('customers without a driver or an address go last in both directions', function (string $sort): void {
+    $driver = Driver::factory()->create(['user_id' => User::factory()->create(['name' => 'Abel'])->id]);
+    $assigned = Customer::factory()->create(['name' => 'Con datos', 'driver_id' => $driver->id]);
+    CustomerAddress::factory()->create(['customer_id' => $assigned->id, 'is_primary' => true, 'street' => 'Mitre 50']);
+    Customer::factory()->create(['name' => 'Sin datos', 'driver_id' => null]);
+
+    expect(sortedCustomerNames($this, ['sort' => $sort, 'direction' => 'asc']))->toBe(['Con datos', 'Sin datos']);
+    expect(sortedCustomerNames($this, ['sort' => $sort, 'direction' => 'desc']))->toBe(['Con datos', 'Sin datos']);
+})->with(['driver', 'address']);
+
 test('the sort covers the whole list, not just the page, and every page keeps it', function (): void {
     foreach (range(1, 16) as $number) {
         Customer::factory()->create(['name' => sprintf('Cliente %02d', $number)]);
