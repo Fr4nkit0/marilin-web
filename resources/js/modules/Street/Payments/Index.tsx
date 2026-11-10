@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { date, money, paymentStatusLabel, time, type PaymentStatus } from '@/lib/format';
 import { useListFilters } from '@/lib/useListFilters';
+import { listSort } from '@/lib/sort';
 import DataTable, { type Column } from '@/ui/DataTable';
 import Pagination from '@/ui/Pagination';
 import type { PaginatedData } from '@/types';
@@ -64,6 +65,8 @@ interface Props {
         repartidor_id?: string;
         payment_method_id?: string;
         status?: string;
+        sort?: string | null;
+        direction?: string | null;
     };
     paymentMethods: { id: number; name: string; code: string }[];
     repartidores: { id: number; name: string }[];
@@ -80,9 +83,13 @@ export default function PaymentsIndex({ payments, metrics, filters, paymentMetho
             repartidor_id: filters.repartidor_id || '',
             payment_method_id: filters.payment_method_id || '',
             status: filters.status || 'all',
+            sort: filters.sort || '',
+            direction: filters.direction || '',
         },
-        { search: '', date: '', repartidor_id: '', payment_method_id: '', status: 'all' },
+        { search: '', date: '', repartidor_id: '', payment_method_id: '', status: 'all', sort: '', direction: '' },
     );
+    const sort = listSort(filter.values, filter.setMany);
+    const sortBy = (key: string) => ({ direction: sort.directionOf(key), onSort: () => sort.toggle(key) });
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -90,9 +97,10 @@ export default function PaymentsIndex({ payments, metrics, filters, paymentMetho
     };
 
     const columns: Column<PaymentItem>[] = [
-        { header: 'Hora', className: 'text-ink-muted whitespace-nowrap', cell: (payment) => `${payment.paid_at ? time(payment.paid_at) : '-'} hs` },
+        { header: 'Hora', className: 'text-ink-muted whitespace-nowrap', sort: sortBy('paid_at'), cell: (payment) => `${payment.paid_at ? time(payment.paid_at) : '-'} hs` },
         {
             header: 'Cliente',
+            sort: sortBy('customer'),
             cell: (payment) =>
                 payment.customer ? (
                     <Link href={route('customers.show', payment.customer.id)} className="font-medium text-ink hover:text-ink-secondary transition">
@@ -102,18 +110,19 @@ export default function PaymentsIndex({ payments, metrics, filters, paymentMetho
                     <span className="text-ink-subtle font-medium italic">Cliente sin identificar</span>
                 ),
         },
-        { header: 'Cobrado Por', className: 'text-ink-secondary', cell: (payment) => payment.visit?.driver?.user?.name || payment.recipient?.name || 'Administración' },
-        { header: 'Método de Pago', align: 'center', cell: (payment) => <PaymentMethodBadge method={payment.payment_method?.name || 'Efectivo'} /> },
+        { header: 'Cobrado Por', className: 'text-ink-secondary', sort: sortBy('collected_by'), cell: (payment) => payment.visit?.driver?.user?.name || payment.recipient?.name || 'Administración' },
+        { header: 'Método de Pago', align: 'center', sort: sortBy('method'), cell: (payment) => <PaymentMethodBadge method={payment.payment_method?.name || 'Efectivo'} /> },
         {
             header: 'Estado',
             align: 'center',
+            sort: sortBy('status'),
             cell: (payment) => {
                 const label = paymentStatusLabel(payment.status);
 
                 return label ? <StatusBadge status="CANCELADO" label={label} /> : null;
             },
         },
-        { header: 'Monto Recaudado', align: 'right', className: 'font-semibold text-ink', cell: (payment) => `+${money(payment.amount)}` },
+        { header: 'Monto Recaudado', align: 'right', className: 'font-semibold text-ink', sort: sortBy('amount'), cell: (payment) => `+${money(payment.amount)}` },
         ...(canCancel
             ? [
                   {

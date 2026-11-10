@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useListFilters } from '@/lib/useListFilters';
+import { listSort } from '@/lib/sort';
+import SortableTh from '@/ui/SortableTh';
 import { formatPhone } from '@/lib/format';
 import Pagination from '@/ui/Pagination';
 import type { PaginatedData } from '@/types';
@@ -7,9 +9,12 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import AdminLayout from '@/layouts/AdminLayout';
 import { DebtBadge } from '@/ui/Badge';
 import { PageHeader } from '@/ui/PageHeader';
-import { FieldError } from '@/ui/Field';
+import { Field, FieldError, Input } from '@/ui/Field';
+import Button from '@/ui/Button';
 import Modal, { ModalTitle } from '@/ui/Modal';
 import PreferenceRowsField from './components/PreferenceRowsField';
+import CustomerFormFields, { FormSection } from './components/CustomerFormFields';
+import CustomerModalHeader from './components/CustomerModalHeader';
 import { PreferenceInput } from './types';
 import {
     Search,
@@ -72,6 +77,8 @@ interface Props {
         search?: string;
         repartidor_id?: string;
         debt_status?: string;
+        sort?: string | null;
+        direction?: string | null;
     };
     repartidores: { id: number; name: string }[];
     neighborhoods: string[];
@@ -83,9 +90,16 @@ const NEIGHBORHOOD_OPTIONS = 'neighborhood-options';
 export default function CustomersIndex({ customers, filters, repartidores, neighborhoods, containerTypes }: Props) {
     const filter = useListFilters(
         'customers.index',
-        { search: filters.search || '', repartidor_id: filters.repartidor_id || '', debt_status: filters.debt_status || 'all' },
-        { search: '', repartidor_id: '', debt_status: 'all' },
+        {
+            search: filters.search || '',
+            repartidor_id: filters.repartidor_id || '',
+            debt_status: filters.debt_status || 'all',
+            sort: filters.sort || '',
+            direction: filters.direction || '',
+        },
+        { search: '', repartidor_id: '', debt_status: 'all', sort: '', direction: '' },
     );
+    const sort = listSort(filter.values, filter.setMany);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [editingCustomer, setEditingCustomer] = useState<CustomerItem | null>(null);
 
@@ -251,11 +265,21 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                     <table className="w-full text-left text-sm whitespace-nowrap">
                         <thead className="bg-canvas/80 backdrop-blur-md border-b border-hairline text-ink-muted">
                             <tr>
-                                <th className="px-4 py-4 text-xs font-medium text-ink tracking-wide">Cliente</th>
-                                <th className="px-4 py-4 text-xs font-medium text-ink tracking-wide">Dirección</th>
-                                <th className="px-4 py-4 text-xs font-medium text-ink tracking-wide">Repartidor</th>
-                                <th className="px-4 py-4 text-xs font-medium text-ink tracking-wide text-center">Envases</th>
-                                <th className="px-4 py-4 text-xs font-medium text-ink tracking-wide text-right">Cuenta Corriente</th>
+                                <SortableTh direction={sort.directionOf('name')} onSort={() => sort.toggle('name')} className="px-4 py-4 text-xs font-medium text-ink tracking-wide">
+                                    Cliente
+                                </SortableTh>
+                                <SortableTh direction={sort.directionOf('address')} onSort={() => sort.toggle('address')} className="px-4 py-4 text-xs font-medium text-ink tracking-wide">
+                                    Dirección
+                                </SortableTh>
+                                <SortableTh direction={sort.directionOf('driver')} onSort={() => sort.toggle('driver')} className="px-4 py-4 text-xs font-medium text-ink tracking-wide">
+                                    Repartidor
+                                </SortableTh>
+                                <SortableTh direction={sort.directionOf('containers')} onSort={() => sort.toggle('containers')} align="center" className="px-4 py-4 text-xs font-medium text-ink tracking-wide">
+                                    Envases
+                                </SortableTh>
+                                <SortableTh direction={sort.directionOf('balance')} onSort={() => sort.toggle('balance')} align="right" className="px-4 py-4 text-xs font-medium text-ink tracking-wide">
+                                    Cuenta Corriente
+                                </SortableTh>
                                 <th className="px-4 py-4 text-xs font-medium text-ink tracking-wide text-right"><span className="sr-only">Acciones</span></th>
                             </tr>
                         </thead>
@@ -384,469 +408,136 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                 ))}
             </datalist>
 
-            {/* Modal para Crear Nuevo Cliente */}
             <Modal show={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} maxWidth="lg">
-                <div className="shrink-0 bg-canvas border-b border-hairline p-5 text-ink flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-surface-1 text-ink flex items-center justify-center">
-                            <Building2 className="w-5 h-5" />
-                        </div>
-                        <div>
-                            <ModalTitle className="text-base font-semibold text-ink tracking-wide">
-                                Alta de Nuevo Cliente
-                            </ModalTitle>
-                            <p className="text-sm font-medium text-ink-muted tracking-wide">
-                                Ingresa los datos generales, dirección y condiciones iniciales.
-                            </p>
-                        </div>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={() => setIsCreateModalOpen(false)}
-                        aria-label="Cerrar"
-                        className="p-2 rounded-lg text-ink-subtle hover:text-ink-secondary hover:bg-surface-1 transition cursor-pointer"
-                    >
-                        <X className="w-5 h-5" />
-                    </button>
-                </div>
+                <CustomerModalHeader
+                    icon={Building2}
+                    title="Nuevo cliente"
+                    description="Datos, dirección de entrega y lo que ya debe o tiene en comodato."
+                    onClose={() => setIsCreateModalOpen(false)}
+                />
 
                 <form onSubmit={handleCreateCustomer} noValidate className="flex min-h-0 flex-1 flex-col">
                     {/* Only the fields scroll: the title and the buttons stay in view on a short screen. */}
-                    <div className="min-h-0 flex-1 overflow-y-auto p-6 space-y-5">
-                        {/* Nombre o Razón Social */}
-                        <div>
-                            <label htmlFor="create-name" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                Nombre o Razón Social <span className="text-ink">*</span>
-                            </label>
-                            <input
-                                id="create-name"
-                                type="text"
-                                required
-                                value={data.name}
-                                onChange={(e) => setData('name', e.target.value)}
-                                placeholder="Ej: Sanatorio Los Lapachos S.A."
-                                className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
-                            />
-                            <FieldError message={errors.name} className="mt-1" />
-                        </div>
+                    <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 space-y-6">
+                        <CustomerFormFields
+                            idPrefix="create"
+                            data={data}
+                            setData={(key, value) => setData(key, value)}
+                            errors={errors}
+                            repartidores={repartidores}
+                            neighborhoodList={NEIGHBORHOOD_OPTIONS}
+                        />
 
-                        {/* Teléfono & Repartidor */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                            <div>
-                                <label htmlFor="create-phone-number" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                    Teléfono de Contacto
-                                </label>
-                                <input
-                                    id="create-phone-number"
-                                    type="text"
-                                    value={data.phone_number}
-                                    onChange={(e) => setData('phone_number', formatPhone(e.target.value))}
-                                    placeholder="Ej: 387 422-3000"
-                                    className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
-                                />
-                                <FieldError message={errors.phone_number} className="mt-1" />
-                            </div>
-
-                            <div>
-                                <label htmlFor="create-repartidor-id" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                    Repartidor Asignado
-                                </label>
-                                <select
-                                    id="create-repartidor-id"
-                                    value={data.repartidor_id}
-                                    onChange={(e) => setData('repartidor_id', e.target.value)}
-                                    className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  bg-canvas"
-                                >
-                                    <option value="">Sin Asignar</option>
-                                    {repartidores.map((rep) => (
-                                        <option key={rep.id} value={rep.id}>
-                                            {rep.name}
-                                        </option>
-                                    ))}
-                                </select>
-                                <FieldError message={errors.repartidor_id} className="mt-1" />
-                            </div>
-                        </div>
-
-                        {/* Dirección */}
-                        <div className="space-y-4 pt-5 border-t border-hairline">
-                            <h4 className="text-sm font-semibold text-ink">
-                                Dirección Principal
-                            </h4>
-                            <div>
-                                <label htmlFor="create-street" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                    Calle y Altura <span className="text-ink">*</span>
-                                </label>
-                                <input
-                                    id="create-street"
-                                    type="text"
-                                    required
-                                    value={data.street}
-                                    onChange={(e) => setData('street', e.target.value)}
-                                    placeholder="Ej: Belgrano 340"
-                                    className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
-                                />
-                                <FieldError message={errors.street} className="mt-1" />
-                            </div>
-
-                            <div>
-                                <label htmlFor="create-neighborhood" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                    Barrio
-                                </label>
-                                <input
-                                    id="create-neighborhood"
-                                    type="text"
-                                    list={NEIGHBORHOOD_OPTIONS}
-                                    autoComplete="off"
-                                    value={data.neighborhood}
-                                    onChange={(e) => setData('neighborhood', e.target.value)}
-                                    placeholder="Buscar barrio, ej: Tres Cerritos"
-                                    className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
-                                />
-                                <FieldError message={errors.neighborhood} className="mt-1" />
-                            </div>
-
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                                <div>
-                                    <label htmlFor="create-floor" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                        Piso
-                                    </label>
-                                    <input
-                                        id="create-floor"
-                                        type="text"
-                                        value={data.floor}
-                                        onChange={(e) => setData('floor', e.target.value)}
-                                        maxLength={20}
-                                        placeholder="Ej: PB, 3, Local 2"
-                                        className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
-                                    />
-                                    <FieldError message={errors.floor} className="mt-1" />
-                                </div>
-
-                                <div>
-                                    <label htmlFor="create-apartment" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                        Departamento
-                                    </label>
-                                    <input
-                                        id="create-apartment"
-                                        type="text"
-                                        value={data.apartment}
-                                        onChange={(e) => setData('apartment', e.target.value)}
-                                        placeholder="Ej: 4B"
-                                        className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
-                                    />
-                                    <FieldError message={errors.apartment} className="mt-1" />
-                                </div>
-
-                                <div>
-                                    <label htmlFor="create-visual-reference" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                        Referencia Visual
-                                    </label>
-                                    <input
-                                        id="create-visual-reference"
-                                        type="text"
-                                        value={data.visual_reference}
-                                        onChange={(e) => setData('visual_reference', e.target.value)}
-                                        placeholder="Ej: Frente a Plaza Belgrano"
-                                        className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
-                                    />
-                                    <FieldError message={errors.visual_reference} className="mt-1" />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Saldos Iniciales & Envases Comodato */}
-                        <div className="space-y-4 pt-5 border-t border-hairline">
-                            <h4 className="text-sm font-semibold text-ink">
-                                Condiciones Iniciales
-                            </h4>
-                            <FieldError message={errors.initial_containers} className="mt-1" />
-
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                                <div>
-                                    <label htmlFor="create-initial-balance" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                        Deuda Inicial ($)
-                                    </label>
-                                    <input
-                                        id="create-initial-balance"
-                                        type="number"
-                                        step="0.01"
-                                        min="0"
-                                        value={data.initial_balance}
-                                        onChange={(e) => setData('initial_balance', e.target.value)}
-                                        className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  font-medium"
-                                    />
-                                    <FieldError message={errors.initial_balance} className="mt-1" />
-                                </div>
-
-                                {containerTypes.map((type) => (
-                                    <div key={type.id}>
-                                        <label
-                                            htmlFor={`initial-containers-${type.id}`}
-                                            className="block text-sm font-medium text-ink-secondary mb-1.5"
-                                        >
-                                            {type.description}
-                                        </label>
-                                        <input
-                                            id={`initial-containers-${type.id}`}
+                        <FormSection title="Condiciones iniciales">
+                            <p className="-mt-2 text-xs text-ink-muted">
+                                Para un cliente que ya existía antes del sistema: su deuda y los envases que tiene en su casa.
+                            </p>
+                            <FieldError message={errors.initial_containers} />
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <Field label="Deuda inicial" htmlFor="create-initial-balance" error={errors.initial_balance}>
+                                    <div className="relative">
+                                        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-muted">$</span>
+                                        <Input
+                                            id="create-initial-balance"
                                             type="number"
+                                            inputMode="decimal"
+                                            step="0.01"
                                             min="0"
-                                            step="1"
-                                            value={data.initial_containers[type.id] ?? '0'}
-                                            onChange={(e) =>
-                                                setData('initial_containers', { ...data.initial_containers, [type.id]: e.target.value })
-                                            }
-                                            className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  font-medium"
-                                        />
-                                        <FieldError
-                                            message={(errors as Record<string, string>)[`initial_containers.${type.id}`]}
-                                            className="mt-1"
+                                            value={data.initial_balance}
+                                            invalid={Boolean(errors.initial_balance)}
+                                            onChange={(e) => setData('initial_balance', e.target.value)}
+                                            className="pl-7 tabular-nums"
                                         />
                                     </div>
-                                ))}
-                            </div>
-                        </div>
+                                </Field>
 
-                        {/* Días y horarios */}
-                        <div className="space-y-4 pt-5 border-t border-hairline">
-                            <h4 className="text-sm font-semibold text-ink">
-                                Días y horarios de entrega
-                            </h4>
+                                {containerTypes.map((type) => {
+                                    const error = (errors as Record<string, string>)[`initial_containers.${type.id}`];
+
+                                    return (
+                                        <Field key={type.id} label={type.description} htmlFor={`initial-containers-${type.id}`} error={error}>
+                                            <Input
+                                                id={`initial-containers-${type.id}`}
+                                                type="number"
+                                                inputMode="numeric"
+                                                min="0"
+                                                step="1"
+                                                value={data.initial_containers[type.id] ?? '0'}
+                                                invalid={Boolean(error)}
+                                                onChange={(e) =>
+                                                    setData('initial_containers', { ...data.initial_containers, [type.id]: e.target.value })
+                                                }
+                                                className="tabular-nums"
+                                            />
+                                        </Field>
+                                    );
+                                })}
+                            </div>
+                        </FormSection>
+
+                        <FormSection title="Días y horarios de entrega">
                             <PreferenceRowsField
                                 idPrefix="create"
                                 rows={data.preferences}
                                 onChange={(rows) => setData('preferences', rows)}
                                 errors={errors as Record<string, string>}
                             />
-                        </div>
+                        </FormSection>
                     </div>
 
-                    {/* Buttons */}
-                    <div className="shrink-0 flex items-center justify-end gap-3 px-6 py-4 border-t border-hairline">
-                        <button
-                            type="button"
-                            onClick={() => setIsCreateModalOpen(false)}
-                            className="px-4 py-2 rounded-lg bg-surface-2 border-none text-sm font-medium text-ink hover:bg-surface-3 transition cursor-pointer"
-                        >
+                    <div className="shrink-0 flex items-center justify-end gap-3 px-6 py-4 border-t border-hairline bg-canvas-soft/50">
+                        <Button variant="secondary" onClick={() => setIsCreateModalOpen(false)}>
                             Cancelar
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={processing}
-                            className="px-4 py-2 rounded-lg bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 transition shadow-sm cursor-pointer flex items-center gap-2 disabled:opacity-50 dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
-                        >
+                        </Button>
+                        <Button type="submit" processing={processing}>
                             <Save className="w-4 h-4" />
-                            {processing ? 'Guardando...' : 'Guardar Cliente'}
-                        </button>
+                            {processing ? 'Guardando…' : 'Crear cliente'}
+                        </Button>
                     </div>
                 </form>
             </Modal>
 
-            {/* Modal para Editar Cliente Existente */}
             <Modal show={editingCustomer !== null} onClose={() => setEditingCustomer(null)} maxWidth="lg">
-                <div className="shrink-0 bg-canvas border-b border-hairline p-5 text-ink flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-surface-1 text-ink flex items-center justify-center">
-                            <SlidersHorizontal className="w-5 h-5" />
-                        </div>
-                        <div>
-                            <ModalTitle className="text-base font-semibold text-ink tracking-wide">
-                                Editar Datos de Cliente
-                            </ModalTitle>
-                            <p className="text-sm font-medium text-ink-muted tracking-wide">
-                                Actualiza nombre, teléfono, repartidor o dirección física.
-                            </p>
-                        </div>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={() => setEditingCustomer(null)}
-                        aria-label="Cerrar"
-                        className="p-2 rounded-lg text-ink-subtle hover:text-ink-secondary hover:bg-surface-1 transition cursor-pointer"
-                    >
-                        <X className="w-5 h-5" />
-                    </button>
-                </div>
+                <CustomerModalHeader
+                    icon={SlidersHorizontal}
+                    title="Editar cliente"
+                    description="Nombre, teléfono, repartidor o dirección de entrega."
+                    onClose={() => setEditingCustomer(null)}
+                />
 
                 <form onSubmit={handleUpdateCustomer} noValidate className="flex min-h-0 flex-1 flex-col">
                     {/* Only the fields scroll: the title and the buttons stay in view on a short screen. */}
-                    <div className="min-h-0 flex-1 overflow-y-auto p-6 space-y-5">
-                        {/* Nombre o Razón Social */}
-                        <div>
-                            <label htmlFor="edit-name" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                Nombre o Razón Social <span className="text-ink">*</span>
-                            </label>
-                            <input
-                                id="edit-name"
-                                type="text"
-                                required
-                                value={editForm.data.name}
-                                onChange={(e) => editForm.setData('name', e.target.value)}
-                                className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
-                            />
-                            <FieldError message={editForm.errors.name} className="mt-1" />
-                        </div>
+                    <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 space-y-6">
+                        <CustomerFormFields
+                            idPrefix="edit"
+                            data={editForm.data}
+                            setData={(key, value) => editForm.setData(key, value)}
+                            errors={editForm.errors}
+                            repartidores={repartidores}
+                            neighborhoodList={NEIGHBORHOOD_OPTIONS}
+                        />
 
-                        {/* Teléfono & Repartidor */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                            <div>
-                                <label htmlFor="edit-phone-number" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                    Teléfono de Contacto
-                                </label>
-                                <input
-                                    id="edit-phone-number"
-                                    type="text"
-                                    value={editForm.data.phone_number}
-                                    onChange={(e) => editForm.setData('phone_number', formatPhone(e.target.value))}
-                                    placeholder="Ej: 387 422-3000"
-                                    className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
-                                />
-                                <FieldError message={editForm.errors.phone_number} className="mt-1" />
-                            </div>
-
-                            <div>
-                                <label htmlFor="edit-repartidor-id" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                    Repartidor Asignado
-                                </label>
-                                <select
-                                    id="edit-repartidor-id"
-                                    value={editForm.data.repartidor_id}
-                                    onChange={(e) => editForm.setData('repartidor_id', e.target.value)}
-                                    className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600  bg-canvas"
-                                >
-                                    <option value="">Sin Asignar</option>
-                                    {repartidores.map((rep) => (
-                                        <option key={rep.id} value={rep.id}>
-                                            {rep.name}
-                                        </option>
-                                    ))}
-                                </select>
-                                <FieldError message={editForm.errors.repartidor_id} className="mt-1" />
-                            </div>
-                        </div>
-
-                        {/* Dirección */}
-                        <div className="space-y-4 pt-5 border-t border-hairline">
-                            <h4 className="text-sm font-semibold text-ink">
-                                Dirección Principal
-                            </h4>
-                            <div>
-                                <label htmlFor="edit-street" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                    Calle y Altura <span className="text-ink">*</span>
-                                </label>
-                                <input
-                                    id="edit-street"
-                                    type="text"
-                                    required
-                                    value={editForm.data.street}
-                                    onChange={(e) => editForm.setData('street', e.target.value)}
-                                    className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
-                                />
-                                <FieldError message={editForm.errors.street} className="mt-1" />
-                            </div>
-
-                            <div>
-                                <label htmlFor="edit-neighborhood" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                    Barrio
-                                </label>
-                                <input
-                                    id="edit-neighborhood"
-                                    type="text"
-                                    list={NEIGHBORHOOD_OPTIONS}
-                                    autoComplete="off"
-                                    value={editForm.data.neighborhood}
-                                    onChange={(e) => editForm.setData('neighborhood', e.target.value)}
-                                    placeholder="Buscar barrio, ej: Tres Cerritos"
-                                    className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
-                                />
-                                <FieldError message={editForm.errors.neighborhood} className="mt-1" />
-                            </div>
-
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                                <div>
-                                    <label htmlFor="edit-floor" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                        Piso
-                                    </label>
-                                    <input
-                                        id="edit-floor"
-                                        type="text"
-                                        value={editForm.data.floor}
-                                        onChange={(e) => editForm.setData('floor', e.target.value)}
-                                        maxLength={20}
-                                        placeholder="Ej: PB, 3, Local 2"
-                                        className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
-                                    />
-                                    <FieldError message={editForm.errors.floor} className="mt-1" />
-                                </div>
-
-                                <div>
-                                    <label htmlFor="edit-apartment" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                        Departamento
-                                    </label>
-                                    <input
-                                        id="edit-apartment"
-                                        type="text"
-                                        value={editForm.data.apartment}
-                                        onChange={(e) => editForm.setData('apartment', e.target.value)}
-                                        placeholder="Ej: 4B"
-                                        className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
-                                    />
-                                    <FieldError message={editForm.errors.apartment} className="mt-1" />
-                                </div>
-
-                                <div>
-                                    <label htmlFor="edit-visual-reference" className="block text-sm font-medium text-ink-secondary mb-1.5">
-                                        Referencia Visual
-                                    </label>
-                                    <input
-                                        id="edit-visual-reference"
-                                        type="text"
-                                        value={editForm.data.visual_reference}
-                                        onChange={(e) => editForm.setData('visual_reference', e.target.value)}
-                                        placeholder="Ej: Frente a Plaza Belgrano"
-                                        className="w-full px-4 py-2 text-sm border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 "
-                                    />
-                                    <FieldError message={editForm.errors.visual_reference} className="mt-1" />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Días y horarios */}
-                        <div className="space-y-4 pt-5 border-t border-hairline">
-                            <div>
-                                <h4 className="text-sm font-semibold text-ink">
-                                    Agregar días y horarios de entrega
-                                </h4>
-                                <p className="text-xs text-ink-muted mt-1">
-                                    Los que ya tiene se editan o quitan desde la ficha del cliente.
-                                </p>
-                            </div>
+                        <FormSection title="Agregar días y horarios de entrega">
+                            <p className="-mt-2 text-xs text-ink-muted">
+                                Los que ya tiene se editan o quitan desde la ficha del cliente.
+                            </p>
                             <PreferenceRowsField
                                 idPrefix="edit"
                                 rows={editForm.data.preferences}
                                 onChange={(rows) => editForm.setData('preferences', rows)}
                                 errors={editForm.errors as Record<string, string>}
                             />
-                        </div>
+                        </FormSection>
                     </div>
 
-                    {/* Buttons */}
-                    <div className="shrink-0 flex items-center justify-end gap-3 px-6 py-4 border-t border-hairline">
-                        <button
-                            type="button"
-                            onClick={() => setEditingCustomer(null)}
-                            className="px-4 py-2 rounded-lg bg-surface-2 border-none text-sm font-medium text-ink hover:bg-surface-3 transition cursor-pointer"
-                        >
+                    <div className="shrink-0 flex items-center justify-end gap-3 px-6 py-4 border-t border-hairline bg-canvas-soft/50">
+                        <Button variant="secondary" onClick={() => setEditingCustomer(null)}>
                             Cancelar
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={editForm.processing}
-                            className="px-4 py-2 rounded-lg bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 transition shadow-sm cursor-pointer flex items-center gap-2 disabled:opacity-50 dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
-                        >
+                        </Button>
+                        <Button type="submit" processing={editForm.processing}>
                             <Save className="w-4 h-4" />
-                            {editForm.processing ? 'Guardando...' : 'Guardar Cambios'}
-                        </button>
+                            {editForm.processing ? 'Guardando…' : 'Guardar cambios'}
+                        </Button>
                     </div>
                 </form>
             </Modal>

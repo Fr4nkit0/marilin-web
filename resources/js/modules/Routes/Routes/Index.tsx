@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useListFilters } from '@/lib/useListFilters';
-import { stopResultLabel, stopStatusLabel } from '@/lib/format';
 import AdminLayout from '@/layouts/AdminLayout';
 import { StatusBadge } from '@/ui/Badge';
 import { KpiCard } from '@/ui/KpiCard';
@@ -10,7 +9,6 @@ import RouteStockLoadModal, { LoadableProduct } from '@/modules/Street/RouteStoc
 import {
     CalendarCheck,
     Truck,
-    MapPin,
     ArrowUpRight,
     Clock,
     CheckCircle2,
@@ -18,18 +16,11 @@ import {
     Navigation,
     Calendar,
     ChevronDown,
-    ChevronUp,
-    Filter,
     PackagePlus,
     Send,
 } from 'lucide-react';
-import RequestedVisitMark from './components/RequestedVisitMark';
-import type { RouteStatus, RouteStopRow } from './types';
-
-interface StopItem extends RouteStopRow {
-    plannedSequence: number;
-    outcome?: string;
-}
+import RouteStopsTable, { type RouteStop } from './components/RouteStopsTable';
+import type { RouteStatus } from './types';
 
 interface RouteStockItem {
     productId: number;
@@ -82,7 +73,7 @@ interface RouteItem {
     loadHistory: LoadHistoryItem[];
     canLoad: boolean;
     currentStock: StockItem[];
-    stops: StopItem[];
+    stops: RouteStop[];
 }
 
 interface DriverOption {
@@ -112,6 +103,11 @@ interface Props {
 /** A correction alone is not a first load: the next load the admin registers is still the initial one. */
 function hasLoads(route: RouteItem): boolean {
     return route.loadHistory.some((load) => !load.isCorrection);
+}
+
+/** A planned route the driver cannot see yet: it waits for the admin to dispatch it. */
+function awaitsDispatch(route: RouteItem): boolean {
+    return !route.dispatchedAt && route.status === 'PLANNED';
 }
 
 export default function RoutesIndex({
@@ -270,88 +266,92 @@ export default function RoutesIndex({
                         return (
                             <div
                                 key={routeItem.id}
-                                className="bg-canvas border border-hairline/60 rounded-2xl shadow-sm overflow-hidden transition-all duration-200 "
+                                className={`bg-canvas border rounded-2xl shadow-sm overflow-hidden transition-colors duration-200 ${
+                                    isExpanded ? 'border-hairline-strong' : 'border-hairline/60'
+                                }`}
                             >
-                                {/* Route Summary Header Card */}
+                                {/* Route summary: a fixed grid so the progress column lines up across routes. */}
                                 <div
                                     onClick={() => toggleRouteExpand(routeItem.id)}
-                                    className="p-5 flex flex-wrap items-center justify-between gap-4 cursor-pointer hover:bg-canvas-soft/50 transition-colors"
+                                    className="px-5 py-4 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-6 gap-y-3 cursor-pointer hover:bg-canvas-soft/50 transition-colors lg:grid-cols-[minmax(0,1fr)_15rem_auto]"
                                 >
-                                    {/* Left: Driver & Status */}
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 rounded-full bg-sky-600 text-white flex items-center justify-center font-medium text-lg shadow-sm dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400">
+                                    {/* Driver, state and times */}
+                                    <div className="flex items-center gap-4 min-w-0">
+                                        <div className="hidden sm:flex w-10 h-10 shrink-0 rounded-full bg-surface-1 text-ink-secondary items-center justify-center font-semibold">
                                             {routeItem.driver.name.charAt(0)}
                                         </div>
-                                        <div>
-                                            <div className="flex items-center gap-3">
-                                                <h3 className="text-base font-semibold text-ink">
+                                        <div className="min-w-0">
+                                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                                                <h3 className="text-base font-semibold text-ink truncate">
                                                     {routeItem.driver.name}
                                                 </h3>
-                                                <StatusBadge status={routeItem.status} />
-                                                {!routeItem.dispatchedAt && routeItem.status === 'PLANNED' && (
+                                                {awaitsDispatch(routeItem) ? (
                                                     <StatusBadge status="pendiente" label="Sin despachar" />
+                                                ) : (
+                                                    <StatusBadge status={routeItem.status} />
                                                 )}
                                             </div>
-                                            <div className="flex items-center gap-3 text-sm text-ink-muted mt-1">
-                                                <span className="font-medium">Ruta #{routeItem.id}</span>
-                                                <span className="text-ink-subtle">•</span>
+                                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-ink-muted mt-1 tabular-nums">
+                                                <span className="font-medium text-ink-secondary">Ruta #{routeItem.id}</span>
                                                 {routeItem.dispatchedAt && (
-                                                    <>
-                                                        <span className="flex items-center gap-1.5 text-ink-secondary">
-                                                            <Send className="w-3.5 h-3.5" />
-                                                            Despachada: {routeItem.dispatchedAt} hs
-                                                        </span>
-                                                        <span className="text-ink-subtle">•</span>
-                                                    </>
+                                                    <span className="inline-flex items-center gap-1.5" title="Hora de despacho">
+                                                        <Send className="w-3.5 h-3.5 text-ink-subtle" />
+                                                        Despachada {routeItem.dispatchedAt} hs
+                                                    </span>
                                                 )}
                                                 {routeItem.startedAt ? (
-                                                    <span className="flex items-center gap-1.5 text-ink-secondary">
-                                                        <Clock className="w-3.5 h-3.5" />
-                                                        Primera parada: {routeItem.startedAt} hs
+                                                    <span className="inline-flex items-center gap-1.5" title="Primera y última parada">
+                                                        <Clock className="w-3.5 h-3.5 text-ink-subtle" />
+                                                        {routeItem.startedAt}
+                                                        {routeItem.completedAt ? ` – ${routeItem.completedAt}` : ''} hs
                                                     </span>
                                                 ) : (
-                                                    <span>Sin iniciar</span>
-                                                )}
-                                                {routeItem.completedAt && (
-                                                    <>
-                                                        <span className="text-ink-subtle">•</span>
-                                                        <span className="text-ink-secondary">Última parada: {routeItem.completedAt} hs</span>
-                                                    </>
+                                                    <span className="text-ink-subtle">Sin iniciar</span>
                                                 )}
                                             </div>
                                         </div>
                                     </div>
 
-                                    {/* Middle: Stops Progress */}
-                                    <div className="w-full sm:w-64">
-                                        <div className="flex justify-between text-xs font-medium text-ink-muted mb-2">
-                                            <span>Paradas completadas</span>
-                                            <span className="text-ink font-semibold">
-                                                {routeItem.stats.completedStops} / {routeItem.stats.totalStops} (
-                                                {routeItem.stats.progressPercent}%)
+                                    {/* Stops progress */}
+                                    <div className="col-span-2 row-start-2 lg:col-span-1 lg:row-start-auto">
+                                        <div className="flex items-baseline justify-between text-xs text-ink-muted mb-1.5">
+                                            <span>Paradas</span>
+                                            <span className="tabular-nums">
+                                                <span className="text-sm font-semibold text-ink">
+                                                    {routeItem.stats.completedStops}/{routeItem.stats.totalStops}
+                                                </span>{' '}
+                                                · {routeItem.stats.progressPercent}%
                                             </span>
                                         </div>
-                                        <div className="w-full h-2 bg-surface-1 rounded-full overflow-hidden">
+                                        <div
+                                            role="progressbar"
+                                            aria-label={`Paradas completadas de ${routeItem.driver.name}`}
+                                            aria-valuemin={0}
+                                            aria-valuemax={100}
+                                            aria-valuenow={routeItem.stats.progressPercent}
+                                            className="w-full h-1.5 bg-surface-1 rounded-full overflow-hidden"
+                                        >
                                             <div
-                                                className={`h-full rounded-full transition-all duration-300 ${
+                                                className={`h-full rounded-full transition-[width] duration-300 ${
                                                     routeItem.stats.progressPercent === 100
-                                                        ? 'bg-sky-600 dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400'
-                                                        : 'bg-sky-600 dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400'
+                                                        ? 'bg-emerald-500 dark:bg-emerald-400'
+                                                        : 'bg-sky-600 dark:bg-sky-400'
                                                 }`}
                                                 style={{ width: `${routeItem.stats.progressPercent}%` }}
                                             />
                                         </div>
                                     </div>
 
-                                    {/* Right: Action & Toggle */}
-                                    <div className="flex items-center gap-3">
+                                    {/* Actions */}
+                                    <div className="flex items-center gap-1 justify-self-end">
                                         {routeItem.driver.id && (
                                             <Link
                                                 href={route('drivers.show', routeItem.driver.id)}
                                                 onClick={(e) => e.stopPropagation()}
-                                                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-canvas border border-hairline/60 text-sm font-medium text-ink-secondary hover:bg-canvas-soft transition-colors shadow-sm"
+                                                aria-label={`Ver ficha de ${routeItem.driver.name}`}
+                                                className="inline-flex items-center gap-1 p-2 sm:px-3 rounded-lg text-sm font-medium text-ink-secondary hover:text-ink hover:bg-surface-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-600"
                                             >
-                                                Ver ficha
+                                                <span className="hidden sm:inline">Ver ficha</span>
                                                 <ArrowUpRight className="w-4 h-4" />
                                             </Link>
                                         )}
@@ -359,19 +359,18 @@ export default function RoutesIndex({
                                             type="button"
                                             aria-label={`${isExpanded ? 'Ocultar' : 'Ver'} detalle de la ruta de ${routeItem.driver.name}`}
                                             aria-expanded={isExpanded}
-                                            className="p-2 rounded-full text-ink-subtle hover:text-ink hover:bg-surface-1 transition-colors">
-                                            {isExpanded ? (
-                                                <ChevronUp className="w-5 h-5" />
-                                            ) : (
-                                                <ChevronDown className="w-5 h-5" />
-                                            )}
+                                            className="p-2 rounded-lg text-ink-subtle hover:text-ink hover:bg-surface-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-600"
+                                        >
+                                            <ChevronDown
+                                                className={`w-5 h-5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+                                            />
                                         </button>
                                     </div>
                                 </div>
 
                                 {/* Expanded Details: Truck Inventory & Stops Timeline */}
                                 {isExpanded && (
-                                    <div className="bg-canvas-soft/50 p-6 space-y-8 border-t border-hairline">
+                                    <div className="bg-canvas-soft/50 p-4 sm:p-6 space-y-8 border-t border-hairline">
                                         {/* Truck Inventory Section */}
                                         <div>
                                             <h4 className="text-sm font-semibold text-ink mb-4 flex items-center gap-2">
@@ -399,7 +398,7 @@ export default function RoutesIndex({
                                                     </button>
                                                 )}
                                             </h4>
-                                            {!routeItem.dispatchedAt && routeItem.status === 'PLANNED' && (
+                                            {awaitsDispatch(routeItem) && (
                                                 <p className="text-sm text-ink-muted mb-4">
                                                     El repartidor recibe la ruta en la app cuando la despachás, después de registrar la carga inicial.
                                                 </p>
@@ -430,7 +429,7 @@ export default function RoutesIndex({
                                                             </div>
                                                             <div className="text-right">
                                                                 <span className="text-xs text-ink-muted">Remanente</span>
-                                                                <p className="text-lg font-semibold text-ink">
+                                                                <p className="text-lg font-semibold text-ink tabular-nums">
                                                                     {stock.current} u.
                                                                 </p>
                                                             </div>
@@ -475,7 +474,7 @@ export default function RoutesIndex({
                                                                         {load.productName}
                                                                     </td>
                                                                     <td className="px-4 py-2.5 text-ink-secondary">{load.loadedBy ?? '—'}</td>
-                                                                    <td className="px-4 py-2.5 text-right font-semibold text-ink">
+                                                                    <td className="px-4 py-2.5 text-right font-semibold text-ink tabular-nums">
                                                                         +{load.quantity}
                                                                     </td>
                                                                 </tr>
@@ -486,84 +485,7 @@ export default function RoutesIndex({
                                             )}
                                         </div>
 
-                                        {/* Stops Table */}
-                                        <div>
-                                            <h4 className="text-sm font-semibold text-ink mb-4 flex items-center gap-2">
-                                                <MapPin className="w-4 h-4 text-ink-muted" />
-                                                Hoja de Ruta y Paradas ({routeItem.stops.length})
-                                            </h4>
-
-                                            <div className="bg-canvas border border-hairline/60 rounded-xl shadow-sm table-scroll">
-                                                <table className="w-full text-left text-sm">
-                                                    <thead className="bg-canvas-soft/80 backdrop-blur-md text-ink-muted font-medium text-xs border-b border-hairline/60">
-                                                        <tr>
-                                                            <th className="px-6 py-4 text-center w-16">#</th>
-                                                            <th className="px-6 py-4">Cliente</th>
-                                                            <th className="px-6 py-4">Dirección</th>
-                                                            <th className="px-6 py-4">Estado Visita</th>
-                                                            <th className="px-6 py-4">Hora</th>
-                                                            <th className="px-6 py-4">Notas / Resultado</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {routeItem.stops.length === 0 ? (
-                                                            <tr>
-                                                                <td
-                                                                    colSpan={6}
-                                                                    className="px-6 py-8 text-center text-ink-muted"
-                                                                >
-                                                                    <span className="table-empty">No hay paradas registradas en esta ruta.</span>
-                                                                </td>
-                                                            </tr>
-                                                        ) : (
-                                                            routeItem.stops.map((stop, idx) => (
-                                                                <tr
-                                                                    key={stop.id}
-                                                                    className="border-b border-hairline last:border-0 hover:bg-canvas-soft/50 transition-colors"
-                                                                >
-                                                                    <td className="px-6 py-4 text-center">
-                                                                        <span className="inline-flex w-7 h-7 rounded-full bg-surface-1 text-ink-secondary items-center justify-center text-xs font-medium">
-                                                                            {idx + 1}
-                                                                        </span>
-                                                                    </td>
-                                                                    <td className="px-6 py-4">
-                                                                        <span className="font-medium text-ink block">
-                                                                            {stop.customer.name}
-                                                                        </span>
-                                                                        {stop.customer.phone && (
-                                                                            <span className="text-xs text-ink-muted mt-0.5 block">
-                                                                                {stop.customer.phone}
-                                                                            </span>
-                                                                        )}
-                                                                        {stop.is_requested && <RequestedVisitMark note={stop.note} />}
-                                                                    </td>
-                                                                    <td className="px-6 py-4 text-ink-muted">
-                                                                        {stop.customer.address}
-                                                                    </td>
-                                                                    <td className="px-6 py-4">
-                                                                        <StatusBadge status={stop.status} label={stopStatusLabel(stop.status)} />
-                                                                    </td>
-                                                                    <td className="px-6 py-4 text-ink-muted">
-                                                                        {stop.arrivedAt ? `${stop.arrivedAt} hs` : '-'}
-                                                                    </td>
-                                                                    <td className="px-6 py-4 text-ink-muted">
-                                                                        {stop.outcome ? (
-                                                                            <span className="font-medium text-ink text-sm">
-                                                                                {stop.outcome}
-                                                                            </span>
-                                                                        ) : (
-                                                                            <span className={stop.done ? 'text-ink-subtle italic' : 'text-ink-subtle'}>
-                                                                                {stopResultLabel(stop)}
-                                                                            </span>
-                                                                        )}
-                                                                    </td>
-                                                                </tr>
-                                                            ))
-                                                        )}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
+                                        <RouteStopsTable stops={routeItem.stops} />
                                     </div>
                                 )}
                             </div>

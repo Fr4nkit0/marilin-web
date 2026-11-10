@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react';
+import type { SortDirection } from '@/lib/sort';
+import SortableTh from './SortableTh';
 
 export interface Column<T> {
     header: ReactNode;
@@ -6,6 +8,8 @@ export interface Column<T> {
     align?: 'left' | 'center' | 'right';
     /** Extra classes for this column's cells. */
     className?: string;
+    /** A sortable column: its header becomes a button that sorts the table by it. */
+    sort?: { direction: SortDirection | null; onSort: () => void };
 }
 
 interface Props<T> {
@@ -27,11 +31,23 @@ export default function DataTable<T>({ columns, rows, rowKey, empty }: Props<T>)
             <table className="w-full text-left text-sm whitespace-nowrap">
                 <thead className="bg-canvas-soft text-ink-muted font-mono uppercase tracking-wide text-xs border-b border-hairline">
                     <tr>
-                        {columns.map((column, index) => (
-                            <th key={index} className={`px-6 py-3.5 ${ALIGN[column.align ?? 'left']}`}>
-                                {column.header}
-                            </th>
-                        ))}
+                        {columns.map((column, index) =>
+                            column.sort ? (
+                                <SortableTh
+                                    key={index}
+                                    direction={column.sort.direction}
+                                    onSort={column.sort.onSort}
+                                    align={column.align}
+                                    className="px-6 py-3.5"
+                                >
+                                    {column.header}
+                                </SortableTh>
+                            ) : (
+                                <th key={index} className={`px-6 py-3.5 ${ALIGN[column.align ?? 'left']}`}>
+                                    {column.header}
+                                </th>
+                            ),
+                        )}
                     </tr>
                 </thead>
                 <tbody>

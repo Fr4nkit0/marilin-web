@@ -3,6 +3,7 @@ import {
     accountEntryTypeLabel,
     balanceLabel,
     balanceState,
+    statusOrder,
     date,
     dateTime,
     formatPhone,
@@ -182,5 +183,21 @@ describe('formatPhone', () => {
     it('leaves a number longer than ten digits and an empty one as typed', () => {
         expect(formatPhone('387 587-48231')).toBe('387 587-48231');
         expect(formatPhone('')).toBe('');
+    });
+});
+
+describe('statusOrder', () => {
+    it('puts what is still ahead first and what ended last, with no route at the end', () => {
+        const statuses = ['COMPLETED', 'SIN_ACTIVIDAD', 'IN_PROGRESS', 'PLANNED', 'CANCELLED'];
+
+        expect([...statuses].sort((a, b) => statusOrder(a) - statusOrder(b))).toEqual([
+            'PLANNED',
+            'IN_PROGRESS',
+            'COMPLETED',
+            'CANCELLED',
+            'SIN_ACTIVIDAD',
+        ]);
+        expect(statusOrder('PENDING')).toBe(statusOrder('PLANNED'));
+        expect(statusOrder('FINISHED')).toBe(statusOrder('COMPLETED'));
     });
 });
