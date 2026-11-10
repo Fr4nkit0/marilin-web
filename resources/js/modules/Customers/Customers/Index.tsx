@@ -326,7 +326,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                                             )}
                                                             {c.primary_address.apartment && (
                                                                 <span className="text-ink-subtle">
-                                                                    , Depto {c.primary_address.apartment}
+                                                                    , Depto/Lote {c.primary_address.apartment}
                                                                 </span>
                                                             )}
                                                             {c.primary_address.neighborhood && (
