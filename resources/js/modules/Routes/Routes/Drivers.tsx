@@ -1,6 +1,9 @@
 import React from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { useListFilters } from '@/lib/useListFilters';
+import { useSort } from '@/lib/sort';
+import { statusOrder } from '@/lib/format';
+import SortableTh from '@/ui/SortableTh';
 import AdminLayout from '@/layouts/AdminLayout';
 import { StatusBadge } from '@/ui/Badge';
 import { KpiCard } from '@/ui/KpiCard';
@@ -48,6 +51,15 @@ export default function RepartidoresIndex({ repartidores, filters }: Props) {
         e.preventDefault();
         filter.submit();
     };
+
+    const table = useSort(repartidores, {
+        name: (rep) => rep.name,
+        // Without a route today the driver sorts as "Sin actividad", like the badge reads.
+        status: (rep) => statusOrder(rep.currentRoute?.status ?? 'SIN_ACTIVIDAD'),
+        progress: (rep) => rep.currentRoute?.progressPercent ?? null,
+        customers: (rep) => rep.totalCustomers,
+        firstStop: (rep) => rep.currentRoute?.startedAt ?? null,
+    });
 
     const activeRoutesCount = repartidores.filter(
         (r) => r.currentRoute?.status === 'IN_PROGRESS'
@@ -120,11 +132,21 @@ export default function RepartidoresIndex({ repartidores, filters }: Props) {
                     <table className="w-full text-left text-sm">
                         <thead className="bg-canvas/80 backdrop-blur-md border-b border-hairline text-ink-muted font-medium text-sm tracking-wide">
                             <tr>
-                                <th className="px-6 py-4">Repartidor</th>
-                                <th className="px-6 py-4">Estado Ruta Hoy</th>
-                                <th className="px-6 py-4">Progreso de Entregas</th>
-                                <th className="px-6 py-4 text-center">Clientes Asignados</th>
-                                <th className="px-6 py-4">Primera parada</th>
+                                <SortableTh direction={table.directionOf('name')} onSort={() => table.toggle('name')} className="px-6 py-4">
+                                    Repartidor
+                                </SortableTh>
+                                <SortableTh direction={table.directionOf('status')} onSort={() => table.toggle('status')} className="px-6 py-4">
+                                    Estado Ruta Hoy
+                                </SortableTh>
+                                <SortableTh direction={table.directionOf('progress')} onSort={() => table.toggle('progress')} className="px-6 py-4">
+                                    Progreso de Entregas
+                                </SortableTh>
+                                <SortableTh direction={table.directionOf('customers')} onSort={() => table.toggle('customers')} align="center" className="px-6 py-4">
+                                    Clientes Asignados
+                                </SortableTh>
+                                <SortableTh direction={table.directionOf('firstStop')} onSort={() => table.toggle('firstStop')} className="px-6 py-4">
+                                    Primera parada
+                                </SortableTh>
                                 <th className="px-6 py-4 text-right">Acción</th>
                             </tr>
                         </thead>
@@ -136,7 +158,7 @@ export default function RepartidoresIndex({ repartidores, filters }: Props) {
                                     </td>
                                 </tr>
                             ) : (
-                                repartidores.map((rep) => {
+                                table.rows.map((rep) => {
                                     const hasRoute = !!rep.currentRoute;
                                     const status = rep.currentRoute?.status || 'SIN_ACTIVIDAD';
                                     const progress = rep.currentRoute?.progressPercent || 0;

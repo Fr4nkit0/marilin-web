@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useListFilters } from '@/lib/useListFilters';
-import { stopResultLabel, stopStatusLabel } from '@/lib/format';
 import AdminLayout from '@/layouts/AdminLayout';
 import { StatusBadge } from '@/ui/Badge';
 import { KpiCard } from '@/ui/KpiCard';
@@ -10,7 +9,6 @@ import RouteStockLoadModal, { LoadableProduct } from '@/modules/Street/RouteStoc
 import {
     CalendarCheck,
     Truck,
-    MapPin,
     ArrowUpRight,
     Clock,
     CheckCircle2,
@@ -21,13 +19,8 @@ import {
     PackagePlus,
     Send,
 } from 'lucide-react';
-import RequestedVisitMark from './components/RequestedVisitMark';
-import type { RouteStatus, RouteStopRow } from './types';
-
-interface StopItem extends RouteStopRow {
-    plannedSequence: number;
-    outcome?: string;
-}
+import RouteStopsTable, { type RouteStop } from './components/RouteStopsTable';
+import type { RouteStatus } from './types';
 
 interface RouteStockItem {
     productId: number;
@@ -80,7 +73,7 @@ interface RouteItem {
     loadHistory: LoadHistoryItem[];
     canLoad: boolean;
     currentStock: StockItem[];
-    stops: StopItem[];
+    stops: RouteStop[];
 }
 
 interface DriverOption {
@@ -492,84 +485,7 @@ export default function RoutesIndex({
                                             )}
                                         </div>
 
-                                        {/* Stops Table */}
-                                        <div>
-                                            <h4 className="text-sm font-semibold text-ink mb-4 flex items-center gap-2">
-                                                <MapPin className="w-4 h-4 text-ink-muted" />
-                                                Hoja de Ruta y Paradas ({routeItem.stops.length})
-                                            </h4>
-
-                                            <div className="bg-canvas border border-hairline/60 rounded-xl shadow-sm table-scroll">
-                                                <table className="w-full text-left text-sm">
-                                                    <thead className="bg-canvas-soft/80 backdrop-blur-md text-ink-muted font-medium text-xs border-b border-hairline/60">
-                                                        <tr>
-                                                            <th className="px-4 py-3 text-center w-14">#</th>
-                                                            <th className="px-4 py-3">Cliente</th>
-                                                            <th className="px-4 py-3">Dirección</th>
-                                                            <th className="px-4 py-3">Estado</th>
-                                                            <th className="px-4 py-3">Hora</th>
-                                                            <th className="px-4 py-3">Resultado</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {routeItem.stops.length === 0 ? (
-                                                            <tr>
-                                                                <td
-                                                                    colSpan={6}
-                                                                    className="px-6 py-8 text-center text-ink-muted"
-                                                                >
-                                                                    <span className="table-empty">No hay paradas registradas en esta ruta.</span>
-                                                                </td>
-                                                            </tr>
-                                                        ) : (
-                                                            routeItem.stops.map((stop, idx) => (
-                                                                <tr
-                                                                    key={stop.id}
-                                                                    className="border-b border-hairline last:border-0 hover:bg-canvas-soft/50 transition-colors"
-                                                                >
-                                                                    <td className="px-4 py-3 text-center">
-                                                                        <span className="inline-flex w-7 h-7 rounded-full bg-surface-1 text-ink-secondary items-center justify-center text-xs font-medium tabular-nums">
-                                                                            {idx + 1}
-                                                                        </span>
-                                                                    </td>
-                                                                    <td className="px-4 py-3">
-                                                                        <span className="font-medium text-ink block">
-                                                                            {stop.customer.name}
-                                                                        </span>
-                                                                        {stop.customer.phone && (
-                                                                            <span className="text-xs text-ink-muted mt-0.5 block">
-                                                                                {stop.customer.phone}
-                                                                            </span>
-                                                                        )}
-                                                                        {stop.is_requested && <RequestedVisitMark note={stop.note} />}
-                                                                    </td>
-                                                                    <td className="px-4 py-3 text-ink-muted">
-                                                                        {stop.customer.address}
-                                                                    </td>
-                                                                    <td className="px-4 py-3">
-                                                                        <StatusBadge status={stop.status} label={stopStatusLabel(stop.status)} />
-                                                                    </td>
-                                                                    <td className="px-4 py-3 text-ink-muted tabular-nums whitespace-nowrap">
-                                                                        {stop.arrivedAt ? `${stop.arrivedAt} hs` : '—'}
-                                                                    </td>
-                                                                    <td className="px-4 py-3 text-ink-muted">
-                                                                        {stop.outcome ? (
-                                                                            <span className="font-medium text-ink text-sm">
-                                                                                {stop.outcome}
-                                                                            </span>
-                                                                        ) : (
-                                                                            <span className={stop.done ? 'text-ink-subtle italic' : 'text-ink-subtle'}>
-                                                                                {stopResultLabel(stop)}
-                                                                            </span>
-                                                                        )}
-                                                                    </td>
-                                                                </tr>
-                                                            ))
-                                                        )}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
+                                        <RouteStopsTable stops={routeItem.stops} />
                                     </div>
                                 )}
                             </div>

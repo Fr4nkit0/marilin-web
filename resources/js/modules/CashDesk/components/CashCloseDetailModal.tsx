@@ -1,6 +1,8 @@
 import React from 'react';
 import { X } from 'lucide-react';
 import Modal, { ModalTitle } from '@/ui/Modal';
+import SortableTh from '@/ui/SortableTh';
+import { useSort, type SortDirection } from '@/lib/sort';
 import {
     CashCloseContainerRow,
     CashCloseCreditRow,
@@ -35,8 +37,17 @@ const ORIGIN_LABELS: Record<CashCloseOrigin, string> = {
 };
 
 const thClass = 'px-4 py-3 text-xs font-medium text-ink tracking-wide';
-const tdClass = 'px-4 py-3 text-ink-secondary';
+const tdClass = 'px-4 py-3 text-ink-secondary tabular-nums';
 
+
+/** A sortable header of these tables. */
+function Th({ label, direction, onSort, right = false }: { label: string; direction: SortDirection | null; onSort: () => void; right?: boolean }) {
+    return (
+        <SortableTh direction={direction} onSort={onSort} align={right ? 'right' : 'left'} className={thClass}>
+            {label}
+        </SortableTh>
+    );
+}
 
 function time(at: string | null): string {
     return at ? at.slice(11, 16) : '—';
@@ -67,24 +78,31 @@ function EmptyRow({ colSpan }: { colSpan: number }) {
 
 function PaymentTable({ rows }: { rows: CashClosePaymentRow[] }) {
     const total = rows.reduce((sum, row) => sum + row.amount, 0);
+    const table = useSort(rows, {
+        at: (row) => row.at,
+        customer: (row) => row.customer,
+        concept: (row) => row.concept,
+        origin: (row) => ORIGIN_LABELS[row.origin],
+        amount: (row) => row.amount,
+    });
 
     return (
         <div className="table-scroll">
             <table className="w-full text-left text-sm">
                 <thead className="border-b border-hairline">
                     <tr>
-                        <th className={thClass}>Hora</th>
-                        <th className={thClass}>Cliente</th>
-                        <th className={thClass}>Concepto</th>
-                        <th className={thClass}>Origen</th>
-                        <th className={`${thClass} text-right`}>Monto</th>
+                        <Th label="Hora" direction={table.directionOf('at')} onSort={() => table.toggle('at')} />
+                        <Th label="Cliente" direction={table.directionOf('customer')} onSort={() => table.toggle('customer')} />
+                        <Th label="Concepto" direction={table.directionOf('concept')} onSort={() => table.toggle('concept')} />
+                        <Th label="Origen" direction={table.directionOf('origin')} onSort={() => table.toggle('origin')} />
+                        <Th label="Monto" direction={table.directionOf('amount')} onSort={() => table.toggle('amount')} right />
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-hairline">
                     {rows.length === 0 ? (
                         <EmptyRow colSpan={5} />
                     ) : (
-                        rows.map((row) => (
+                        table.rows.map((row) => (
                             <tr key={row.id}>
                                 <td className={`${tdClass} whitespace-nowrap`}>{time(row.at)}</td>
                                 <td className={`${tdClass} font-medium text-ink`}>{row.customer ?? '—'}</td>
@@ -112,24 +130,31 @@ function PaymentTable({ rows }: { rows: CashClosePaymentRow[] }) {
 
 function CreditTable({ rows }: { rows: CashCloseCreditRow[] }) {
     const total = rows.reduce((sum, row) => sum + row.amount, 0);
+    const table = useSort(rows, {
+        at: (row) => row.at,
+        customer: (row) => row.customer,
+        sale: (row) => row.id,
+        origin: (row) => ORIGIN_LABELS[row.origin],
+        amount: (row) => row.amount,
+    });
 
     return (
         <div className="table-scroll">
             <table className="w-full text-left text-sm">
                 <thead className="border-b border-hairline">
                     <tr>
-                        <th className={thClass}>Hora</th>
-                        <th className={thClass}>Cliente</th>
-                        <th className={thClass}>Venta</th>
-                        <th className={thClass}>Origen</th>
-                        <th className={`${thClass} text-right`}>Monto</th>
+                        <Th label="Hora" direction={table.directionOf('at')} onSort={() => table.toggle('at')} />
+                        <Th label="Cliente" direction={table.directionOf('customer')} onSort={() => table.toggle('customer')} />
+                        <Th label="Venta" direction={table.directionOf('sale')} onSort={() => table.toggle('sale')} />
+                        <Th label="Origen" direction={table.directionOf('origin')} onSort={() => table.toggle('origin')} />
+                        <Th label="Monto" direction={table.directionOf('amount')} onSort={() => table.toggle('amount')} right />
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-hairline">
                     {rows.length === 0 ? (
                         <EmptyRow colSpan={5} />
                     ) : (
-                        rows.map((row) => (
+                        table.rows.map((row) => (
                             <tr key={row.id}>
                                 <td className={`${tdClass} whitespace-nowrap`}>{time(row.at)}</td>
                                 <td className={`${tdClass} font-medium text-ink`}>{row.customer ?? '—'}</td>
@@ -157,25 +182,33 @@ function CreditTable({ rows }: { rows: CashCloseCreditRow[] }) {
 
 function PostCloseTable({ rows }: { rows: CashClosePostCloseRow[] }) {
     const total = rows.reduce((sum, row) => sum + row.amount, 0);
+    const table = useSort(rows, {
+        at: (row) => row.at,
+        customer: (row) => row.customer,
+        sale: (row) => row.id,
+        type: (row) => (row.credit ? 'Fiado' : 'Contado'),
+        origin: (row) => ORIGIN_LABELS[row.origin],
+        amount: (row) => row.amount,
+    });
 
     return (
         <div className="table-scroll">
             <table className="w-full text-left text-sm">
                 <thead className="border-b border-hairline">
                     <tr>
-                        <th className={thClass}>Hora</th>
-                        <th className={thClass}>Cliente</th>
-                        <th className={thClass}>Venta</th>
-                        <th className={thClass}>Tipo</th>
-                        <th className={thClass}>Origen</th>
-                        <th className={`${thClass} text-right`}>Monto</th>
+                        <Th label="Hora" direction={table.directionOf('at')} onSort={() => table.toggle('at')} />
+                        <Th label="Cliente" direction={table.directionOf('customer')} onSort={() => table.toggle('customer')} />
+                        <Th label="Venta" direction={table.directionOf('sale')} onSort={() => table.toggle('sale')} />
+                        <Th label="Tipo" direction={table.directionOf('type')} onSort={() => table.toggle('type')} />
+                        <Th label="Origen" direction={table.directionOf('origin')} onSort={() => table.toggle('origin')} />
+                        <Th label="Monto" direction={table.directionOf('amount')} onSort={() => table.toggle('amount')} right />
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-hairline">
                     {rows.length === 0 ? (
                         <EmptyRow colSpan={6} />
                     ) : (
-                        rows.map((row) => (
+                        table.rows.map((row) => (
                             <tr key={row.id}>
                                 <td className={`${tdClass} whitespace-nowrap`}>{time(row.at)}</td>
                                 <td className={`${tdClass} font-medium text-ink`}>{row.customer ?? '—'}</td>
@@ -205,24 +238,32 @@ function PostCloseTable({ rows }: { rows: CashClosePostCloseRow[] }) {
 function ContainerTable({ rows }: { rows: CashCloseContainerRow[] }) {
     const delivered = rows.filter((row) => row.movement === 'DELIVERED').reduce((sum, row) => sum + row.quantity, 0);
     const returned = rows.filter((row) => row.movement === 'RETURNED').reduce((sum, row) => sum + row.quantity, 0);
+    const table = useSort(rows, {
+        at: (row) => row.at,
+        customer: (row) => row.customer,
+        container: (row) => row.container,
+        origin: (row) => ORIGIN_LABELS[row.origin],
+        // Deliveries count up and returns down, as the column reads ("Entregó +3", "Retiró -2").
+        quantity: (row) => (row.movement === 'DELIVERED' ? row.quantity : -row.quantity),
+    });
 
     return (
         <div className="table-scroll">
             <table className="w-full text-left text-sm">
                 <thead className="border-b border-hairline">
                     <tr>
-                        <th className={thClass}>Hora</th>
-                        <th className={thClass}>Cliente</th>
-                        <th className={thClass}>Envase</th>
-                        <th className={thClass}>Origen</th>
-                        <th className={`${thClass} text-right`}>Cantidad</th>
+                        <Th label="Hora" direction={table.directionOf('at')} onSort={() => table.toggle('at')} />
+                        <Th label="Cliente" direction={table.directionOf('customer')} onSort={() => table.toggle('customer')} />
+                        <Th label="Envase" direction={table.directionOf('container')} onSort={() => table.toggle('container')} />
+                        <Th label="Origen" direction={table.directionOf('origin')} onSort={() => table.toggle('origin')} />
+                        <Th label="Cantidad" direction={table.directionOf('quantity')} onSort={() => table.toggle('quantity')} right />
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-hairline">
                     {rows.length === 0 ? (
                         <EmptyRow colSpan={5} />
                     ) : (
-                        rows.map((row) => {
+                        table.rows.map((row) => {
                             const isDelivered = row.movement === 'DELIVERED';
 
                             return (

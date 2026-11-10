@@ -27,6 +27,26 @@ const ACCOUNT_ENTRY_TYPE_LABELS: Record<AccountEntryType, string> = {
     CREDIT_NOTE: 'Nota de crédito',
 };
 
+/**
+ * Where a route or a stop stands in its day, for sorting by status: what is still ahead first, what ended last.
+ * A route's "PLANNED"/"IN_PROGRESS"/"COMPLETED" and a stop's "PENDING"/"IN_PROGRESS"/"FINISHED" share the scale;
+ * no route at all ("SIN_ACTIVIDAD") goes at the end.
+ */
+const STATUS_ORDER: Record<string, number> = {
+    PLANNED: 0,
+    PENDING: 0,
+    IN_PROGRESS: 1,
+    RESCHEDULED: 2,
+    COMPLETED: 3,
+    FINISHED: 3,
+    CANCELLED: 4,
+    SIN_ACTIVIDAD: 5,
+};
+
+export function statusOrder(status: string): number {
+    return STATUS_ORDER[status.toUpperCase()] ?? STATUS_ORDER.SIN_ACTIVIDAD;
+}
+
 /** Pesos with the Argentine separators; cents only when there are any ("$1.500", "$1.250,5"). */
 export function money(amount: number | string): string {
     return `$${Number(amount).toLocaleString('es-AR', { maximumFractionDigits: 2 })}`;
