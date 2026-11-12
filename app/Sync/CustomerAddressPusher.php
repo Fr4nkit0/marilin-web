@@ -76,7 +76,7 @@ class CustomerAddressPusher extends EntityPusher
             : $this->accepted($record['uuid'], $address->id, $this->pendingReasons($customer));
     }
 
-    protected function current(Model $row): array
+    protected function current(Model $row, Driver $driver): array
     {
         return $this->pull->row($row);
     }

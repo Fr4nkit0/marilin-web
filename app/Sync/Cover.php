@@ -6,6 +6,7 @@ namespace App\Sync;
 
 use App\Accounts\Models\Driver;
 use App\Customers\Customers\Models\Customer;
+use App\Customers\Customers\Models\CustomerAddress;
 use App\Routes\Routes\Models\RouteStop;
 use Closure;
 use Illuminate\Database\Eloquent\Builder;
@@ -13,7 +14,8 @@ use Illuminate\Database\Eloquent\Builder;
 /**
  * A cover (ADR 0004): a stop the admin moved to the driver's route to cover an absent driver, marked by
  * `moved_from_route_id`. Its customer keeps its owner, but once the covering route is dispatched the driver's app
- * receives it as if it were theirs, and the street records on it that day are not foreign.
+ * receives it with only what a visit needs (the customer, the address of its stop and its primary one, its balance, container
+ * balances and agreements; never its preferences nor its other addresses), and the street records on it that day are not foreign.
  */
 final class Cover
 {
@@ -45,6 +47,32 @@ final class Cover
     public static function customers(Builder $customers, Driver $driver, ?Closure $route = null): Builder
     {
         return $customers->whereHas('routeStops', fn (Builder $stops) => self::stops($stops, $driver, $route));
+    }
+
+    /**
+     * The addresses a covered customer travels with (S14): the address of its covered stop and its primary address.
+     * The driver's own customers travel with every address; $route narrows the covering routes like in customers().
+     *
+     * @param  Builder<CustomerAddress>  $addresses
+     * @param  (Closure(Builder<*>): mixed)|null  $route
+     * @return Builder<CustomerAddress>
+     */
+    public static function visitAddresses(Builder $addresses, Driver $driver, ?Closure $route = null): Builder
+    {
+        return $addresses->where(fn (Builder $query) => $query
+            ->whereHas('customer', fn (Builder $customer) => $customer->where('driver_id', $driver->id))
+            ->orWhereIn('id', self::stops(RouteStop::query(), $driver, $route)->select('address_id'))
+            ->orWhere(fn (Builder $primary) => $primary
+                ->where('is_primary', true)
+                ->whereHas('customer', fn (Builder $customer) => self::customers($customer, $driver, $route))));
+    }
+
+    /**
+     * Marks a customer row the driver gets only through covered stops (`is_cover`): false for their own customer, even on a moved stop.
+     */
+    public static function mark(Customer $customer, Driver $driver): Customer
+    {
+        return $customer->setAttribute('is_cover', $customer->driver_id !== $driver->id);
     }
 
     /**

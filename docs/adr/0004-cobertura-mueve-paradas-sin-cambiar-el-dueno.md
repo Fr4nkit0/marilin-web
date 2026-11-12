@@ -14,9 +14,13 @@ Cuando un repartidor falta un día, el admin reparte parte de su ruta entre otro
 
 ## Lo que recibe la app del que cubre
 
-- Una vez despachada su ruta, el bootstrap y la bajada le mandan las paradas cubiertas y sus clientes con todo lo que lleva un cliente propio: direcciones, preferencias, acuerdos, saldo y saldo de envases. Si el despacho ocurre después del cursor, el cliente llega entero, como uno reasignado.
-- El cliente cubierto viaja con su `driver_id` real (el del ausente); la app no recibe ningún campo nuevo.
-- Cuando termina el día de la ruta que lo cubre, el cliente se va como uno reasignado: la bajada lo informa una sola vez en `customers_removed`, con `removed_at` en la medianoche en que terminó la cobertura, y la app conserva su historial. No se informa si el repartidor es su dueño ahora o lo sigue cubriendo otro día. El bootstrap simplemente deja de incluirlo.
+- Una vez despachada su ruta, el bootstrap y la bajada le mandan las paradas cubiertas y sus clientes con **solo lo que necesita una visita**: la fila del cliente, la dirección de su parada cubierta y su dirección principal si es otra, su saldo, su saldo de envases y sus acuerdos. Nunca sus preferencias ni sus otras direcciones: ni en el bootstrap, ni en la bajada (tampoco cuando el despacho ocurre después del cursor y el cliente llega con todas sus filas, ni cuando una de esas filas cambia dentro de la ventana). El que cubre visita un día, no administra la cartera del ausente.
+- Un cliente que es del repartidor y además está en una parada movida es propio: viaja entero, como siempre.
+- El cliente cubierto viaja con su `driver_id` real (el del ausente). Para que la app no tenga que deducirlo, dos marcas aditivas:
+  - cada parada del bootstrap y de la bajada lleva `is_cover`: `true` si fue movida a la ruta de este repartidor para cubrir a otro (`moved_from_route_id` no es nulo), `false` si no;
+  - cada fila de cliente del bootstrap y de la bajada (también la que viaja sola porque cambió dentro de la ventana, y la que llega entera por una reasignación) lleva `is_cover`: `true` si el repartidor lo recibe solo por cobertura, `false` si es suyo, aunque además esté en una parada movida. La fila del cliente que devuelve la subida ante un conflicto (`current`) tiene la misma forma.
+- En la app el cliente cubierto aparece solo dentro de la ruta, nunca en la lista de clientes, y es de solo lectura; la parada muestra la dirección de la parada.
+- Cuando termina el día de la cobertura y todo lo que se registró sobre esos clientes ya subió y fue aceptado, la app borra esos clientes y sus filas **solo de su base local**, nunca por su cola de sincronización: el servidor nunca borra nada y no se entera. Como respaldo, la bajada lo informa una sola vez en `customers_removed`, como uno reasignado, con `removed_at` en la medianoche en que terminó la cobertura. No se informa si el repartidor es su dueño ahora o lo sigue cubriendo otro día. El bootstrap simplemente deja de incluirlo.
 
 ## Excepción a ADR 0001 para los hechos de la calle
 
@@ -31,5 +35,6 @@ Una venta, un cobro, una visita o un movimiento de envases sobre un cliente cubi
 
 ## Consequences
 
-- La bajada y el bootstrap deciden qué clientes manda por dueño o por cobertura vigente; las reasignaciones y el fin de una cobertura alimentan las mismas bajas.
+- La bajada y el bootstrap deciden qué clientes manda por dueño o por cobertura vigente, y cuánto de cada uno; las reasignaciones y el fin de una cobertura alimentan las mismas bajas.
+- Si cambia la dirección principal de un cliente cubierto durante la cobertura, la anterior deja de viajar y la app puede conservarla hasta la limpieza local del fin del día.
 - Cubrir después de despachar no es posible: si falta alguien con la ruta ya despachada, hay que resolverlo de otra forma.

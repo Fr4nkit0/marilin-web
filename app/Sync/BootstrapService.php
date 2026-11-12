@@ -88,6 +88,7 @@ class BootstrapService
                 'note' => $stop->note,
                 'status' => $stop->effectiveStatus()->value,
                 'enabled' => $stop->enabled,
+                'is_cover' => $stop->moved_from_route_id !== null,
             ])
             ->all();
     }
@@ -142,24 +143,27 @@ class BootstrapService
     }
 
     /**
-     * The driver's customers and the ones they cover today (ADR 0004), with the same rows.
+     * The driver's customers and the ones they cover today (ADR 0004); a covered one carries only what a visit needs.
      *
      * @return Collection<int, Customer>
      */
     private function customers(Driver $driver, string $today): Collection
     {
+        $coverRoute = fn (Builder $route) => $route->whereDate('date', $today);
+
         return Customer::query()
             ->where(fn (Builder $query) => $query
                 ->where('driver_id', $driver->id)
-                ->orWhere(fn (Builder $covered) => Cover::customers($covered, $driver, fn (Builder $route) => $route->whereDate('date', $today))))
+                ->orWhere(fn (Builder $covered) => Cover::customers($covered, $driver, $coverRoute)))
             ->where('enabled', true)
             ->with([
-                'addresses',
-                'preferences',
+                'addresses' => fn ($query) => Cover::visitAddresses($query->getQuery(), $driver, $coverRoute),
+                'preferences' => fn ($query) => $query->whereHas('customer', fn (Builder $customer) => $customer->where('driver_id', $driver->id)),
                 'agreements' => fn ($query) => $query->active($today)->with('product'),
                 'balance',
                 'containerBalances.containerType',
             ])
-            ->get();
+            ->get()
+            ->each(fn (Customer $customer): Customer => Cover::mark($customer, $driver));
     }
 }

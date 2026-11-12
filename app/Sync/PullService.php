@@ -120,6 +120,10 @@ class PullService
                 $data[$name] = $data[$name]->map(fn (RouteStop $stop): RouteStop => $this->withDerivedFields($stop));
             }
 
+            if ($name === 'customers') {
+                $data[$name] = $data[$name]->map(fn (Customer $customer): Customer => Cover::mark($customer, $driver));
+            }
+
             $data[$name] = match (true) {
                 isset(self::CANCELLATION_KEYS[$name]) => $data[$name]->map(fn (Sale|Payment $record): array => $this->cancellationEvent($record, self::CANCELLATION_KEYS[$name], $driver)),
                 $name === 'customers_removed' => $data[$name]->map(fn (Customer $customer): array => $this->removal($customer)),
@@ -296,8 +300,9 @@ class PullService
             'route_inventories' => RouteInventory::query()->whereHas('route', $ownRoute),
             'customers' => Customer::query()->tap($ownCustomer),
             'customers_removed' => Customer::query(),
-            'customer_addresses' => CustomerAddress::query()->whereHas('customer', $ownCustomer),
-            'customer_preferences' => CustomerPreference::query()->whereHas('customer', $ownCustomer),
+            // A covered customer travels with only what a visit needs: no preferences, only its stop and primary addresses.
+            'customer_addresses' => Cover::visitAddresses(CustomerAddress::query()->whereHas('customer', $ownCustomer), $driver, $this->coverNotOver($until)),
+            'customer_preferences' => CustomerPreference::query()->whereHas('customer', fn (Builder $customer) => $customer->where('driver_id', $driver->id)),
             'customer_agreements' => CustomerAgreement::query()->whereHas('customer', $ownCustomer),
             'customer_balances' => CustomerBalance::query()->whereHas('customer', $ownCustomer),
             'customer_container_balances' => CustomerContainerBalance::query()->whereHas('customer', $ownCustomer),
@@ -337,6 +342,7 @@ class PullService
     {
         $stop->setAttribute('status', $stop->effectiveStatus()->value);
         $stop->setAttribute('is_requested', $stop->isRequested());
+        $stop->setAttribute('is_cover', $stop->moved_from_route_id !== null);
         $stop->unsetRelations();
 
         return $stop;

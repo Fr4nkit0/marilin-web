@@ -11,6 +11,7 @@ use App\Customers\Agreements\Models\CustomerAgreement;
 use App\Customers\Customers\Models\Customer;
 use App\Customers\Customers\Models\CustomerAddress;
 use App\Customers\Customers\Models\CustomerPreference;
+use App\Customers\Customers\Models\CustomerReassignment;
 use App\Review\ReviewReason;
 use App\Routes\Routes\Models\Route;
 use App\Routes\Routes\Models\RouteStop;
@@ -48,6 +49,8 @@ beforeEach(function (): void {
 
     $this->covered = Customer::factory()->create(['driver_id' => $this->absent->id, 'enabled' => true, 'updated_at' => $old]);
     $this->address = CustomerAddress::factory()->create(['customer_id' => $this->covered->id, 'is_primary' => true, 'updated_at' => $old]);
+    // Neither the address of its stop nor its primary one: a visit does not need it (S14).
+    $this->otherAddress = CustomerAddress::factory()->create(['customer_id' => $this->covered->id, 'is_primary' => false, 'updated_at' => $old]);
     $this->preference = CustomerPreference::factory()->create(['customer_id' => $this->covered->id, 'updated_at' => $old]);
     $this->agreement = CustomerAgreement::factory()->create(['customer_id' => $this->covered->id, 'updated_at' => $old]);
     $this->balance = CustomerBalance::factory()->create(['customer_id' => $this->covered->id, 'current_balance' => 5000, 'updated_at' => $old]);
@@ -86,7 +89,7 @@ function coverIds(TestResponse $response, string $entity): array
     return collect($response->json("data.{$entity}"))->pluck('id')->sort()->values()->all();
 }
 
-test('bootstrap sends the covered stop and its customer with everything an own customer carries', function (): void {
+test('bootstrap sends the covered stop and its customer with only what a visit needs', function (): void {
     $response = $this->getJson('/api/v1/sync/bootstrap')->assertOk();
 
     $customers = collect($response->json('data.customers'))->keyBy('id');
@@ -96,7 +99,7 @@ test('bootstrap sends the covered stop and its customer with everything an own c
         ->and($customers->keys()->sort()->values()->all())->toBe(collect([$this->covered->id, $this->own->id])->sort()->values()->all())
         ->and($covered['driver_id'])->toBe($this->absent->id)
         ->and(collect($covered['addresses'])->pluck('id')->all())->toBe([$this->address->id])
-        ->and(collect($covered['preferences'])->pluck('id')->all())->toBe([$this->preference->id])
+        ->and($covered['preferences'])->toBe([])
         ->and(collect($covered['agreements'])->pluck('id')->all())->toBe([$this->agreement->id])
         ->and($covered['balance']['id'])->toBe($this->balance->id)
         ->and(collect($covered['container_balances'])->pluck('id')->all())->toBe([$this->containerBalance->id])
@@ -127,14 +130,14 @@ test('the first pull sends the covered customer, its rows and its stop, and stil
     expect(coverIds($response, 'customers'))->toBe(collect([$this->covered->id, $this->own->id])->sort()->values()->all())
         ->and(coverIds($response, 'route_stops'))->toBe(collect([$this->coveredStop->id, $this->ownStop->id])->sort()->values()->all())
         ->and(coverIds($response, 'customer_addresses'))->toBe(collect([$this->address->id, $this->ownAddress->id])->sort()->values()->all())
-        ->and(coverIds($response, 'customer_preferences'))->toBe([$this->preference->id])
+        ->and(coverIds($response, 'customer_preferences'))->toBe([])
         ->and(coverIds($response, 'customer_agreements'))->toBe([$this->agreement->id])
         ->and(coverIds($response, 'customer_balances'))->toBe([$this->balance->id])
         ->and(coverIds($response, 'customer_container_balances'))->toBe([$this->containerBalance->id])
         ->and($response->json('data.customers_removed'))->toBe([]);
 });
 
-test('a covered customer arrives whole when the covering route is dispatched after the cursor', function (): void {
+test('a covered customer arrives with only what a visit needs when the covering route is dispatched after the cursor', function (): void {
     $this->route->update(['dispatched_at' => '2026-10-22 11:30:00']);
     $this->own->forceFill(['updated_at' => '2026-10-01 10:00:00'])->save();
     $this->ownAddress->forceFill(['updated_at' => '2026-10-01 10:00:00'])->save();
@@ -144,7 +147,7 @@ test('a covered customer arrives whole when the covering route is dispatched aft
     expect(coverIds($response, 'customers'))->toBe([$this->covered->id])
         ->and(coverIds($response, 'route_stops'))->toBe(collect([$this->coveredStop->id, $this->ownStop->id])->sort()->values()->all())
         ->and(coverIds($response, 'customer_addresses'))->toBe([$this->address->id])
-        ->and(coverIds($response, 'customer_preferences'))->toBe([$this->preference->id])
+        ->and(coverIds($response, 'customer_preferences'))->toBe([])
         ->and(coverIds($response, 'customer_agreements'))->toBe([$this->agreement->id])
         ->and(coverIds($response, 'customer_balances'))->toBe([$this->balance->id])
         ->and(coverIds($response, 'customer_container_balances'))->toBe([$this->containerBalance->id]);
@@ -278,4 +281,112 @@ test('an edit of a covered customer\'s data is still held for the admin', functi
         ->assertJsonPath('data.customers.0.review_reasons', [ReviewReason::ForeignCustomer->label()]);
 
     expect($this->covered->fresh()->only(['name', 'driver_id', 'updated_at']))->toEqual($before);
+});
+
+test('the covered customer gets the address of its stop and its primary address, never its other addresses nor preferences', function (): void {
+    $stopAddress = CustomerAddress::factory()->create(['customer_id' => $this->covered->id, 'is_primary' => false, 'updated_at' => '2026-10-01 10:00:00']);
+    $this->coveredStop->update(['address_id' => $stopAddress->id]);
+    $expected = collect([$this->address->id, $stopAddress->id])->sort()->values()->all();
+
+    $bootstrap = $this->getJson('/api/v1/sync/bootstrap')->assertOk();
+    $covered = collect($bootstrap->json('data.customers'))->keyBy('id')[$this->covered->id];
+    $pull = coverPull(null);
+
+    expect(collect($covered['addresses'])->pluck('id')->sort()->values()->all())->toBe($expected)
+        ->and($covered['preferences'])->toBe([])
+        ->and(coverIds($pull, 'customer_addresses'))->toBe(collect([...$expected, $this->ownAddress->id])->sort()->values()->all())
+        ->and(coverIds($pull, 'customer_preferences'))->toBe([]);
+});
+
+test('a change inside the window to a covered customer\'s preference or other address does not reach the covering app', function (): void {
+    $this->preference->forceFill(['updated_at' => '2026-10-22 11:30:00', 'received_at' => '2026-10-22 11:30:00'])->save();
+    $this->otherAddress->forceFill(['updated_at' => '2026-10-22 11:30:00', 'received_at' => '2026-10-22 11:30:00'])->save();
+    $this->address->forceFill(['updated_at' => '2026-10-22 11:30:00'])->save();
+    $this->ownAddress->forceFill(['updated_at' => '2026-10-01 10:00:00'])->save();
+
+    $response = coverPull('2026-10-22T11:00:00-03:00');
+
+    expect(coverIds($response, 'customer_preferences'))->toBe([])
+        ->and(coverIds($response, 'customer_addresses'))->toBe([$this->address->id]);
+});
+
+test('an own customer still gets all its preferences and addresses', function (): void {
+    $preference = CustomerPreference::factory()->create(['customer_id' => $this->own->id]);
+    $secondary = CustomerAddress::factory()->create(['customer_id' => $this->own->id, 'is_primary' => false]);
+    $addresses = collect([$this->ownAddress->id, $secondary->id])->sort()->values()->all();
+
+    $own = collect($this->getJson('/api/v1/sync/bootstrap')->assertOk()->json('data.customers'))->keyBy('id')[$this->own->id];
+    $pull = coverPull(null);
+
+    expect(collect($own['addresses'])->pluck('id')->sort()->values()->all())->toBe($addresses)
+        ->and(collect($own['preferences'])->pluck('id')->all())->toBe([$preference->id])
+        ->and(coverIds($pull, 'customer_preferences'))->toBe([$preference->id])
+        ->and(coverIds($pull, 'customer_addresses'))->toBe(collect([...$addresses, $this->address->id])->sort()->values()->all());
+});
+
+test('a customer that is both own and on a moved stop is treated as own', function (): void {
+    $this->covered->update(['driver_id' => $this->driver->id]);
+
+    $covered = collect($this->getJson('/api/v1/sync/bootstrap')->assertOk()->json('data.customers'))->keyBy('id')[$this->covered->id];
+    $pull = coverPull(null);
+
+    expect(collect($covered['addresses'])->pluck('id')->sort()->values()->all())->toBe(collect([$this->address->id, $this->otherAddress->id])->sort()->values()->all())
+        ->and(collect($covered['preferences'])->pluck('id')->all())->toBe([$this->preference->id])
+        ->and(coverIds($pull, 'customer_preferences'))->toBe([$this->preference->id])
+        ->and(coverIds($pull, 'customer_addresses'))->toBe(collect([$this->address->id, $this->otherAddress->id, $this->ownAddress->id])->sort()->values()->all());
+});
+
+test('every stop carries is_cover: true on a covered stop and false on an own stop, on bootstrap and pull', function (): void {
+    $bootstrap = collect($this->getJson('/api/v1/sync/bootstrap')->assertOk()->json('data.stops'))->keyBy('id');
+    $first = collect(coverPull(null)->json('data.route_stops'))->keyBy('id');
+    $this->route->update(['dispatched_at' => '2026-10-22 11:30:00']);
+    $later = collect(coverPull('2026-10-22T11:00:00-03:00')->json('data.route_stops'))->keyBy('id');
+
+    foreach ([$bootstrap, $first, $later] as $stops) {
+        expect($stops[$this->coveredStop->id]['is_cover'])->toBeTrue()
+            ->and($stops[$this->ownStop->id]['is_cover'])->toBeFalse();
+    }
+});
+
+test('every customer carries is_cover: true when the driver only covers it, false when it is theirs', function (): void {
+    $bootstrap = collect($this->getJson('/api/v1/sync/bootstrap')->assertOk()->json('data.customers'))->keyBy('id');
+    $first = collect(coverPull(null)->json('data.customers'))->keyBy('id');
+
+    expect($bootstrap[$this->covered->id]['is_cover'])->toBeTrue()
+        ->and($bootstrap[$this->own->id]['is_cover'])->toBeFalse()
+        ->and($first[$this->covered->id]['is_cover'])->toBeTrue()
+        ->and($first[$this->own->id]['is_cover'])->toBeFalse();
+});
+
+test('a covered customer carries is_cover true when it arrives with the dispatched route and when re-sent alone after an edit', function (): void {
+    $this->route->update(['dispatched_at' => '2026-10-22 11:30:00']);
+    $arrived = coverPull('2026-10-22T11:00:00-03:00');
+
+    $this->travelTo('2026-10-22 13:00:00');
+    $this->covered->update(['name' => 'Renombrado por el admin']);
+    $edited = coverPull('2026-10-22T12:30:00-03:00');
+
+    expect(collect($arrived->json('data.customers'))->keyBy('id')[$this->covered->id]['is_cover'])->toBeTrue()
+        ->and(coverIds($edited, 'customers'))->toBe([$this->covered->id])
+        ->and($edited->json('data.customers.0.is_cover'))->toBeTrue();
+});
+
+test('an own customer on a moved stop, or a covered one reassigned to the driver, carries is_cover false', function (): void {
+    $this->covered->update(['driver_id' => $this->driver->id]);
+    CustomerReassignment::query()->create([
+        'customer_id' => $this->covered->id,
+        'from_driver_id' => $this->absent->id,
+        'to_driver_id' => $this->driver->id,
+        'reassigned_by' => $this->user->id,
+        'reassigned_at' => now(),
+    ]);
+    $this->covered->forceFill(['updated_at' => '2026-10-01 10:00:00'])->save();
+
+    $bootstrap = collect($this->getJson('/api/v1/sync/bootstrap')->assertOk()->json('data.customers'))->keyBy('id');
+    $arrived = coverPull('2026-10-22T11:00:00-03:00');
+
+    expect($bootstrap[$this->covered->id]['is_cover'])->toBeFalse()
+        ->and(coverIds($arrived, 'customers'))->toContain($this->covered->id)
+        ->and(collect($arrived->json('data.customers'))->keyBy('id')[$this->covered->id]['is_cover'])->toBeFalse()
+        ->and(coverIds($arrived, 'customer_preferences'))->toBe([$this->preference->id]);
 });
