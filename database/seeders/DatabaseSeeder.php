@@ -311,7 +311,7 @@ class DatabaseSeeder extends Seeder
                 'phone' => '387 424-1122',
                 'rep' => $repJuan,
                 'street' => 'Zuviría 540',
-                'ref' => 'Timbre de recepción',
+                'ref' => null,
                 'neighborhood' => 'Centro',
                 'lat' => -24.78400,
                 'lng' => -65.41150,
@@ -382,7 +382,7 @@ class DatabaseSeeder extends Seeder
 
             // D. Clientes Residenciales
             [
-                'name' => 'Familia Calisaya',
+                'name' => 'Franco Calisaya',
                 'phone' => '387 411-2233',
                 'rep' => $repJuan,
                 'street' => 'Pasaje Los Ceibos 245',
@@ -396,7 +396,7 @@ class DatabaseSeeder extends Seeder
                 'initial_debt' => 0.00,
             ],
             [
-                'name' => 'Familia Tolaba',
+                'name' => 'Marta Tolaba',
                 'phone' => '387 412-3344',
                 'rep' => $repJuan,
                 'street' => 'Los Álamos 120',
@@ -410,11 +410,11 @@ class DatabaseSeeder extends Seeder
                 'initial_debt' => 4200.00,
             ],
             [
-                'name' => 'Familia Ramírez',
+                'name' => 'Diego Ramírez',
                 'phone' => '387 413-4455',
                 'rep' => $repCarlos,
                 'street' => 'Pasaje Los Tarcos 630',
-                'ref' => 'Casa esquina',
+                'ref' => null,
                 'neighborhood' => 'Castañares Grupo 108',
                 'lat' => -24.74500,
                 'lng' => -65.40500,
@@ -424,11 +424,11 @@ class DatabaseSeeder extends Seeder
                 'initial_debt' => 0.00,
             ],
             [
-                'name' => 'Familia Morales',
+                'name' => 'Silvia Morales',
                 'phone' => '387 414-5566',
                 'rep' => $repMarcos,
                 'street' => 'Los Gladiolos 420',
-                'ref' => 'Casa de dos plantas',
+                'ref' => null,
                 'neighborhood' => 'Santa Ana II',
                 'lat' => -24.83300,
                 'lng' => -65.39500,
@@ -470,7 +470,7 @@ class DatabaseSeeder extends Seeder
                 'initial_debt' => 0.00,
             ],
             [
-                'name' => 'Familia Quispe',
+                'name' => 'Elena Quispe',
                 'phone' => '387 415-6677',
                 'rep' => $repEsteban,
                 'street' => 'Pasaje Los Molles 45',
@@ -486,7 +486,7 @@ class DatabaseSeeder extends Seeder
                 'initial_debt' => 4200.00,
             ],
             [
-                'name' => 'Familia Mamaní',
+                'name' => 'Jorge Mamaní',
                 'phone' => '387 416-7788',
                 'rep' => $repEsteban,
                 'street' => 'Av. Las Palmeras 2100',
@@ -535,7 +535,7 @@ class DatabaseSeeder extends Seeder
                 'phone' => '387 434-9900',
                 'rep' => $repEsteban,
                 'street' => 'Av. Las Palmeras 2400',
-                'ref' => 'Cerró el local',
+                'ref' => null,
                 'neighborhood' => 'Limache Etapa 5',
                 'lat' => -24.84400,
                 'lng' => -65.41900,
@@ -551,7 +551,7 @@ class DatabaseSeeder extends Seeder
         $customersConfig = [
             ...$customersConfig,
             [
-                'name' => 'Familia Guaymás',
+                'name' => 'Guada Guaymás',
                 'phone' => '387 433-7781',
                 'rep' => $repLucia,
                 'street' => 'Avenida Bolivia 3120',
@@ -579,11 +579,11 @@ class DatabaseSeeder extends Seeder
                 'initial_debt' => 12000.00,
             ],
             [
-                'name' => 'Familia Cruz',
+                'name' => 'Norma Cruz',
                 'phone' => '387 433-7783',
                 'rep' => $repLucia,
                 'street' => 'Pasaje Las Rosas 45',
-                'ref' => 'Casa de rejas blancas',
+                'ref' => null,
                 'neighborhood' => 'El Huaico',
                 'lat' => -24.73800,
                 'lng' => -65.40300,
@@ -593,6 +593,74 @@ class DatabaseSeeder extends Seeder
                 'initial_debt' => 0.00,
             ],
         ];
+
+        // F. The rest of Esteban's and Lucía's portfolios: neighbors, almacenes, comedores and kioscos.
+        // [name, street, visual reference, neighborhood, lat, lng, bidones, sifones, agua price, opening debt, extra address fields]
+        $estebanNewCustomers = [
+            ['Despensa Los Hermanos', 'Av. Paraguay 3650', 'Persiana verde, al lado de la carnicería', 'Limache', -24.83580, -65.42620, 6, 4, 5600.00, 9500.00],
+            ['Carmen Chocobar', 'Pasaje Los Lapachos 112', null, 'Limache', -24.83420, -65.42710, 2, 0, 6000.00, 0.00],
+            ['Raúl Vilte', 'Los Jacarandás 230', 'Casa de dos pisos frente a la plaza', 'Limache', -24.83710, -65.42480, 3, 2, 6000.00, 0.00],
+            ['Comedor Pancitas Llenas', 'Av. Chile 1520', 'Salón al lado de la capilla', 'Limache', -24.83630, -65.42350, 10, 0, 5200.00, 15600.00],
+            ['Valeria Sajama', 'Pasaje Las Tipas 78', null, 'Limache', -24.83490, -65.42830, 2, 0, 6000.00, 0.00],
+            ['Kiosco El Pato', 'Calle 12 de Octubre 450', 'Ventanita con rejas amarillas', 'Limache Etapa 1', -24.83150, -65.42330, 3, 4, 5800.00, 0.00],
+            ['Hugo Cardozo', 'Los Cardones 315', null, 'Limache Etapa 1', -24.83080, -65.42460, 2, 0, 6000.00, 6000.00],
+            ['Patricia Liendro', 'Los Cardones 340', 'Portón verde, al lado de la verdulería', 'Limache Etapa 1', -24.83110, -65.42510, 2, 2, 6000.00, 0.00],
+            ['Sergio Copa', 'Los Cardones 402', null, 'Limache Etapa 1', -24.83020, -65.42590, 1, 0, 6000.00, 0.00],
+            ['Andrea Aramayo', 'Calle 12 de Octubre 515', null, 'Limache Etapa 1', -24.83240, -65.42280, 2, 0, 6000.00, 0.00],
+            ['Comedor Los Peques', 'Av. Chile 1950', 'Entrada por el costado de la escuela', 'Limache Etapa 2', -24.83860, -65.42130, 8, 0, 5200.00, 0.00],
+            ['Miguel Gutiérrez', 'Las Achiras 40', null, 'Limache Etapa 2', -24.83920, -65.42250, 2, 0, 6000.00, 0.00],
+            ['Lorena Farfán', 'Las Achiras 88', 'Casa celeste con rejas negras', 'Limache Etapa 2', -24.83950, -65.42300, 3, 2, 6000.00, 12000.00],
+            ['Ramón Choque', 'Las Achiras 140', null, 'Limache Etapa 2', -24.83990, -65.42370, 2, 0, 6000.00, 0.00],
+            ['Almacén Don Pedro', 'Pasaje Los Molles 120', 'Esquina, toldo azul', 'Limache Etapa 3', -24.84060, -65.42760, 6, 4, 5600.00, 8400.00],
+            ['Gabriela Tapia', 'Pasaje Los Molles 88', null, 'Limache Etapa 3', -24.84030, -65.42790, 2, 0, 6000.00, 0.00],
+            ['Daniel Saravia', 'Pasaje Los Talas 210', 'Casa con quincho al fondo, tocar timbre', 'Limache Etapa 3', -24.84120, -65.42880, 3, 0, 6000.00, 0.00],
+            ['Mónica Ríos', 'Pasaje Los Talas 245', null, 'Limache Etapa 3', -24.84150, -65.42910, 2, 2, 6000.00, 0.00],
+            ['Javier Condorí', 'Pasaje Los Algarrobos 33', null, 'Limache Etapa 3', -24.84210, -65.42840, 1, 0, 6000.00, 6000.00],
+            ['Kiosco La Esquina', 'Av. Las Palmeras 2250', 'Frente a la parada de colectivos', 'Limache Etapa 5', -24.84350, -65.41950, 3, 4, 5800.00, 0.00],
+            ['Silvina Cáceres', 'Av. Las Palmeras 2150', null, 'Limache Etapa 5', -24.84320, -65.41990, 2, 0, 6000.00, 0.00, ['floor' => '1', 'apartment' => 'A']],
+            ['Oscar Zerpa', 'Los Lirios 315', 'Casa con portón de chapa marrón', 'Limache Etapa 5', -24.84460, -65.42080, 2, 0, 6000.00, 0.00],
+            ['Natalia Mendoza', 'Los Lirios 360', null, 'Limache Etapa 5', -24.84490, -65.42120, 2, 0, 6000.00, 0.00],
+        ];
+
+        $luciaNewCustomers = [
+            ['Ana Lamas', 'Los Arces 156', 'Casa de ladrillo visto con rejas blancas', 'Tres Cerritos', -24.76950, -65.39850, 2, 0, 6000.00, 0.00],
+            ['Martín Avendaño', 'Los Nogales 98', null, 'Tres Cerritos', -24.77020, -65.39740, 2, 2, 6000.00, 0.00],
+            ['Almacén Tres Cerritos', 'Av. Los Incas 2550', 'Esquina, cartel amarillo', 'Tres Cerritos', -24.76880, -65.40050, 6, 4, 5600.00, 10400.00],
+            ['Florencia Ibarra', 'Los Fresnos 210', null, 'Tres Cerritos', -24.77150, -65.39920, 2, 0, 6000.00, 0.00],
+            ['Ricardo Yapura', 'Los Paraísos 77', null, 'Tres Cerritos', -24.77080, -65.40110, 1, 0, 6000.00, 6000.00],
+            ['Kiosco Doña Pocha', 'Urquiza 650', 'Al lado de la farmacia', 'Centro', -24.79060, -65.41150, 3, 4, 5800.00, 0.00],
+            ['Claudia Herrera', 'Lerma 370', 'Edificio con portero eléctrico', 'Centro', -24.79210, -65.40980, 2, 0, 6000.00, 0.00, ['floor' => '3', 'apartment' => 'D']],
+            ['Pablo Sosa', 'Santiago del Estero 920', null, 'Centro', -24.78720, -65.41420, 2, 2, 6000.00, 0.00],
+            ['Despensa El Ahorro', 'Rivadavia 1010', null, 'Centro', -24.78560, -65.41580, 5, 0, 5600.00, 7200.00],
+            ['Comedor San Cayetano', 'Pasaje Las Rosas 130', 'Salón al lado de la capilla', 'El Huaico', -24.73750, -65.40250, 10, 0, 5200.00, 20800.00],
+            ['Beatriz Guanuco', 'Pasaje Las Violetas 60', null, 'El Huaico', -24.73690, -65.40380, 2, 0, 6000.00, 0.00],
+            ['Luis Abán', 'Pasaje Las Violetas 95', 'Casa con reja verde y perro grande', 'El Huaico', -24.73660, -65.40420, 2, 2, 6000.00, 0.00],
+            ['Kiosco Los Pibes', 'Balcarce 2210', null, 'El Huaico', -24.73520, -65.40140, 3, 4, 5800.00, 0.00],
+            ['Verónica Paz', 'Av. Bolivia 4100', 'Portón blanco, timbre a la izquierda', 'Grand Bourg', -24.76420, -65.42180, 2, 0, 6000.00, 0.00],
+            ['Gustavo Medina', 'Los Cebiles 220', null, 'Grand Bourg', -24.76580, -65.42410, 2, 2, 6000.00, 6000.00],
+            ['Almacén La Abuela', 'Las Acacias 45', null, 'Grand Bourg', -24.76650, -65.42260, 6, 4, 5600.00, 0.00],
+            ['Mirta Ortiz', 'Las Acacias 132', null, 'Grand Bourg', -24.76710, -65.42330, 2, 0, 6000.00, 0.00],
+        ];
+
+        foreach ([[$repEsteban, '387 435-', $estebanNewCustomers], [$repLucia, '387 436-', $luciaNewCustomers]] as [$rep, $phonePrefix, $rows]) {
+            foreach ($rows as $index => [$name, $street, $ref, $neighborhood, $lat, $lng, $bidones, $sifones, $priceAgua, $debt]) {
+                $customersConfig[] = [
+                    'name' => $name,
+                    'phone' => $phonePrefix.(1001 + $index),
+                    'rep' => $rep,
+                    'street' => $street,
+                    'ref' => $ref,
+                    'neighborhood' => $neighborhood,
+                    'lat' => $lat,
+                    'lng' => $lng,
+                    'bidon_balance' => $bidones,
+                    'sifon_balance' => $sifones,
+                    'price_agua' => $priceAgua,
+                    'initial_debt' => $debt,
+                    ...($rows[$index][10] ?? []),
+                ];
+            }
+        }
 
         $createdCustomers = [];
         foreach ($customersConfig as $cfg) {
@@ -723,25 +791,25 @@ class DatabaseSeeder extends Seeder
                 ['customer' => 'Café Martínez Belgrano', 'time' => '09:15', 'qty_agua' => 4, 'qty_soda' => 8, 'method' => $cashMethod],
                 ['customer' => 'Estudio Jurídico Alvear & Asoc.', 'time' => '10:00', 'qty_agua' => 3, 'qty_soda' => 0, 'method' => $cashMethod],
                 ['customer' => 'Hotel Cerro San Bernardo', 'time' => '11:20', 'qty_agua' => 8, 'qty_soda' => 6, 'method' => null],
-                ['customer' => 'Familia Tolaba', 'time' => '12:50', 'absent' => true],
+                ['customer' => 'Marta Tolaba', 'time' => '12:50', 'absent' => true],
             ]],
             [$repCarlos, '07:45', '13:15', [
                 ['customer' => 'Panadería y Confitería La Unión', 'time' => '08:10', 'qty_agua' => 4, 'qty_soda' => 6, 'method' => $cashMethod],
                 ['customer' => 'Gimnasio Go Fitness Salta', 'time' => '09:05', 'qty_agua' => 8, 'qty_soda' => 0, 'method' => $transferMethod],
                 ['customer' => 'Kiosco El Sol', 'time' => '10:20', 'qty_agua' => 3, 'qty_soda' => 4, 'method' => $cashMethod],
-                ['customer' => 'Familia Ramírez', 'time' => '11:40', 'qty_agua' => 2, 'qty_soda' => 0, 'method' => null],
+                ['customer' => 'Diego Ramírez', 'time' => '11:40', 'qty_agua' => 2, 'qty_soda' => 0, 'method' => null],
             ]],
             [$repMarcos, '08:30', '12:30', [
                 ['customer' => 'Crossfit Sur Box', 'time' => '09:00', 'qty_agua' => 6, 'qty_soda' => 0, 'method' => $transferMethod],
                 ['customer' => 'Taller Mecánico Tavella Motors', 'time' => '10:10', 'qty_agua' => 5, 'qty_soda' => 0, 'method' => null],
-                ['customer' => 'Familia Morales', 'time' => '11:30', 'qty_agua' => 3, 'qty_soda' => 0, 'method' => $cashMethod],
+                ['customer' => 'Silvia Morales', 'time' => '11:30', 'qty_agua' => 3, 'qty_soda' => 0, 'method' => $cashMethod],
             ]],
             [$repEsteban, '08:00', '13:00', [
                 ['customer' => 'Supermercado El Tunal', 'time' => '08:25', 'qty_agua' => 10, 'qty_soda' => 8, 'method' => $transferMethod],
                 ['customer' => 'Verdulería Los Andes', 'time' => '09:10', 'qty_agua' => 3, 'qty_soda' => 2, 'method' => $cashMethod],
                 ['customer' => 'Escuela N° 4032 Limache', 'time' => '10:00', 'qty_agua' => 6, 'qty_soda' => 0, 'method' => null],
-                ['customer' => 'Familia Quispe', 'time' => '11:15', 'qty_agua' => 2, 'qty_soda' => 0, 'method' => $cashMethod],
-                ['customer' => 'Familia Mamaní', 'time' => '12:20', 'qty_agua' => 2, 'qty_soda' => 0, 'method' => $cashMethod],
+                ['customer' => 'Elena Quispe', 'time' => '11:15', 'qty_agua' => 2, 'qty_soda' => 0, 'method' => $cashMethod],
+                ['customer' => 'Jorge Mamaní', 'time' => '12:20', 'qty_agua' => 2, 'qty_soda' => 0, 'method' => $cashMethod],
             ]],
         ];
 
@@ -844,7 +912,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 // The app only pushes finished visits, so the next stop is pending, never a server visit in progress.
-                'customer' => 'Familia Calisaya',
+                'customer' => 'Franco Calisaya',
                 'status' => 'PENDING',
                 'time' => null,
                 'scheduled' => '12:00',
@@ -854,7 +922,7 @@ class DatabaseSeeder extends Seeder
                 'is_credit' => false,
             ],
             [
-                'customer' => 'Familia Tolaba',
+                'customer' => 'Marta Tolaba',
                 'status' => 'PENDING',
                 'time' => null,
                 'scheduled' => '13:00',
@@ -1005,7 +1073,7 @@ class DatabaseSeeder extends Seeder
         }
 
         // A customer called asking for a visit today: it rides on Juan's pending stop, so the app shows a requested visit.
-        $requestingCustomer = $createdCustomers['Familia Tolaba'];
+        $requestingCustomer = $createdCustomers['Marta Tolaba'];
         if (ScheduledVisit::query()->where('customer_id', $requestingCustomer->id)->whereDate('date', $today)->doesntExist()) {
             app(VisitScheduler::class)->schedule($requestingCustomer, $today, '13:00', 'Llamó, quiere 2 bidones', $admin);
         }
@@ -1079,7 +1147,7 @@ class DatabaseSeeder extends Seeder
                 'is_credit' => true,
             ],
             [
-                'customer' => 'Familia Ramírez',
+                'customer' => 'Diego Ramírez',
                 'status' => 'FINISHED',
                 'time' => '11:15',
                 'qty_agua' => 3,
@@ -1228,7 +1296,7 @@ class DatabaseSeeder extends Seeder
                 'is_credit' => false,
             ],
             [
-                'customer' => 'Familia Morales',
+                'customer' => 'Silvia Morales',
                 'status' => 'FINISHED',
                 'time' => '10:45',
                 'qty_agua' => 4,
@@ -1335,7 +1403,7 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        foreach ([[$productAgua20L, 40.00], [$productSoda2L, 20.00]] as [$product, $quantity]) {
+        foreach ([[$productAgua20L, 80.00], [$productSoda2L, 30.00]] as [$product, $quantity]) {
             RouteInventoryLoad::firstOrCreate(
                 ['route_id' => $routeEsteban->id, 'product_id' => $product->id],
                 ['quantity' => $quantity, 'loaded_at' => $routeEsteban->started_at->copy()->subMinutes(30), 'created_by' => $admin->id]
@@ -1346,17 +1414,20 @@ class DatabaseSeeder extends Seeder
             );
         }
 
+        // 29 first visits every 10 minutes from 08:30 (the greengrocer first), plus the rescheduled one below: 30 stops.
         $estebanStops = [
-            'Verdulería Los Andes' => '08:30',
-            'Supermercado El Tunal' => '09:00',
-            'Escuela N° 4032 Limache' => '09:45',
-            'Consultorio Odontológico Sonrisas' => '10:30',
-            'Familia Quispe' => '11:15',
-            'Familia Mamaní' => '12:00',
+            'Verdulería Los Andes',
+            'Supermercado El Tunal',
+            'Escuela N° 4032 Limache',
+            'Consultorio Odontológico Sonrisas',
+            'Elena Quispe',
+            'Jorge Mamaní',
+            ...array_column($estebanNewCustomers, 0),
         ];
 
-        foreach ($estebanStops as $customerName => $scheduledTime) {
+        foreach ($estebanStops as $position => $customerName) {
             $cust = $createdCustomers[$customerName];
+            $scheduledTime = $today->copy()->setTime(8, 30)->addMinutes(10 * $position)->format('H:i');
 
             RouteStop::firstOrCreate(
                 ['route_id' => $routeEsteban->id, 'customer_id' => $cust->id, 'is_rescheduled_from' => null],
@@ -1400,8 +1471,12 @@ class DatabaseSeeder extends Seeder
             ['status' => 'PLANNED', 'enabled' => true]
         );
 
-        foreach (['Familia Guaymás' => '08:30', 'Almacén Doña Rosa' => '09:15', 'Familia Cruz' => '10:00'] as $customerName => $scheduledTime) {
+        // 20 stops every 15 minutes from 08:30, spread over Tres Cerritos, Centro, El Huaico and Grand Bourg.
+        $luciaStops = ['Guada Guaymás', 'Almacén Doña Rosa', 'Norma Cruz', ...array_column($luciaNewCustomers, 0)];
+
+        foreach ($luciaStops as $position => $customerName) {
             $cust = $createdCustomers[$customerName];
+            $scheduledTime = $today->copy()->setTime(8, 30)->addMinutes(15 * $position)->format('H:i');
 
             RouteStop::firstOrCreate(
                 ['route_id' => $routeLucia->id, 'customer_id' => $cust->id, 'is_rescheduled_from' => null],
