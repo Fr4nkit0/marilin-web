@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use App\Accounts\Models\Driver;
 use App\Accounts\Models\User;
+use App\Customers\Customers\DriverAssignment;
+use App\Customers\Customers\InvalidCustomerChange;
 use App\Customers\Customers\Models\Customer;
 use App\Customers\Customers\Models\CustomerAddress;
 use App\Customers\Customers\Models\CustomerReassignment;
@@ -19,6 +21,16 @@ beforeEach(function (): void {
     $this->juan = Driver::factory()->create();
     $this->carlos = Driver::factory()->create();
     $this->off = Driver::factory()->create(['enabled' => false]);
+});
+
+test('a transfer to a driver disabled meanwhile moves no customer and records nothing', function (): void {
+    $customers = Customer::factory()->count(2)->create(['driver_id' => $this->juan->id]);
+
+    expect(fn () => app(DriverAssignment::class)->transfer($customers->modelKeys(), $this->juan->id, $this->off->id, $this->admin))
+        ->toThrow(InvalidCustomerChange::class, 'The destination driver is not enabled.');
+
+    expect(Customer::query()->whereKey($customers->modelKeys())->pluck('driver_id')->unique()->all())->toBe([$this->juan->id])
+        ->and(CustomerReassignment::query()->count())->toBe(0);
 });
 
 test('editing a customer to another driver still records exactly one reassignment', function (): void {

@@ -111,9 +111,12 @@ final class GenerateDailyRoutesAction
         return $driver->customers()
             ->enabled()
             ->whereHas('preferences', $preferencesOfDay)
+            // Only a cover keeps the customer off its owner's route: a stop left on its old driver's route after a
+            // reassignment does not.
             ->whereDoesntHave('routeStops', fn ($stops) => $stops
                 ->enabled()
                 ->notDone()
+                ->whereNotNull('moved_from_route_id')
                 ->whereHas('route', fn ($route) => $route
                     ->whereDate('date', $date->toDateString())
                     ->where('assigned_driver_id', '!=', $driver->id)))

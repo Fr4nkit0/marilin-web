@@ -256,6 +256,17 @@ test('routes:generate does not put a moved customer back on the absent driver\'s
         ->and(Route::query()->count())->toBe(2);
 });
 
+test('routes:generate gives a stop to the new owner of a customer reassigned after its old driver\'s route was built', function (): void {
+    [$first] = $this->stops;
+    Customer::query()->whereKey($first->customer_id)->update(['driver_id' => $this->cover->id]);
+
+    $this->artisan('routes:generate')->assertSuccessful();
+
+    $coverRoute = Route::query()->where('assigned_driver_id', $this->cover->id)->sole();
+    expect($coverRoute->stops()->where('customer_id', $first->customer_id)->count())->toBe(1)
+        ->and($first->fresh()->route_id)->toBe($this->source->id);
+});
+
 test('routes:generate gives no stop back to a route whose only stop was moved', function (): void {
     $lone = coverDriver('Diego Solo');
     $loneRoute = Route::factory()->undispatched()->create(['assigned_driver_id' => $lone->id, 'date' => '2026-10-23', 'status' => 'PLANNED']);

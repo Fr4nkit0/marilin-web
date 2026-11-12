@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Customers\Customers;
 
+use App\Accounts\Models\Driver;
 use App\Accounts\Models\User;
 use App\Customers\Customers\Models\Customer;
 use Illuminate\Support\Facades\DB;
@@ -53,6 +54,11 @@ class DriverAssignment
     public function transfer(array $customerIds, int $fromDriverId, int $toDriverId, User $transferredBy): int
     {
         return DB::transaction(function () use ($customerIds, $fromDriverId, $toDriverId, $transferredBy): int {
+            // Shares the destination's row with a concurrent disable, so a driver disabled meanwhile gets no customer.
+            if (! Driver::query()->whereKey($toDriverId)->where('enabled', true)->sharedLock()->exists()) {
+                throw new InvalidCustomerChange('The destination driver is not enabled.', 'to_driver_id');
+            }
+
             $customerIds = array_values(array_unique($customerIds));
             $customers = Customer::query()
                 ->whereKey($customerIds)
