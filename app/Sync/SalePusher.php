@@ -68,7 +68,7 @@ class SalePusher extends EntityPusher
         $date = ClientTime::parse($record['date']);
         // Every reason the sale needs the admin's eyes for, so the inbox shows them all.
         $reasons = [
-            $this->reviewReasonForCustomer($customer, $driver),
+            $this->reviewReasonForCustomer($customer, $driver, $date),
             $this->chargesAnotherPrice($customer, $record['details'], $date) ? ReviewReason::PriceMismatch : null,
         ];
 

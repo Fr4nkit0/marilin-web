@@ -248,11 +248,12 @@ abstract class EntityPusher
 
     /**
      * Accept-and-mark (ADR 0001): what happened on the street is kept, but a customer that was reassigned or disabled meanwhile needs the admin's eyes.
+     * A customer the driver covers on the record's day (ADR 0004) is theirs for that record.
      */
-    protected function reviewReasonForCustomer(Customer $customer, Driver $driver): ?ReviewReason
+    protected function reviewReasonForCustomer(Customer $customer, Driver $driver, CarbonInterface $recordedOn): ?ReviewReason
     {
         return match (true) {
-            $customer->driver_id !== $driver->id => ReviewReason::ForeignCustomer,
+            $customer->driver_id !== $driver->id && ! Cover::covers($driver, $customer, $recordedOn->toDateString()) => ReviewReason::ForeignCustomer,
             ! $customer->enabled => ReviewReason::DisabledCustomer,
             default => null,
         };

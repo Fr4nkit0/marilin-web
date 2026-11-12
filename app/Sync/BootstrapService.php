@@ -67,10 +67,12 @@ class BootstrapService
      */
     private function stops(Route $route): array
     {
+        // The stops of the driver's own customers and the ones moved here to cover an absent driver (ADR 0004).
         return $route->stops()
-            ->whereHas('customer', fn ($query) => $query
-                ->where('driver_id', $route->assigned_driver_id)
-                ->where('enabled', true))
+            ->whereHas('customer', fn ($query) => $query->where('enabled', true))
+            ->where(fn (Builder $query) => $query
+                ->whereHas('customer', fn ($customer) => $customer->where('driver_id', $route->assigned_driver_id))
+                ->orWhere(fn (Builder $moved) => $moved->where('enabled', true)->whereNotNull('moved_from_route_id')))
             ->with(['visit', 'rescheduledTo'])
             ->orderByRaw('scheduled_time asc nulls first')
             ->orderBy('id')
@@ -140,12 +142,16 @@ class BootstrapService
     }
 
     /**
+     * The driver's customers and the ones they cover today (ADR 0004), with the same rows.
+     *
      * @return Collection<int, Customer>
      */
     private function customers(Driver $driver, string $today): Collection
     {
         return Customer::query()
-            ->where('driver_id', $driver->id)
+            ->where(fn (Builder $query) => $query
+                ->where('driver_id', $driver->id)
+                ->orWhere(fn (Builder $covered) => Cover::customers($covered, $driver, fn (Builder $route) => $route->whereDate('date', $today))))
             ->where('enabled', true)
             ->with([
                 'addresses',

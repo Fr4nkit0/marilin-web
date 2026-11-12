@@ -52,7 +52,8 @@ class ContainerMovementPusher extends EntityPusher
         if ($sale?->status === SaleStatus::Cancelled->value) {
             throw new RejectedRecord('The sale is cancelled.');
         }
-        $reason = $this->reviewReasonForCustomer($customer, $driver);
+        // A movement carries no date of its own: it happened on its visit's or sale's day, or today when it is loose.
+        $reason = $this->reviewReasonForCustomer($customer, $driver, $visit?->arrived_at ?? $sale?->date ?? now());
 
         $movement = $this->operation->moveContainers(new MoveContainers(
             customer: $customer,

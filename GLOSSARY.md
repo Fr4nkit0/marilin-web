@@ -32,6 +32,14 @@ _Avoid_: Inventario del camión, stock del camión, carga
 Liberar la ruta a la app del repartidor una vez cargado su inventario de ruta; lo hace a mano quien carga la camioneta. Hasta entonces la ruta existe en la web pero la app no la recibe.
 _Avoid_: Publicar, enviar, habilitar la ruta
 
+**Transferir cartera**:
+Reasignar a otro repartidor todos o parte de los clientes de un repartidor, por ejemplo cuando deja de trabajar. Cambia el dueño de cada cliente y queda registrada como reasignación; la app del anterior lo deja de ver y la del nuevo lo recibe entero.
+_Avoid_: Mover clientes, traspaso, migrar cartera
+
+**Cobertura**:
+Paradas de la ruta de un repartidor que falta, movidas por el admin a la ruta del mismo día de otro repartidor antes de despachar. El cliente sigue siendo del que falta; el que cubre lo recibe en la app con su ruta despachada y lo deja de ver cuando termina ese día.
+_Avoid_: Reemplazo, suplencia, reasignación (eso es transferir cartera)
+
 **Envase**:
 Recipiente retornable (bidón o sifón) que el cliente recibe y devuelve; se lleva un saldo de envases por cliente.
 _Avoid_: Container, botella, retornable
@@ -55,7 +63,7 @@ _Avoid_: Rendición, caja del día, liquidación
 ## Sincronización
 
 **Bajada**:
-Lo que la app recibe del servidor: ruta del día una vez despachada, clientes asignados con su saldo, catálogo e inventario de ruta, incluidas las bajas.
+Lo que la app recibe del servidor: ruta del día una vez despachada, clientes asignados y cubiertos con su saldo, catálogo e inventario de ruta, incluidas las bajas.
 _Avoid_: Pull, descarga, bootstrap
 
 **Subida**:

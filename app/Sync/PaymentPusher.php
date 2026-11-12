@@ -58,7 +58,7 @@ class PaymentPusher extends EntityPusher
         }
 
         $reasons = [
-            $this->reviewReasonForCustomer($customer, $driver),
+            $this->reviewReasonForCustomer($customer, $driver, $paidAt),
             $this->exceedsDebt($customer, (string) $record['amount']) ? ReviewReason::PaymentExceedsDebt : null,
         ];
 

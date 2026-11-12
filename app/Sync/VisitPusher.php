@@ -53,7 +53,8 @@ class VisitPusher extends EntityPusher
         $customer = $this->reference(Customer::class, $record, 'customer');
         $stop = $this->reference(RouteStop::class, $record, 'route_stop');
 
-        $reason = $this->reviewReasonForCustomer($customer, $driver);
+        $arrivedAt = ClientTime::parse($record['arrived_at']);
+        $reason = $this->reviewReasonForCustomer($customer, $driver, $arrivedAt);
 
         $visit = Visit::create([
             'client_uuid' => $record['uuid'],
@@ -61,7 +62,7 @@ class VisitPusher extends EntityPusher
             'customer_id' => $customer->id,
             'driver_id' => $driver->id,
             'outcome_id' => $record['outcome_id'] ?? null,
-            'arrived_at' => ClientTime::parse($record['arrived_at']),
+            'arrived_at' => $arrivedAt,
             'latitude' => $record['latitude'] ?? null,
             'longitude' => $record['longitude'] ?? null,
             'altitude' => $record['altitude'] ?? null,
