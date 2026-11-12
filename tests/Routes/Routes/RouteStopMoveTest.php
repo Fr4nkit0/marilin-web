@@ -267,6 +267,41 @@ test('routes:generate gives a stop to the new owner of a customer reassigned aft
         ->and($first->fresh()->route_id)->toBe($this->source->id);
 });
 
+test('the stop a reassigned customer left on its old driver\'s route cannot be moved', function (): void {
+    [$first] = $this->stops;
+    Customer::query()->whereKey($first->customer_id)->update(['driver_id' => $this->cover->id]);
+    $before = coverSnapshot();
+
+    moveStops($this->source, [$first->id], $this->other->id)
+        ->assertSessionHasErrors(['move' => 'Alguna de las paradas es de un cliente que ya no es de este repartidor.']);
+
+    expect(coverSnapshot())->toBe($before);
+});
+
+test('a stop does not move to a route where its customer already has an open stop', function (): void {
+    [$first] = $this->stops;
+    $coverRoute = Route::factory()->undispatched()->create(['assigned_driver_id' => $this->cover->id, 'date' => '2026-10-23', 'status' => 'PLANNED']);
+    coverStop($coverRoute, $first->customer);
+    $before = coverSnapshot();
+
+    moveStops($this->source, [$first->id], $this->cover->id)
+        ->assertSessionHasErrors(['move' => 'Algún cliente ya tiene una parada pendiente en la ruta de Beto Cubre.']);
+
+    expect(coverSnapshot())->toBe($before);
+});
+
+test('covering a route never leaves two open stops of one customer on the destination route', function (): void {
+    [$first, $second] = $this->stops;
+    Customer::query()->whereKey($first->customer_id)->update(['driver_id' => $this->cover->id]);
+    $this->artisan('routes:generate')->assertSuccessful();
+
+    moveStops($this->source, [$second->id], $this->cover->id)->assertSessionHasNoErrors();
+
+    $coverRoute = Route::query()->where('assigned_driver_id', $this->cover->id)->sole();
+    expect($coverRoute->stops()->enabled()->notDone()->where('customer_id', $first->customer_id)->count())->toBe(1)
+        ->and($second->fresh()->route_id)->toBe($coverRoute->id);
+});
+
 test('routes:generate gives no stop back to a route whose only stop was moved', function (): void {
     $lone = coverDriver('Diego Solo');
     $loneRoute = Route::factory()->undispatched()->create(['assigned_driver_id' => $lone->id, 'date' => '2026-10-23', 'status' => 'PLANNED']);

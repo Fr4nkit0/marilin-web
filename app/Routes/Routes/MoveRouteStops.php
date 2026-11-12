@@ -64,6 +64,7 @@ final class MoveRouteStops
                 : $locked->get($existing);
 
             $this->ensureDestinationTakes($destination, $destinationDriver);
+            $this->ensureNoCustomerTwice($destination, $stops, $destinationDriver);
 
             $stops->each(function (RouteStop $stop) use ($source, $destination): void {
                 // A stop moved on keeps the absent driver's route; moved back there, it is no longer a cover.
@@ -123,6 +124,37 @@ final class MoveRouteStops
             throw new InvalidRouteStopMove('Alguna de las paradas ya no está pendiente.');
         }
 
+        // A stop left behind when its customer was reassigned is not a cover: the new owner visits that customer.
+        $leftBehind = RouteStop::query()
+            ->whereKey($ids)
+            ->whereNull('moved_from_route_id')
+            ->whereDoesntHave('customer', fn ($customer) => $customer->where('driver_id', $source->assigned_driver_id))
+            ->exists();
+
+        if ($leftBehind) {
+            throw new InvalidRouteStopMove('Alguna de las paradas es de un cliente que ya no es de este repartidor.');
+        }
+
         return $stops;
+    }
+
+    /**
+     * A customer is visited once a day: none of the moved stops may join a route where its customer already waits.
+     *
+     * @param  Collection<int, RouteStop>  $stops
+     */
+    private function ensureNoCustomerTwice(Route $destination, Collection $stops, Driver $driver): void
+    {
+        $waiting = $destination->stops()
+            ->enabled()
+            ->notDone()
+            ->whereIn('customer_id', $stops->pluck('customer_id'))
+            ->exists();
+
+        if ($waiting) {
+            $name = $driver->user?->name ?? 'el repartidor';
+
+            throw new InvalidRouteStopMove("Algún cliente ya tiene una parada pendiente en la ruta de {$name}.");
+        }
     }
 }
