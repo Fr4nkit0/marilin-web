@@ -14,7 +14,7 @@ return new class extends Migration
         // Every change of a customer's driver, so the pull can tell the driver it left (customers_removed).
         Schema::create('customer_reassignments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('customer_id')->constrained('customers')->cascadeOnDelete();
+            $table->foreignId('customer_id')->constrained('customers')->restrictOnDelete();
             $table->foreignId('from_driver_id')->nullable()->constrained('drivers')->nullOnDelete();
             $table->foreignId('to_driver_id')->nullable()->constrained('drivers')->nullOnDelete();
             $table->foreignId('reassigned_by')->nullable()->constrained('users')->nullOnDelete();

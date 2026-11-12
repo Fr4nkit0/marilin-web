@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('customer_preferences', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('customer_id')->constrained('customers')->cascadeOnDelete();
+            $table->foreignId('customer_id')->constrained('customers')->restrictOnDelete();
             $table->uuid('client_uuid')->nullable()->unique();
             $table->unsignedTinyInteger('day_of_week'); // 0 = Sunday, 6 = Saturday
             $table->time('time_window_start')->nullable();

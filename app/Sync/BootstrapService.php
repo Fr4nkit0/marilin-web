@@ -67,11 +67,13 @@ class BootstrapService
      */
     private function stops(Route $route): array
     {
+        // The stops of the driver's own customers and the ones moved here to cover an absent driver (ADR 0004).
         return $route->stops()
-            ->whereHas('customer', fn ($query) => $query
-                ->where('driver_id', $route->assigned_driver_id)
-                ->where('enabled', true))
-            ->with(['visit', 'rescheduledTo'])
+            ->whereHas('customer', fn ($query) => $query->where('enabled', true))
+            ->where(fn (Builder $query) => $query
+                ->whereHas('customer', fn ($customer) => $customer->where('driver_id', $route->assigned_driver_id))
+                ->orWhere(fn (Builder $moved) => $moved->where('enabled', true)->whereNotNull('moved_from_route_id')))
+            ->with(['visit', 'rescheduledTo', 'movedFrom.driver.user'])
             ->orderByRaw('scheduled_time asc nulls first')
             ->orderBy('id')
             ->get()
@@ -86,6 +88,8 @@ class BootstrapService
                 'note' => $stop->note,
                 'status' => $stop->effectiveStatus()->value,
                 'enabled' => $stop->enabled,
+                'is_cover' => $stop->moved_from_route_id !== null,
+                'covered_driver_name' => Cover::coveredDriverName($stop),
             ])
             ->all();
     }
@@ -140,20 +144,27 @@ class BootstrapService
     }
 
     /**
+     * The driver's customers and the ones they cover today (ADR 0004); a covered one carries only what a visit needs.
+     *
      * @return Collection<int, Customer>
      */
     private function customers(Driver $driver, string $today): Collection
     {
+        $coverRoute = fn (Builder $route) => $route->whereDate('date', $today);
+
         return Customer::query()
-            ->where('driver_id', $driver->id)
+            ->where(fn (Builder $query) => $query
+                ->where('driver_id', $driver->id)
+                ->orWhere(fn (Builder $covered) => Cover::customers($covered, $driver, $coverRoute)))
             ->where('enabled', true)
             ->with([
-                'addresses',
-                'preferences',
+                'addresses' => fn ($query) => Cover::visitAddresses($query->getQuery(), $driver, $coverRoute),
+                'preferences' => fn ($query) => $query->whereHas('customer', fn (Builder $customer) => $customer->where('driver_id', $driver->id)),
                 'agreements' => fn ($query) => $query->active($today)->with('product'),
                 'balance',
                 'containerBalances.containerType',
             ])
-            ->get();
+            ->get()
+            ->each(fn (Customer $customer): Customer => Cover::mark($customer, $driver));
     }
 }

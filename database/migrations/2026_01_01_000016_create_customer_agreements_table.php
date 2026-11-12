@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('customer_agreements', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('customer_id')->constrained('customers')->cascadeOnDelete();
-            $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
+            $table->foreignId('customer_id')->constrained('customers')->restrictOnDelete();
+            $table->foreignId('product_id')->constrained('products')->restrictOnDelete();
             $table->decimal('unit_price', 12, 2);
             $table->date('valid_from');
             $table->date('valid_to')->nullable();

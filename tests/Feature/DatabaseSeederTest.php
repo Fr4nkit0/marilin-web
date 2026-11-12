@@ -46,14 +46,14 @@ test('the seeded driver Esteban gets a full day to work from the app', function 
     $customers = collect($response->json('data.customers'))->keyBy('name');
     $products = collect($response->json('data.products'))->keyBy('name');
 
-    expect($stops)->toHaveCount(7)
-        ->and($stops->where('status', 'PENDING'))->toHaveCount(6)
+    expect($stops)->toHaveCount(30)
+        ->and($stops->where('status', 'PENDING'))->toHaveCount(29)
         ->and($stops->where('status', 'RESCHEDULED'))->toHaveCount(1)
         ->and($stops->whereNotNull('is_rescheduled_from')->first()['scheduled_time'])->toStartWith('16:00')
         ->and($stops->whereNull('scheduled_time'))->toBeEmpty()
         ->and($customers->keys())->not->toContain('Kiosco Don Ramón')
-        ->and($customers['Familia Quispe']['addresses'][0]['floor'])->toBe('PB')
-        ->and($customers['Familia Quispe']['preferences'])->not->toBeEmpty()
+        ->and($customers['Elena Quispe']['addresses'][0]['floor'])->toBe('PB')
+        ->and($customers['Elena Quispe']['preferences'])->not->toBeEmpty()
         ->and(collect($customers['Supermercado El Tunal']['agreements']))->toHaveCount(2)
         ->and(collect($customers['Escuela N° 4032 Limache']['agreements'])->pluck('unit_price')->all())->toBe(['5200.00'])
         ->and($products->map(fn (array $product): string => $product['price'])->all())->toBe(['Bidón 20L' => '6500.00', 'Sifón 1.5L' => '1500.00'])
@@ -68,14 +68,14 @@ test('the seeded driver Lucía has her route planned but not dispatched, so the 
 
     expect($route->status)->toBe('PLANNED')
         ->and($route->dispatched_at)->toBeNull()
-        ->and($route->stops_count)->toBe(3)
+        ->and($route->stops_count)->toBe(20)
         ->and($route->inventory_loads_count)->toBe(0);
 
     $this->withToken(appLogin('lfernandez'))->getJson('/api/v1/sync/bootstrap')
         ->assertOk()
         ->assertJsonPath('data.route', null)
         ->assertJsonPath('data.stops', [])
-        ->assertJsonCount(3, 'data.customers');
+        ->assertJsonCount(20, 'data.customers');
 });
 
 test('the seeded visit outcomes are absent, refused and reschedule, and only reschedule triggers a reschedule', function (): void {
@@ -182,7 +182,7 @@ test('the seeded driver Juan gets one requested stop today, synced to the app wi
     $requested = collect($response->json('data.stops'))->where('is_requested', true);
 
     expect($requested)->toHaveCount(1)
-        ->and(RouteStop::with('customer')->find($requested->first()['id'])->customer->name)->toBe('Familia Tolaba')
+        ->and(RouteStop::with('customer')->find($requested->first()['id'])->customer->name)->toBe('Marta Tolaba')
         ->and(ScheduledVisit::sole()->note)->toBe('Llamó, quiere 2 bidones');
 });
 
@@ -221,4 +221,45 @@ test('the seeded drivers have a username and no email, and the admin keeps the e
     expect($drivers->pluck('username')->all())->toBe(['cgomez', 'ebenitez', 'jperez', 'lfernandez', 'mmorales'])
         ->and($drivers->whereNotNull('email'))->toBeEmpty()
         ->and(User::query()->where('is_super_user', true)->value('email'))->toBe('admin@marilin.com');
+});
+
+/**
+ * Today's route of a seeded driver, with its stops and their addresses.
+ */
+function todayRouteOf(string $username): Route
+{
+    return Route::query()->whereDate('date', '2026-10-20')
+        ->whereHas('driver.user', fn ($user) => $user->where('username', $username))
+        ->with('stops.address')
+        ->sole();
+}
+
+test('today Esteban has 30 stops, counting the rescheduled one, and Lucía has 20', function (): void {
+    $esteban = todayRouteOf('ebenitez');
+    $lucia = todayRouteOf('lfernandez');
+
+    expect($esteban->stops)->toHaveCount(30)
+        ->and($esteban->stops->whereNotNull('is_rescheduled_from'))->toHaveCount(1)
+        ->and($esteban->stops->pluck('customer_id')->unique())->toHaveCount(29)
+        ->and($lucia->stops)->toHaveCount(20)
+        ->and($lucia->stops->pluck('customer_id')->unique())->toHaveCount(20);
+});
+
+test('Lucía\'s stops spread over at least three neighborhoods, so the route can be split by neighborhood', function (): void {
+    $neighborhoods = todayRouteOf('lfernandez')->stops->pluck('address.neighborhood');
+
+    expect($neighborhoods->filter())->toHaveCount(20)
+        ->and($neighborhoods->unique()->count())->toBeGreaterThanOrEqual(3);
+});
+
+test('seeded customers read like people or businesses, never "Familia X"', function (): void {
+    expect(Customer::query()->where('name', 'like', 'Familia %')->pluck('name')->all())->toBe([])
+        ->and(Customer::query()->pluck('name'))->toContain('Franco Calisaya', 'Guada Guaymás', 'Comedor San Cayetano', 'Kiosco El Pato', 'Despensa Los Hermanos');
+});
+
+test('some seeded primary addresses carry a visual reference and others do not', function (): void {
+    $addresses = CustomerAddress::query()->where('is_primary', true)->get();
+
+    expect($addresses->whereNotNull('visual_reference'))->not->toBeEmpty()
+        ->and($addresses->whereNull('visual_reference'))->not->toBeEmpty();
 });

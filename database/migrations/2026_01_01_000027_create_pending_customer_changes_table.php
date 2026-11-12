@@ -14,7 +14,7 @@ return new class extends Migration
         // A driver's change to another driver's customer data, held until the admin approves or rejects it (ADR 0001).
         Schema::create('pending_customer_changes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('customer_id')->constrained('customers')->cascadeOnDelete();
+            $table->foreignId('customer_id')->constrained('customers')->restrictOnDelete();
             $table->string('target', 30); // customer, customer_address, customer_preference
             $table->unsignedBigInteger('target_id')->nullable(); // the row it edits; null when it adds an address or preference
             $table->uuid('client_uuid'); // the app's id of the record it came in

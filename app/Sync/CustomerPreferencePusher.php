@@ -66,7 +66,7 @@ class CustomerPreferencePusher extends EntityPusher
      * Only a record that points at its own server row gets it back: an insert rejected because its day and start are
      * taken (audit E6b) has no row on the server, so it answers no `current` and the app drops its local row.
      */
-    protected function current(Model $row): array
+    protected function current(Model $row, Driver $driver): array
     {
         return $this->pull->row($row);
     }

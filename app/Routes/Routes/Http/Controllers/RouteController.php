@@ -33,6 +33,7 @@ class RouteController extends Controller
                 'activeStops.customer.primaryAddress',
                 'activeStops.visit.outcome',
                 'activeStops.rescheduledTo',
+                'activeStops.movedFrom.driver.user',
                 'inventoryLoads' => fn ($query) => $query->orderBy('loaded_at')->orderBy('id'),
                 'inventoryLoads.product',
                 'inventoryLoads.creator',
@@ -102,6 +103,8 @@ class RouteController extends Controller
                     'loadedBy' => $load->creator?->name,
                 ])->values(),
                 'canLoad' => $canLoad && $isOpen,
+                // "Cobertura": the stops of a planned route can go to another driver until it is dispatched.
+                'canMoveStops' => $canLoad && $route->status === RouteStatus::Planned->value && $route->dispatched_at === null,
                 'currentStock' => $route->inventories->map(fn ($inv) => [
                     'id' => $inv->id,
                     'productName' => $inv->product?->name ?? 'Producto',
@@ -124,6 +127,8 @@ class RouteController extends Controller
                     // "Visita solicitada": the admin scheduled it; the note is the admin's, notes are the driver's.
                     'is_requested' => $stop->isRequested(),
                     'note' => $stop->note,
+                    // The absent driver whose route the stop was moved from to be covered.
+                    'movedFrom' => $stop->movedFrom === null ? null : ($stop->movedFrom->driver?->user?->name ?? 'Repartidor'),
                 ]),
             ];
         });

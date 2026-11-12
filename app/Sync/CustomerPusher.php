@@ -73,15 +73,15 @@ class CustomerPusher extends EntityPusher
 
     /**
      * The customer as the pull sends it plus its primary address, as the pull sends it, under `address`: the same
-     * place a customer edit carries the primary address fields it changed. Null when it has none.
+     * place a customer edit carries the primary address fields it changed (null when it has none), marked `is_cover` like the pull.
      *
      * @param  Customer  $row
      */
-    protected function current(Model $row): array
+    protected function current(Model $row, Driver $driver): array
     {
         $address = $row->primaryAddress()->first();
 
-        return [...$this->pull->row($row), 'address' => $address === null ? null : $this->pull->row($address)];
+        return [...$this->pull->row(Cover::mark($row, $driver)), 'address' => $address === null ? null : $this->pull->row($address)];
     }
 
     /**

@@ -24,6 +24,7 @@ use App\Street\Payments\Models\Payment;
 use App\Street\RouteStock\Models\RouteInventory;
 use App\Street\Sales\Enums\SaleStatus;
 use App\Street\Sales\Models\Sale;
+use Closure;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
@@ -36,7 +37,8 @@ class PullService
      * @var array<string, array<int, string>>
      */
     private const array DEPENDENT_RELATIONS = [
-        'route_stops' => ['visits', 'rescheduledTo'],
+        // A covered stop also travels again when the absent driver is renamed: it shows whom the driver covers.
+        'route_stops' => ['visits', 'rescheduledTo', 'movedFrom.driver.user'],
     ];
 
     /**
@@ -97,7 +99,7 @@ class PullService
         $hasMore = false;
         $data = [];
 
-        foreach ($this->entities($driver) as $name => $query) {
+        foreach ($this->entities($driver, $until) as $name => $query) {
             $name === 'customers_removed'
                 ? $this->whereLeftDriver($query, $driver, $cursor, $until)
                 : $this->whereChanged($query, $name, $driver, $cursor, $until);
@@ -107,7 +109,7 @@ class PullService
                 ->orderBy('id');
 
             if ($name === 'route_stops') {
-                $query->with(['visit', 'rescheduledTo']);
+                $query->with(['visit', 'rescheduledTo', 'movedFrom.driver.user']);
             }
 
             $rows = $query->offset(($page - 1) * $size)->limit($size + 1)->get();
@@ -117,6 +119,10 @@ class PullService
 
             if ($name === 'route_stops') {
                 $data[$name] = $data[$name]->map(fn (RouteStop $stop): RouteStop => $this->withDerivedFields($stop));
+            }
+
+            if ($name === 'customers') {
+                $data[$name] = $data[$name]->map(fn (Customer $customer): Customer => Cover::mark($customer, $driver));
             }
 
             $data[$name] = match (true) {
@@ -169,9 +175,12 @@ class PullService
             }
 
             if (array_key_exists($name, self::ARRIVE_WITH_CUSTOMER)) {
-                $reassignedHere = fn (Builder $b) => $b->whereHas('reassignments', fn (Builder $r) => $r
-                    ->where('to_driver_id', $driver->id)
-                    ->where($inColumnWindow('reassigned_at')));
+                // A customer covered on a route dispatched inside the window arrives whole the same way (ADR 0004).
+                $reassignedHere = fn (Builder $b) => $b->where(fn (Builder $arrived) => $arrived
+                    ->whereHas('reassignments', fn (Builder $r) => $r
+                        ->where('to_driver_id', $driver->id)
+                        ->where($inColumnWindow('reassigned_at')))
+                    ->orWhere(fn (Builder $covered) => Cover::customers($covered, $driver, $inColumnWindow('dispatched_at'))));
                 $relation = self::ARRIVE_WITH_CUSTOMER[$name];
 
                 $relation === null ? $q->orWhere($reassignedHere) : $q->orWhereHas($relation, $reassignedHere);
@@ -188,8 +197,9 @@ class PullService
     }
 
     /**
-     * The customers that left the driver inside the window (reassigned to another driver or to none) and are not
-     * theirs again by its end. Only a pull with a cursor carries them: a first pull has nothing to hide.
+     * The customers that left the driver inside the window (reassigned to another driver or to none, or covered on a
+     * route whose day ended, ADR 0004) and are neither theirs again nor covered by them by its end. Only a pull with
+     * a cursor carries them: a first pull has nothing to hide.
      *
      * @param  Builder<Customer>  $query
      */
@@ -206,24 +216,55 @@ class PullService
             ->where('reassigned_at', '>=', $cursor)
             ->where('reassigned_at', '<=', $until);
 
+        // A cover ends at the midnight after its route's date; these are the dates whose midnight falls inside the window.
+        $from = $cursor->copy()->subDay();
+        $firstEnded = ($from->eq($from->copy()->startOfDay()) ? $from : $from->addDay())->toDateString();
+        $coverEndedInWindow = fn (Builder $route) => $route
+            ->whereDate('date', '>=', $firstEnded)
+            ->whereDate('date', '<=', $until->copy()->subDay()->toDateString());
+
         $query
             ->where(fn (Builder $q) => $q->whereNull('driver_id')->orWhere('driver_id', '!=', $driver->id))
-            ->whereHas('reassignments', $leftInWindow)
-            ->withMax(['reassignments as removed_at' => $leftInWindow], 'reassigned_at');
+            ->whereNot(fn (Builder $q) => Cover::customers($q, $driver, $this->coverNotOver($until)))
+            ->where(fn (Builder $q) => $q
+                ->whereHas('reassignments', $leftInWindow)
+                ->orWhere(fn (Builder $covered) => Cover::customers($covered, $driver, $coverEndedInWindow)))
+            ->withMax(['reassignments as removed_at' => $leftInWindow], 'reassigned_at')
+            ->addSelect(['cover_ended_on' => Route::query()
+                ->selectRaw('max(routes.date)')
+                ->whereIn('id', Cover::stops(RouteStop::query(), $driver, $coverEndedInWindow)
+                    ->whereColumn('route_stops.customer_id', 'customers.id')
+                    ->select('route_id'))]);
+    }
+
+    /**
+     * A cover lasts until its route's day is over: the routes dated on the window's last day or later.
+     *
+     * @return Closure(Builder<*>): Builder<*>
+     */
+    private function coverNotOver(Carbon $until): Closure
+    {
+        return fn (Builder $route) => $route->whereDate('date', '>=', $until->toDateString());
     }
 
     /**
      * What the app needs to hide a customer that left the driver, keeping its history: the server id, its own uuid
-     * and when it left (the last time inside the window).
+     * and when it left (the last time inside the window: its reassignment or the end of its cover).
      *
      * @return array{customer_id: int, client_uuid: string|null, removed_at: string}
      */
     private function removal(Customer $customer): array
     {
+        $coverEndedOn = $customer->getAttribute('cover_ended_on');
+        $removedAt = collect([
+            $customer->getAttribute('removed_at') === null ? null : Carbon::parse($customer->getAttribute('removed_at')),
+            $coverEndedOn === null ? null : Carbon::parse($coverEndedOn)->startOfDay()->addDay(),
+        ])->filter()->max();
+
         return [
             'customer_id' => $customer->id,
             'client_uuid' => $customer->client_uuid,
-            'removed_at' => Carbon::parse($customer->getAttribute('removed_at'))->toJSON(),
+            'removed_at' => $removedAt->toJSON(),
         ];
     }
 
@@ -240,9 +281,12 @@ class PullService
     /**
      * @return array<string, Builder<*>>
      */
-    private function entities(Driver $driver): array
+    private function entities(Driver $driver, Carbon $until): array
     {
-        $ownCustomer = fn (Builder $query) => $query->where('driver_id', $driver->id);
+        // The driver's customers and the ones they cover on a dispatched route whose day is not over (ADR 0004).
+        $ownCustomer = fn (Builder $query) => $query->where(fn (Builder $customer) => $customer
+            ->where('driver_id', $driver->id)
+            ->orWhere(fn (Builder $covered) => Cover::customers($covered, $driver, $this->coverNotOver($until))));
         // A route not dispatched yet has no stock on the truck: neither it nor its stops or inventory reach the app.
         $ownRoute = fn (Builder $query) => $query->where('assigned_driver_id', $driver->id)->whereNotNull('dispatched_at');
 
@@ -250,12 +294,16 @@ class PullService
             'routes' => Route::query()->tap($ownRoute),
             'route_stops' => RouteStop::query()
                 ->whereHas('route', $ownRoute)
-                ->whereHas('customer', fn (Builder $query) => $query->where('driver_id', $driver->id)->where('enabled', true)),
+                ->whereHas('customer', fn (Builder $query) => $query->where('enabled', true))
+                ->where(fn (Builder $query) => $query
+                    ->whereHas('customer', fn (Builder $customer) => $customer->where('driver_id', $driver->id))
+                    ->orWhere(fn (Builder $moved) => Cover::stops($moved, $driver, $this->coverNotOver($until)))),
             'route_inventories' => RouteInventory::query()->whereHas('route', $ownRoute),
-            'customers' => Customer::query()->where('driver_id', $driver->id),
+            'customers' => Customer::query()->tap($ownCustomer),
             'customers_removed' => Customer::query(),
-            'customer_addresses' => CustomerAddress::query()->whereHas('customer', $ownCustomer),
-            'customer_preferences' => CustomerPreference::query()->whereHas('customer', $ownCustomer),
+            // A covered customer travels with only what a visit needs: no preferences, only its stop and primary addresses.
+            'customer_addresses' => Cover::visitAddresses(CustomerAddress::query()->whereHas('customer', $ownCustomer), $driver, $this->coverNotOver($until)),
+            'customer_preferences' => CustomerPreference::query()->whereHas('customer', fn (Builder $customer) => $customer->where('driver_id', $driver->id)),
             'customer_agreements' => CustomerAgreement::query()->whereHas('customer', $ownCustomer),
             'customer_balances' => CustomerBalance::query()->whereHas('customer', $ownCustomer),
             'customer_container_balances' => CustomerContainerBalance::query()->whereHas('customer', $ownCustomer),
@@ -295,6 +343,8 @@ class PullService
     {
         $stop->setAttribute('status', $stop->effectiveStatus()->value);
         $stop->setAttribute('is_requested', $stop->isRequested());
+        $stop->setAttribute('is_cover', $stop->moved_from_route_id !== null);
+        $stop->setAttribute('covered_driver_name', Cover::coveredDriverName($stop));
         $stop->unsetRelations();
 
         return $stop;

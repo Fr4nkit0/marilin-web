@@ -13,15 +13,16 @@ return new class extends Migration
     {
         Schema::create('route_stops', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('route_id')->constrained('routes')->cascadeOnDelete();
-            $table->foreignId('customer_id')->constrained('customers')->cascadeOnDelete();
-            $table->foreignId('address_id')->constrained('customer_addresses')->cascadeOnDelete();
+            $table->foreignId('route_id')->constrained('routes')->restrictOnDelete();
+            $table->foreignId('customer_id')->constrained('customers')->restrictOnDelete();
+            $table->foreignId('address_id')->constrained('customer_addresses')->restrictOnDelete();
             $table->foreignId('is_rescheduled_from')->nullable()->constrained('route_stops')->nullOnDelete();
             $table->boolean('enabled')->default(true);
             $table->timestamps();
             $table->time('scheduled_time')->nullable();
             $table->foreignId('scheduled_visit_id')->nullable(); // the scheduled visit it carries; its FK lives in the scheduled_visits migration
             $table->text('note')->nullable();
+            $table->foreignId('moved_from_route_id')->nullable()->constrained('routes')->restrictOnDelete(); // set when the admin moves the stop to cover an absent driver
             $table->uuid('client_uuid')->nullable()->unique();
             $table->boolean('needs_review')->default(false);
             $table->jsonb('review_reasons')->default('[]'); // every reason the record was flagged for, in order, without repeats

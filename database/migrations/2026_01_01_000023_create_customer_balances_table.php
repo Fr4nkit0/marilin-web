@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('customer_balances', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('customer_id')->unique()->constrained('customers')->cascadeOnDelete();
+            $table->foreignId('customer_id')->unique()->constrained('customers')->restrictOnDelete();
             $table->decimal('current_balance', 14, 2)->default(0);
             $table->foreignId('last_entry_id')->nullable()->constrained('customer_account_entries')->nullOnDelete();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();

@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('customer_container_balances', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('customer_id')->constrained('customers')->cascadeOnDelete();
-            $table->foreignId('container_type_id')->constrained('container_types')->cascadeOnDelete();
+            $table->foreignId('customer_id')->constrained('customers')->restrictOnDelete();
+            $table->foreignId('container_type_id')->constrained('container_types')->restrictOnDelete();
             $table->foreignId('last_movement_id')->nullable()->constrained('container_movements')->nullOnDelete();
             $table->integer('balance')->default(0);
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();

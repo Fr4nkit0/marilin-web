@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('route_inventory_loads', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('route_id')->constrained('routes')->cascadeOnDelete();
-            $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
+            $table->foreignId('route_id')->constrained('routes')->restrictOnDelete();
+            $table->foreignId('product_id')->constrained('products')->restrictOnDelete();
             $table->decimal('quantity', 14, 2);
             // A correction fixes a load written down wrong (from Revisión) and keeps the admin's reason.
             $table->string('type', 20)->default('load');

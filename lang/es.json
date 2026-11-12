@@ -5,6 +5,8 @@
     "A customer needs a primary address.": "El cliente necesita una dirección principal.",
     "The address uuid belongs to another address.": "El identificador de la dirección pertenece a otra dirección.",
     "The record the change edits no longer exists.": "El registro que edita el cambio ya no existe.",
+    "Some selected customers no longer belong to this driver.": "Algunos clientes elegidos ya no son de este repartidor.",
+    "The destination driver is not enabled.": "El repartidor destino no está habilitado.",
     "The given data was invalid.": "Los datos enviados no son válidos.",
     "(and :count more error)": "(y :count error más)",
     "(and :count more errors)": "(y :count errores más)",

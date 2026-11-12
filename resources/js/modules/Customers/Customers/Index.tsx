@@ -79,7 +79,8 @@ interface Props {
         sort?: string | null;
         direction?: string | null;
     };
-    repartidores: { id: number; name: string }[];
+    /** Every driver filters the list; only the enabled ones can be given a customer. */
+    repartidores: { id: number; name: string; enabled: boolean }[];
     neighborhoods: string[];
     containerTypes: { id: number; description: string }[];
 }
@@ -99,6 +100,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
         { search: '', repartidor_id: '', debt_status: 'all', sort: '', direction: '' },
     );
     const sort = listSort(filter.values, filter.setMany);
+    const assignableDrivers = repartidores.filter((rep) => rep.enabled);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [editingCustomer, setEditingCustomer] = useState<CustomerItem | null>(null);
 
@@ -234,6 +236,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                             className="w-full py-2 px-3 text-sm border border-hairline/60 bg-canvas text-ink placeholder-ink-subtle rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600 font-medium"
                         >
                             <option value="">Todos los Repartidores</option>
+                            <option value="none">Sin repartidor</option>
                             {repartidores.map((rep) => (
                                 <option key={rep.id} value={rep.id}>
                                     {rep.name}
@@ -423,7 +426,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                             data={data}
                             setData={(key, value) => setData(key, value)}
                             errors={errors}
-                            repartidores={repartidores}
+                            repartidores={assignableDrivers}
                             neighborhoodList={NEIGHBORHOOD_OPTIONS}
                         />
 
@@ -479,7 +482,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                             data={editForm.data}
                             setData={(key, value) => editForm.setData(key, value)}
                             errors={editForm.errors}
-                            repartidores={repartidores}
+                            repartidores={assignableDrivers}
                             neighborhoodList={NEIGHBORHOOD_OPTIONS}
                         />
 

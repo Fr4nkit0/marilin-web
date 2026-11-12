@@ -48,7 +48,7 @@ abstract class EntityPusher
     {
         $this->found = null;
 
-        return $this->withCurrent($this->process($driver, $user, $record));
+        return $this->withCurrent($this->process($driver, $user, $record), $driver);
     }
 
     /**
@@ -94,7 +94,7 @@ abstract class EntityPusher
      *
      * @return array<string, mixed>|null
      */
-    protected function current(Model $row): ?array
+    protected function current(Model $row, Driver $driver): ?array
     {
         return null;
     }
@@ -106,10 +106,10 @@ abstract class EntityPusher
      * @param  array<string, mixed>  $result
      * @return array<string, mixed>
      */
-    private function withCurrent(array $result): array
+    private function withCurrent(array $result, Driver $driver): array
     {
         $row = in_array($result['status'], ['outdated', 'rejected'], true) ? $this->found?->fresh() : null;
-        $current = $row === null ? null : $this->current($row);
+        $current = $row === null ? null : $this->current($row, $driver);
 
         return $current === null ? $result : [...$result, 'current' => $current];
     }
@@ -248,11 +248,12 @@ abstract class EntityPusher
 
     /**
      * Accept-and-mark (ADR 0001): what happened on the street is kept, but a customer that was reassigned or disabled meanwhile needs the admin's eyes.
+     * A customer the driver covers on the record's day (ADR 0004) is theirs for that record.
      */
-    protected function reviewReasonForCustomer(Customer $customer, Driver $driver): ?ReviewReason
+    protected function reviewReasonForCustomer(Customer $customer, Driver $driver, CarbonInterface $recordedOn): ?ReviewReason
     {
         return match (true) {
-            $customer->driver_id !== $driver->id => ReviewReason::ForeignCustomer,
+            $customer->driver_id !== $driver->id && ! Cover::covers($driver, $customer, $recordedOn->toDateString()) => ReviewReason::ForeignCustomer,
             ! $customer->enabled => ReviewReason::DisabledCustomer,
             default => null,
         };
