@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('transaction_id')->constrained('transactions')->cascadeOnDelete();
-            $table->foreignId('customer_id')->constrained('customers')->cascadeOnDelete();
+            $table->foreignId('transaction_id')->constrained('transactions')->restrictOnDelete();
+            $table->foreignId('customer_id')->constrained('customers')->restrictOnDelete();
             $table->foreignId('visit_id')->nullable()->constrained('visits')->nullOnDelete();
             $table->foreignId('sale_id')->nullable()->constrained('sales')->nullOnDelete();
-            $table->foreignId('payment_method_id')->constrained('payment_methods')->cascadeOnDelete();
+            $table->foreignId('payment_method_id')->constrained('payment_methods')->restrictOnDelete();
             $table->decimal('amount', 14, 2);
             $table->foreignId('received_by')->constrained('users');
             $table->dateTime('paid_at')->useCurrent();

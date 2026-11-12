@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('visit_status_histories', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('visit_id')->constrained('visits')->cascadeOnDelete();
+            $table->foreignId('visit_id')->constrained('visits')->restrictOnDelete();
             $table->string('status', 30);
             $table->foreignId('outcome_id')->nullable()->constrained('visit_outcomes')->nullOnDelete();
             $table->text('notes')->nullable();

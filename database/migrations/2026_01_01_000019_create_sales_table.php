@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('sales', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('customer_id')->constrained('customers')->cascadeOnDelete();
+            $table->foreignId('customer_id')->constrained('customers')->restrictOnDelete();
             $table->foreignId('visit_id')->nullable()->constrained('visits')->nullOnDelete();
             $table->foreignId('stock_route_id')->nullable()->constrained('routes')->nullOnDelete(); // the route the sale discounted stock from
             $table->dateTime('date')->useCurrent();

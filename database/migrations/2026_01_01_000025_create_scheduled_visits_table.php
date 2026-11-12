@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('scheduled_visits', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('customer_id')->constrained('customers')->cascadeOnDelete();
+            $table->foreignId('customer_id')->constrained('customers')->restrictOnDelete();
             $table->date('date');
             $table->time('scheduled_time')->nullable();
             $table->text('note')->nullable();

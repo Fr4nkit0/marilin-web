@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('customer_account_entries', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('customer_id')->constrained('customers')->cascadeOnDelete();
+            $table->foreignId('customer_id')->constrained('customers')->restrictOnDelete();
             $table->string('entry_type', 30); // SALE, PAYMENT, ADJUSTMENT, CREDIT_NOTE
             $table->smallInteger('direction'); // -1 or 1
             $table->decimal('amount', 14, 2);
