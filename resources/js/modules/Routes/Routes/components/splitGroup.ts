@@ -13,7 +13,7 @@ function stopsCount(count: number): string {
 export function suggestionText(group: SplitGroup): string {
     const top = group.suggestions[0];
 
-    return top ? `${top.driverName} ya reparte aquí hoy (${stopsCount(top.stops)})` : 'Nadie reparte aquí hoy';
+    return top ? `${top.driverName} ya reparte aquí ese día (${stopsCount(top.stops)})` : 'Nadie reparte aquí ese día';
 }
 
 /** The busiest suggested driver, as the select's value; none when there is no suggestion or it cannot be picked. */

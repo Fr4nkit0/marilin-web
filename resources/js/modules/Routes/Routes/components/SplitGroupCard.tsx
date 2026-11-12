@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useId, useState } from 'react';
 import { router } from '@inertiajs/react';
 import { ChevronDown, MapPin, Users } from 'lucide-react';
 import Button from '@/ui/Button';
@@ -27,8 +27,10 @@ export default function SplitGroupCard({ routeId, group, drivers, error, onAssig
     const [selected, setSelected] = useState<number[]>([]);
     const [expanded, setExpanded] = useState(false);
     const [processing, setProcessing] = useState(false);
-    const selectId = `split-driver-${group.name}`;
-    const listId = `split-stops-${group.name}`;
+    // useId: a neighborhood name may hold spaces, which would break id references.
+    const baseId = useId();
+    const selectId = `${baseId}-driver`;
+    const listId = `${baseId}-stops`;
     const others = group.suggestions.slice(1);
 
     const assign = () => {

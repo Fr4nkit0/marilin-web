@@ -127,6 +127,16 @@ test('the movable stops are grouped by the stop address neighborhood, alphabetic
         ->and($props['groups'][2]['stops'][1]['neighborhood'])->toBeNull();
 });
 
+test('a stop left behind by a reassigned customer is not offered, so a neighborhood moves as a whole', function (): void {
+    $kept = splitStop($this->source, 'Grand Bourg');
+    $leftBehind = splitStop($this->source, 'Grand Bourg');
+    $leftBehind->customer->update(['driver_id' => splitDriver('Nuevo Duenio')->id]);
+
+    $groups = collect(splitProps(openSplit($this->source)->assertOk())['groups'])->keyBy('name');
+
+    expect(collect($groups['Grand Bourg']['stops'])->pluck('id')->all())->toBe([$kept->id]);
+});
+
 test('each neighborhood suggests the other enabled drivers already delivering there that date, the busiest first', function (): void {
     splitStop($this->source, 'Grand Bourg');
     splitStop($this->source, 'Del Viso');

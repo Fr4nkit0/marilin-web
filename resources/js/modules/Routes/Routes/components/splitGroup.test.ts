@@ -20,9 +20,9 @@ const drivers = [
 
 describe('splitGroup', () => {
     it('tells who already delivers in the neighborhood, or that nobody does', () => {
-        expect(suggestionText(group([1], [franco, pedro]))).toBe('Franco ya reparte aquí hoy (8 paradas)');
-        expect(suggestionText(group([1], [pedro]))).toBe('Pedro ya reparte aquí hoy (1 parada)');
-        expect(suggestionText(group([1]))).toBe('Nadie reparte aquí hoy');
+        expect(suggestionText(group([1], [franco, pedro]))).toBe('Franco ya reparte aquí ese día (8 paradas)');
+        expect(suggestionText(group([1], [pedro]))).toBe('Pedro ya reparte aquí ese día (1 parada)');
+        expect(suggestionText(group([1]))).toBe('Nadie reparte aquí ese día');
     });
 
     it('preselects the busiest suggested driver, only when it can be picked', () => {

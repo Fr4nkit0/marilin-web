@@ -83,6 +83,10 @@ final class RouteSplit
         return $route->stops()
             ->enabled()
             ->notDone()
+            // A stop left behind when its customer was reassigned cannot be moved (MoveRouteStops): its new owner visits it.
+            ->where(fn ($stops) => $stops
+                ->whereNotNull('moved_from_route_id')
+                ->orWhereHas('customer', fn ($customer) => $customer->where('driver_id', $route->assigned_driver_id)))
             ->with(['customer:id,name', 'address:id,street,neighborhood'])
             ->get()
             ->sortBy([
