@@ -437,8 +437,22 @@ class DatabaseSeeder extends Seeder
                 'price_agua' => 6000.00,
                 'initial_debt' => 0.00,
             ],
+            [
+                'name' => 'Ferretería Santa Ana',
+                'phone' => '387 427-5510',
+                'rep' => $repMarcos,
+                'street' => 'Av. Tavella 3480',
+                'ref' => 'Persiana gris, al lado del corralón',
+                'neighborhood' => 'Santa Ana I',
+                'lat' => -24.82870,
+                'lng' => -65.39720,
+                'bidon_balance' => 2,
+                'sifon_balance' => 0,
+                'price_agua' => 5800.00,
+                'initial_debt' => 0.00,
+            ],
 
-            // E. Limache: Esteban's day, still to be worked from the mobile app
+            // E. Limache: Esteban's day, planned and waiting for the truck load and the dispatch
             [
                 'name' => 'Supermercado El Tunal',
                 'phone' => '387 431-2200',
@@ -633,16 +647,63 @@ class DatabaseSeeder extends Seeder
             ['Pablo Sosa', 'Santiago del Estero 920', null, 'Centro', -24.78720, -65.41420, 2, 2, 6000.00, 0.00],
             ['Despensa El Ahorro', 'Rivadavia 1010', null, 'Centro', -24.78560, -65.41580, 5, 0, 5600.00, 7200.00],
             ['Comedor San Cayetano', 'Pasaje Las Rosas 130', 'Salón al lado de la capilla', 'El Huaico', -24.73750, -65.40250, 10, 0, 5200.00, 20800.00],
-            ['Beatriz Guanuco', 'Pasaje Las Violetas 60', null, 'El Huaico', -24.73690, -65.40380, 2, 0, 6000.00, 0.00],
-            ['Luis Abán', 'Pasaje Las Violetas 95', 'Casa con reja verde y perro grande', 'El Huaico', -24.73660, -65.40420, 2, 2, 6000.00, 0.00],
+            // A few of her customers live where Esteban delivers, so "Repartir ruta" can suggest him.
+            ['Beatriz Guanuco', 'Los Cardones 280', null, 'Limache Etapa 1', -24.83060, -65.42420, 2, 0, 6000.00, 0.00],
+            ['Luis Abán', 'Calle 12 de Octubre 380', 'Casa con reja verde y perro grande', 'Limache Etapa 1', -24.83190, -65.42360, 2, 2, 6000.00, 0.00],
             ['Kiosco Los Pibes', 'Balcarce 2210', null, 'El Huaico', -24.73520, -65.40140, 3, 4, 5800.00, 0.00],
             ['Verónica Paz', 'Av. Bolivia 4100', 'Portón blanco, timbre a la izquierda', 'Grand Bourg', -24.76420, -65.42180, 2, 0, 6000.00, 0.00],
             ['Gustavo Medina', 'Los Cebiles 220', null, 'Grand Bourg', -24.76580, -65.42410, 2, 2, 6000.00, 6000.00],
-            ['Almacén La Abuela', 'Las Acacias 45', null, 'Grand Bourg', -24.76650, -65.42260, 6, 4, 5600.00, 0.00],
-            ['Mirta Ortiz', 'Las Acacias 132', null, 'Grand Bourg', -24.76710, -65.42330, 2, 0, 6000.00, 0.00],
+            ['Almacén La Abuela', 'Av. Paraguay 3720', null, 'Limache', -24.83620, -65.42580, 6, 4, 5600.00, 0.00],
+            ['Mirta Ortiz', 'Pasaje Los Lapachos 150', null, 'Limache', -24.83450, -65.42740, 2, 0, 6000.00, 0.00],
         ];
 
-        foreach ([[$repEsteban, '387 435-', $estebanNewCustomers], [$repLucia, '387 436-', $luciaNewCustomers]] as [$rep, $phonePrefix, $rows]) {
+        // Juan's long day: 42 more customers around Centro, Tres Cerritos, Grand Bourg and San Bernardo, 50 stops in all.
+        $juanNewCustomers = [
+            ['Rosa Arias', 'Caseros 820', 'Puerta de madera con aldaba', 'Centro', -24.78920, -65.40870, 2, 0, 6000.00, 0.00],
+            ['Héctor Gareca', 'Mitre 560', null, 'Centro', -24.78510, -65.41090, 2, 2, 6000.00, 0.00, ['floor' => '2', 'apartment' => 'A']],
+            ['Kiosco La Catedral', 'España 520', 'Al lado del cajero automático', 'Centro', -24.78800, -65.40990, 3, 4, 5800.00, 0.00],
+            ['Susana Lera', 'Buenos Aires 310', null, 'Centro', -24.78980, -65.41190, 2, 0, 6000.00, 0.00],
+            ['Fernando Ruiz', 'Córdoba 245', 'Edificio gris, portero eléctrico', 'Centro', -24.79120, -65.40750, 2, 0, 6000.00, 0.00, ['floor' => '4', 'apartment' => 'C']],
+            ['Almacén El Cabildo', 'Zuviría 210', null, 'Centro', -24.78670, -65.41250, 6, 4, 5600.00, 8400.00],
+            ['Liliana Romero', 'Belgrano 1020', null, 'Centro', -24.78590, -65.41420, 2, 0, 6000.00, 0.00],
+            ['Walter Cuello', 'Alvarado 760', 'Frente a la escuela, reja negra', 'Centro', -24.79040, -65.40630, 2, 2, 6000.00, 0.00],
+            ['Comedor Santa Rita', 'Ituzaingó 430', 'Salón parroquial, entrada lateral', 'Centro', -24.79210, -65.40560, 10, 0, 5200.00, 15600.00],
+            ['Elsa Burgos', 'Lerma 540', null, 'Centro', -24.79300, -65.41030, 1, 0, 6000.00, 0.00],
+            ['Marcelo Tejerina', 'Los Ceibos 310', 'Casa esquina con rejas blancas', 'Tres Cerritos', -24.77060, -65.39680, 2, 0, 6000.00, 0.00],
+            ['Adriana Juárez', 'Los Robles 145', null, 'Tres Cerritos', -24.77180, -65.39810, 2, 2, 6000.00, 0.00],
+            ['Kiosco Los Ceibos', 'Av. Los Incas 2410', 'Ventanita al lado del lavadero', 'Tres Cerritos', -24.76920, -65.39980, 3, 4, 5800.00, 0.00],
+            ['Gerardo Molina', 'Los Aromos 88', null, 'Tres Cerritos', -24.77240, -65.39720, 2, 0, 6000.00, 6000.00],
+            ['Paula Escudero', 'Los Jazmines 230', 'Portón gris, timbre arriba', 'Tres Cerritos', -24.76990, -65.39560, 2, 0, 6000.00, 0.00],
+            ['Ramiro Paz', 'Los Tilos 67', null, 'Tres Cerritos', -24.77120, -65.40060, 1, 0, 6000.00, 0.00],
+            ['Almacén Los Cerritos', 'Av. Reyes Católicos 1550', 'Esquina, toldo verde', 'Tres Cerritos', -24.77300, -65.40150, 6, 4, 5600.00, 0.00],
+            ['Cecilia Alancay', 'Los Olmos 190', null, 'Tres Cerritos', -24.77010, -65.39890, 2, 0, 6000.00, 0.00],
+            ['Julio Vargas', 'Los Arces 260', null, 'Tres Cerritos', -24.76970, -65.39790, 2, 2, 6000.00, 0.00],
+            ['Inés Barrionuevo', 'Los Álamos 260', 'Casa con galería y macetas', 'Lomas De Tres Cerritos', -24.76640, -65.39130, 2, 0, 6000.00, 0.00],
+            ['Kiosco La Loma', 'Los Pinos 75', null, 'Lomas De Tres Cerritos', -24.76580, -65.39260, 3, 4, 5800.00, 0.00],
+            ['Ernesto Saavedra', 'Los Pinos 140', null, 'Lomas De Tres Cerritos', -24.76530, -65.39190, 2, 0, 6000.00, 0.00],
+            ['Gladys Corimayo', 'Las Magnolias 33', 'Portón de rejas verdes', 'Lomas De Tres Cerritos', -24.76760, -65.39050, 2, 2, 6000.00, 0.00],
+            ['Nicolás Aguirre', 'Las Magnolias 90', null, 'Lomas De Tres Cerritos', -24.76810, -65.38990, 1, 0, 6000.00, 0.00],
+            ['Carolina Ayala', 'Av. Bolivia 4450', 'Dúplex del fondo, tocar timbre B', 'Grand Bourg', -24.76450, -65.42390, 2, 0, 6000.00, 0.00],
+            ['Despensa Grand Bourg', 'Los Cebiles 140', 'Persiana azul', 'Grand Bourg', -24.76540, -65.42290, 6, 4, 5600.00, 10200.00],
+            ['Alberto Nieva', 'Los Cebiles 310', null, 'Grand Bourg', -24.76620, -65.42470, 2, 0, 6000.00, 0.00],
+            ['Mariela Soria', 'Las Acacias 210', null, 'Grand Bourg', -24.76760, -65.42410, 2, 2, 6000.00, 0.00],
+            ['Comedor Los Gurises', 'Las Tipas 55', 'Salón con mural de colores', 'Grand Bourg', -24.76690, -65.42140, 8, 0, 5200.00, 0.00],
+            ['Roberto Cruz', 'Los Lapachos 420', null, 'Grand Bourg', -24.76380, -65.42230, 2, 0, 6000.00, 6000.00],
+            ['Daniela Funes', 'Los Lapachos 470', 'Casa amarilla con quincho', 'Grand Bourg', -24.76350, -65.42290, 2, 0, 6000.00, 0.00],
+            ['Kiosco El Bourg', 'Av. Bolivia 4180', null, 'Grand Bourg', -24.76480, -65.42110, 3, 4, 5800.00, 0.00],
+            ['Ignacio Salva', 'Las Palmas 66', null, 'Grand Bourg', -24.76830, -65.42200, 1, 0, 6000.00, 0.00],
+            ['Teresa Cañizares', 'Av. Virrey Toledo 420', 'Casa de piedra al pie del cerro', 'San Bernardo', -24.79250, -65.40140, 2, 0, 6000.00, 0.00],
+            ['Mario Gallardo', 'Av. Virrey Toledo 510', null, 'San Bernardo', -24.79280, -65.40080, 2, 2, 6000.00, 0.00],
+            ['Almacén San Bernardo', 'Bolívar 1240', 'Esquina, cartel azul', 'San Bernardo', -24.79360, -65.40210, 6, 4, 5600.00, 0.00],
+            ['Lucas Villagra', 'Bolívar 1310', null, 'San Bernardo', -24.79400, -65.40170, 2, 0, 6000.00, 0.00],
+            ['Viviana Díaz', 'Pasaje Mollinedo 45', 'Casa con portón de hierro forjado', 'San Bernardo', -24.79330, -65.39960, 2, 0, 6000.00, 0.00],
+            ['Ezequiel Lamas', 'Pasaje Mollinedo 82', null, 'San Bernardo', -24.79370, -65.39920, 1, 0, 6000.00, 6000.00],
+            ['Kiosco El Teleférico', 'Av. Hipólito Yrigoyen 50', 'Frente a la base del teleférico', 'San Bernardo', -24.79190, -65.40020, 3, 4, 5800.00, 0.00],
+            ['Norberto Ibáñez', 'Paseo Güemes 410', null, 'San Bernardo', -24.79140, -65.39900, 2, 0, 6000.00, 0.00, ['floor' => '1', 'apartment' => 'B']],
+            ['Graciela Tula', 'Paseo Güemes 455', null, 'San Bernardo', -24.79170, -65.39850, 2, 2, 6000.00, 0.00],
+        ];
+
+        foreach ([[$repEsteban, '387 435-', $estebanNewCustomers], [$repLucia, '387 436-', $luciaNewCustomers], [$repJuan, '387 437-', $juanNewCustomers]] as [$rep, $phonePrefix, $rows]) {
             foreach ($rows as $index => [$name, $street, $ref, $neighborhood, $lat, $lng, $bidones, $sifones, $priceAgua, $debt]) {
                 $customersConfig[] = [
                     'name' => $name,
@@ -833,7 +894,7 @@ class DatabaseSeeder extends Seeder
         // Today's sales charge what each customer pays: their agreement or, without one, the list price.
         $priceOf = fn (Customer $customer, Product $product): float => (float) app(PriceResolver::class)->priceFor($customer, $product, $today)->unitPrice;
 
-        // --- ROUTE 1: Juan Pérez (IN_PROGRESS - Centro & Tres Cerritos) ---
+        // --- ROUTE 1: Juan Pérez (IN_PROGRESS - Centro, Tres Cerritos, Grand Bourg & San Bernardo, 50 stops) ---
         $routeJuan = DeliveryRoute::firstOrCreate(
             ['assigned_driver_id' => $repJuan->id, 'date' => $today->toDateString()],
             [
@@ -845,22 +906,23 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
+        // A long day of 50 stops: loaded minus sold below, agua 160 - 22, soda 70 - 10.
         RouteInventoryLoad::firstOrCreate(
             ['route_id' => $routeJuan->id, 'product_id' => $productAgua20L->id],
-            ['quantity' => 60.00, 'loaded_at' => $routeJuan->started_at->copy()->subMinutes(30), 'created_by' => $admin->id]
+            ['quantity' => 160.00, 'loaded_at' => $routeJuan->started_at->copy()->subMinutes(30), 'created_by' => $admin->id]
         );
         RouteInventoryLoad::firstOrCreate(
             ['route_id' => $routeJuan->id, 'product_id' => $productSoda2L->id],
-            ['quantity' => 30.00, 'loaded_at' => $routeJuan->started_at->copy()->subMinutes(30), 'created_by' => $admin->id]
+            ['quantity' => 70.00, 'loaded_at' => $routeJuan->started_at->copy()->subMinutes(30), 'created_by' => $admin->id]
         );
 
         RouteInventory::firstOrCreate(
             ['route_id' => $routeJuan->id, 'product_id' => $productAgua20L->id],
-            ['current_quantity' => 38.00, 'created_by' => $admin->id, 'enabled' => true]
+            ['current_quantity' => 138.00, 'created_by' => $admin->id, 'enabled' => true]
         );
         RouteInventory::firstOrCreate(
             ['route_id' => $routeJuan->id, 'product_id' => $productSoda2L->id],
-            ['current_quantity' => 20.00, 'created_by' => $admin->id, 'enabled' => true]
+            ['current_quantity' => 60.00, 'created_by' => $admin->id, 'enabled' => true]
         );
 
         // Stops for Juan
@@ -1070,6 +1132,17 @@ class DatabaseSeeder extends Seeder
                     }
                 }
             }
+        }
+
+        // The rest of Juan's 50 stops, still to be made, every 5 minutes from 13:05: enough to page through them in the app.
+        foreach (array_column($juanNewCustomers, 0) as $position => $customerName) {
+            $cust = $createdCustomers[$customerName];
+            $scheduledTime = $today->copy()->setTime(13, 5)->addMinutes(5 * $position)->format('H:i');
+
+            RouteStop::firstOrCreate(
+                ['route_id' => $routeJuan->id, 'customer_id' => $cust->id],
+                ['address_id' => $cust->primaryAddress->id, 'scheduled_time' => $scheduledTime, 'enabled' => true]
+            );
         }
 
         // A customer called asking for a visit today: it rides on Juan's pending stop, so the app shows a requested visit.
@@ -1390,31 +1463,43 @@ class DatabaseSeeder extends Seeder
             );
         }
 
-        // --- ROUTE 4: Esteban Benítez (IN_PROGRESS - Limache) ---
-        // The day to work from the mobile app: almost everything pending, one absent customer already rescheduled.
-        $routeEsteban = DeliveryRoute::firstOrCreate(
-            ['assigned_driver_id' => $repEsteban->id, 'date' => $today->toDateString()],
+        // The hardware store was closed at 11:30: Marcos rescheduled the visit for 16:00.
+        $absentCustomer = $createdCustomers['Ferretería Santa Ana'];
+        $absentStop = RouteStop::firstOrCreate(
+            ['route_id' => $routeMarcos->id, 'customer_id' => $absentCustomer->id, 'is_rescheduled_from' => null],
+            ['address_id' => $absentCustomer->primaryAddress->id, 'scheduled_time' => '11:30', 'enabled' => true]
+        );
+
+        Visit::firstOrCreate(
+            ['route_stop_id' => $absentStop->id],
             [
-                'status' => 'IN_PROGRESS',
-                'started_at' => $today->copy()->setHour(8),
-                'dispatched_at' => $today->copy()->setHour(7)->setMinute(45),
-                'dispatched_by' => $admin->id,
+                'customer_id' => $absentCustomer->id,
+                'driver_id' => $repMarcos->id,
+                'outcome_id' => $outcomeReschedule->id,
+                'arrived_at' => $today->copy()->setHour(11)->setMinute(35),
+                'latitude' => $absentCustomer->primaryAddress->latitude,
+                'longitude' => $absentCustomer->primaryAddress->longitude,
+                'status' => 'FINISHED',
+                'notes' => 'Local cerrado, vuelvo a la tarde',
+                'created_by' => $repMarcos->user_id,
                 'enabled' => true,
             ]
         );
 
-        foreach ([[$productAgua20L, 80.00], [$productSoda2L, 30.00]] as [$product, $quantity]) {
-            RouteInventoryLoad::firstOrCreate(
-                ['route_id' => $routeEsteban->id, 'product_id' => $product->id],
-                ['quantity' => $quantity, 'loaded_at' => $routeEsteban->started_at->copy()->subMinutes(30), 'created_by' => $admin->id]
-            );
-            RouteInventory::firstOrCreate(
-                ['route_id' => $routeEsteban->id, 'product_id' => $product->id],
-                ['current_quantity' => $quantity, 'created_by' => $admin->id, 'enabled' => true]
-            );
-        }
+        RouteStop::firstOrCreate(
+            ['route_id' => $routeMarcos->id, 'customer_id' => $absentCustomer->id, 'is_rescheduled_from' => $absentStop->id],
+            ['address_id' => $absentStop->address_id, 'scheduled_time' => '16:00', 'enabled' => true]
+        );
 
-        // 29 first visits every 10 minutes from 08:30 (the greengrocer first), plus the rescheduled one below: 30 stops.
+        // --- ROUTE 4: Esteban Benítez (PLANNED, not dispatched - Limache) ---
+        // Left as routes:generate leaves it, with no truck load yet: "Repartir ruta" on Lucía's route suggests him in
+        // the Limache neighborhoods they share, and the admin can still load and dispatch it from /routes.
+        $routeEsteban = DeliveryRoute::firstOrCreate(
+            ['assigned_driver_id' => $repEsteban->id, 'date' => $today->toDateString()],
+            ['status' => 'PLANNED', 'enabled' => true]
+        );
+
+        // 29 visits every 10 minutes from 08:30 (the greengrocer first).
         $estebanStops = [
             'Verdulería Los Andes',
             'Supermercado El Tunal',
@@ -1435,35 +1520,6 @@ class DatabaseSeeder extends Seeder
             );
         }
 
-        // The greengrocer was closed at 08:30: the driver rescheduled the visit for 16:00.
-        $absentCustomer = $createdCustomers['Verdulería Los Andes'];
-        $absentStop = RouteStop::query()
-            ->where('route_id', $routeEsteban->id)
-            ->where('customer_id', $absentCustomer->id)
-            ->whereNull('is_rescheduled_from')
-            ->firstOrFail();
-
-        Visit::firstOrCreate(
-            ['route_stop_id' => $absentStop->id],
-            [
-                'customer_id' => $absentCustomer->id,
-                'driver_id' => $repEsteban->id,
-                'outcome_id' => $outcomeReschedule->id,
-                'arrived_at' => $today->copy()->setHour(8)->setMinute(35),
-                'latitude' => $absentCustomer->primaryAddress->latitude,
-                'longitude' => $absentCustomer->primaryAddress->longitude,
-                'status' => 'FINISHED',
-                'notes' => 'Local cerrado, vuelvo a la tarde',
-                'created_by' => $repEsteban->user_id,
-                'enabled' => true,
-            ]
-        );
-
-        RouteStop::firstOrCreate(
-            ['route_id' => $routeEsteban->id, 'customer_id' => $absentCustomer->id, 'is_rescheduled_from' => $absentStop->id],
-            ['address_id' => $absentStop->address_id, 'scheduled_time' => '16:00', 'enabled' => true]
-        );
-
         // --- ROUTE 5: Lucía Fernández (PLANNED, not dispatched) ---
         // As routes:generate leaves it at 00:30: the admin loads the truck and dispatches it from /routes, then the app gets it.
         $routeLucia = DeliveryRoute::firstOrCreate(
@@ -1471,7 +1527,8 @@ class DatabaseSeeder extends Seeder
             ['status' => 'PLANNED', 'enabled' => true]
         );
 
-        // 20 stops every 15 minutes from 08:30, spread over Tres Cerritos, Centro, El Huaico and Grand Bourg.
+        // 20 stops every 15 minutes from 08:30, over Tres Cerritos, Centro and Grand Bourg (where Juan delivers), El Huaico,
+        // and Limache and Limache Etapa 1 (where Esteban delivers).
         $luciaStops = ['Guada Guaymás', 'Almacén Doña Rosa', 'Norma Cruz', ...array_column($luciaNewCustomers, 0)];
 
         foreach ($luciaStops as $position => $customerName) {
@@ -1576,7 +1633,7 @@ class DatabaseSeeder extends Seeder
             }
 
             foreach ([['DELIVERED', 1, 'Entrega de bidones'], ['RETURNED', -1, 'Retiro de bidones vacíos']] as [$type, $direction, $reason]) {
-                ContainerMovement::firstOrCreate(
+                $movement = ContainerMovement::firstOrCreate(
                     ['visit_id' => $visit->id, 'movement_type' => $type],
                     [
                         'customer_id' => $customer->id,
@@ -1588,6 +1645,13 @@ class DatabaseSeeder extends Seeder
                         'enabled' => true,
                     ]
                 );
+
+                // Moved on that day's visit, not when the seeder ran: a past day must not show up in today's figures.
+                if ($movement->wasRecentlyCreated) {
+                    $movement->created_at = $visit->arrived_at;
+                    $movement->updated_at = $visit->arrived_at;
+                    $movement->save();
+                }
             }
 
             if ($isCredit) {
