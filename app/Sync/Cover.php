@@ -68,6 +68,15 @@ final class Cover
     }
 
     /**
+     * Whom a covered stop covers (`covered_driver_name`): the driver of the route it was moved from, the absent one, even
+     * if the customer changed owner since; null for a stop never moved. Expects `movedFrom.driver.user` loaded.
+     */
+    public static function coveredDriverName(RouteStop $stop): ?string
+    {
+        return $stop->moved_from_route_id === null ? null : $stop->movedFrom?->driver?->user?->name;
+    }
+
+    /**
      * Marks a customer row the driver gets only through covered stops (`is_cover`): false for their own customer, even on a moved stop.
      */
     public static function mark(Customer $customer, Driver $driver): Customer

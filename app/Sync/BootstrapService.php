@@ -73,7 +73,7 @@ class BootstrapService
             ->where(fn (Builder $query) => $query
                 ->whereHas('customer', fn ($customer) => $customer->where('driver_id', $route->assigned_driver_id))
                 ->orWhere(fn (Builder $moved) => $moved->where('enabled', true)->whereNotNull('moved_from_route_id')))
-            ->with(['visit', 'rescheduledTo'])
+            ->with(['visit', 'rescheduledTo', 'movedFrom.driver.user'])
             ->orderByRaw('scheduled_time asc nulls first')
             ->orderBy('id')
             ->get()
@@ -89,6 +89,7 @@ class BootstrapService
                 'status' => $stop->effectiveStatus()->value,
                 'enabled' => $stop->enabled,
                 'is_cover' => $stop->moved_from_route_id !== null,
+                'covered_driver_name' => Cover::coveredDriverName($stop),
             ])
             ->all();
     }

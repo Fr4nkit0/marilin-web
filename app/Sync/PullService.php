@@ -37,7 +37,8 @@ class PullService
      * @var array<string, array<int, string>>
      */
     private const array DEPENDENT_RELATIONS = [
-        'route_stops' => ['visits', 'rescheduledTo'],
+        // A covered stop also travels again when the absent driver is renamed: it shows whom the driver covers.
+        'route_stops' => ['visits', 'rescheduledTo', 'movedFrom.driver.user'],
     ];
 
     /**
@@ -108,7 +109,7 @@ class PullService
                 ->orderBy('id');
 
             if ($name === 'route_stops') {
-                $query->with(['visit', 'rescheduledTo']);
+                $query->with(['visit', 'rescheduledTo', 'movedFrom.driver.user']);
             }
 
             $rows = $query->offset(($page - 1) * $size)->limit($size + 1)->get();
@@ -343,6 +344,7 @@ class PullService
         $stop->setAttribute('status', $stop->effectiveStatus()->value);
         $stop->setAttribute('is_requested', $stop->isRequested());
         $stop->setAttribute('is_cover', $stop->moved_from_route_id !== null);
+        $stop->setAttribute('covered_driver_name', Cover::coveredDriverName($stop));
         $stop->unsetRelations();
 
         return $stop;

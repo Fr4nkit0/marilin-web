@@ -348,6 +348,33 @@ test('every stop carries is_cover: true on a covered stop and false on an own st
     }
 });
 
+test('every stop carries covered_driver_name: the absent driver of a covered stop, null on an own stop, on bootstrap and pull', function (): void {
+    $this->absent->user->update(['name' => 'Esteban Ausente']);
+    // The name comes from the route the stop was moved from, not from whoever owns the customer now.
+    Customer::query()->whereKey($this->covered->id)->update(['driver_id' => null]);
+
+    $bootstrap = collect($this->getJson('/api/v1/sync/bootstrap')->assertOk()->json('data.stops'))->keyBy('id');
+    $first = collect(coverPull(null)->json('data.route_stops'))->keyBy('id');
+
+    foreach ([$bootstrap, $first] as $stops) {
+        expect($stops[$this->coveredStop->id]['covered_driver_name'])->toBe('Esteban Ausente')
+            ->and($stops[$this->ownStop->id])->toHaveKey('covered_driver_name')
+            ->and($stops[$this->ownStop->id]['covered_driver_name'])->toBeNull();
+    }
+});
+
+test('a covered stop is re-sent with the new name when the absent driver is renamed during the cover day', function (): void {
+    $this->route->update(['dispatched_at' => '2026-10-22 08:00:00', 'updated_at' => '2026-10-22 08:00:00']);
+    RouteStop::query()->whereKey([$this->coveredStop->id, $this->ownStop->id])->update(['updated_at' => '2026-10-22 08:00:00']);
+    $this->travelTo('2026-10-22 12:00:00');
+    $this->absent->user->update(['name' => 'Esteban Renombrado']);
+
+    $stops = collect(coverPull('2026-10-22T10:00:00-03:00')->json('data.route_stops'))->keyBy('id');
+
+    expect($stops[$this->coveredStop->id]['covered_driver_name'] ?? null)->toBe('Esteban Renombrado')
+        ->and($stops->has($this->ownStop->id))->toBeFalse();
+});
+
 test('every customer carries is_cover: true when the driver only covers it, false when it is theirs', function (): void {
     $bootstrap = collect($this->getJson('/api/v1/sync/bootstrap')->assertOk()->json('data.customers'))->keyBy('id');
     $first = collect(coverPull(null)->json('data.customers'))->keyBy('id');
