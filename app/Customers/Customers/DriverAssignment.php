@@ -62,7 +62,7 @@ class DriverAssignment
                 ->get();
 
             if ($customers->count() !== count($customerIds)) {
-                throw new InvalidCustomerChange('Algunos clientes elegidos ya no son de este repartidor.', 'customer_ids');
+                throw new InvalidCustomerChange('Some selected customers no longer belong to this driver.', 'customer_ids');
             }
 
             $customers->each(fn (Customer $customer) => $this->reassign($customer, $toDriverId, $transferredBy));
