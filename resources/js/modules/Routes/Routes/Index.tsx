@@ -18,6 +18,7 @@ import {
     ChevronDown,
     PackagePlus,
     Send,
+    Split,
 } from 'lucide-react';
 import MoveStopsBar, { type DriverOption } from './components/MoveStopsBar';
 import RouteStopsTable, { type RouteStop } from './components/RouteStopsTable';
@@ -159,6 +160,13 @@ export default function RoutesIndex({
                 title="Despacho y rutas"
                 description={`Supervisión de paradas, inventario de ruta y avance de recorridos para la fecha seleccionada.`}
             />
+
+            {/* A route that could no longer be split when its page was opened. */}
+            {pageErrors.split && (
+                <p role="alert" className="mb-6 rounded-xl border border-rose-200/60 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/15 dark:text-rose-300">
+                    {pageErrors.split}
+                </p>
+            )}
 
             {/* Quick Metrics */}
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 mb-6">
@@ -345,6 +353,17 @@ export default function RoutesIndex({
 
                                     {/* Actions */}
                                     <div className="flex items-center gap-1 justify-self-end">
+                                        {routeItem.canMoveStops && (
+                                            <Link
+                                                href={route('routes.split', routeItem.id)}
+                                                onClick={(e) => e.stopPropagation()}
+                                                aria-label={`Repartir ruta de ${routeItem.driver.name}`}
+                                                className="inline-flex items-center gap-1 p-2 sm:px-3 rounded-lg text-sm font-medium text-sky-700 hover:text-sky-800 hover:bg-sky-50 dark:text-sky-300 dark:hover:text-sky-200 dark:hover:bg-sky-500/15 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-600"
+                                            >
+                                                <Split className="w-4 h-4" />
+                                                <span className="hidden sm:inline">Repartir ruta</span>
+                                            </Link>
+                                        )}
                                         {routeItem.driver.id && (
                                             <Link
                                                 href={route('drivers.show', routeItem.driver.id)}

@@ -3,6 +3,7 @@
 use App\Routes\Routes\Http\Controllers\DriverController;
 use App\Routes\Routes\Http\Controllers\RouteController;
 use App\Routes\Routes\Http\Controllers\RouteDispatchController;
+use App\Routes\Routes\Http\Controllers\RouteSplitController;
 use App\Routes\Routes\Http\Controllers\RouteStopMoveController;
 use App\Routes\ScheduledVisits\Http\Controllers\ScheduledVisitController;
 use App\Routes\Visits\Http\Controllers\VisitOutcomeController;
@@ -29,6 +30,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/routes/{route}/stops/move', [RouteStopMoveController::class, 'store'])
         ->middleware('can:load-trucks')
         ->name('routes.stops.move');
+
+    // Repartir ruta: the same people split that route by neighborhood, next to who already delivers there that day.
+    Route::get('/routes/{route}/split', [RouteSplitController::class, 'show'])
+        ->middleware('can:load-trucks')
+        ->name('routes.split');
 
     // Visitas agendadas: the admin asks the customer's driver to come by on a date.
     Route::post('/customers/{customer}/scheduled-visits', [ScheduledVisitController::class, 'store'])->name('scheduled-visits.store');
