@@ -12,6 +12,7 @@ interface Props {
 export default function DriverStatusModal({ account, onClose }: Props) {
     const [processing, setProcessing] = useState(false);
     const disabling = account?.enabled ?? true;
+    const orphaned = account?.customers_count ?? 0;
 
     const confirm = () => {
         if (account === null) return;
@@ -38,6 +39,11 @@ export default function DriverStatusModal({ account, onClose }: Props) {
                         ? `${account?.name} no va a poder entrar a la app, y se cierran sus sesiones abiertas. Sus ventas, visitas y cobros se conservan.`
                         : `${account?.name} va a poder volver a entrar con su contraseña.`}
                 </p>
+                {disabling && orphaned > 0 && (
+                    <p className="text-sm font-medium text-amber-700 dark:text-amber-300 mt-2">
+                        {orphaned === 1 ? '1 cliente quedará sin repartidor.' : `${orphaned} clientes quedarán sin repartidor.`}
+                    </p>
+                )}
             </div>
             <div className="flex justify-end gap-2 px-6 py-4 border-t border-hairline bg-canvas-soft/50">
                 <Button variant="secondary" onClick={onClose}>

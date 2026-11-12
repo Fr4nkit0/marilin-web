@@ -68,8 +68,11 @@ class CustomerController extends Controller
             }
         });
 
-        if ($driverId) {
-            $query->where('driver_id', $driverId);
+        // "Sin repartidor": the customers nobody delivers to, such as those of a disabled driver.
+        if ($driverId === 'none') {
+            $query->whereNull('driver_id');
+        } elseif ($driverId) {
+            $query->where('driver_id', (int) $driverId);
         }
 
         if ($debtStatus === 'with_debt') {
@@ -107,9 +110,11 @@ class CustomerController extends Controller
 
         $customers = ($sort === null ? $query->orderBy('name') : $query)->paginate(15)->withQueryString();
 
+        // Every driver filters the list; only the enabled ones can be given a customer.
         $drivers = Driver::with('user')->get()->map(fn ($r) => [
             'id' => $r->id,
             'name' => $r->user?->name ?? 'Sin nombre',
+            'enabled' => $r->enabled,
         ]);
 
         return Inertia::render('Customers/Customers/Index', [

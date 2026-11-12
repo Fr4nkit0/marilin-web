@@ -3,6 +3,7 @@
 use App\Customers\Agreements\Http\Controllers\CustomerAgreementController;
 use App\Customers\Customers\Http\Controllers\CustomerController;
 use App\Customers\Customers\Http\Controllers\CustomerPreferenceController;
+use App\Customers\Customers\Http\Controllers\CustomerTransferController;
 use App\Customers\Neighborhoods\Http\Controllers\NeighborhoodController;
 use Illuminate\Support\Facades\Route;
 
@@ -22,6 +23,10 @@ Route::middleware('auth')->group(function () {
         Route::patch('/customers/{customer}/agreements/{agreement}/end', [CustomerAgreementController::class, 'end'])->name('customers.agreements.end');
     });
     Route::get('/customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
+
+    // Transferir cartera: a driver's customers go to other drivers, part to one and part to another.
+    Route::get('/customers/transfer/{driver}', [CustomerTransferController::class, 'show'])->name('customers.transfer');
+    Route::post('/customers/transfer/{driver}', [CustomerTransferController::class, 'store'])->name('customers.transfer.store');
 
     // Configuración: barrios. Nothing is deleted, a neighborhood is disabled.
     Route::middleware('can:manage-settings')->group(function () {

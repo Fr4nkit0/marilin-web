@@ -3,8 +3,10 @@ import { Head, Link } from '@inertiajs/react';
 import AdminLayout from '@/layouts/AdminLayout';
 import { StatusBadge } from '@/ui/Badge';
 import { PageHeader } from '@/ui/PageHeader';
+import { buttonClass } from '@/ui/Button';
 import {
     ArrowLeft,
+    ArrowRightLeft,
     Truck,
     MapPin,
     Users,
@@ -106,6 +108,12 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
                                     <Users className="w-4 h-4 text-ink-subtle" />
                                     <span>{repartidor.totalAssignedCustomers} clientes fijos</span>
                                 </div>
+                                {repartidor.totalAssignedCustomers > 0 && (
+                                    <Link href={route('customers.transfer', repartidor.id)} className={buttonClass('secondary', 'sm')}>
+                                        <ArrowRightLeft className="w-3.5 h-3.5" />
+                                        Transferir cartera
+                                    </Link>
+                                )}
                                 <span className="text-ink-subtle">•</span>
                                 <div className="flex items-center gap-1.5">
                                     <Calendar className="w-4 h-4 text-ink-subtle" />

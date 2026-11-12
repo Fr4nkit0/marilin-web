@@ -5,6 +5,8 @@ export interface DriverAccount {
     phone_number: string | null;
     enabled: boolean;
     created_at: string | null;
+    /** Disabling the account leaves these customers without a driver. */
+    customers_count: number;
 }
 
 export type DriverAccountStatusFilter = 'enabled' | 'disabled' | null;

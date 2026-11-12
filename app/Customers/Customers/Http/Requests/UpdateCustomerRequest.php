@@ -24,7 +24,7 @@ class UpdateCustomerRequest extends FormRequest
         return [
             'name' => 'required|string|max:200',
             'phone_number' => 'nullable|string|max:50',
-            'repartidor_id' => 'nullable|exists:drivers,id',
+            'repartidor_id' => ['nullable', 'integer', Rule::exists('drivers', 'id')->where('enabled', true)],
             'street' => 'required|string|max:200',
             'apartment' => 'nullable|string|max:20',
             'floor' => 'nullable|string|max:20',
@@ -32,6 +32,17 @@ class UpdateCustomerRequest extends FormRequest
             'neighborhood' => ['nullable', 'string', Rule::exists('neighborhoods', 'name')->where('enabled', true)],
             // New delivery preferences only; the existing ones are changed from the customer page.
             ...CustomerPreferenceRules::rows(),
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'repartidor_id.integer' => 'El repartidor debe estar habilitado.',
+            'repartidor_id.exists' => 'El repartidor debe estar habilitado.',
         ];
     }
 }

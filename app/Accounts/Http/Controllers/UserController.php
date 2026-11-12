@@ -34,6 +34,7 @@ class UserController extends Controller
             ->tap(fn ($query) => TextMatch::search($query, ['name', 'username'], $search))
             ->when($status === 'enabled', fn ($query) => $query->where('enabled', true))
             ->when($status === 'disabled', fn ($query) => $query->where('enabled', false))
+            ->with(['driver' => fn ($query) => $query->withCount('customers')])
             ->orderBy('name')
             ->get(['id', 'name', 'username', 'phone_number', 'enabled', 'created_at'])
             ->map(fn (User $user): array => [
@@ -43,6 +44,8 @@ class UserController extends Controller
                 'phone_number' => $user->phone_number,
                 'enabled' => $user->enabled,
                 'created_at' => $user->created_at?->toIso8601String(),
+                // Disabling the account leaves these customers without a driver.
+                'customers_count' => $user->driver->customers_count ?? 0,
             ]);
 
         return Inertia::render('Accounts/Users', [
@@ -87,7 +90,7 @@ class UserController extends Controller
         $this->ensureDriverAccount($user);
 
         $enabled = $request->validate(['enabled' => ['required', 'boolean']])['enabled'];
-        $setEnabled->execute($user, (bool) $enabled);
+        $setEnabled->execute($user, (bool) $enabled, $request->user());
 
         return back()->with('success', $enabled ? 'Cuenta habilitada' : 'Cuenta deshabilitada');
     }
