@@ -19,6 +19,7 @@ import {
     PackagePlus,
     Send,
 } from 'lucide-react';
+import MoveStopsBar, { type DriverOption } from './components/MoveStopsBar';
 import RouteStopsTable, { type RouteStop } from './components/RouteStopsTable';
 import type { RouteStatus } from './types';
 
@@ -72,13 +73,10 @@ interface RouteItem {
     routeStock: RouteStockItem[];
     loadHistory: LoadHistoryItem[];
     canLoad: boolean;
+    /** "Cobertura": a planned route not dispatched yet can lend its stops to another driver. */
+    canMoveStops: boolean;
     currentStock: StockItem[];
     stops: RouteStop[];
-}
-
-interface DriverOption {
-    id: number;
-    name: string;
 }
 
 interface Props {
@@ -137,9 +135,12 @@ export default function RoutesIndex({
     const [expandedRouteId, setExpandedRouteId] = useState<number | null>(
         routes.length > 0 ? routes[0].id : null
     );
+    // The stops picked to move belong to the one expanded route.
+    const [selectedStopIds, setSelectedStopIds] = useState<number[]>([]);
 
     const toggleRouteExpand = (id: number) => {
         setExpandedRouteId(expandedRouteId === id ? null : id);
+        setSelectedStopIds([]);
     };
 
     return (
@@ -485,7 +486,19 @@ export default function RoutesIndex({
                                             )}
                                         </div>
 
-                                        <RouteStopsTable stops={routeItem.stops} />
+                                        {routeItem.canMoveStops && routeItem.stops.length > 0 && (
+                                            <MoveStopsBar
+                                                routeId={routeItem.id}
+                                                drivers={drivers.filter((driver) => driver.id !== routeItem.driver.id)}
+                                                selected={selectedStopIds}
+                                                onMoved={() => setSelectedStopIds([])}
+                                            />
+                                        )}
+                                        <RouteStopsTable
+                                            stops={routeItem.stops}
+                                            selected={selectedStopIds}
+                                            onSelect={routeItem.canMoveStops ? setSelectedStopIds : undefined}
+                                        />
                                     </div>
                                 )}
                             </div>

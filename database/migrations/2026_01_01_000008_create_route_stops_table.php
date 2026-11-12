@@ -22,6 +22,7 @@ return new class extends Migration
             $table->time('scheduled_time')->nullable();
             $table->foreignId('scheduled_visit_id')->nullable(); // the scheduled visit it carries; its FK lives in the scheduled_visits migration
             $table->text('note')->nullable();
+            $table->foreignId('moved_from_route_id')->nullable()->constrained('routes')->restrictOnDelete(); // set when the admin moves the stop to cover an absent driver
             $table->uuid('client_uuid')->nullable()->unique();
             $table->boolean('needs_review')->default(false);
             $table->jsonb('review_reasons')->default('[]'); // every reason the record was flagged for, in order, without repeats

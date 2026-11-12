@@ -38,13 +38,13 @@ final class GenerateDailyRoutesAction
 
                 if ($existing !== null) {
                     if ($existing->status === RouteStatus::Planned->value) {
-                        $this->complete($existing, $this->stopsFor($driver, $date->dayOfWeek));
+                        $this->complete($existing, $this->stopsFor($driver, $date));
                     }
 
                     return;
                 }
 
-                $stops = $this->stopsFor($driver, $date->dayOfWeek);
+                $stops = $this->stopsFor($driver, $date);
                 $scheduledVisits = $this->scheduledVisitsFor($driver, $date);
 
                 if ($stops->isEmpty() && $scheduledVisits->isEmpty()) {
@@ -99,17 +99,24 @@ final class GenerateDailyRoutesAction
     }
 
     /**
-     * One stop per customer visited that weekday, at the earliest of its windows.
+     * One stop per customer visited that weekday, at the earliest of its windows. A customer whose stop was moved
+     * to another driver's route that date ("cobertura") is visited there, so it gets no second stop here.
      *
      * @return Collection<int, array{customer_id: int, address_id: int, scheduled_time: ?string}>
      */
-    private function stopsFor(Driver $driver, int $dayOfWeek): Collection
+    private function stopsFor(Driver $driver, CarbonInterface $date): Collection
     {
-        $preferencesOfDay = fn ($preferences) => $preferences->enabled()->day($dayOfWeek);
+        $preferencesOfDay = fn ($preferences) => $preferences->enabled()->day($date->dayOfWeek);
 
         return $driver->customers()
             ->enabled()
             ->whereHas('preferences', $preferencesOfDay)
+            ->whereDoesntHave('routeStops', fn ($stops) => $stops
+                ->enabled()
+                ->notDone()
+                ->whereHas('route', fn ($route) => $route
+                    ->whereDate('date', $date->toDateString())
+                    ->where('assigned_driver_id', '!=', $driver->id)))
             ->with([
                 'preferences' => $preferencesOfDay,
                 'primaryAddress' => fn ($address) => $address->enabled(),

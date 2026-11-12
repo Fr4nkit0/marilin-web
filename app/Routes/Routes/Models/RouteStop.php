@@ -18,7 +18,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-#[Fillable(['route_id', 'customer_id', 'address_id', 'is_rescheduled_from', 'scheduled_time', 'scheduled_visit_id', 'note', 'client_uuid', 'enabled', 'needs_review', 'review_reasons'])]
+#[Fillable(['route_id', 'customer_id', 'address_id', 'is_rescheduled_from', 'scheduled_time', 'scheduled_visit_id', 'note', 'moved_from_route_id', 'client_uuid', 'enabled', 'needs_review', 'review_reasons'])]
 class RouteStop extends Model
 {
     /** @use HasFactory<RouteStopFactory> */
@@ -61,6 +61,14 @@ class RouteStop extends Model
     public function rescheduledTo(): HasOne
     {
         return $this->hasOne(RouteStop::class, 'is_rescheduled_from');
+    }
+
+    /**
+     * The route of the absent driver this stop was moved from to be covered, null for a stop never moved.
+     */
+    public function movedFrom(): BelongsTo
+    {
+        return $this->belongsTo(Route::class, 'moved_from_route_id');
     }
 
     public function scheduledVisit(): BelongsTo
