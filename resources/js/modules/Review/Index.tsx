@@ -167,7 +167,8 @@ export default function Index({ items, filters, drivers }: Props) {
             {/* List */}
             <div className="bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden ">
                 <div className="table-scroll">
-                    <table className="w-full text-left text-sm">
+                    {/* On a phone each row is a card (`.table-cards`): one "label: value" line per cell, the type as its title. */}
+                    <table className="table-cards w-full text-left text-sm">
                         <thead className="bg-canvas/80 backdrop-blur-md border-b border-hairline text-ink-muted">
                             <tr>
                                 <th className="px-6 py-4 text-xs font-medium text-ink tracking-wide">Tipo</th>
@@ -178,7 +179,7 @@ export default function Index({ items, filters, drivers }: Props) {
                                 <th className="px-6 py-4 text-xs font-medium text-ink tracking-wide text-right">Estado</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className="max-sm:divide-y max-sm:divide-hairline">
                             {items.data.length === 0 ? (
                                 <tr>
                                     <td colSpan={6} className="px-6 py-10 text-center text-ink-muted text-sm">
@@ -188,15 +189,19 @@ export default function Index({ items, filters, drivers }: Props) {
                             ) : (
                                 items.data.map((item) => (
                                     <tr key={`${item.type}-${item.id}`} className="hover:bg-canvas-soft transition-colors">
-                                        <td className="px-6 py-4 font-medium text-ink whitespace-nowrap">
+                                        <td data-primary className="px-6 py-4 font-medium text-ink whitespace-nowrap">
                                             {TYPE_LABELS[item.type]}
                                         </td>
-                                        <td className="px-6 py-4 text-ink-secondary">
+                                        <td data-label="Repartidor" className="px-6 py-4 text-ink-secondary">
                                             {item.driver ?? <span className="text-ink-subtle italic">Sin asignar</span>}
                                         </td>
-                                        <td className="px-6 py-4 text-ink-secondary">{item.customer}</td>
-                                        <td className="px-6 py-4 text-ink-secondary whitespace-nowrap">{formatDate(item)}</td>
-                                        <td className="px-6 py-4 text-ink-secondary max-w-sm">
+                                        <td data-label="Cliente" className="px-6 py-4 text-ink-secondary">{item.customer}</td>
+                                        <td data-label="Fecha" className="px-6 py-4 text-ink-secondary whitespace-nowrap">{formatDate(item)}</td>
+                                        {/* On a phone the reasons and the proposed change read under their label, left-aligned. */}
+                                        <td
+                                            data-label="Motivo"
+                                            className="px-6 py-4 text-ink-secondary max-w-sm max-sm:flex-col max-sm:!items-start max-sm:!gap-1 max-sm:!text-left"
+                                        >
                                             {item.reasons.length === 1 ? (
                                                 item.reasons[0]
                                             ) : (
@@ -208,27 +213,27 @@ export default function Index({ items, filters, drivers }: Props) {
                                             )}
                                             {item.change && <CustomerChangeFields change={item.change} />}
                                         </td>
-                                        <td className="px-6 py-4 text-right whitespace-nowrap">
+                                        <td data-label="Estado" className="px-6 py-4 text-right whitespace-nowrap">
                                             {item.reviewed_at ? (
                                                 <StatusBadge
                                                     status={item.change?.status === 'REJECTED' ? 'cancelado' : 'finalizado'}
                                                     label={reviewedLabel(item)}
                                                 />
                                             ) : item.change ? (
-                                                <div className="inline-flex gap-2">
-                                                    <Button size="sm" variant="secondary" onClick={() => decide(item, 'reject')}>
+                                                <div className="inline-flex flex-wrap justify-end gap-2">
+                                                    <Button size="sm" variant="secondary" onClick={() => decide(item, 'reject')} className="min-h-11 sm:min-h-0">
                                                         <X className="w-3.5 h-3.5" />
                                                         Rechazar
                                                     </Button>
-                                                    <Button size="sm" onClick={() => decide(item, 'approve')}>
+                                                    <Button size="sm" onClick={() => decide(item, 'approve')} className="min-h-11 sm:min-h-0">
                                                         <Check className="w-3.5 h-3.5" />
                                                         Aprobar
                                                     </Button>
                                                 </div>
                                             ) : (
-                                                <div className="inline-flex items-center gap-2">
+                                                <div className="inline-flex flex-wrap items-center justify-end gap-2">
                                                     {item.stock_correction && (
-                                                        <Button variant="secondary" size="sm" onClick={() => setCorrecting(item)}>
+                                                        <Button variant="secondary" size="sm" onClick={() => setCorrecting(item)} className="min-h-11 sm:min-h-0">
                                                             <PackagePlus className="w-3.5 h-3.5" />
                                                             Corregir carga
                                                         </Button>
@@ -236,7 +241,7 @@ export default function Index({ items, filters, drivers }: Props) {
                                                     <button
                                                         type="button"
                                                         onClick={() => markReviewed(item)}
-                                                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-sky-600 text-white hover:bg-sky-700 font-medium transition text-xs shadow-sm cursor-pointer dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
+                                                        className="inline-flex min-h-11 sm:min-h-0 items-center gap-1.5 px-3 py-2 rounded-full bg-sky-600 text-white hover:bg-sky-700 font-medium transition text-xs shadow-sm cursor-pointer dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
                                                     >
                                                         <CheckCheck className="w-3.5 h-3.5" />
                                                         Marcar como revisado

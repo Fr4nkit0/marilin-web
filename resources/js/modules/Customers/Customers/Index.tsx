@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useListFilters } from '@/lib/useListFilters';
 import { listSort } from '@/lib/sort';
 import SortableTh from '@/ui/SortableTh';
+import SortBar from '@/ui/SortBar';
 import Pagination from '@/ui/Pagination';
 import type { PaginatedData } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
@@ -204,7 +205,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                 </div>
                 <button
                     onClick={() => setIsCreateModalOpen(true)}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 transition shadow-sm cursor-pointer dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
+                    className="inline-flex min-h-11 sm:min-h-0 items-center justify-center gap-2 px-4 py-2 rounded-full bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 transition shadow-sm cursor-pointer dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
                 >
                     <Plus className="w-4 h-4" />
                     Nuevo Cliente
@@ -264,7 +265,17 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
             {/* Customers Table */}
             <div className="bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden ">
                 <div className="table-scroll">
-                    <table className="w-full text-left text-sm whitespace-nowrap">
+                    {/* On a phone the table is cards (`.table-cards`) and its headers hide, so it sorts from this bar. */}
+                    <SortBar
+                        options={[
+                            { label: 'Cliente', direction: sort.directionOf('name'), onSort: () => sort.toggle('name') },
+                            { label: 'Dirección', direction: sort.directionOf('address'), onSort: () => sort.toggle('address') },
+                            { label: 'Repartidor', direction: sort.directionOf('driver'), onSort: () => sort.toggle('driver') },
+                            { label: 'Envases', direction: sort.directionOf('containers'), onSort: () => sort.toggle('containers') },
+                            { label: 'Cuenta Corriente', direction: sort.directionOf('balance'), onSort: () => sort.toggle('balance') },
+                        ]}
+                    />
+                    <table className="table-cards w-full text-left text-sm whitespace-nowrap">
                         <thead className="bg-canvas/80 backdrop-blur-md border-b border-hairline text-ink-muted">
                             <tr>
                                 <SortableTh direction={sort.directionOf('name')} onSort={() => sort.toggle('name')} className="px-4 py-4 text-xs font-medium text-ink tracking-wide">
@@ -285,7 +296,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                 <th className="px-4 py-4 text-xs font-medium text-ink tracking-wide text-right"><span className="sr-only">Acciones</span></th>
                             </tr>
                         </thead>
-                        <tbody className="">
+                        <tbody className="max-sm:divide-y max-sm:divide-hairline">
                             {customers.data.length === 0 ? (
                                 <tr>
                                     <td colSpan={6} className="px-6 py-10 text-center text-ink-muted text-sm">
@@ -303,7 +314,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                     return (
                                         <tr key={c.id} className="hover:bg-canvas-soft transition-colors">
                                             {/* Name & Phone */}
-                                            <td className="px-4 py-4 whitespace-normal min-w-[9rem]">
+                                            <td data-primary className="px-4 py-4 whitespace-normal sm:min-w-[9rem]">
                                                 <Link href={route('customers.show', c.id)} className="font-medium text-ink hover:text-sky-700 dark:hover:text-sky-300 transition">
                                                     {c.name}
                                                 </Link>
@@ -316,9 +327,9 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                             </td>
 
                                             {/* Primary Address */}
-                                            <td className="px-4 py-4 text-ink-secondary">
+                                            <td data-label="Dirección" className="px-4 py-4 text-ink-secondary">
                                                 {c.primary_address ? (
-                                                    <div className="flex items-start gap-2 min-w-[12rem] max-w-[16rem]">
+                                                    <div className="flex items-start gap-2 text-left sm:min-w-[12rem] max-w-[16rem]">
                                                         <MapPin className="w-4 h-4 text-ink-subtle shrink-0 mt-0.5" />
                                                         <span className="whitespace-normal">
                                                             {c.primary_address.street}
@@ -345,7 +356,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                             </td>
 
                                             {/* Repartidor / Driver */}
-                                            <td className="px-4 py-4">
+                                            <td data-label="Repartidor" className="px-4 py-4">
                                                 {(c.driver?.user || c.repartidor?.user) ? (
                                                     <span className="inline-flex items-center gap-2 font-medium text-ink">
                                                         <div className="w-6 h-6 rounded-lg bg-surface-1 text-ink-secondary flex items-center justify-center text-xs">
@@ -359,7 +370,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                             </td>
 
                                             {/* Containers Balance */}
-                                            <td className="px-4 py-4 text-center">
+                                            <td data-label="Envases" className="px-4 py-4 text-center">
                                                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-1 text-ink-secondary font-medium text-xs">
                                                     <Package className="w-3.5 h-3.5" />
                                                     {totalContainers} unid
@@ -367,7 +378,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                             </td>
 
                                             {/* Debt Status & Balance */}
-                                            <td className="px-4 py-4 text-right">
+                                            <td data-label="Cuenta Corriente" className="px-4 py-4 text-right">
                                                 <DebtBadge balance={balanceNum} />
                                             </td>
 
@@ -379,7 +390,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                                         onClick={() => handleOpenEditModal(c)}
                                                         aria-label={`Editar datos de ${c.name}`}
                                                         title="Editar datos del cliente"
-                                                        className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-hairline bg-canvas text-ink-secondary hover:bg-canvas-soft transition cursor-pointer shadow-sm"
+                                                        className="inline-flex items-center justify-center w-8 h-8 min-h-11 min-w-11 sm:min-h-0 sm:min-w-0 rounded-lg border border-hairline bg-canvas text-ink-secondary hover:bg-canvas-soft transition cursor-pointer shadow-sm"
                                                     >
                                                         <SlidersHorizontal className="w-4 h-4" />
                                                     </button>
@@ -387,7 +398,7 @@ export default function CustomersIndex({ customers, filters, repartidores, neigh
                                                         href={route('customers.show', c.id)}
                                                         aria-label={`Ver ficha de ${c.name}`}
                                                         title="Ver ficha"
-                                                        className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-sky-600 text-white hover:bg-sky-700 transition shadow-sm dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
+                                                        className="inline-flex items-center justify-center w-8 h-8 min-h-11 min-w-11 sm:min-h-0 sm:min-w-0 rounded-lg bg-sky-600 text-white hover:bg-sky-700 transition shadow-sm dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
                                                     >
                                                         <Eye className="w-4 h-4" />
                                                     </Link>

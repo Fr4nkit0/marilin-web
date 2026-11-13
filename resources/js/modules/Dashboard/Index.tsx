@@ -4,6 +4,7 @@ import AdminLayout from '@/layouts/AdminLayout';
 import { StatusBadge } from '@/ui/Badge';
 import { KpiCard } from '@/ui/KpiCard';
 import SortableTh from '@/ui/SortableTh';
+import SortBar from '@/ui/SortBar';
 import { useSort } from '@/lib/sort';
 import DashboardDetailModal from './components/DashboardDetailModal';
 import { DashboardDetailKind, DashboardMetrics, DriverSyncStatus } from './types';
@@ -184,7 +185,17 @@ export default function Dashboard({ metrics }: Props) {
                     </div>
 
                     <div className="table-scroll">
-                        <table className="w-full text-left text-sm whitespace-nowrap">
+                        {/* On a phone the table is cards (`.table-cards`) and its headers hide, so it sorts from this bar. */}
+                        <SortBar
+                            options={[
+                                { label: 'Repartidor', direction: drivers.directionOf('name'), onSort: () => drivers.toggle('name') },
+                                { label: 'Progreso', direction: drivers.directionOf('progress'), onSort: () => drivers.toggle('progress') },
+                                { label: 'Estado', direction: drivers.directionOf('status'), onSort: () => drivers.toggle('status') },
+                                { label: 'Vendido', direction: drivers.directionOf('sales'), onSort: () => drivers.toggle('sales') },
+                                { label: 'Cobrado', direction: drivers.directionOf('collected'), onSort: () => drivers.toggle('collected') },
+                            ]}
+                        />
+                        <table className="table-cards w-full text-left text-sm whitespace-nowrap">
                             <thead className="bg-canvas-soft/50 border-b border-hairline">
                                 <tr>
                                     <SortableTh direction={drivers.directionOf('name')} onSort={() => drivers.toggle('name')} className="px-4 py-3 text-xs font-medium text-ink-muted">
@@ -222,7 +233,7 @@ export default function Dashboard({ metrics }: Props) {
                                             className="hover:bg-canvas-soft transition-colors cursor-pointer"
                                             title="Ver cierre de caja del día"
                                         >
-                                            <td className="px-4 py-4">
+                                            <td data-primary className="px-4 py-4">
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-8 h-8 bg-surface-1 text-ink-secondary flex items-center justify-center font-semibold text-xs rounded-full">
                                                         {rep.name.substring(0,2).toUpperCase()}
@@ -230,7 +241,7 @@ export default function Dashboard({ metrics }: Props) {
                                                     <span className="font-medium text-ink">{rep.name}</span>
                                                 </div>
                                             </td>
-                                            <td className="px-4 py-4">
+                                            <td data-label="Progreso" className="px-4 py-4">
                                                 <div className="flex items-center gap-3">
                                                     <div className="flex flex-col">
                                                         <span className="text-sm font-medium text-ink">{rep.completedStops} / {rep.totalStops}</span>
@@ -244,9 +255,9 @@ export default function Dashboard({ metrics }: Props) {
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-4 py-4">
+                                            <td data-label="Estado" className="px-4 py-4">
                                                 {/* The first stop time sits under the badge, so the money columns keep their room. */}
-                                                <div className="flex flex-col items-start gap-1">
+                                                <div className="flex flex-col items-start max-sm:items-end gap-1">
                                                     <StatusBadge status={rep.status} />
                                                     {rep.startedAt && (
                                                         <span className="text-xs text-ink-muted">
@@ -255,14 +266,14 @@ export default function Dashboard({ metrics }: Props) {
                                                     )}
                                                 </div>
                                             </td>
-                                            <td className="px-4 py-4 text-right font-medium text-ink tabular-nums">{money(rep.totalSales)}</td>
-                                            <td className="px-4 py-4 text-right font-medium text-ink tabular-nums">{money(rep.totalCollected)}</td>
+                                            <td data-label="Vendido" className="px-4 py-4 text-right font-medium text-ink tabular-nums">{money(rep.totalSales)}</td>
+                                            <td data-label="Cobrado" className="px-4 py-4 text-right font-medium text-ink tabular-nums">{money(rep.totalCollected)}</td>
                                             <td className="px-4 py-4 text-right">
                                                 <Link
                                                     href={route('cash-close.index', { repartidor_id: rep.id, date: metrics.date })}
                                                     onClick={(e) => e.stopPropagation()}
                                                     aria-label={`Cierre de caja de ${rep.name}`}
-                                                    className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-canvas border border-hairline/60 hover:bg-canvas-soft text-ink-secondary transition-colors shadow-sm cursor-pointer"
+                                                    className="inline-flex items-center justify-center w-8 h-8 min-h-11 min-w-11 sm:min-h-0 sm:min-w-0 rounded-lg bg-canvas border border-hairline/60 hover:bg-canvas-soft text-ink-secondary transition-colors shadow-sm cursor-pointer"
                                                 >
                                                     <ArrowRight className="w-4 h-4" strokeWidth={2} />
                                                 </Link>
@@ -272,7 +283,7 @@ export default function Dashboard({ metrics }: Props) {
                                 )}
                                 {casaHasActivity && (
                                 <tr title="Ventas y cobros hechos en la casa, sin repartidor">
-                                    <td className="px-4 py-4">
+                                    <td data-primary className="px-4 py-4">
                                         <div className="flex items-center gap-3">
                                             <div className="w-8 h-8 bg-surface-1 text-ink-secondary flex items-center justify-center font-semibold text-xs rounded-full">
                                                 {metrics.casa.name.substring(0, 2).toUpperCase()}
@@ -280,11 +291,12 @@ export default function Dashboard({ metrics }: Props) {
                                             <span className="font-medium text-ink">{metrics.casa.name}</span>
                                         </div>
                                     </td>
-                                    <td className="px-4 py-4 text-xs text-ink-muted">Sin ruta</td>
-                                    <td className="px-4 py-4"></td>
-                                    <td className="px-4 py-4 text-right font-medium text-ink tabular-nums">{money(metrics.casa.totalSales)}</td>
-                                    <td className="px-4 py-4 text-right font-medium text-ink tabular-nums">{money(metrics.casa.totalCollected)}</td>
-                                    <td className="px-4 py-4"></td>
+                                    <td data-label="Progreso" className="px-4 py-4 text-xs text-ink-muted">Sin ruta</td>
+                                    {/* Empty cells would be blank lines on a phone card. */}
+                                    <td className="px-4 py-4 max-sm:!hidden"></td>
+                                    <td data-label="Vendido" className="px-4 py-4 text-right font-medium text-ink tabular-nums">{money(metrics.casa.totalSales)}</td>
+                                    <td data-label="Cobrado" className="px-4 py-4 text-right font-medium text-ink tabular-nums">{money(metrics.casa.totalCollected)}</td>
+                                    <td className="px-4 py-4 max-sm:!hidden"></td>
                                 </tr>
                                 )}
                             </tbody>

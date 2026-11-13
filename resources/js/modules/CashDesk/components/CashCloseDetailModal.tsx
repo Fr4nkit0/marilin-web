@@ -1,7 +1,8 @@
-import React from 'react';
+import type { ReactNode } from 'react';
 import { X } from 'lucide-react';
 import Modal, { ModalTitle } from '@/ui/Modal';
 import SortableTh from '@/ui/SortableTh';
+import SortBar from '@/ui/SortBar';
 import { useSort, type SortDirection } from '@/lib/sort';
 import {
     CashCloseContainerRow,
@@ -40,12 +41,60 @@ const thClass = 'px-4 py-3 text-xs font-medium text-ink tracking-wide';
 const tdClass = 'px-4 py-3 text-ink-secondary tabular-nums';
 
 
-/** A sortable header of these tables. */
-function Th({ label, direction, onSort, right = false }: { label: string; direction: SortDirection | null; onSort: () => void; right?: boolean }) {
+interface SortColumn<K extends string> {
+    key: K;
+    label: string;
+    right?: boolean;
+}
+
+interface DetailTableProps<K extends string> {
+    columns: SortColumn<K>[];
+    directionOf: (key: K) => SortDirection | null;
+    toggle: (key: K) => void;
+    /** The body rows, or the empty row. */
+    children: ReactNode;
+    /** The total line: its label spans the first columns and its value sits under the last one. */
+    total: { label: string; value: ReactNode };
+}
+
+/**
+ * A sortable detail table with its total. On a phone each row is a card (`.table-cards`): the headers are hidden,
+ * so the sort bar takes their place, and the total reads as one "label: value" line.
+ */
+function DetailTable<K extends string>({ columns, directionOf, toggle, children, total }: DetailTableProps<K>) {
     return (
-        <SortableTh direction={direction} onSort={onSort} align={right ? 'right' : 'left'} className={thClass}>
-            {label}
-        </SortableTh>
+        <div className="table-scroll">
+            <SortBar options={columns.map((column) => ({ label: column.label, direction: directionOf(column.key), onSort: () => toggle(column.key) }))} />
+            <table className="table-cards w-full text-left text-sm">
+                <thead className="border-b border-hairline">
+                    <tr>
+                        {columns.map((column) => (
+                            <SortableTh
+                                key={column.key}
+                                direction={directionOf(column.key)}
+                                onSort={() => toggle(column.key)}
+                                align={column.right ? 'right' : 'left'}
+                                className={thClass}
+                            >
+                                {column.label}
+                            </SortableTh>
+                        ))}
+                    </tr>
+                </thead>
+                <tbody className="divide-y divide-hairline">{children}</tbody>
+                <tfoot className="border-t border-hairline">
+                    <tr>
+                        {/* On a phone the value's own label says it, so the spanning cell would only repeat it. */}
+                        <td colSpan={columns.length - 1} className="px-4 py-3 text-sm font-medium text-ink-secondary max-sm:!hidden">
+                            {total.label}
+                        </td>
+                        <td data-label={total.label} className="px-4 py-3 text-right font-semibold text-ink whitespace-nowrap">
+                            {total.value}
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
     );
 }
 
@@ -76,6 +125,15 @@ function EmptyRow({ colSpan }: { colSpan: number }) {
     );
 }
 
+/** The customer cell: the card's title on a phone, so it moves to the top there. */
+function CustomerCell({ customer }: { customer: string | null }) {
+    return (
+        <td data-primary className={`${tdClass} font-medium text-ink max-sm:order-first`}>
+            {customer ?? '—'}
+        </td>
+    );
+}
+
 function PaymentTable({ rows }: { rows: CashClosePaymentRow[] }) {
     const total = rows.reduce((sum, row) => sum + row.amount, 0);
     const table = useSort(rows, {
@@ -87,44 +145,34 @@ function PaymentTable({ rows }: { rows: CashClosePaymentRow[] }) {
     });
 
     return (
-        <div className="table-scroll">
-            <table className="w-full text-left text-sm">
-                <thead className="border-b border-hairline">
-                    <tr>
-                        <Th label="Hora" direction={table.directionOf('at')} onSort={() => table.toggle('at')} />
-                        <Th label="Cliente" direction={table.directionOf('customer')} onSort={() => table.toggle('customer')} />
-                        <Th label="Concepto" direction={table.directionOf('concept')} onSort={() => table.toggle('concept')} />
-                        <Th label="Origen" direction={table.directionOf('origin')} onSort={() => table.toggle('origin')} />
-                        <Th label="Monto" direction={table.directionOf('amount')} onSort={() => table.toggle('amount')} right />
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-hairline">
-                    {rows.length === 0 ? (
-                        <EmptyRow colSpan={5} />
-                    ) : (
-                        table.rows.map((row) => (
-                            <tr key={row.id}>
-                                <td className={`${tdClass} whitespace-nowrap`}>{time(row.at)}</td>
-                                <td className={`${tdClass} font-medium text-ink`}>{row.customer ?? '—'}</td>
-                                <td className={tdClass}>{row.concept}</td>
-                                <td className={tdClass}>
-                                    <OriginBadge origin={row.origin} />
-                                </td>
-                                <td className={`${tdClass} text-right font-semibold text-ink`}>{money(row.amount)}</td>
-                            </tr>
-                        ))
-                    )}
-                </tbody>
-                <tfoot className="border-t border-hairline">
-                    <tr>
-                        <td colSpan={4} className="px-4 py-3 text-sm font-medium text-ink-secondary">
-                            Total ({rows.length} {rows.length === 1 ? 'cobro' : 'cobros'})
+        <DetailTable
+            columns={[
+                { key: 'at', label: 'Hora' },
+                { key: 'customer', label: 'Cliente' },
+                { key: 'concept', label: 'Concepto' },
+                { key: 'origin', label: 'Origen' },
+                { key: 'amount', label: 'Monto', right: true },
+            ]}
+            directionOf={table.directionOf}
+            toggle={table.toggle}
+            total={{ label: `Total (${rows.length} ${rows.length === 1 ? 'cobro' : 'cobros'})`, value: money(total) }}
+        >
+            {rows.length === 0 ? (
+                <EmptyRow colSpan={5} />
+            ) : (
+                table.rows.map((row) => (
+                    <tr key={row.id}>
+                        <td data-label="Hora" className={`${tdClass} whitespace-nowrap`}>{time(row.at)}</td>
+                        <CustomerCell customer={row.customer} />
+                        <td data-label="Concepto" className={tdClass}>{row.concept}</td>
+                        <td data-label="Origen" className={tdClass}>
+                            <OriginBadge origin={row.origin} />
                         </td>
-                        <td className="px-4 py-3 text-right font-semibold text-ink">{money(total)}</td>
+                        <td data-label="Monto" className={`${tdClass} text-right font-semibold text-ink`}>{money(row.amount)}</td>
                     </tr>
-                </tfoot>
-            </table>
-        </div>
+                ))
+            )}
+        </DetailTable>
     );
 }
 
@@ -139,44 +187,34 @@ function CreditTable({ rows }: { rows: CashCloseCreditRow[] }) {
     });
 
     return (
-        <div className="table-scroll">
-            <table className="w-full text-left text-sm">
-                <thead className="border-b border-hairline">
-                    <tr>
-                        <Th label="Hora" direction={table.directionOf('at')} onSort={() => table.toggle('at')} />
-                        <Th label="Cliente" direction={table.directionOf('customer')} onSort={() => table.toggle('customer')} />
-                        <Th label="Venta" direction={table.directionOf('sale')} onSort={() => table.toggle('sale')} />
-                        <Th label="Origen" direction={table.directionOf('origin')} onSort={() => table.toggle('origin')} />
-                        <Th label="Monto" direction={table.directionOf('amount')} onSort={() => table.toggle('amount')} right />
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-hairline">
-                    {rows.length === 0 ? (
-                        <EmptyRow colSpan={5} />
-                    ) : (
-                        table.rows.map((row) => (
-                            <tr key={row.id}>
-                                <td className={`${tdClass} whitespace-nowrap`}>{time(row.at)}</td>
-                                <td className={`${tdClass} font-medium text-ink`}>{row.customer ?? '—'}</td>
-                                <td className={tdClass}>#{row.id}</td>
-                                <td className={tdClass}>
-                                    <OriginBadge origin={row.origin} />
-                                </td>
-                                <td className={`${tdClass} text-right font-semibold text-ink`}>{money(row.amount)}</td>
-                            </tr>
-                        ))
-                    )}
-                </tbody>
-                <tfoot className="border-t border-hairline">
-                    <tr>
-                        <td colSpan={4} className="px-4 py-3 text-sm font-medium text-ink-secondary">
-                            Total ({rows.length} {rows.length === 1 ? 'venta' : 'ventas'})
+        <DetailTable
+            columns={[
+                { key: 'at', label: 'Hora' },
+                { key: 'customer', label: 'Cliente' },
+                { key: 'sale', label: 'Venta' },
+                { key: 'origin', label: 'Origen' },
+                { key: 'amount', label: 'Monto', right: true },
+            ]}
+            directionOf={table.directionOf}
+            toggle={table.toggle}
+            total={{ label: `Total (${rows.length} ${rows.length === 1 ? 'venta' : 'ventas'})`, value: money(total) }}
+        >
+            {rows.length === 0 ? (
+                <EmptyRow colSpan={5} />
+            ) : (
+                table.rows.map((row) => (
+                    <tr key={row.id}>
+                        <td data-label="Hora" className={`${tdClass} whitespace-nowrap`}>{time(row.at)}</td>
+                        <CustomerCell customer={row.customer} />
+                        <td data-label="Venta" className={tdClass}>#{row.id}</td>
+                        <td data-label="Origen" className={tdClass}>
+                            <OriginBadge origin={row.origin} />
                         </td>
-                        <td className="px-4 py-3 text-right font-semibold text-ink">{money(total)}</td>
+                        <td data-label="Monto" className={`${tdClass} text-right font-semibold text-ink`}>{money(row.amount)}</td>
                     </tr>
-                </tfoot>
-            </table>
-        </div>
+                ))
+            )}
+        </DetailTable>
     );
 }
 
@@ -192,46 +230,36 @@ function PostCloseTable({ rows }: { rows: CashClosePostCloseRow[] }) {
     });
 
     return (
-        <div className="table-scroll">
-            <table className="w-full text-left text-sm">
-                <thead className="border-b border-hairline">
-                    <tr>
-                        <Th label="Hora" direction={table.directionOf('at')} onSort={() => table.toggle('at')} />
-                        <Th label="Cliente" direction={table.directionOf('customer')} onSort={() => table.toggle('customer')} />
-                        <Th label="Venta" direction={table.directionOf('sale')} onSort={() => table.toggle('sale')} />
-                        <Th label="Tipo" direction={table.directionOf('type')} onSort={() => table.toggle('type')} />
-                        <Th label="Origen" direction={table.directionOf('origin')} onSort={() => table.toggle('origin')} />
-                        <Th label="Monto" direction={table.directionOf('amount')} onSort={() => table.toggle('amount')} right />
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-hairline">
-                    {rows.length === 0 ? (
-                        <EmptyRow colSpan={6} />
-                    ) : (
-                        table.rows.map((row) => (
-                            <tr key={row.id}>
-                                <td className={`${tdClass} whitespace-nowrap`}>{time(row.at)}</td>
-                                <td className={`${tdClass} font-medium text-ink`}>{row.customer ?? '—'}</td>
-                                <td className={tdClass}>#{row.id}</td>
-                                <td className={tdClass}>{row.credit ? 'Fiado' : 'Contado'}</td>
-                                <td className={tdClass}>
-                                    <OriginBadge origin={row.origin} />
-                                </td>
-                                <td className={`${tdClass} text-right font-semibold text-ink`}>{money(row.amount)}</td>
-                            </tr>
-                        ))
-                    )}
-                </tbody>
-                <tfoot className="border-t border-hairline">
-                    <tr>
-                        <td colSpan={5} className="px-4 py-3 text-sm font-medium text-ink-secondary">
-                            Total ({rows.length} {rows.length === 1 ? 'venta' : 'ventas'})
+        <DetailTable
+            columns={[
+                { key: 'at', label: 'Hora' },
+                { key: 'customer', label: 'Cliente' },
+                { key: 'sale', label: 'Venta' },
+                { key: 'type', label: 'Tipo' },
+                { key: 'origin', label: 'Origen' },
+                { key: 'amount', label: 'Monto', right: true },
+            ]}
+            directionOf={table.directionOf}
+            toggle={table.toggle}
+            total={{ label: `Total (${rows.length} ${rows.length === 1 ? 'venta' : 'ventas'})`, value: money(total) }}
+        >
+            {rows.length === 0 ? (
+                <EmptyRow colSpan={6} />
+            ) : (
+                table.rows.map((row) => (
+                    <tr key={row.id}>
+                        <td data-label="Hora" className={`${tdClass} whitespace-nowrap`}>{time(row.at)}</td>
+                        <CustomerCell customer={row.customer} />
+                        <td data-label="Venta" className={tdClass}>#{row.id}</td>
+                        <td data-label="Tipo" className={tdClass}>{row.credit ? 'Fiado' : 'Contado'}</td>
+                        <td data-label="Origen" className={tdClass}>
+                            <OriginBadge origin={row.origin} />
                         </td>
-                        <td className="px-4 py-3 text-right font-semibold text-ink">{money(total)}</td>
+                        <td data-label="Monto" className={`${tdClass} text-right font-semibold text-ink`}>{money(row.amount)}</td>
                     </tr>
-                </tfoot>
-            </table>
-        </div>
+                ))
+            )}
+        </DetailTable>
     );
 }
 
@@ -248,56 +276,45 @@ function ContainerTable({ rows }: { rows: CashCloseContainerRow[] }) {
     });
 
     return (
-        <div className="table-scroll">
-            <table className="w-full text-left text-sm">
-                <thead className="border-b border-hairline">
-                    <tr>
-                        <Th label="Hora" direction={table.directionOf('at')} onSort={() => table.toggle('at')} />
-                        <Th label="Cliente" direction={table.directionOf('customer')} onSort={() => table.toggle('customer')} />
-                        <Th label="Envase" direction={table.directionOf('container')} onSort={() => table.toggle('container')} />
-                        <Th label="Origen" direction={table.directionOf('origin')} onSort={() => table.toggle('origin')} />
-                        <Th label="Cantidad" direction={table.directionOf('quantity')} onSort={() => table.toggle('quantity')} right />
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-hairline">
-                    {rows.length === 0 ? (
-                        <EmptyRow colSpan={5} />
-                    ) : (
-                        table.rows.map((row) => {
-                            const isDelivered = row.movement === 'DELIVERED';
+        <DetailTable
+            columns={[
+                { key: 'at', label: 'Hora' },
+                { key: 'customer', label: 'Cliente' },
+                { key: 'container', label: 'Envase' },
+                { key: 'origin', label: 'Origen' },
+                { key: 'quantity', label: 'Cantidad', right: true },
+            ]}
+            directionOf={table.directionOf}
+            toggle={table.toggle}
+            total={{ label: 'Entregados / retirados', value: `+${delivered} / -${returned}` }}
+        >
+            {rows.length === 0 ? (
+                <EmptyRow colSpan={5} />
+            ) : (
+                table.rows.map((row) => {
+                    const isDelivered = row.movement === 'DELIVERED';
 
-                            return (
-                                <tr key={row.id}>
-                                    <td className={`${tdClass} whitespace-nowrap`}>{time(row.at)}</td>
-                                    <td className={`${tdClass} font-medium text-ink`}>{row.customer ?? '—'}</td>
-                                    <td className={tdClass}>{row.container ?? '—'}</td>
-                                    <td className={tdClass}>
-                                        <OriginBadge origin={row.origin} />
-                                    </td>
-                                    <td
-                                        className={`${tdClass} text-right font-semibold whitespace-nowrap ${
-                                            isDelivered ? 'text-emerald-700 dark:text-emerald-300' : 'text-orange-700 dark:text-orange-300'
-                                        }`}
-                                    >
-                                        {isDelivered ? `Entregó +${row.quantity}` : `Retiró -${row.quantity}`}
-                                    </td>
-                                </tr>
-                            );
-                        })
-                    )}
-                </tbody>
-                <tfoot className="border-t border-hairline">
-                    <tr>
-                        <td colSpan={4} className="px-4 py-3 text-sm font-medium text-ink-secondary">
-                            Entregados / retirados
-                        </td>
-                        <td className="px-4 py-3 text-right font-semibold text-ink whitespace-nowrap">
-                            +{delivered} / -{returned}
-                        </td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
+                    return (
+                        <tr key={row.id}>
+                            <td data-label="Hora" className={`${tdClass} whitespace-nowrap`}>{time(row.at)}</td>
+                            <CustomerCell customer={row.customer} />
+                            <td data-label="Envase" className={tdClass}>{row.container ?? '—'}</td>
+                            <td data-label="Origen" className={tdClass}>
+                                <OriginBadge origin={row.origin} />
+                            </td>
+                            <td
+                                data-label="Cantidad"
+                                className={`${tdClass} text-right font-semibold whitespace-nowrap ${
+                                    isDelivered ? 'text-emerald-700 dark:text-emerald-300' : 'text-orange-700 dark:text-orange-300'
+                                }`}
+                            >
+                                {isDelivered ? `Entregó +${row.quantity}` : `Retiró -${row.quantity}`}
+                            </td>
+                        </tr>
+                    );
+                })
+            )}
+        </DetailTable>
     );
 }
 
@@ -315,7 +332,7 @@ export default function CashCloseDetailModal({ kind, details, onClose }: Props) 
                             type="button"
                             onClick={onClose}
                             aria-label="Cerrar"
-                            className="p-1.5 rounded-lg text-ink-subtle hover:text-ink-secondary hover:bg-surface-1 transition cursor-pointer"
+                            className="inline-flex items-center justify-center min-h-11 min-w-11 sm:min-h-0 sm:min-w-0 p-1.5 rounded-lg text-ink-subtle hover:text-ink-secondary hover:bg-surface-1 transition cursor-pointer"
                         >
                             <X className="w-5 h-5" />
                         </button>

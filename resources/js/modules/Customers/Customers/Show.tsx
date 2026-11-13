@@ -303,7 +303,7 @@ export default function CustomerShow({
             <div className="flex items-center gap-6 mb-6 border-b border-hairline overflow-x-auto">
                 <button
                     onClick={() => setActiveTab('account')}
-                    className={`shrink-0 whitespace-nowrap pb-3 text-sm font-medium tracking-wide transition-colors border-b-4 ${
+                    className={`shrink-0 whitespace-nowrap min-h-11 sm:min-h-0 pb-3 text-sm font-medium tracking-wide transition-colors border-b-4 ${
                         activeTab === 'account'
                             ? 'border-sky-600 text-ink'
                             : 'border-transparent text-ink-muted hover:text-ink hover:border-hairline/60'
@@ -316,7 +316,7 @@ export default function CustomerShow({
                 </button>
                 <button
                     onClick={() => setActiveTab('containers')}
-                    className={`shrink-0 whitespace-nowrap pb-3 text-sm font-medium tracking-wide transition-colors border-b-4 ${
+                    className={`shrink-0 whitespace-nowrap min-h-11 sm:min-h-0 pb-3 text-sm font-medium tracking-wide transition-colors border-b-4 ${
                         activeTab === 'containers'
                             ? 'border-sky-600 text-ink'
                             : 'border-transparent text-ink-muted hover:text-ink hover:border-hairline/60'
@@ -329,7 +329,7 @@ export default function CustomerShow({
                 </button>
                 <button
                     onClick={() => setActiveTab('agreements')}
-                    className={`shrink-0 whitespace-nowrap pb-3 text-sm font-medium tracking-wide transition-colors border-b-4 ${
+                    className={`shrink-0 whitespace-nowrap min-h-11 sm:min-h-0 pb-3 text-sm font-medium tracking-wide transition-colors border-b-4 ${
                         activeTab === 'agreements'
                             ? 'border-sky-600 text-ink'
                             : 'border-transparent text-ink-muted hover:text-ink hover:border-hairline/60'
@@ -342,7 +342,7 @@ export default function CustomerShow({
                 </button>
                 <button
                     onClick={() => setActiveTab('preferences')}
-                    className={`shrink-0 whitespace-nowrap pb-3 text-sm font-medium tracking-wide transition-colors border-b-4 ${
+                    className={`shrink-0 whitespace-nowrap min-h-11 sm:min-h-0 pb-3 text-sm font-medium tracking-wide transition-colors border-b-4 ${
                         activeTab === 'preferences'
                             ? 'border-sky-600 text-ink'
                             : 'border-transparent text-ink-muted hover:text-ink hover:border-hairline/60'
@@ -355,7 +355,7 @@ export default function CustomerShow({
                 </button>
                 <button
                     onClick={() => setActiveTab('scheduledVisits')}
-                    className={`shrink-0 whitespace-nowrap pb-3 text-sm font-medium tracking-wide transition-colors border-b-4 ${
+                    className={`shrink-0 whitespace-nowrap min-h-11 sm:min-h-0 pb-3 text-sm font-medium tracking-wide transition-colors border-b-4 ${
                         activeTab === 'scheduledVisits'
                             ? 'border-sky-600 text-ink'
                             : 'border-transparent text-ink-muted hover:text-ink hover:border-hairline/60'
@@ -378,7 +378,7 @@ export default function CustomerShow({
                     </div>
 
                     <div className="table-scroll">
-                        <table className="w-full text-left text-sm whitespace-nowrap">
+                        <table className="table-cards w-full text-left text-sm whitespace-nowrap">
                             <thead className="bg-canvas-soft border-b border-hairline">
                                 <tr>
                                     <th className="px-6 py-4 text-xs font-medium text-ink-muted tracking-wide">Fecha y Hora</th>
@@ -388,7 +388,7 @@ export default function CustomerShow({
                                     <th className="px-6 py-4 text-xs font-medium text-ink-muted tracking-wide text-right">Monto</th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-canvas">
+                            <tbody className="bg-canvas max-sm:divide-y max-sm:divide-hairline">
                                 {accountEntries.length === 0 ? (
                                     <tr>
                                         <td colSpan={5} className="px-6 py-8 text-center text-ink-muted text-sm">
@@ -400,13 +400,13 @@ export default function CustomerShow({
                                         const isDebit = entry.direction === 1; // Sale / increase debt
                                         return (
                                             <tr key={entry.id} className="hover:bg-canvas-soft transition-colors">
-                                                <td className="px-6 py-4 text-ink-secondary">
+                                                <td data-label="Fecha y Hora" className="px-6 py-4 text-ink-secondary">
                                                     {entry.createdAt}
                                                 </td>
-                                                <td className="px-6 py-4 font-medium text-ink">
+                                                <td data-primary className="px-6 py-4 font-medium text-ink max-sm:order-first">
                                                     {entry.concept ?? accountEntryTypeLabel(entry.entryType)}
                                                 </td>
-                                                <td className="px-6 py-4 text-center">
+                                                <td data-label="Tipo" className="px-6 py-4 text-center">
                                                     <span
                                                         className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
                                                             isDebit
@@ -417,7 +417,7 @@ export default function CustomerShow({
                                                         {accountEntryTypeLabel(entry.entryType)}
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-4 text-center">
+                                                <td data-label="Método" className="px-6 py-4 text-center">
                                                     {entry.paymentMethod ? (
                                                         <PaymentMethodBadge method={entry.paymentMethod} />
                                                     ) : (
@@ -425,6 +425,7 @@ export default function CustomerShow({
                                                     )}
                                                 </td>
                                                 <td
+                                                    data-label="Monto"
                                                     className={`px-6 py-4 text-right font-medium text-sm ${
                                                         isDebit ? 'text-red-600 dark:text-red-300' : 'text-emerald-600 dark:text-emerald-300'
                                                     }`}
@@ -485,7 +486,7 @@ export default function CustomerShow({
                             </h3>
                         </div>
                         <div className="table-scroll">
-                            <table className="w-full text-left text-sm whitespace-nowrap">
+                            <table className="table-cards w-full text-left text-sm whitespace-nowrap">
                                 <thead className="bg-canvas-soft border-b border-hairline">
                                     <tr>
                                         <th className="px-6 py-4 text-xs font-medium text-ink-muted tracking-wide">Fecha</th>
@@ -494,7 +495,7 @@ export default function CustomerShow({
                                         <th className="px-6 py-4 text-xs font-medium text-ink-muted tracking-wide text-right">Cantidad</th>
                                     </tr>
                                 </thead>
-                                <tbody className="bg-canvas">
+                                <tbody className="bg-canvas max-sm:divide-y max-sm:divide-hairline">
                                     {containerMovements.length === 0 ? (
                                         <tr>
                                             <td colSpan={4} className="px-6 py-8 text-center text-ink-muted text-sm">
@@ -504,13 +505,13 @@ export default function CustomerShow({
                                     ) : (
                                         containerMovements.map((cm) => (
                                             <tr key={cm.id} className="hover:bg-canvas-soft transition-colors">
-                                                <td className="px-6 py-4 text-ink-secondary">
+                                                <td data-label="Fecha" className="px-6 py-4 text-ink-secondary">
                                                     {dateTime(cm.created_at)}
                                                 </td>
-                                                <td className="px-6 py-4 font-medium text-ink">
+                                                <td data-primary className="px-6 py-4 font-medium text-ink max-sm:order-first">
                                                     {cm.container_type?.name}
                                                 </td>
-                                                <td className="px-6 py-4 text-center">
+                                                <td data-label="Operación" className="px-6 py-4 text-center">
                                                     <span
                                                         className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
                                                             cm.type === 'DELIVERED'
@@ -521,7 +522,7 @@ export default function CustomerShow({
                                                         {cm.type === 'DELIVERED' ? 'Entregado' : 'Devuelto'}
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-4 text-right font-medium text-ink">
+                                                <td data-label="Cantidad" className="px-6 py-4 text-right font-medium text-ink">
                                                     {cm.quantity} unid.
                                                 </td>
                                             </tr>
@@ -565,7 +566,7 @@ export default function CustomerShow({
 
                     {agreements.length > 0 ? (
                         <div className="table-scroll">
-                            <table className="w-full text-sm">
+                            <table className="table-cards w-full text-sm">
                                 <thead>
                                     <tr className="text-left text-xs font-medium text-ink-muted border-b border-hairline">
                                         <th className="px-5 py-3">Producto</th>
@@ -580,32 +581,32 @@ export default function CustomerShow({
                                 <tbody>
                                     {agreements.map((agreement) => (
                                         <tr key={agreement.id} className="border-b border-hairline last:border-0">
-                                            <td className="px-5 py-3 font-medium text-ink">
+                                            <td data-primary className="px-5 py-3 font-medium text-ink">
                                                 {agreement.product ?? 'Producto'}
                                             </td>
-                                            <td className="px-5 py-3 text-right font-semibold text-ink">
+                                            <td data-label="Precio acordado" className="px-5 py-3 text-right font-semibold text-ink">
                                                 {money(agreement.unitPrice)}
                                             </td>
-                                            <td className="px-5 py-3 text-ink-secondary whitespace-nowrap">
+                                            <td data-label="Vigencia" className="px-5 py-3 text-ink-secondary whitespace-nowrap">
                                                 {date(agreement.validFrom)} →{' '}
                                                 {agreement.validTo ? date(agreement.validTo) : 'sin fin'}
                                             </td>
-                                            <td className="px-5 py-3">
+                                            <td data-label="Estado" className="px-5 py-3">
                                                 <span
                                                     className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${AGREEMENT_STATUS[agreement.status].className}`}
                                                 >
                                                     {AGREEMENT_STATUS[agreement.status].label}
                                                 </span>
                                             </td>
-                                            <td className="px-5 py-3 text-ink-secondary">{agreement.reason ?? '—'}</td>
-                                            <td className="px-5 py-3 text-ink-secondary">{agreement.createdBy ?? '—'}</td>
+                                            <td data-label="Motivo" className="px-5 py-3 text-ink-secondary">{agreement.reason ?? '—'}</td>
+                                            <td data-label="Creado por" className="px-5 py-3 text-ink-secondary">{agreement.createdBy ?? '—'}</td>
                                             {canManageAgreements && (
                                                 <td className="px-5 py-3 text-right">
                                                     {agreement.status !== 'ended' && (
                                                         <button
                                                             type="button"
                                                             onClick={() => endAgreement(agreement)}
-                                                            className="text-sm font-medium text-red-600 dark:text-red-300 hover:text-red-500 cursor-pointer"
+                                                            className="inline-flex min-h-11 sm:min-h-0 items-center text-sm font-medium text-red-600 dark:text-red-300 hover:text-red-500 cursor-pointer"
                                                         >
                                                             Finalizar
                                                         </button>
@@ -649,7 +650,7 @@ export default function CustomerShow({
 
                     {preferences.length > 0 ? (
                         <div className="table-scroll">
-                            <table className="w-full text-sm">
+                            <table className="table-cards w-full text-sm">
                                 <thead>
                                     <tr className="text-left text-xs font-medium text-ink-muted border-b border-hairline">
                                         <th className="px-5 py-3">Día</th>
@@ -660,22 +661,22 @@ export default function CustomerShow({
                                 <tbody>
                                     {preferences.map((preference) => (
                                         <tr key={preference.id} className="border-b border-hairline last:border-0">
-                                            <td className="px-5 py-3 font-medium text-ink">{weekdayName(preference.dayOfWeek)}</td>
-                                            <td className="px-5 py-3 text-ink-secondary">
+                                            <td data-primary className="px-5 py-3 font-medium text-ink">{weekdayName(preference.dayOfWeek)}</td>
+                                            <td data-label="Horario" className="px-5 py-3 text-ink-secondary">
                                                 {timeWindowLabel(preference.timeWindowStart, preference.timeWindowEnd)}
                                             </td>
                                             <td className="px-5 py-3 text-right whitespace-nowrap">
                                                 <button
                                                     type="button"
                                                     onClick={() => setEditingPreference(preference)}
-                                                    className="text-sm font-medium text-sky-600 dark:text-sky-300 hover:text-sky-500 cursor-pointer mr-4"
+                                                    className="inline-flex min-h-11 sm:min-h-0 items-center text-sm font-medium text-sky-600 dark:text-sky-300 hover:text-sky-500 cursor-pointer mr-4"
                                                 >
                                                     Editar
                                                 </button>
                                                 <button
                                                     type="button"
                                                     onClick={() => removePreference(preference)}
-                                                    className="text-sm font-medium text-red-600 dark:text-red-300 hover:text-red-500 cursor-pointer"
+                                                    className="inline-flex min-h-11 sm:min-h-0 items-center text-sm font-medium text-red-600 dark:text-red-300 hover:text-red-500 cursor-pointer"
                                                 >
                                                     Quitar
                                                 </button>
@@ -709,7 +710,7 @@ export default function CustomerShow({
 
                     {scheduledVisits.length > 0 ? (
                         <div className="table-scroll">
-                            <table className="w-full text-sm">
+                            <table className="table-cards w-full text-sm">
                                 <thead>
                                     <tr className="text-left text-xs font-medium text-ink-muted border-b border-hairline">
                                         <th className="px-5 py-3">Fecha</th>
@@ -722,12 +723,12 @@ export default function CustomerShow({
                                 <tbody>
                                     {scheduledVisits.map((visit) => (
                                         <tr key={visit.id} className="border-b border-hairline last:border-0">
-                                            <td className="px-5 py-3 font-medium text-ink whitespace-nowrap">{date(visit.date)}</td>
-                                            <td className="px-5 py-3 text-ink-secondary">
+                                            <td data-primary className="px-5 py-3 font-medium text-ink whitespace-nowrap">{date(visit.date)}</td>
+                                            <td data-label="Hora" className="px-5 py-3 text-ink-secondary">
                                                 {visit.scheduledTime ? `Desde ${visit.scheduledTime}` : '—'}
                                             </td>
-                                            <td className="px-5 py-3 text-ink-secondary">{visit.note ?? '—'}</td>
-                                            <td className="px-5 py-3">
+                                            <td data-label="Nota" className="px-5 py-3 text-ink-secondary">{visit.note ?? '—'}</td>
+                                            <td data-label="Estado" className="px-5 py-3">
                                                 <ScheduledVisitStatusBadge status={visit.status} label={visit.statusLabel} />
                                             </td>
                                             <td className="px-5 py-3 text-right">
@@ -735,7 +736,7 @@ export default function CustomerShow({
                                                     <button
                                                         type="button"
                                                         onClick={() => cancelScheduledVisit(visit)}
-                                                        className="text-sm font-medium text-red-600 dark:text-red-300 hover:text-red-500 cursor-pointer"
+                                                        className="inline-flex min-h-11 sm:min-h-0 items-center text-sm font-medium text-red-600 dark:text-red-300 hover:text-red-500 cursor-pointer"
                                                     >
                                                         Cancelar
                                                     </button>
