@@ -358,7 +358,7 @@ export default function RoutesIndex({
                                                 href={route('routes.split', routeItem.id)}
                                                 onClick={(e) => e.stopPropagation()}
                                                 aria-label={`Repartir ruta de ${routeItem.driver.name}`}
-                                                className="inline-flex items-center gap-1 p-2 sm:px-3 rounded-lg text-sm font-medium text-sky-700 hover:text-sky-800 hover:bg-sky-50 dark:text-sky-300 dark:hover:text-sky-200 dark:hover:bg-sky-500/15 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-600"
+                                                className="inline-flex min-h-11 min-w-11 sm:min-h-0 sm:min-w-0 items-center justify-center gap-1 p-2 sm:px-3 rounded-lg text-sm font-medium text-sky-700 hover:text-sky-800 hover:bg-sky-50 dark:text-sky-300 dark:hover:text-sky-200 dark:hover:bg-sky-500/15 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-600"
                                             >
                                                 <Split className="w-4 h-4" />
                                                 <span className="hidden sm:inline">Repartir ruta</span>
@@ -369,7 +369,7 @@ export default function RoutesIndex({
                                                 href={route('drivers.show', routeItem.driver.id)}
                                                 onClick={(e) => e.stopPropagation()}
                                                 aria-label={`Ver ficha de ${routeItem.driver.name}`}
-                                                className="inline-flex items-center gap-1 p-2 sm:px-3 rounded-lg text-sm font-medium text-ink-secondary hover:text-ink hover:bg-surface-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-600"
+                                                className="inline-flex min-h-11 min-w-11 sm:min-h-0 sm:min-w-0 items-center justify-center gap-1 p-2 sm:px-3 rounded-lg text-sm font-medium text-ink-secondary hover:text-ink hover:bg-surface-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-600"
                                             >
                                                 <span className="hidden sm:inline">Ver ficha</span>
                                                 <ArrowUpRight className="w-4 h-4" />
@@ -379,7 +379,7 @@ export default function RoutesIndex({
                                             type="button"
                                             aria-label={`${isExpanded ? 'Ocultar' : 'Ver'} detalle de la ruta de ${routeItem.driver.name}`}
                                             aria-expanded={isExpanded}
-                                            className="p-2 rounded-lg text-ink-subtle hover:text-ink hover:bg-surface-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-600"
+                                            className="inline-flex min-h-11 min-w-11 sm:min-h-0 sm:min-w-0 items-center justify-center p-2 rounded-lg text-ink-subtle hover:text-ink hover:bg-surface-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-600"
                                         >
                                             <ChevronDown
                                                 className={`w-5 h-5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
@@ -393,14 +393,14 @@ export default function RoutesIndex({
                                     <div className="bg-canvas-soft/50 p-4 sm:p-6 space-y-8 border-t border-hairline">
                                         {/* Truck Inventory Section */}
                                         <div>
-                                            <h4 className="text-sm font-semibold text-ink mb-4 flex items-center gap-2">
+                                            <h4 className="text-sm font-semibold text-ink mb-4 flex flex-wrap items-center gap-2">
                                                 <Package className="w-4 h-4 text-ink-muted" />
                                                 Inventario de ruta
                                                 {routeItem.canLoad && (
                                                     <button
                                                         type="button"
                                                         onClick={() => setLoadingRoute(routeItem)}
-                                                        className="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs font-medium shadow-sm cursor-pointer dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
+                                                        className="ml-auto inline-flex min-h-11 sm:min-h-0 items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs font-medium shadow-sm cursor-pointer dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
                                                     >
                                                         <PackagePlus className="w-3.5 h-3.5" />
                                                         {hasLoads(routeItem) ? 'Registrar recarga' : 'Registrar carga inicial'}
@@ -411,7 +411,7 @@ export default function RoutesIndex({
                                                         type="button"
                                                         onClick={() => dispatchRoute(routeItem)}
                                                         disabled={dispatchingRouteId === routeItem.id}
-                                                        className={`${routeItem.canLoad ? '' : 'ml-auto '}inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-canvas border border-sky-600 text-sky-700 hover:bg-sky-50 dark:border-sky-500/50 dark:text-sky-300 dark:hover:bg-sky-500/15 text-xs font-medium shadow-sm cursor-pointer disabled:opacity-60 disabled:cursor-wait`}
+                                                        className={`${routeItem.canLoad ? '' : 'ml-auto '}inline-flex min-h-11 sm:min-h-0 items-center gap-1.5 px-3 py-1.5 rounded-lg bg-canvas border border-sky-600 text-sky-700 hover:bg-sky-50 dark:border-sky-500/50 dark:text-sky-300 dark:hover:bg-sky-500/15 text-xs font-medium shadow-sm cursor-pointer disabled:opacity-60 disabled:cursor-wait`}
                                                     >
                                                         <Send className="w-3.5 h-3.5" />
                                                         Despachar ruta
@@ -460,7 +460,7 @@ export default function RoutesIndex({
 
                                             {routeItem.loadHistory.length > 0 && (
                                                 <div className="bg-canvas border border-hairline/60 rounded-xl shadow-sm table-scroll">
-                                                    <table className="w-full text-left text-sm">
+                                                    <table className="table-cards w-full text-left text-sm">
                                                         <thead className="border-b border-hairline text-ink-muted">
                                                             <tr>
                                                                 <th className="px-4 py-2.5 text-xs font-medium">Hora</th>
@@ -473,15 +473,15 @@ export default function RoutesIndex({
                                                         <tbody className="divide-y divide-hairline">
                                                             {routeItem.loadHistory.map((load) => (
                                                                 <tr key={load.id}>
-                                                                    <td className="px-4 py-2.5 text-ink-secondary whitespace-nowrap">
+                                                                    <td data-label="Hora" className="px-4 py-2.5 text-ink-secondary whitespace-nowrap">
                                                                         {load.loadedAt ?? '—'}
                                                                     </td>
-                                                                    <td className="px-4 py-2.5 text-ink-secondary">
+                                                                    <td data-label="Carga" className="px-4 py-2.5 text-ink-secondary">
                                                                         {load.isCorrection ? (
                                                                             <>
                                                                                 Corrección
                                                                                 {load.reason && (
-                                                                                    <span className="block text-xs text-ink-muted">{load.reason}</span>
+                                                                                    <span className="block text-xs text-ink-muted max-sm:text-right">{load.reason}</span>
                                                                                 )}
                                                                             </>
                                                                         ) : load.isInitial ? (
@@ -490,11 +490,11 @@ export default function RoutesIndex({
                                                                             'Recarga'
                                                                         )}
                                                                     </td>
-                                                                    <td className="px-4 py-2.5 font-medium text-ink">
+                                                                    <td data-primary className="px-4 py-2.5 font-medium text-ink max-sm:order-first">
                                                                         {load.productName}
                                                                     </td>
-                                                                    <td className="px-4 py-2.5 text-ink-secondary">{load.loadedBy ?? '—'}</td>
-                                                                    <td className="px-4 py-2.5 text-right font-semibold text-ink tabular-nums">
+                                                                    <td data-label="Registró" className="px-4 py-2.5 text-ink-secondary">{load.loadedBy ?? '—'}</td>
+                                                                    <td data-label="Unidades" className="px-4 py-2.5 text-right font-semibold text-ink tabular-nums">
                                                                         +{load.quantity}
                                                                     </td>
                                                                 </tr>

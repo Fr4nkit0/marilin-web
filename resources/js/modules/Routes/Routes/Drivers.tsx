@@ -4,6 +4,7 @@ import { useListFilters } from '@/lib/useListFilters';
 import { useSort } from '@/lib/sort';
 import { statusOrder } from '@/lib/format';
 import SortableTh from '@/ui/SortableTh';
+import SortBar from '@/ui/SortBar';
 import AdminLayout from '@/layouts/AdminLayout';
 import { StatusBadge } from '@/ui/Badge';
 import { KpiCard } from '@/ui/KpiCard';
@@ -60,6 +61,17 @@ export default function RepartidoresIndex({ repartidores, filters }: Props) {
         customers: (rep) => rep.totalCustomers,
         firstStop: (rep) => rep.currentRoute?.startedAt ?? null,
     });
+
+    // The phone cards hide the headers, so their sorting moves to a bar with the same columns.
+    const sortOptions = (
+        [
+            ['name', 'Repartidor'],
+            ['status', 'Estado Ruta Hoy'],
+            ['progress', 'Progreso de Entregas'],
+            ['customers', 'Clientes Asignados'],
+            ['firstStop', 'Primera parada'],
+        ] as [Parameters<typeof table.toggle>[0], string][]
+    ).map(([key, label]) => ({ label, direction: table.directionOf(key), onSort: () => table.toggle(key) }));
 
     const activeRoutesCount = repartidores.filter(
         (r) => r.currentRoute?.status === 'IN_PROGRESS'
@@ -129,7 +141,8 @@ export default function RepartidoresIndex({ repartidores, filters }: Props) {
             {/* Repartidores Table - Soft Borders, Light Theme */}
             <div className="bg-canvas rounded-lg shadow-sm overflow-hidden border border-hairline/60">
                 <div className="table-scroll">
-                    <table className="w-full text-left text-sm">
+                    <SortBar options={sortOptions} />
+                    <table className="table-cards w-full text-left text-sm">
                         <thead className="bg-canvas/80 backdrop-blur-md border-b border-hairline text-ink-muted font-medium text-sm tracking-wide">
                             <tr>
                                 <SortableTh direction={table.directionOf('name')} onSort={() => table.toggle('name')} className="px-6 py-4">
@@ -164,9 +177,12 @@ export default function RepartidoresIndex({ repartidores, filters }: Props) {
                                     const progress = rep.currentRoute?.progressPercent || 0;
 
                                     return (
-                                        <tr key={rep.id} className="hover:bg-canvas-soft transition-colors">
+                                        <tr
+                                            key={rep.id}
+                                            className="hover:bg-canvas-soft transition-colors max-sm:border-b max-sm:border-hairline max-sm:last:border-0"
+                                        >
                                             {/* Driver Name */}
-                                            <td className="px-6 py-4">
+                                            <td data-primary className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-10 h-10 rounded-lg bg-surface-1 text-ink-secondary flex items-center justify-center font-semibold shadow-sm">
                                                         {rep.name.charAt(0)}
@@ -176,7 +192,7 @@ export default function RepartidoresIndex({ repartidores, filters }: Props) {
                                                             {rep.name}
                                                         </p>
                                                         {rep.username && (
-                                                            <p className="text-xs text-ink-muted mt-0.5">
+                                                            <p className="text-xs font-normal text-ink-muted mt-0.5">
                                                                 {rep.username}
                                                             </p>
                                                         )}
@@ -185,14 +201,15 @@ export default function RepartidoresIndex({ repartidores, filters }: Props) {
                                             </td>
 
                                             {/* Status Badge */}
-                                            <td className="px-6 py-4">
+                                            <td data-label="Estado Ruta Hoy" className="px-6 py-4">
                                                 <StatusBadge status={status} />
                                             </td>
 
                                             {/* Progress */}
-                                            <td className="px-6 py-4">
+                                            <td data-label="Progreso de Entregas" className="px-6 py-4">
                                                 {hasRoute ? (
-                                                    <div className="w-48">
+                                                    // Narrower on a phone so the bar fits beside its label on the card.
+                                                    <div className="w-36 sm:w-48">
                                                         <div className="flex justify-between text-xs font-medium text-ink-secondary mb-1.5">
                                                             <span>
                                                                 {rep.currentRoute?.completedStops} de {rep.currentRoute?.totalStops}
@@ -212,7 +229,7 @@ export default function RepartidoresIndex({ repartidores, filters }: Props) {
                                             </td>
 
                                             {/* Assigned Customers */}
-                                            <td className="px-6 py-4 text-center">
+                                            <td data-label="Clientes Asignados" className="px-6 py-4 text-center">
                                                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-1 text-ink-secondary font-medium text-xs">
                                                     <Users className="w-4 h-4" />
                                                     {rep.totalCustomers} clientes
@@ -220,7 +237,7 @@ export default function RepartidoresIndex({ repartidores, filters }: Props) {
                                             </td>
 
                                             {/* Timings */}
-                                            <td className="px-6 py-4 font-medium text-ink-secondary">
+                                            <td data-label="Primera parada" className="px-6 py-4 font-medium text-ink-secondary">
                                                 {rep.currentRoute?.startedAt ? (
                                                     <div className="flex items-center gap-1.5">
                                                         <Clock className="w-4 h-4 text-ink-subtle" />
@@ -236,7 +253,7 @@ export default function RepartidoresIndex({ repartidores, filters }: Props) {
                                                 <Link
                                                     href={route('drivers.show', rep.id)}
                                                     aria-label={`Ver ficha de ${rep.name}`}
-                                                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-sky-600 text-white hover:bg-sky-700 font-medium text-sm transition-colors shadow-sm dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
+                                                    className="inline-flex min-h-11 sm:min-h-0 items-center gap-1.5 px-4 py-2 rounded-lg bg-sky-600 text-white hover:bg-sky-700 font-medium text-sm transition-colors shadow-sm dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
                                                 >
                                                     Ver ficha
                                                     <ArrowUpRight className="w-4 h-4" />

@@ -78,7 +78,7 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
             <div className="mb-4">
                 <Link
                     href={route('drivers.index')}
-                    className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-muted hover:text-ink transition-colors"
+                    className="inline-flex min-h-11 sm:min-h-0 items-center gap-1.5 text-sm font-medium text-ink-muted hover:text-ink transition-colors"
                 >
                     <ArrowLeft className="w-4 h-4" />
                     Volver al listado
@@ -170,7 +170,7 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
                                 </p>
                             </div>
                             {/* Progress bar */}
-                            <div className="w-48">
+                            <div className="w-24 sm:w-48 shrink-0">
                                 <div className="w-full h-2.5 bg-surface-1 rounded-lg overflow-hidden">
                                     <div
                                         className="h-full bg-sky-600 rounded-lg transition-all duration-300 dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
@@ -181,7 +181,7 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
                         </div>
 
                         <div className="table-scroll">
-                            <table className="w-full text-left text-sm">
+                            <table className="table-cards w-full text-left text-sm">
                                 <thead className="bg-canvas-soft/50 border-b border-hairline text-ink-muted font-medium tracking-wide">
                                     <tr>
                                         <th className="px-6 py-4"># Parada</th>
@@ -192,9 +192,12 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
                                 </thead>
                                 <tbody>
                                     {deliveryRoute.stops.map((stop, idx) => (
-                                        <tr key={stop.id} className="hover:bg-canvas-soft transition-colors">
+                                        <tr
+                                            key={stop.id}
+                                            className="hover:bg-canvas-soft transition-colors max-sm:border-b max-sm:border-hairline max-sm:last:border-0"
+                                        >
                                             {/* Stop number & Time */}
-                                            <td className="px-6 py-4">
+                                            <td data-label="# Parada" className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
                                                     <span className="w-8 h-8 rounded-lg bg-surface-1 text-ink-secondary flex items-center justify-center text-sm font-medium">
                                                         {idx + 1}
@@ -207,16 +210,16 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
                                                 </div>
                                             </td>
 
-                                            {/* Customer */}
-                                            <td className="px-6 py-4">
+                                            {/* Customer: on a phone card it is the title, above the stop number. */}
+                                            <td data-primary className="px-6 py-4 max-sm:order-first">
                                                 <Link
                                                     href={route('customers.show', stop.customer.id)}
-                                                    className="font-semibold text-ink hover:text-ink transition-colors"
+                                                    className="font-semibold text-ink hover:text-ink transition-colors max-sm:inline-flex max-sm:min-h-11 max-sm:items-center"
                                                 >
                                                     {stop.customer.name}
                                                 </Link>
                                                 {stop.customer.address && (
-                                                    <div className="flex items-center gap-1.5 text-xs text-ink-muted mt-1">
+                                                    <div className="flex items-center gap-1.5 text-xs font-normal text-ink-muted mt-1">
                                                         <MapPin className="w-3.5 h-3.5 text-ink-subtle" />
                                                         <span>{stop.customer.address}</span>
                                                     </div>
@@ -225,12 +228,12 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
                                             </td>
 
                                             {/* Status */}
-                                            <td className="px-6 py-4">
+                                            <td data-label="Estado" className="px-6 py-4">
                                                 <StatusBadge status={stop.status} label={stopStatusLabel(stop.status)} />
                                             </td>
 
                                             {/* Sales / Collections */}
-                                            <td className="px-6 py-4 text-right">
+                                            <td data-label="Venta / Cobro" className="px-6 py-4 text-right">
                                                 {stop.salesAmount > 0 || stop.paymentsAmount > 0 ? (
                                                     <div>
                                                         <p className="font-semibold text-ink">

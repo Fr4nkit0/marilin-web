@@ -17,7 +17,7 @@ interface Props {
 
 /** A quiet row action whose hover tint says what it does; the confirmation modal guards the change. */
 const rowAction =
-    'inline-flex h-8 items-center justify-center gap-2 rounded-md px-3 text-xs font-medium text-ink-secondary transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-600 focus-visible:ring-offset-2';
+    'inline-flex h-11 sm:h-8 items-center justify-center gap-2 rounded-md px-3 text-xs font-medium text-ink-secondary transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-600 focus-visible:ring-offset-2';
 
 const statusOptions: { value: DriverAccountStatusFilter; label: string }[] = [
     { value: null, label: 'Todas' },
@@ -129,7 +129,7 @@ export default function Index({ users, filters }: Props) {
                     </div>
                 ) : (
                     <div className="table-scroll">
-                        <table className="w-full text-left text-sm whitespace-nowrap">
+                        <table className="table-cards w-full text-left text-sm whitespace-nowrap">
                             <thead className="bg-canvas-soft border-b border-hairline text-ink-muted">
                                 <tr>
                                     <th className="px-5 py-3 text-xs font-medium">Repartidor</th>
@@ -144,7 +144,7 @@ export default function Index({ users, filters }: Props) {
                             <tbody className="divide-y divide-hairline">
                                 {users.map((account) => (
                                     <tr key={account.id} className="hover:bg-canvas-soft/50 transition-colors">
-                                        <td className="px-5 py-3">
+                                        <td data-primary className="px-5 py-3">
                                             <div className="flex items-center gap-3">
                                                 <span
                                                     aria-hidden="true"
@@ -159,13 +159,13 @@ export default function Index({ users, filters }: Props) {
                                                 </span>
                                             </div>
                                         </td>
-                                        <td className="px-5 py-3 text-ink-secondary">
+                                        <td data-label="Usuario de la app" className="px-5 py-3 text-ink-secondary">
                                             {account.username ?? <span className="text-ink-subtle">—</span>}
                                         </td>
-                                        <td className="px-5 py-3 text-ink-secondary tabular-nums whitespace-nowrap">
+                                        <td data-label="Teléfono" className="px-5 py-3 text-ink-secondary tabular-nums whitespace-nowrap">
                                             {account.phone_number ?? <span className="text-ink-subtle">—</span>}
                                         </td>
-                                        <td className="px-5 py-3">
+                                        <td data-label="Estado" className="px-5 py-3">
                                             <span
                                                 className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-xs font-medium ${
                                                     account.enabled
@@ -178,12 +178,14 @@ export default function Index({ users, filters }: Props) {
                                             </span>
                                         </td>
                                         <td className="px-5 py-3">
-                                            <div className="flex justify-end gap-1">
+                                            {/* On a phone the actions wrap instead of widening the card. */}
+                                            <div className="flex max-sm:flex-wrap justify-end gap-1">
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
                                                     onClick={() => openEdit(account)}
                                                     aria-label={`Editar a ${account.name}`}
+                                                    className="min-h-11 sm:min-h-0"
                                                 >
                                                     <Pencil className="w-3.5 h-3.5" />
                                                     Editar
@@ -193,6 +195,7 @@ export default function Index({ users, filters }: Props) {
                                                     size="sm"
                                                     onClick={() => setPasswordFor(account)}
                                                     aria-label={`Cambiar la contraseña de ${account.name}`}
+                                                    className="min-h-11 sm:min-h-0"
                                                 >
                                                     <KeyRound className="w-3.5 h-3.5" />
                                                     Contraseña

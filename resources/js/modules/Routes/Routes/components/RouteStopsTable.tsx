@@ -5,6 +5,7 @@ import { useSort } from '@/lib/sort';
 import { StatusBadge } from '@/ui/Badge';
 import { Checkbox } from '@/ui/Field';
 import SortableTh from '@/ui/SortableTh';
+import SortBar from '@/ui/SortBar';
 import RequestedVisitMark from './RequestedVisitMark';
 import type { RouteStopRow } from '../types';
 
@@ -48,11 +49,23 @@ export default function RouteStopsTable({ stops, selected = [], onSelect }: Prop
         arrivedAt: (row) => row.stop.arrivedAt,
     });
 
-    const header = (key: Parameters<typeof table.toggle>[0], label: string, className = 'px-4 py-3') => (
-        <SortableTh direction={table.directionOf(key)} onSort={() => table.toggle(key)} className={className}>
+    type SortKey = Parameters<typeof table.toggle>[0];
+    // On a phone the headers are hidden (the rows are cards), so only the select-all one stays, as a bar.
+    const header = (key: SortKey, label: string, className = 'px-4 py-3') => (
+        <SortableTh direction={table.directionOf(key)} onSort={() => table.toggle(key)} className={`${className} max-sm:!hidden`}>
             {label}
         </SortableTh>
     );
+
+    const sortOptions = (
+        [
+            ['number', 'Parada'],
+            ['customer', 'Cliente'],
+            ['address', 'Dirección'],
+            ['status', 'Estado'],
+            ['arrivedAt', 'Hora'],
+        ] as [SortKey, string][]
+    ).map(([key, label]) => ({ label, direction: table.directionOf(key), onSort: () => table.toggle(key) }));
 
     return (
         <div>
@@ -62,17 +75,28 @@ export default function RouteStopsTable({ stops, selected = [], onSelect }: Prop
             </h4>
 
             <div className="bg-canvas border border-hairline/60 rounded-xl shadow-sm table-scroll">
-                <table className="w-full text-left text-sm">
-                    <thead className="bg-canvas-soft/80 backdrop-blur-md text-ink-muted font-medium text-xs border-b border-hairline/60">
-                        <tr>
+                <SortBar options={sortOptions} />
+                <table className="table-cards w-full text-left text-sm">
+                    <thead
+                        className={`bg-canvas-soft/80 backdrop-blur-md text-ink-muted font-medium text-xs border-b border-hairline/60 ${
+                            selectable ? 'max-sm:!block' : ''
+                        }`}
+                    >
+                        <tr className="max-sm:!py-2">
                             {selectable && (
-                                <th scope="col" className="pl-4 py-3 w-8">
-                                    <Checkbox
-                                        aria-label="Seleccionar todas las paradas pendientes"
-                                        checked={allSelected}
-                                        disabled={movableIds.length === 0}
-                                        onChange={() => onSelect(allSelected ? [] : movableIds)}
-                                    />
+                                <th scope="col" className="pl-4 py-3 w-8 max-sm:w-auto max-sm:!justify-start max-sm:min-h-11">
+                                    {/* A label so on a phone its text is part of the tap target. */}
+                                    <label className="inline-flex items-center gap-2 cursor-pointer max-sm:min-h-11">
+                                        <Checkbox
+                                            aria-label="Seleccionar todas las paradas pendientes"
+                                            checked={allSelected}
+                                            disabled={movableIds.length === 0}
+                                            onChange={() => onSelect(allSelected ? [] : movableIds)}
+                                        />
+                                        <span aria-hidden="true" className="sm:hidden text-xs font-medium text-ink-secondary">
+                                            Todas las pendientes
+                                        </span>
+                                    </label>
                                 </th>
                             )}
                             {header('number', '#', 'px-4 py-3 w-16')}
@@ -80,7 +104,7 @@ export default function RouteStopsTable({ stops, selected = [], onSelect }: Prop
                             {header('address', 'Dirección')}
                             {header('status', 'Estado')}
                             {header('arrivedAt', 'Hora')}
-                            <th scope="col" className="px-4 py-3">
+                            <th scope="col" className="px-4 py-3 max-sm:!hidden">
                                 Resultado
                             </th>
                         </tr>
@@ -99,7 +123,7 @@ export default function RouteStopsTable({ stops, selected = [], onSelect }: Prop
                                     className="border-b border-hairline last:border-0 hover:bg-canvas-soft/50 transition-colors"
                                 >
                                     {selectable && (
-                                        <td className="pl-4 py-3">
+                                        <td data-label="Mover" className={`pl-4 py-3 ${isMovable(stop) ? '' : 'max-sm:!hidden'}`}>
                                             {isMovable(stop) && (
                                                 <Checkbox
                                                     aria-label={`Seleccionar ${stop.customer.name}`}
@@ -109,15 +133,15 @@ export default function RouteStopsTable({ stops, selected = [], onSelect }: Prop
                                             )}
                                         </td>
                                     )}
-                                    <td className="px-4 py-3">
+                                    <td data-label="Parada" className="px-4 py-3">
                                         <span className="inline-flex w-7 h-7 rounded-full bg-surface-1 text-ink-secondary items-center justify-center text-xs font-medium tabular-nums">
                                             {number}
                                         </span>
                                     </td>
-                                    <td className="px-4 py-3">
+                                    <td data-primary className="px-4 py-3 max-sm:order-first">
                                         <span className="font-medium text-ink block">{stop.customer.name}</span>
                                         {stop.customer.phone && (
-                                            <span className="text-xs text-ink-muted mt-0.5 block">{stop.customer.phone}</span>
+                                            <span className="text-xs font-normal text-ink-muted mt-0.5 block">{stop.customer.phone}</span>
                                         )}
                                         {stop.is_requested && <RequestedVisitMark note={stop.note} />}
                                         {stop.movedFrom && (
@@ -127,14 +151,14 @@ export default function RouteStopsTable({ stops, selected = [], onSelect }: Prop
                                             </span>
                                         )}
                                     </td>
-                                    <td className="px-4 py-3 text-ink-muted">{stop.customer.address}</td>
-                                    <td className="px-4 py-3">
+                                    <td data-label="Dirección" className="px-4 py-3 text-ink-muted">{stop.customer.address}</td>
+                                    <td data-label="Estado" className="px-4 py-3">
                                         <StatusBadge status={stop.status} label={stopStatusLabel(stop.status)} />
                                     </td>
-                                    <td className="px-4 py-3 text-ink-muted tabular-nums whitespace-nowrap">
+                                    <td data-label="Hora" className="px-4 py-3 text-ink-muted tabular-nums whitespace-nowrap">
                                         {stop.arrivedAt ? `${stop.arrivedAt} hs` : '—'}
                                     </td>
-                                    <td className="px-4 py-3 text-ink-muted">
+                                    <td data-label="Resultado" className="px-4 py-3 text-ink-muted">
                                         {stop.outcome ? (
                                             <span className="font-medium text-ink text-sm">{stop.outcome}</span>
                                         ) : (
