@@ -150,6 +150,23 @@ class DriverController extends Controller
             ],
             'route' => $formattedRoute,
             'targetDate' => $date,
+            'drivers' => $this->switchableDrivers($repartidor),
         ]);
+    }
+
+    /**
+     * The drivers the admin can jump to from a driver's page, by name; the one on screen is always among them.
+     *
+     * @return list<array{id: int, name: string}>
+     */
+    private function switchableDrivers(Driver $current): array
+    {
+        return Driver::with('user')
+            ->where(fn ($query) => $query->where('enabled', true)->orWhere('id', $current->id))
+            ->get()
+            ->map(fn (Driver $driver): array => ['id' => $driver->id, 'name' => $driver->user?->name ?? 'Sin nombre'])
+            ->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)
+            ->values()
+            ->all();
     }
 }
