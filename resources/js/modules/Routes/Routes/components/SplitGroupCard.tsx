@@ -58,6 +58,8 @@ export default function SplitGroupCard({ routeId, group, drivers, error, onAssig
                     onChange={() => setSelected(allSelected ? [] : group.stops.map((stop) => stop.id))}
                 />
             ),
+            // On a phone card the box reads as its own line, since the header naming it is hidden there.
+            label: 'Elegir',
             className: 'w-10',
             cell: (stop) => (
                 <Checkbox
@@ -146,6 +148,14 @@ export default function SplitGroupCard({ routeId, group, drivers, error, onAssig
                 </button>
                 {expanded && (
                     <div id={listId} className="border-t border-hairline">
+                        {/* The header's select-all box is hidden on a phone (cards); this one takes its place there. */}
+                        <label className="sm:hidden flex min-h-11 items-center gap-3 px-4 border-b border-hairline text-sm font-medium text-ink-secondary cursor-pointer">
+                            <Checkbox
+                                checked={allSelected}
+                                onChange={() => setSelected(allSelected ? [] : group.stops.map((stop) => stop.id))}
+                            />
+                            Seleccionar todas
+                        </label>
                         <DataTable columns={columns} rows={group.stops} rowKey={(stop) => stop.id} empty="No quedan paradas en este barrio." />
                     </div>
                 )}
