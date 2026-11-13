@@ -33,3 +33,12 @@ test('the driver page shows the username, not email', function (): void {
             ->where('repartidor.username', 'jperez')
             ->missing('repartidor.email'));
 });
+
+test('the driver page shows the day asked for, and today when none is', function (): void {
+    $this->actingAs($this->admin)->get(route('drivers.show', ['repartidor' => $this->driver, 'date' => '2026-11-12']))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('targetDate', '2026-11-12'));
+
+    $this->actingAs($this->admin)->get(route('drivers.show', $this->driver))
+        ->assertInertia(fn (Assert $page) => $page->where('targetDate', now()->toDateString()));
+});

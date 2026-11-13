@@ -1,5 +1,5 @@
 import React from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '@/layouts/AdminLayout';
 import { StatusBadge } from '@/ui/Badge';
 import { PageHeader } from '@/ui/PageHeader';
@@ -11,10 +11,10 @@ import {
     MapPin,
     Users,
     Package,
-    Calendar,
 } from 'lucide-react';
 import { date, money, stopStatusLabel } from '@/lib/format';
 import RequestedVisitMark from './components/RequestedVisitMark';
+import DayPicker from './components/DayPicker';
 import type { RouteStatus, RouteStopRow } from './types';
 
 interface StopItem extends RouteStopRow {
@@ -114,21 +114,22 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
                                         Transferir cartera
                                     </Link>
                                 )}
-                                <span className="hidden sm:inline text-ink-subtle">•</span>
-                                <div className="flex items-center gap-1.5">
-                                    <Calendar className="w-4 h-4 text-ink-subtle" />
-                                    <span>Fecha: {date(targetDate)}</span>
-                                </div>
+                                <DayPicker
+                                    value={targetDate}
+                                    onChange={(day) =>
+                                        router.get(route('drivers.show', repartidor.id), { date: day }, { preserveScroll: true, replace: true })
+                                    }
+                                />
                             </div>
                         </div>
                     </div>
 
                     {/* Summary Stats */}
                     {deliveryRoute && (
-                        <div className="flex items-center gap-8 border-t md:border-t-0 md:border-l border-slate-700 pt-4 md:pt-0 md:pl-8">
+                        <div className="flex items-center gap-8 border-t md:border-t-0 md:border-l border-hairline pt-4 md:pt-0 md:pl-8">
                             <div>
                                 <span className="text-xs font-medium text-ink-muted tracking-wide">
-                                    Ventas Hoy
+                                    Ventas del día
                                 </span>
                                 <p className="text-xl font-semibold text-ink mt-0.5">
                                     {money(deliveryRoute.totalSalesAmount)}
@@ -151,7 +152,7 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
             {!deliveryRoute ? (
                 <div className="bg-canvas rounded-lg border border-hairline p-12 text-center shadow-sm">
                     <Truck className="w-12 h-12 mx-auto text-ink-subtle mb-4" />
-                    <h3 className="text-lg font-medium text-ink">Sin ruta asignada para hoy</h3>
+                    <h3 className="text-lg font-medium text-ink">{targetDate === new Date().toLocaleDateString('en-CA') ? 'Sin ruta asignada para hoy' : 'Sin ruta asignada para esta fecha'}</h3>
                     <p className="text-sm text-ink-muted mt-2">
                         El repartidor no tiene una hoja de ruta planificada para la fecha seleccionada ({date(targetDate)}).
                     </p>
@@ -159,7 +160,7 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
             ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Left: Stops Timeline Table (2 Cols) */}
-                    <div className="lg:col-span-2 bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden ">
+                    <div className="lg:col-span-2 bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden">
                         <div className="p-5 bg-canvas/80 backdrop-blur-md border-b border-hairline text-ink flex items-center justify-between">
                             <div>
                                 <h2 className="text-lg font-semibold text-ink tracking-wide">

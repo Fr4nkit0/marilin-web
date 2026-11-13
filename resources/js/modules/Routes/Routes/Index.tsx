@@ -366,7 +366,7 @@ export default function RoutesIndex({
                                         )}
                                         {routeItem.driver.id && (
                                             <Link
-                                                href={route('drivers.show', routeItem.driver.id)}
+                                                href={route('drivers.show', { repartidor: routeItem.driver.id, date: filter.values.date })}
                                                 onClick={(e) => e.stopPropagation()}
                                                 aria-label={`Ver ficha de ${routeItem.driver.name}`}
                                                 className="inline-flex min-h-11 min-w-11 sm:min-h-0 sm:min-w-0 items-center justify-center gap-1 p-2 sm:px-3 rounded-lg text-sm font-medium text-ink-secondary hover:text-ink hover:bg-surface-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-600"
