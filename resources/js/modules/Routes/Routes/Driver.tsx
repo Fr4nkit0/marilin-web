@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '@/layouts/AdminLayout';
 import { StatusBadge } from '@/ui/Badge';
@@ -15,6 +15,10 @@ import {
 import { date, money, stopStatusLabel } from '@/lib/format';
 import RequestedVisitMark from './components/RequestedVisitMark';
 import DayPicker from './components/DayPicker';
+import LocalPagination, { pageOf } from '@/ui/LocalPagination';
+
+// A long route is read a page at a time; the header's progress and totals still count every stop.
+const STOPS_PER_PAGE = 15;
 import type { RouteStatus, RouteStopRow } from './types';
 
 interface StopItem extends RouteStopRow {
@@ -56,6 +60,15 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
     const totalStops = deliveryRoute?.totalStops ?? 0;
     const completedStops = deliveryRoute?.completedStops ?? 0;
     const progressPercent = deliveryRoute?.progressPercent ?? 0;
+    const [page, setPage] = useState(1);
+    const stopsCard = useRef<HTMLDivElement>(null);
+    // A new page starts at the top of the list, not where the pager left the screen.
+    const showPage = (next: number) => {
+        setPage(next);
+        stopsCard.current?.scrollIntoView({ block: 'start' });
+    };
+    const stopsPage = pageOf(deliveryRoute?.stops ?? [], page, STOPS_PER_PAGE);
+    const firstStopNumber = (stopsPage.page - 1) * STOPS_PER_PAGE;
 
     return (
         <AdminLayout
@@ -160,7 +173,7 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
             ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Left: Stops Timeline Table (2 Cols) */}
-                    <div className="lg:col-span-2 bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden">
+                    <div ref={stopsCard} className="lg:col-span-2 scroll-mt-20 bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden">
                         <div className="p-5 bg-canvas/80 backdrop-blur-md border-b border-hairline text-ink flex items-center justify-between">
                             <div>
                                 <h2 className="text-lg font-semibold text-ink tracking-wide">
@@ -192,7 +205,7 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {deliveryRoute.stops.map((stop, idx) => (
+                                    {stopsPage.rows.map((stop, idx) => (
                                         <tr
                                             key={stop.id}
                                             className="hover:bg-canvas-soft transition-colors max-sm:border-b max-sm:border-hairline max-sm:last:border-0"
@@ -201,7 +214,7 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
                                             <td data-label="# Parada" className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
                                                     <span className="w-8 h-8 rounded-lg bg-surface-1 text-ink-secondary flex items-center justify-center text-sm font-medium">
-                                                        {idx + 1}
+                                                        {firstStopNumber + idx + 1}
                                                     </span>
                                                     {stop.arrivedAt && (
                                                         <span className="text-xs text-ink-muted font-medium">
@@ -255,6 +268,13 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
                                 </tbody>
                             </table>
                         </div>
+                        <LocalPagination
+                            page={stopsPage.page}
+                            lastPage={stopsPage.lastPage}
+                            total={deliveryRoute.stops.length}
+                            noun="paradas"
+                            onPage={showPage}
+                        />
                     </div>
 
                     {/* Right: Truck Inventory Card (1 Col) */}
