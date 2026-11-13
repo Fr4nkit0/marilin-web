@@ -180,7 +180,9 @@ class PullService
                     ->whereHas('reassignments', fn (Builder $r) => $r
                         ->where('to_driver_id', $driver->id)
                         ->where($inColumnWindow('reassigned_at')))
-                    ->orWhere(fn (Builder $covered) => Cover::customers($covered, $driver, $inColumnWindow('dispatched_at'))));
+                    ->orWhere(fn (Builder $covered) => Cover::customers($covered, $driver, $inColumnWindow('dispatched_at')))
+                    // Moved onto a route already dispatched: the move puts the stop in the window, not the dispatch.
+                    ->orWhere(fn (Builder $moved) => Cover::customersByStop($moved, $driver, $inColumnWindow('route_stops.updated_at'))));
                 $relation = self::ARRIVE_WITH_CUSTOMER[$name];
 
                 $relation === null ? $q->orWhere($reassignedHere) : $q->orWhereHas($relation, $reassignedHere);

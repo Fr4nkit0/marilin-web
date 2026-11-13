@@ -15,6 +15,7 @@ use App\Customers\Customers\Models\CustomerReassignment;
 use App\Review\ReviewReason;
 use App\Routes\Routes\Models\Route;
 use App\Routes\Routes\Models\RouteStop;
+use App\Routes\Routes\MoveRouteStops;
 use App\Routes\Visits\Models\Visit;
 use App\Street\Containers\Models\ContainerMovement;
 use App\Street\Containers\Models\CustomerContainerBalance;
@@ -416,4 +417,25 @@ test('an own customer on a moved stop, or a covered one reassigned to the driver
         ->and(coverIds($arrived, 'customers'))->toContain($this->covered->id)
         ->and(collect($arrived->json('data.customers'))->keyBy('id')[$this->covered->id]['is_cover'])->toBeFalse()
         ->and(coverIds($arrived, 'customer_preferences'))->toBe([$this->preference->id]);
+});
+
+test('a stop moved onto a route dispatched before the cursor arrives with its customer and what a visit needs', function (): void {
+    // The stop was still on the absent driver's route when the covering one left at 07:00 and the app last pulled at 11:00.
+    $this->coveredStop->forceFill(['route_id' => $this->absentRoute->id, 'moved_from_route_id' => null])->save();
+    $this->own->forceFill(['updated_at' => '2026-10-01 10:00:00'])->save();
+    $this->ownAddress->forceFill(['updated_at' => '2026-10-01 10:00:00'])->save();
+    $this->ownStop->forceFill(['updated_at' => '2026-10-22 07:00:00'])->save();
+
+    app(MoveRouteStops::class)->move($this->absentRoute, [$this->coveredStop->id], $this->driver);
+
+    $response = coverPull('2026-10-22T11:00:00-03:00');
+
+    expect(coverIds($response, 'customers'))->toBe([$this->covered->id])
+        ->and(coverIds($response, 'route_stops'))->toBe([$this->coveredStop->id])
+        ->and(coverIds($response, 'customer_addresses'))->toBe([$this->address->id])
+        ->and(coverIds($response, 'customer_preferences'))->toBe([])
+        ->and(coverIds($response, 'customer_agreements'))->toBe([$this->agreement->id])
+        ->and(coverIds($response, 'customer_balances'))->toBe([$this->balance->id])
+        ->and(coverIds($response, 'customer_container_balances'))->toBe([$this->containerBalance->id])
+        ->and(collect($response->json('data.customers'))->firstWhere('id', $this->covered->id)['is_cover'])->toBeTrue();
 });

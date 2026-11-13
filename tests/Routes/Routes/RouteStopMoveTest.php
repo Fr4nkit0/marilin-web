@@ -184,11 +184,6 @@ test('a rejected move changes no stop and creates no route', function (Closure $
 
         return [[$first->id], test()->cover->id];
     }, 'move', 'Solo se pueden mover paradas de una ruta planificada.'],
-    'destination dispatched' => [function (RouteStop $first): array {
-        Route::factory()->create(['assigned_driver_id' => test()->cover->id, 'date' => '2026-10-23', 'status' => 'PLANNED', 'dispatched_at' => now()]);
-
-        return [[$first->id], test()->cover->id];
-    }, 'move', 'La ruta de Beto Cubre ya fue despachada.'],
     'destination completed' => [function (RouteStop $first): array {
         Route::factory()->undispatched()->create(['assigned_driver_id' => test()->cover->id, 'date' => '2026-10-23', 'status' => 'COMPLETED']);
 
@@ -334,3 +329,18 @@ test('the routes page tells which routes can lend stops and where a covered stop
     $this->actingAs(User::factory()->create(['enabled' => true]))->get(route('routes.index', ['date' => '2026-10-23']))
         ->assertInertia(fn (Assert $page) => $page->where('routes.0.canMoveStops', false));
 });
+
+test('stops move onto a route already dispatched, so a route is reorganized while the covering driver is out', function (string $status): void {
+    [$first] = $this->stops;
+    $destination = Route::factory()->create(['assigned_driver_id' => $this->cover->id, 'date' => '2026-10-23', 'status' => $status, 'dispatched_at' => '2026-10-23 07:00:00']);
+
+    $this->travelTo('2026-10-23 10:00:00');
+    moveStops($this->source, [$first->id], $this->cover->id)
+        ->assertRedirect(route('routes.index'))
+        ->assertSessionHasNoErrors();
+
+    $moved = $first->fresh();
+    expect($moved->route_id)->toBe($destination->id)
+        ->and($moved->moved_from_route_id)->toBe($this->source->id)
+        ->and($destination->fresh()->dispatched_at->toDateTimeString())->toBe('2026-10-23 07:00:00');
+})->with(['planned' => 'PLANNED', 'in progress' => 'IN_PROGRESS']);

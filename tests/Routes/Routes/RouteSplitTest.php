@@ -174,7 +174,8 @@ test('each neighborhood suggests the other enabled drivers already delivering th
     expect($groups['Grand Bourg']['suggestions'])->toBe([
         ['driverId' => $franco->id, 'driverName' => 'Franco', 'stops' => 3],
         ['driverId' => $ana->id, 'driverName' => 'Ana', 'stops' => 1],
-        // Pedro already left with his truck: his route cannot take stops, so he is not suggested.
+        // Pedro already left with his truck, but his route still takes stops: a route is reorganized on the street.
+        ['driverId' => $pedro->id, 'driverName' => 'Pedro', 'stops' => 1],
     ])
         ->and($groups['Del Viso']['suggestions'])->toBe([
             ['driverId' => $franco->id, 'driverName' => 'Franco', 'stops' => 1],

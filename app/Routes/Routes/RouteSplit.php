@@ -113,9 +113,8 @@ final class RouteSplit
             ->join('users', 'users.id', '=', 'drivers.user_id')
             ->whereDate('routes.date', $route->date)
             ->where('routes.enabled', true)
-            // Only a route that can still take stops: planned and not dispatched (see MoveRouteStops).
-            ->where('routes.status', RouteStatus::Planned->value)
-            ->whereNull('routes.dispatched_at')
+            // Only a route that can still take stops: open, even if already dispatched (see MoveRouteStops).
+            ->whereIn('routes.status', [RouteStatus::Planned->value, RouteStatus::InProgress->value])
             ->where('routes.assigned_driver_id', '!=', $route->assigned_driver_id)
             ->where('drivers.enabled', true)
             ->where('route_stops.enabled', true)
