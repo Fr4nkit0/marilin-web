@@ -20,6 +20,7 @@ import {
     Send,
     Split,
 } from 'lucide-react';
+import CoveredRouteNote, { type Coverer } from './components/CoveredRouteNote';
 import MoveStopsBar, { type DriverOption } from './components/MoveStopsBar';
 import RouteStopsTable, { type RouteStop } from './components/RouteStopsTable';
 import type { RouteStatus } from './types';
@@ -76,6 +77,9 @@ interface RouteItem {
     canLoad: boolean;
     /** "Cobertura": a planned route not dispatched yet can lend its stops to another driver. */
     canMoveStops: boolean;
+    /** "Cubierta": the drivers holding every stop moved from this route; empty when it kept any. */
+    coveredBy: Coverer[];
+    coveredStops: number;
     currentStock: StockItem[];
     stops: RouteStop[];
 }
@@ -102,6 +106,11 @@ interface Props {
 /** A correction alone is not a first load: the next load the admin registers is still the initial one. */
 function hasLoads(route: RouteItem): boolean {
     return route.loadHistory.some((load) => !load.isCorrection);
+}
+
+/** Every stop of the route went to other drivers: nothing left to load, dispatch or split. */
+function isCovered(route: RouteItem): boolean {
+    return route.coveredBy.length > 0;
 }
 
 /** A planned route the driver cannot see yet: it waits for the admin to dispatch it. */
@@ -294,7 +303,9 @@ export default function RoutesIndex({
                                                 <h3 className="text-base font-semibold text-ink truncate">
                                                     {routeItem.driver.name}
                                                 </h3>
-                                                {awaitsDispatch(routeItem) ? (
+                                                {isCovered(routeItem) ? (
+                                                    <StatusBadge status="sin_actividad" label="Cubierta" />
+                                                ) : awaitsDispatch(routeItem) ? (
                                                     <StatusBadge status="pendiente" label="Sin despachar" />
                                                 ) : (
                                                     <StatusBadge status={routeItem.status} />
@@ -321,39 +332,43 @@ export default function RoutesIndex({
                                         </div>
                                     </div>
 
-                                    {/* Stops progress */}
-                                    <div className="col-span-2 row-start-2 lg:col-span-1 lg:row-start-auto">
-                                        <div className="flex items-baseline justify-between text-xs text-ink-muted mb-1.5">
-                                            <span>Paradas</span>
-                                            <span className="tabular-nums">
-                                                <span className="text-sm font-semibold text-ink">
-                                                    {routeItem.stats.completedStops}/{routeItem.stats.totalStops}
-                                                </span>{' '}
-                                                · {routeItem.stats.progressPercent}%
-                                            </span>
-                                        </div>
-                                        <div
-                                            role="progressbar"
-                                            aria-label={`Paradas completadas de ${routeItem.driver.name}`}
-                                            aria-valuemin={0}
-                                            aria-valuemax={100}
-                                            aria-valuenow={routeItem.stats.progressPercent}
-                                            className="w-full h-1.5 bg-surface-1 rounded-full overflow-hidden"
-                                        >
+                                    {/* Stops progress; a covered route keeps the column so the actions stay aligned. */}
+                                    {isCovered(routeItem) ? (
+                                        <div className="hidden lg:block" />
+                                    ) : (
+                                        <div className="col-span-2 row-start-2 lg:col-span-1 lg:row-start-auto">
+                                            <div className="flex items-baseline justify-between text-xs text-ink-muted mb-1.5">
+                                                <span>Paradas</span>
+                                                <span className="tabular-nums">
+                                                    <span className="text-sm font-semibold text-ink">
+                                                        {routeItem.stats.completedStops}/{routeItem.stats.totalStops}
+                                                    </span>{' '}
+                                                    · {routeItem.stats.progressPercent}%
+                                                </span>
+                                            </div>
                                             <div
-                                                className={`h-full rounded-full transition-[width] duration-300 ${
-                                                    routeItem.stats.progressPercent === 100
-                                                        ? 'bg-emerald-500 dark:bg-emerald-400'
-                                                        : 'bg-sky-600 dark:bg-sky-400'
-                                                }`}
-                                                style={{ width: `${routeItem.stats.progressPercent}%` }}
-                                            />
+                                                role="progressbar"
+                                                aria-label={`Paradas completadas de ${routeItem.driver.name}`}
+                                                aria-valuemin={0}
+                                                aria-valuemax={100}
+                                                aria-valuenow={routeItem.stats.progressPercent}
+                                                className="w-full h-1.5 bg-surface-1 rounded-full overflow-hidden"
+                                            >
+                                                <div
+                                                    className={`h-full rounded-full transition-[width] duration-300 ${
+                                                        routeItem.stats.progressPercent === 100
+                                                            ? 'bg-emerald-500 dark:bg-emerald-400'
+                                                            : 'bg-sky-600 dark:bg-sky-400'
+                                                    }`}
+                                                    style={{ width: `${routeItem.stats.progressPercent}%` }}
+                                                />
+                                            </div>
                                         </div>
-                                    </div>
+                                    )}
 
                                     {/* Actions */}
                                     <div className="flex items-center gap-1 justify-self-end">
-                                        {routeItem.canMoveStops && (
+                                        {routeItem.canMoveStops && !isCovered(routeItem) && (
                                             <Link
                                                 href={route('routes.split', routeItem.id)}
                                                 onClick={(e) => e.stopPropagation()}
@@ -389,7 +404,12 @@ export default function RoutesIndex({
                                 </div>
 
                                 {/* Expanded Details: Truck Inventory & Stops Timeline */}
-                                {isExpanded && (
+                                {isExpanded && isCovered(routeItem) && (
+                                    <div className="bg-canvas-soft/50 p-4 sm:p-6 border-t border-hairline">
+                                        <CoveredRouteNote coveredStops={routeItem.coveredStops} coveredBy={routeItem.coveredBy} />
+                                    </div>
+                                )}
+                                {isExpanded && !isCovered(routeItem) && (
                                     <div className="bg-canvas-soft/50 p-4 sm:p-6 space-y-8 border-t border-hairline">
                                         {/* Truck Inventory Section */}
                                         <div>
