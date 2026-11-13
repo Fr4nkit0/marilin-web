@@ -81,14 +81,14 @@ export default function Index({ users, filters }: Props) {
                         className="w-full h-10 pl-9 pr-3 text-sm border border-hairline bg-canvas text-ink placeholder-ink-subtle rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-600/20 focus:border-sky-600"
                     />
                 </form>
-                <div className="flex gap-1 rounded-lg bg-surface-1 p-1" role="group" aria-label="Filtrar por estado">
+                <div className="grid grid-cols-3 gap-1 rounded-lg bg-surface-1 p-1 sm:flex" role="group" aria-label="Filtrar por estado">
                     {statusOptions.map((option) => (
                         <button
                             key={option.label}
                             type="button"
                             onClick={() => filter.set('status', option.value ?? '')}
                             aria-pressed={filters.status === option.value}
-                            className={`px-3 py-1.5 rounded-md text-xs font-medium transition cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-600 ${
+                            className={`min-h-10 px-3 py-2 sm:min-h-0 sm:py-1.5 rounded-md text-xs font-medium transition cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-600 ${
                                 filters.status === option.value ? 'bg-canvas text-ink shadow-sm' : 'text-ink-muted hover:text-ink'
                             }`}
                         >
@@ -129,7 +129,7 @@ export default function Index({ users, filters }: Props) {
                     </div>
                 ) : (
                     <div className="table-scroll">
-                        <table className="w-full text-left text-sm">
+                        <table className="w-full text-left text-sm whitespace-nowrap">
                             <thead className="bg-canvas-soft border-b border-hairline text-ink-muted">
                                 <tr>
                                     <th className="px-5 py-3 text-xs font-medium">Repartidor</th>

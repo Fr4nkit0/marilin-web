@@ -173,15 +173,15 @@ export default function CustomerShow({
     return (
         <AdminLayout
             header={
-                <div className="flex items-center gap-2 text-sm font-medium">
+                <div className="flex min-w-0 items-center gap-2 text-sm font-medium">
                     <Link
                         href={route('customers.index')}
-                        className="text-ink-muted hover:text-ink transition-colors"
+                        className="shrink-0 text-ink-muted hover:text-ink transition-colors"
                     >
                         Clientes
                     </Link>
-                    <span className="text-ink-subtle">/</span>
-                    <span className="text-ink">{customer.name}</span>
+                    <span className="shrink-0 text-ink-subtle">/</span>
+                    <span className="min-w-0 truncate text-ink">{customer.name}</span>
                 </div>
             }
         >
@@ -191,7 +191,7 @@ export default function CustomerShow({
             <div className="mb-4">
                 <Link
                     href={route('customers.index')}
-                    className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-muted hover:text-ink transition"
+                    className="inline-flex min-h-11 sm:min-h-0 items-center gap-1.5 text-sm font-medium text-ink-muted hover:text-ink transition"
                 >
                     <ArrowLeft className="w-4 h-4" />
                     Volver al listado
@@ -199,16 +199,16 @@ export default function CustomerShow({
             </div>
 
             {/* Top Customer 360 Header Card */}
-            <div className="bg-canvas/80 backdrop-blur-md rounded-2xl p-6 mb-6 shadow-sm border border-hairline/60 relative overflow-hidden ">
+            <div className="bg-canvas/80 backdrop-blur-md rounded-2xl p-4 sm:p-6 mb-6 shadow-sm border border-hairline/60 relative overflow-hidden">
                 {/* Decorative background subtle gradient or color block if needed, but keeping it white and clean */}
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative z-10">
-                    <div className="flex items-start gap-5">
-                        <div className="w-16 h-16 rounded-lg bg-surface-1 text-ink flex items-center justify-center text-2xl font-medium">
+                    <div className="flex items-start gap-4 sm:gap-5 min-w-0">
+                        <div className="w-12 h-12 sm:w-16 sm:h-16 shrink-0 rounded-lg bg-surface-1 text-ink flex items-center justify-center text-xl sm:text-2xl font-medium">
                             {customer.name.charAt(0).toUpperCase()}
                         </div>
-                        <div>
-                            <div className="flex items-center gap-3">
-                                <h1 className="text-2xl font-semibold text-ink tracking-tight">
+                        <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                                <h1 className="text-xl sm:text-2xl font-semibold text-ink tracking-tight break-words">
                                     {customer.name}
                                 </h1>
                                 <DebtBadge balance={balanceNum} />
@@ -245,8 +245,8 @@ export default function CustomerShow({
                     </div>
 
                     {/* Quick Stats on Right */}
-                    <div className="flex items-center gap-4 border-t border-slate-700 md:border-t-0 md:border-l border-slate-700 md:pl-6 pt-4 md:pt-0">
-                        <div className="text-right">
+                    <div className="flex items-center gap-4 border-t border-hairline md:border-t-0 md:border-l md:pl-6 pt-4 md:pt-0">
+                        <div className="md:text-right">
                             <span className="text-xs font-medium text-ink-subtle block mb-1 tracking-wide">
                                 Saldo Actual
                             </span>
@@ -267,7 +267,7 @@ export default function CustomerShow({
                         <button
                             type="button"
                             onClick={() => setShowHomeSale(true)}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 cursor-pointer dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
+                            className="inline-flex min-h-11 sm:min-h-0 items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 cursor-pointer dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
                         >
                             <Plus className="w-4 h-4" />
                             Venta en casa
@@ -275,7 +275,7 @@ export default function CustomerShow({
                         <button
                             type="button"
                             onClick={() => setShowHomePayment(true)}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-ink-secondary bg-canvas ring-1 ring-inset ring-hairline/80 hover:bg-canvas-soft cursor-pointer"
+                            className="inline-flex min-h-11 sm:min-h-0 items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-ink-secondary bg-canvas ring-1 ring-inset ring-hairline/80 hover:bg-canvas-soft cursor-pointer"
                         >
                             <CircleDollarSign className="w-4 h-4" />
                             Cobro en casa
@@ -287,7 +287,7 @@ export default function CustomerShow({
                     onClick={() => setShowScheduleVisit(true)}
                     disabled={!canSchedule}
                     aria-describedby={canSchedule ? undefined : 'schedule-visit-hint'}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-ink-secondary bg-canvas ring-1 ring-inset ring-hairline/80 hover:bg-canvas-soft cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-canvas"
+                    className="inline-flex min-h-11 sm:min-h-0 items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-ink-secondary bg-canvas ring-1 ring-inset ring-hairline/80 hover:bg-canvas-soft cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-canvas"
                 >
                     <CalendarPlus className="w-4 h-4" />
                     Agendar visita
@@ -300,10 +300,10 @@ export default function CustomerShow({
             </div>
 
             {/* Content Tabs Navigation */}
-            <div className="flex items-center gap-6 mb-6 border-b border-hairline">
+            <div className="flex items-center gap-6 mb-6 border-b border-hairline overflow-x-auto">
                 <button
                     onClick={() => setActiveTab('account')}
-                    className={`pb-3 text-sm font-medium tracking-wide transition-colors border-b-4 ${
+                    className={`shrink-0 whitespace-nowrap pb-3 text-sm font-medium tracking-wide transition-colors border-b-4 ${
                         activeTab === 'account'
                             ? 'border-sky-600 text-ink'
                             : 'border-transparent text-ink-muted hover:text-ink hover:border-hairline/60'
@@ -316,7 +316,7 @@ export default function CustomerShow({
                 </button>
                 <button
                     onClick={() => setActiveTab('containers')}
-                    className={`pb-3 text-sm font-medium tracking-wide transition-colors border-b-4 ${
+                    className={`shrink-0 whitespace-nowrap pb-3 text-sm font-medium tracking-wide transition-colors border-b-4 ${
                         activeTab === 'containers'
                             ? 'border-sky-600 text-ink'
                             : 'border-transparent text-ink-muted hover:text-ink hover:border-hairline/60'
@@ -329,7 +329,7 @@ export default function CustomerShow({
                 </button>
                 <button
                     onClick={() => setActiveTab('agreements')}
-                    className={`pb-3 text-sm font-medium tracking-wide transition-colors border-b-4 ${
+                    className={`shrink-0 whitespace-nowrap pb-3 text-sm font-medium tracking-wide transition-colors border-b-4 ${
                         activeTab === 'agreements'
                             ? 'border-sky-600 text-ink'
                             : 'border-transparent text-ink-muted hover:text-ink hover:border-hairline/60'
@@ -342,7 +342,7 @@ export default function CustomerShow({
                 </button>
                 <button
                     onClick={() => setActiveTab('preferences')}
-                    className={`pb-3 text-sm font-medium tracking-wide transition-colors border-b-4 ${
+                    className={`shrink-0 whitespace-nowrap pb-3 text-sm font-medium tracking-wide transition-colors border-b-4 ${
                         activeTab === 'preferences'
                             ? 'border-sky-600 text-ink'
                             : 'border-transparent text-ink-muted hover:text-ink hover:border-hairline/60'
@@ -355,7 +355,7 @@ export default function CustomerShow({
                 </button>
                 <button
                     onClick={() => setActiveTab('scheduledVisits')}
-                    className={`pb-3 text-sm font-medium tracking-wide transition-colors border-b-4 ${
+                    className={`shrink-0 whitespace-nowrap pb-3 text-sm font-medium tracking-wide transition-colors border-b-4 ${
                         activeTab === 'scheduledVisits'
                             ? 'border-sky-600 text-ink'
                             : 'border-transparent text-ink-muted hover:text-ink hover:border-hairline/60'
@@ -537,7 +537,7 @@ export default function CustomerShow({
             {/* TAB 3: Agreements */}
             {activeTab === 'agreements' && (
                 <div className="bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden ">
-                    <div className="p-5 border-b border-hairline flex items-center justify-between gap-4">
+                    <div className="p-5 border-b border-hairline flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                             <h3 className="text-base font-semibold text-ink tracking-wide">
                                 Acuerdos de Precios
@@ -551,7 +551,7 @@ export default function CustomerShow({
                             <button
                                 type="button"
                                 onClick={() => setShowAgreementForm(true)}
-                                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 cursor-pointer whitespace-nowrap dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
+                                className="inline-flex min-h-11 sm:min-h-0 items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 cursor-pointer whitespace-nowrap dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
                             >
                                 <Plus className="w-4 h-4" />
                                 Nuevo acuerdo
@@ -628,7 +628,7 @@ export default function CustomerShow({
             {/* TAB 4: Delivery preferences */}
             {activeTab === 'preferences' && (
                 <div className="bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden ">
-                    <div className="p-5 border-b border-hairline flex items-center justify-between gap-4">
+                    <div className="p-5 border-b border-hairline flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                             <h3 className="text-base font-semibold text-ink tracking-wide">
                                 Días y horarios de entrega
@@ -640,7 +640,7 @@ export default function CustomerShow({
                         <button
                             type="button"
                             onClick={() => setEditingPreference(null)}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 cursor-pointer whitespace-nowrap dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
+                            className="inline-flex min-h-11 sm:min-h-0 items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 cursor-pointer whitespace-nowrap dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
                         >
                             <Plus className="w-4 h-4" />
                             Agregar día

@@ -205,7 +205,7 @@ export default function RoutesIndex({
                 <div className="flex flex-wrap items-center justify-between gap-4">
                     <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
                         {/* Date Picker */}
-                        <div className="flex items-center gap-2 bg-canvas border border-hairline/60 rounded-lg px-3 py-2 text-sm text-ink focus-within:ring-2 focus-within:ring-sky-600 focus-within:border-transparent transition-all shadow-sm">
+                        <div className="flex w-full sm:w-auto items-center gap-2 bg-canvas border border-hairline/60 rounded-lg px-3 py-2 text-sm text-ink focus-within:ring-2 focus-within:ring-sky-600 focus-within:border-transparent transition-all shadow-sm">
                             <Calendar className="w-4 h-4 text-ink-subtle" />
                             <input
                                 type="date"
@@ -213,17 +213,17 @@ export default function RoutesIndex({
                                 onChange={(e) => filter.set('date', e.target.value)}
                                 aria-label="Fecha"
                                 style={{ colorScheme: 'light' }}
-                                className="bg-transparent border-none p-0 text-sm font-medium focus:ring-0 focus:outline-none cursor-pointer text-ink"
+                                className="flex-1 bg-transparent border-none p-0 text-base sm:text-sm font-medium focus:ring-0 focus:outline-none cursor-pointer text-ink"
                             />
                         </div>
 
                         {/* Status Filter */}
-                        <div className="flex items-center gap-2">
+                        <div className="flex w-full sm:w-auto items-center gap-2">
                             <select
                                 value={filter.values.status}
                                 onChange={(e) => filter.set('status', e.target.value)}
                                 aria-label="Estado"
-                                className="text-sm font-medium border border-hairline/60 rounded-lg py-2 pl-3 pr-8 bg-canvas text-ink focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent transition-all shadow-sm"
+                                className="w-full sm:w-auto text-sm font-medium border border-hairline/60 rounded-lg py-2 pl-3 pr-8 bg-canvas text-ink focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent transition-all shadow-sm"
                             >
                                 <option value="all">Todos los Estados</option>
                                 <option value="IN_PROGRESS">En Curso</option>
@@ -237,7 +237,7 @@ export default function RoutesIndex({
                             value={filter.values.driver_id}
                             onChange={(e) => filter.set('driver_id', e.target.value)}
                             aria-label="Repartidor"
-                            className="text-sm font-medium border border-hairline/60 rounded-lg py-2 pl-3 pr-8 bg-canvas text-ink focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent transition-all shadow-sm"
+                            className="w-full sm:w-auto text-sm font-medium border border-hairline/60 rounded-lg py-2 pl-3 pr-8 bg-canvas text-ink focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent transition-all shadow-sm"
                         >
                             <option value="">Todos los repartidores</option>
                             {drivers.map((drv) => (
@@ -251,7 +251,7 @@ export default function RoutesIndex({
                     <button
                         // No date: the server answers with today in its own time zone.
                         onClick={() => filter.setMany({ date: '', status: 'all', driver_id: '' })}
-                        className="text-sm font-medium text-ink-muted hover:text-ink transition-colors"
+                        className="min-h-11 sm:min-h-0 text-sm font-medium text-ink-muted hover:text-ink transition-colors"
                     >
                         Limpiar filtros
                     </button>

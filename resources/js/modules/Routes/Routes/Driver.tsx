@@ -60,15 +60,15 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
     return (
         <AdminLayout
             header={
-                <div className="flex items-center gap-2 text-sm">
+                <div className="flex min-w-0 items-center gap-2 text-sm">
                     <Link
                         href={route('drivers.index')}
-                        className="text-ink-muted hover:text-ink font-medium transition-colors"
+                        className="shrink-0 text-ink-muted hover:text-ink font-medium transition-colors"
                     >
                         Repartidores
                     </Link>
-                    <span className="text-ink-subtle">/</span>
-                    <span className="font-medium text-ink">{repartidor.name}</span>
+                    <span className="shrink-0 text-ink-subtle">/</span>
+                    <span className="min-w-0 truncate font-medium text-ink">{repartidor.name}</span>
                 </div>
             }
         >
@@ -93,28 +93,28 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
                             {repartidor.name.charAt(0)}
                         </div>
                         <div>
-                            <div className="flex items-center gap-3">
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                                 <h1 className="text-2xl font-semibold text-ink tracking-tight">
                                     {repartidor.name}
                                 </h1>
                                 {deliveryRoute && <StatusBadge status={deliveryRoute.status} />}
                             </div>
-                            <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-ink-muted mt-2 tracking-wide">
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm font-medium text-ink-muted mt-2 tracking-wide">
                                 {repartidor.username && (
                                     <span>{repartidor.username}</span>
                                 )}
-                                <span className="text-ink-subtle">•</span>
+                                <span className="hidden sm:inline text-ink-subtle">•</span>
                                 <div className="flex items-center gap-1.5">
                                     <Users className="w-4 h-4 text-ink-subtle" />
                                     <span>{repartidor.totalAssignedCustomers} clientes fijos</span>
                                 </div>
                                 {repartidor.totalAssignedCustomers > 0 && (
-                                    <Link href={route('customers.transfer', repartidor.id)} className={buttonClass('secondary', 'sm')}>
+                                    <Link href={route('customers.transfer', repartidor.id)} className={`${buttonClass('secondary', 'sm')} min-h-11 sm:min-h-0`}>
                                         <ArrowRightLeft className="w-3.5 h-3.5" />
                                         Transferir cartera
                                     </Link>
                                 )}
-                                <span className="text-ink-subtle">•</span>
+                                <span className="hidden sm:inline text-ink-subtle">•</span>
                                 <div className="flex items-center gap-1.5">
                                     <Calendar className="w-4 h-4 text-ink-subtle" />
                                     <span>Fecha: {date(targetDate)}</span>

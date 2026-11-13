@@ -238,26 +238,27 @@ export default function AdminLayout({
             <div className="flex-1 lg:pl-64 flex flex-col min-w-0">
                 {/* Topbar */}
                 <header className="h-16 bg-canvas/80 backdrop-blur-md border-b border-hairline/60 sticky top-0 z-30 flex items-center justify-between px-4 sm:px-6 lg:px-8 shadow-sm ">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 min-w-0">
                         <button
                             type="button"
                             onClick={() => setSidebarOpen(true)}
                             aria-label="Abrir menú"
                             aria-expanded={sidebarOpen}
-                            className="lg:hidden p-2 rounded-lg text-ink-muted hover:bg-surface-1 hover:text-ink"
+                            className="lg:hidden -ml-2 w-11 h-11 shrink-0 flex items-center justify-center rounded-lg text-ink-muted hover:bg-surface-1 hover:text-ink"
                         >
                             <Menu className="w-5 h-5" />
                         </button>
-                        <div className="text-ink font-medium text-sm">
+                        {/* A long breadcrumb is clipped to one line; a flex breadcrumb truncates its last item itself. */}
+                        <div className="min-w-0 truncate text-ink font-medium text-sm">
                             {header}
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
+                    <div className="flex shrink-0 items-center gap-1 sm:gap-4">
                         {notifications && (
                             <>
                                 <NotificationsMenu items={notificationItems(notifications)} />
-                                <div className="h-6 w-px bg-surface-2"></div>
+                                <div className="hidden sm:block h-6 w-px bg-surface-2"></div>
                             </>
                         )}
 
@@ -270,17 +271,17 @@ export default function AdminLayout({
                                 aria-label={`Menú de ${user.name}`}
                                 aria-haspopup="true"
                                 aria-expanded={userMenuOpen}
-                                className="flex items-center gap-2 text-sm font-medium text-ink-secondary hover:text-ink"
+                                className="flex h-11 min-w-11 items-center justify-center gap-2 -mr-2 px-2 sm:mr-0 rounded-lg text-sm font-medium text-ink-secondary hover:text-ink"
                             >
                                 <span className="hidden sm:inline-block">{user.name}</span>
                                 <ChevronDown className="w-4 h-4 text-ink-muted" strokeWidth={2} />
                             </button>
 
                             {userMenuOpen && (
-                                <div className="absolute right-0 mt-2 w-48 bg-canvas rounded-xl shadow-lg border border-hairline/60 py-1.5 z-50 ">
+                                <div className="absolute right-0 mt-1 w-56 bg-canvas rounded-xl shadow-lg border border-hairline/60 py-1.5 z-50 ">
                                     <Link
                                         href={route('profile.edit')}
-                                        className="block px-4 py-2 text-sm text-ink-secondary hover:bg-canvas-soft"
+                                        className="block px-4 py-3 sm:py-2 text-sm text-ink-secondary hover:bg-canvas-soft"
                                         onClick={() => setUserMenuOpen(false)}
                                     >
                                         Mi perfil
@@ -291,7 +292,7 @@ export default function AdminLayout({
                                     </div>
                                     <button
                                         type="button"
-                                        className="w-full text-left block px-4 py-2 text-sm text-rose-600 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-500/15 cursor-pointer"
+                                        className="w-full text-left block px-4 py-3 sm:py-2 text-sm text-rose-600 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-500/15 cursor-pointer"
                                         onClick={() => {
                                             setUserMenuOpen(false);
                                             setShowLogoutModal(true);
@@ -331,18 +332,18 @@ export default function AdminLayout({
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="mt-8 flex items-center justify-end gap-3">
+                    <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-end">
                         <button
                             type="button"
                             onClick={() => setShowLogoutModal(false)}
-                            className="px-4 py-2.5 rounded-lg text-sm font-medium text-ink-secondary bg-canvas border border-hairline/60 hover:bg-canvas-soft transition cursor-pointer"
+                            className="px-4 py-2.5 rounded-lg text-sm font-medium text-center text-ink-secondary bg-canvas border border-hairline/60 hover:bg-canvas-soft transition cursor-pointer"
                         >
                             Cancelar
                         </button>
                         <button
                             type="button"
                             onClick={handleConfirmLogout}
-                            className="px-4 py-2.5 rounded-lg bg-sky-600 text-sm font-medium text-white hover:bg-sky-700 transition shadow-sm cursor-pointer flex items-center gap-2 dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
+                            className="px-4 py-2.5 rounded-lg bg-sky-600 text-sm font-medium text-white hover:bg-sky-700 transition shadow-sm cursor-pointer flex items-center justify-center gap-2 dark:bg-gradient-to-r dark:from-sky-500 dark:to-cyan-500 dark:hover:from-sky-400 dark:hover:to-cyan-400"
                         >
                             <LogOut className="w-4 h-4" strokeWidth={2} />
                             Cerrar sesión

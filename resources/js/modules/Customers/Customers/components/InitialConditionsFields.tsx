@@ -16,7 +16,7 @@ interface Props {
 const NO_SPINNER = '[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none';
 
 const stepButton =
-    'flex h-10 w-10 shrink-0 items-center justify-center text-ink-secondary transition-colors hover:bg-surface-1 hover:text-ink disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-600';
+    'flex h-11 w-11 sm:h-10 sm:w-10 shrink-0 items-center justify-center text-ink-secondary transition-colors hover:bg-surface-1 hover:text-ink disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-600';
 
 /**
  * What a customer who existed before the system brings along: the money they already owe and the containers
@@ -81,7 +81,7 @@ export default function InitialConditionsFields({ balance, containers, container
                                                 value={containers[type.id] ?? '0'}
                                                 aria-invalid={Boolean(error) || undefined}
                                                 onChange={(e) => setCount(type.id, e.target.value)}
-                                                className={`h-10 w-14 border-x border-y-0 border-hairline bg-transparent p-0 text-center text-sm font-medium text-ink tabular-nums focus:outline-none focus:ring-2 focus:ring-inset focus:ring-sky-600 ${NO_SPINNER}`}
+                                                className={`h-11 sm:h-10 w-14 border-x border-y-0 border-hairline bg-transparent p-0 text-center text-sm font-medium text-ink tabular-nums focus:outline-none focus:ring-2 focus:ring-inset focus:ring-sky-600 ${NO_SPINNER}`}
                                             />
                                             <button
                                                 type="button"

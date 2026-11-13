@@ -27,6 +27,11 @@
     .table-scroll {
         overflow-x: auto;
         container-type: inline-size;
+        /*
+         * An overflow box only clips the absolute children it contains, so it must be positioned: without
+         * this, a cell's sr-only label escapes the scroll and makes the whole page scroll sideways.
+         */
+        position: relative;
     }
 
     @supports (animation-timeline: scroll()) {
@@ -89,5 +94,24 @@
             radial-gradient(36rem 28rem at 95% 15%, rgb(34 211 238 / 0.10), transparent 60%),
             radial-gradient(44rem 34rem at 60% 110%, rgb(14 165 233 / 0.10), transparent 60%);
         background-attachment: fixed;
+    }
+}
+
+/*
+ * Phone form controls (DESIGN.md: 44px touch targets on mobile). At 16px, iOS Safari stops zooming the page
+ * when a field gets focus, which it does for any smaller font. Unlayered and qualified with :not() so it
+ * outranks a single utility such as `text-sm` or `py-2`; from `sm` up the utilities rule again.
+ * Borderless fields sit inside a bordered wrapper that already sizes them, so they are left alone.
+ */
+@media (max-width: 639px) {
+    input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='hidden']):not(.border-none),
+    select:not([multiple]):not(.border-none),
+    textarea:not(.border-none) {
+        font-size: 16px;
+    }
+
+    input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='hidden']):not(.border-none),
+    select:not([multiple]):not(.border-none) {
+        min-height: 2.75rem;
     }
 }
