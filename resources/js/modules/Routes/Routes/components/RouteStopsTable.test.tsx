@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import RouteStopsTable, { type RouteStop } from './RouteStopsTable';
 
 function stop(id: number, name: string): RouteStop {
@@ -28,6 +28,13 @@ function rows(): string[] {
 }
 
 describe('RouteStopsTable', () => {
+    // jsdom has no scrolling; the pager scrolls the table back to its top.
+    const scrollIntoView = vi.fn();
+    beforeEach(() => {
+        scrollIntoView.mockClear();
+        Element.prototype.scrollIntoView = scrollIntoView;
+    });
+
     it('sorts the stops by customer both ways, each stop keeping its number in the route', () => {
         render(<RouteStopsTable stops={[stop(1, 'Hotel'), stop(2, 'Almacén'), stop(3, 'Kiosco')]} />);
 
@@ -100,6 +107,36 @@ describe('RouteStopsTable', () => {
         render(<RouteStopsTable stops={[stop(1, 'Hotel')]} />);
 
         expect(screen.queryAllByRole('checkbox')).toHaveLength(0);
+    });
+
+    it('pages the stops fifteen at a time, each keeping its number in the route', () => {
+        const many = Array.from({ length: 20 }, (_, index) => stop(index + 1, `Cliente ${index + 1}`));
+        render(<RouteStopsTable stops={many} />);
+
+        expect(rows()).toHaveLength(15);
+        expect(rows()[0]).toBe('1 Cliente 1');
+        expect(screen.getByText('Página 1 de 2 (20 paradas)')).toBeTruthy();
+        expect(screen.getByText('Hoja de Ruta y Paradas (20)', { exact: false })).toBeTruthy();
+
+        fireEvent.click(screen.getByRole('button', { name: 'Siguiente »' }));
+        expect(scrollIntoView).toHaveBeenCalledWith({ block: 'start' });
+        expect(rows()).toEqual(['16 Cliente 16', '17 Cliente 17', '18 Cliente 18', '19 Cliente 19', '20 Cliente 20']);
+        expect(screen.getByText('Página 2 de 2 (20 paradas)')).toBeTruthy();
+    });
+
+    it('selects every pending stop of the route, not only the ones on the page', () => {
+        const many = Array.from({ length: 20 }, (_, index) => stop(index + 1, `Cliente ${index + 1}`));
+        const onSelect = vi.fn();
+        render(<RouteStopsTable stops={many} selected={[]} onSelect={onSelect} />);
+
+        fireEvent.click(screen.getByRole('checkbox', { name: 'Seleccionar todas las paradas pendientes' }));
+        expect(onSelect).toHaveBeenLastCalledWith(many.map((each) => each.id));
+    });
+
+    it('shows no pager when the stops fit in one page', () => {
+        render(<RouteStopsTable stops={[stop(1, 'Hotel')]} />);
+
+        expect(screen.queryByText(/Página/)).toBeNull();
     });
 
     it('marks a covered stop with the driver it was moved from', () => {
