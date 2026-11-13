@@ -303,7 +303,7 @@ test('Lucía\'s stops spread over several neighborhoods, sharing some with Esteb
         ->and($lucia->unique()->intersect($neighborhoods('jperez'))->count())->toBeGreaterThanOrEqual(2);
 });
 
-test('splitting Lucía\'s route suggests Esteban in his neighborhoods, never Juan whose route is dispatched', function (): void {
+test('splitting Lucía\'s route suggests Esteban in his neighborhoods, and Juan too though his route is already dispatched', function (): void {
     $admin = User::query()->where('email', 'admin@marilin.com')->sole();
 
     $groups = collect($this->actingAs($admin)->get(route('routes.split', todayRouteOf('lfernandez')))
@@ -312,7 +312,8 @@ test('splitting Lucía\'s route suggests Esteban in his neighborhoods, never Jua
     $suggested = $groups->flatMap(fn (array $group): array => array_column($group['suggestions'], 'driverName'));
 
     expect($groups->filter(fn (array $group): bool => in_array('Esteban Benítez', array_column($group['suggestions'], 'driverName'), true))->count())->toBeGreaterThanOrEqual(2)
-        ->and($suggested)->not->toContain('Juan Pérez');
+        // Juan is already on the street, but his route still takes stops: a route is reorganized on the go.
+        ->and($suggested)->toContain('Juan Pérez');
 });
 
 test('seeded customers read like people or businesses, never "Familia X"', function (): void {

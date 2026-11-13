@@ -50,6 +50,19 @@ final class Cover
     }
 
     /**
+     * The customers the driver covers through a stop that $stop matches (e.g. changed inside a window): a stop moved onto a
+     * route already dispatched brings its customer whole, as the dispatch would have.
+     *
+     * @param  Builder<Customer>  $customers
+     * @param  Closure(Builder<*>): mixed  $stop
+     * @return Builder<Customer>
+     */
+    public static function customersByStop(Builder $customers, Driver $driver, Closure $stop): Builder
+    {
+        return $customers->whereHas('routeStops', fn (Builder $stops) => self::stops($stops, $driver)->where($stop));
+    }
+
+    /**
      * The addresses a covered customer travels with (S14): the address of its covered stop and its primary address.
      * The driver's own customers travel with every address; $route narrows the covering routes like in customers().
      *

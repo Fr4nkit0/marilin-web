@@ -23,7 +23,7 @@ interface Props {
 
 const TITLES: Record<CashCloseDetailKind, { title: string; description: string }> = {
     cash: { title: 'Rendición en efectivo', description: 'Cobros en efectivo que forman el total a rendir.' },
-    transfer: { title: 'Transferencias verificadas', description: 'Cobros por transferencia de la jornada.' },
+    transfer: { title: 'Transferencias', description: 'Cobros por transferencia de la jornada.' },
     credit: { title: 'Ventas a crédito', description: 'Ventas fiadas que suman al saldo deudor de cada cliente.' },
     postClose: {
         title: 'Ventas post-cierre',

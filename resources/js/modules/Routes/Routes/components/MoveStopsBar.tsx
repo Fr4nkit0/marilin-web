@@ -19,7 +19,8 @@ interface Props {
 }
 
 /**
- * "Cobertura": the admin sends the selected stops of a route not dispatched yet to another driver's route of the same day.
+ * "Cobertura": the admin sends the selected stops of a route not dispatched yet to another driver's route of the same day,
+ * even one already on the street.
  * Repeated, it splits an absent driver's route among several drivers.
  */
 export default function MoveStopsBar({ routeId, drivers, selected, onMoved }: Props) {

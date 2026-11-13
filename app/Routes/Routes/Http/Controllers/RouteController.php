@@ -50,7 +50,10 @@ class RouteController extends Controller
 
         $canLoad = $request->user()?->can('load-trucks') ?? false;
 
-        $routes = $routesQuery->get()->map(function (DeliveryRoute $route) use ($canLoad) {
+        $routeModels = $routesQuery->get();
+        $coverers = $this->coverersByRoute($routeModels->modelKeys());
+
+        $routes = $routeModels->map(function (DeliveryRoute $route) use ($canLoad, $coverers) {
             $isOpen = ! in_array($route->status, [RouteStatus::Completed->value, RouteStatus::Cancelled->value], true);
 
             $totalStops = $route->activeStops->count();
@@ -58,6 +61,9 @@ class RouteController extends Controller
 
             $pendingStops = $totalStops - $completedStops;
             $progress = $totalStops > 0 ? round(($completedStops / $totalStops) * 100) : 0;
+
+            // "Cubierta": every stop went to other drivers; a route that kept some is shown as usual.
+            $coveredBy = $totalStops === 0 ? ($coverers[$route->id] ?? []) : [];
 
             return [
                 'id' => $route->id,
@@ -105,6 +111,8 @@ class RouteController extends Controller
                 'canLoad' => $canLoad && $isOpen,
                 // "Cobertura": the stops of a planned route can go to another driver until it is dispatched.
                 'canMoveStops' => $canLoad && $route->status === RouteStatus::Planned->value && $route->dispatched_at === null,
+                'coveredBy' => $coveredBy,
+                'coveredStops' => array_sum(array_column($coveredBy, 'stops')),
                 'currentStock' => $route->inventories->map(fn ($inv) => [
                     'id' => $inv->id,
                     'productName' => $inv->product?->name ?? 'Producto',
@@ -163,5 +171,37 @@ class RouteController extends Controller
                 'globalProgress' => $totalPlannedStops > 0 ? round(($totalCompletedStops / $totalPlannedStops) * 100) : 0,
             ],
         ]);
+    }
+
+    /**
+     * The drivers holding the enabled stops moved from each route, most stops first, then by name.
+     *
+     * @param  array<int, int>  $routeIds
+     * @return array<int, list<array{driverName: string, stops: int}>>
+     */
+    private function coverersByRoute(array $routeIds): array
+    {
+        if ($routeIds === []) {
+            return [];
+        }
+
+        return RouteStop::query()
+            ->toBase()
+            ->join('routes', 'routes.id', '=', 'route_stops.route_id')
+            ->leftJoin('drivers', 'drivers.id', '=', 'routes.assigned_driver_id')
+            ->leftJoin('users', 'users.id', '=', 'drivers.user_id')
+            ->where('route_stops.enabled', true)
+            ->whereIn('route_stops.moved_from_route_id', $routeIds)
+            ->whereColumn('route_stops.route_id', '!=', 'route_stops.moved_from_route_id')
+            ->groupBy('route_stops.moved_from_route_id', 'routes.assigned_driver_id', 'users.name')
+            ->selectRaw('route_stops.moved_from_route_id as from_route_id, users.name as driver_name, count(*) as stops')
+            ->get()
+            ->groupBy('from_route_id')
+            ->map(fn ($rows) => $rows
+                ->map(fn ($row) => ['driverName' => $row->driver_name ?? 'Repartidor', 'stops' => (int) $row->stops])
+                ->sortBy([['stops', 'desc'], ['driverName', 'asc']])
+                ->values()
+                ->all())
+            ->all();
     }
 }

@@ -12,6 +12,7 @@ use App\Routes\Routes\Models\RouteStop;
 use App\Routes\ScheduledVisits\Models\ScheduledVisit;
 use App\Routes\Visits\Models\Visit;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Collection;
 use Illuminate\Testing\TestResponse;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -184,11 +185,6 @@ test('a rejected move changes no stop and creates no route', function (Closure $
 
         return [[$first->id], test()->cover->id];
     }, 'move', 'Solo se pueden mover paradas de una ruta planificada.'],
-    'destination dispatched' => [function (RouteStop $first): array {
-        Route::factory()->create(['assigned_driver_id' => test()->cover->id, 'date' => '2026-10-23', 'status' => 'PLANNED', 'dispatched_at' => now()]);
-
-        return [[$first->id], test()->cover->id];
-    }, 'move', 'La ruta de Beto Cubre ya fue despachada.'],
     'destination completed' => [function (RouteStop $first): array {
         Route::factory()->undispatched()->create(['assigned_driver_id' => test()->cover->id, 'date' => '2026-10-23', 'status' => 'COMPLETED']);
 
@@ -333,4 +329,79 @@ test('the routes page tells which routes can lend stops and where a covered stop
 
     $this->actingAs(User::factory()->create(['enabled' => true]))->get(route('routes.index', ['date' => '2026-10-23']))
         ->assertInertia(fn (Assert $page) => $page->where('routes.0.canMoveStops', false));
+});
+
+test('stops move onto a route already dispatched, so a route is reorganized while the covering driver is out', function (string $status): void {
+    [$first] = $this->stops;
+    $destination = Route::factory()->create(['assigned_driver_id' => $this->cover->id, 'date' => '2026-10-23', 'status' => $status, 'dispatched_at' => '2026-10-23 07:00:00']);
+
+    $this->travelTo('2026-10-23 10:00:00');
+    moveStops($this->source, [$first->id], $this->cover->id)
+        ->assertRedirect(route('routes.index'))
+        ->assertSessionHasNoErrors();
+
+    $moved = $first->fresh();
+    expect($moved->route_id)->toBe($destination->id)
+        ->and($moved->moved_from_route_id)->toBe($this->source->id)
+        ->and($destination->fresh()->dispatched_at->toDateTimeString())->toBe('2026-10-23 07:00:00');
+})->with(['planned' => 'PLANNED', 'in progress' => 'IN_PROGRESS']);
+
+/**
+ * The routes of the dispatch page for the day of the cover, keyed by id.
+ *
+ * @return Collection<int, array<string, mixed>>
+ */
+function dispatchRoutes(): Collection
+{
+    return collect(test()->actingAs(test()->admin)->get(route('routes.index', ['date' => '2026-10-23']))->assertOk()
+        ->viewData('page')['props']['routes'])->keyBy('id');
+}
+
+test('a route whose stops were all moved shows who covers them, most stops first, without changing the route', function (): void {
+    [$first, $second, $third] = $this->stops;
+    moveStops($this->source, [$first->id], $this->cover->id)->assertSessionHasNoErrors();
+    moveStops($this->source, [$second->id, $third->id], $this->other->id)->assertSessionHasNoErrors();
+    $before = coverSnapshot();
+
+    $routes = dispatchRoutes();
+
+    expect($routes[$this->source->id]['coveredBy'])->toBe([
+        ['driverName' => 'Carla Cubre', 'stops' => 2],
+        ['driverName' => 'Beto Cubre', 'stops' => 1],
+    ])
+        ->and($routes[$this->source->id]['coveredStops'])->toBe(3)
+        ->and($routes[$this->source->id]['stats']['totalStops'])->toBe(0)
+        ->and($routes[$this->source->id]['status'])->toBe('PLANNED')
+        // The covering routes are not covered themselves.
+        ->and($routes->firstWhere('driver.name', 'Beto Cubre')['coveredBy'])->toBe([])
+        ->and($routes->firstWhere('driver.name', 'Carla Cubre')['coveredStops'])->toBe(0)
+        // Showing it is read-only.
+        ->and(coverSnapshot())->toBe($before);
+});
+
+test('drivers covering the same number of stops are listed by name', function (): void {
+    $this->stops->push(coverStop($this->source, coverCustomer($this->absent)));
+    [$first, $second, $third, $fourth] = $this->stops;
+    moveStops($this->source, [$first->id, $second->id], $this->other->id)->assertSessionHasNoErrors();
+    moveStops($this->source, [$third->id, $fourth->id], $this->cover->id)->assertSessionHasNoErrors();
+
+    expect(dispatchRoutes()[$this->source->id]['coveredBy'])->toBe([
+        ['driverName' => 'Beto Cubre', 'stops' => 2],
+        ['driverName' => 'Carla Cubre', 'stops' => 2],
+    ]);
+});
+
+test('a route that lent only some of its stops, or none, is not covered', function (): void {
+    $untouched = Route::factory()->undispatched()->create(['assigned_driver_id' => coverDriver('Dora Queda')->id, 'date' => '2026-10-23', 'status' => 'PLANNED']);
+    coverStop($untouched, coverCustomer($untouched->driver));
+    [$first] = $this->stops;
+    moveStops($this->source, [$first->id], $this->cover->id)->assertSessionHasNoErrors();
+
+    $routes = dispatchRoutes();
+
+    expect($routes[$this->source->id]['coveredBy'])->toBe([])
+        ->and($routes[$this->source->id]['coveredStops'])->toBe(0)
+        ->and($routes[$this->source->id]['stats']['totalStops'])->toBe(2)
+        ->and($routes[$untouched->id]['coveredBy'])->toBe([])
+        ->and($routes[$untouched->id]['coveredStops'])->toBe(0);
 });

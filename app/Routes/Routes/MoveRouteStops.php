@@ -15,7 +15,8 @@ use Illuminate\Support\Facades\DB;
  * "Cobertura": when a driver misses a day, the admin moves part of their route to another driver's route of the same date,
  * created planned if it does not exist yet. The same stop rows move, so their scheduled visits and reschedule links stay,
  * and each one remembers the absent driver's route it came from. The customers keep their owner.
- * Only before dispatch: once the app has a route, its stops stay where they are.
+ * The absent driver's route lends only before its dispatch, but the destination can already be on the street: a route is
+ * reorganized while the covering driver is out, and the next pull brings them the moved stops with their customers.
  */
 final class MoveRouteStops
 {
@@ -94,10 +95,6 @@ final class MoveRouteStops
     private function ensureDestinationTakes(Route $destination, Driver $driver): void
     {
         $name = $driver->user?->name ?? 'el repartidor';
-
-        if ($destination->dispatched_at !== null) {
-            throw new InvalidRouteStopMove("La ruta de {$name} ya fue despachada.");
-        }
 
         if (in_array($destination->status, [RouteStatus::Completed->value, RouteStatus::Cancelled->value], true) || ! $destination->enabled) {
             throw new InvalidRouteStopMove("La ruta de {$name} está cerrada.");
