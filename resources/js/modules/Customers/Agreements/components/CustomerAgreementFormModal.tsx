@@ -123,7 +123,7 @@ export default function CustomerAgreementFormModal({ show, customerId, customerN
                         <FieldError message={errors.unit_price} className="mt-1" />
                     </label>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <label className="block">
                             <span className="text-sm font-medium text-ink-secondary">Desde</span>
                             <input

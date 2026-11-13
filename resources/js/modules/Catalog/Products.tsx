@@ -23,7 +23,7 @@ export default function Index({ products }: Props) {
 
             <div className="bg-canvas rounded-2xl shadow-sm border border-hairline/60 overflow-hidden ">
                 <div className="table-scroll">
-                    <table className="w-full text-left text-sm">
+                    <table className="table-cards w-full text-left text-sm">
                         <thead className="bg-canvas/80 backdrop-blur-md border-b border-hairline text-ink-muted">
                             <tr>
                                 <th className="px-6 py-4 text-xs font-medium text-ink tracking-wide">Producto</th>

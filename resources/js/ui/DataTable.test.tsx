@@ -1,5 +1,6 @@
 import { render, screen, within } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { fireEvent } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 import DataTable from './DataTable';
 
 type Row = { id: number; name: string; total: number };
@@ -32,5 +33,75 @@ describe('DataTable', () => {
         expect(message.closest('td')?.getAttribute('colspan')).toBe('2');
         // The message stays inside the visible width when the empty table scrolls sideways.
         expect(message.className).toContain('table-empty');
+    });
+
+    describe('on a phone, as cards', () => {
+        it('uses the card layout and labels every cell with its column', () => {
+            const { container } = render(
+                <DataTable
+                    columns={[
+                        ...columns,
+                        { header: <span>Estado</span>, label: 'Estado', cell: () => 'Activo' },
+                        { header: <span className="sr-only">Acciones</span>, cell: () => 'Ver' },
+                    ]}
+                    rows={[{ id: 1, name: 'Ana', total: 10 }]}
+                    rowKey={(row) => row.id}
+                    empty="Sin ventas."
+                />,
+            );
+
+            expect(container.querySelector('table')?.className).toContain('table-cards');
+            const cells = screen.getAllByRole('cell');
+            expect(cells.map((cell) => cell.getAttribute('data-label'))).toEqual(['Cliente', 'Total', 'Estado', null]);
+        });
+
+        it('makes the primary column the title of each card', () => {
+            render(
+                <DataTable
+                    columns={[{ ...columns[0], primary: true }, columns[1]]}
+                    rows={[{ id: 1, name: 'Ana', total: 10 }]}
+                    rowKey={(row) => row.id}
+                    empty="Sin ventas."
+                />,
+            );
+
+            const [title, total] = screen.getAllByRole('cell');
+            expect(title.hasAttribute('data-primary')).toBe(true);
+            expect(title.hasAttribute('data-label')).toBe(false);
+            expect(total.hasAttribute('data-primary')).toBe(false);
+        });
+
+        it('offers the sortable columns in a sort bar, since the headers are hidden', () => {
+            const onSortName = vi.fn();
+            const onSortTotal = vi.fn();
+            render(
+                <DataTable
+                    columns={[
+                        { ...columns[0], sort: { direction: 'asc', onSort: onSortName } },
+                        { ...columns[1], sort: { direction: null, onSort: onSortTotal } },
+                    ]}
+                    rows={[{ id: 1, name: 'Ana', total: 10 }]}
+                    rowKey={(row) => row.id}
+                    empty="Sin ventas."
+                />,
+            );
+
+            const bar = screen.getByRole('group', { name: 'Ordenar por' });
+            const [byName, byTotal] = within(bar).getAllByRole('button');
+            expect(byName.textContent).toBe('Cliente');
+            expect(byName.getAttribute('aria-pressed')).toBe('true');
+            expect(byName.getAttribute('aria-label')).toBe('Cliente, ascendente');
+            expect(byTotal.getAttribute('aria-pressed')).toBe('false');
+
+            fireEvent.click(byTotal);
+            expect(onSortTotal).toHaveBeenCalledTimes(1);
+            expect(onSortName).not.toHaveBeenCalled();
+        });
+
+        it('shows no sort bar when nothing sorts', () => {
+            render(<DataTable columns={columns} rows={[]} rowKey={(row) => row.id} empty="Sin ventas." />);
+
+            expect(screen.queryByRole('group', { name: 'Ordenar por' })).toBeNull();
+        });
     });
 });

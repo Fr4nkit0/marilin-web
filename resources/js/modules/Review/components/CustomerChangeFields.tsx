@@ -47,7 +47,11 @@ export default function CustomerChangeFields({ change }: { change: CustomerChang
                 {ENTITY_LABELS[change.entity]}
                 {change.adds ? ' (nueva)' : ''}
             </p>
-            <table className="mt-1 text-xs">
+            {/*
+              * Inside the review list's phone cards each field is a small card of its own (`.table-cards`):
+              * the field as its title and the current and proposed values as labelled lines, without the card padding.
+              */}
+            <table className="table-cards mt-1 text-xs">
                 <thead className="sr-only">
                     <tr>
                         <th>Campo</th>
@@ -57,14 +61,22 @@ export default function CustomerChangeFields({ change }: { change: CustomerChang
                 </thead>
                 <tbody>
                     {change.fields.map(({ field, current, proposed }) => (
-                        <tr key={field}>
-                            <td className="pr-3 py-0.5 text-ink-muted whitespace-nowrap">{fieldLabel(field)}</td>
-                            <td
-                                className={`pr-2 py-0.5 text-ink-subtle ${current !== proposed ? 'line-through decoration-ink-subtle/60' : ''}`}
-                            >
-                                {change.adds ? '' : shown(field, current)}
+                        <tr key={field} className="max-sm:!gap-0.5 max-sm:!px-0 max-sm:!py-1">
+                            <td data-primary className="pr-3 py-0.5 text-ink-muted whitespace-nowrap max-sm:!text-xs max-sm:!font-medium">
+                                {fieldLabel(field)}
                             </td>
-                            <td className="py-0.5 font-medium text-ink">{shown(field, proposed)}</td>
+                            <td
+                                data-label="Actual"
+                                className={`pr-2 py-0.5 text-ink-subtle ${change.adds ? 'max-sm:!hidden' : ''}`}
+                            >
+                                {/* The strike sits on the value only, so the phone's "Actual" label stays readable. */}
+                                <span className={current !== proposed ? 'line-through decoration-ink-subtle/60' : ''}>
+                                    {change.adds ? '' : shown(field, current)}
+                                </span>
+                            </td>
+                            <td data-label="Propuesto" className="py-0.5 font-medium text-ink">
+                                {shown(field, proposed)}
+                            </td>
                         </tr>
                     ))}
                 </tbody>

@@ -33,12 +33,42 @@ describe('RouteStopsTable', () => {
 
         expect(rows()).toEqual(['1 Hotel', '2 Almacén', '3 Kiosco']);
 
-        fireEvent.click(screen.getByRole('button', { name: 'Cliente' }));
+        const table = within(screen.getByRole('table'));
+        fireEvent.click(table.getByRole('button', { name: 'Cliente' }));
         expect(rows()).toEqual(['2 Almacén', '1 Hotel', '3 Kiosco']);
 
-        fireEvent.click(screen.getByRole('button', { name: 'Cliente' }));
+        fireEvent.click(table.getByRole('button', { name: 'Cliente' }));
         expect(rows()).toEqual(['3 Kiosco', '1 Hotel', '2 Almacén']);
         expect(screen.getByRole('columnheader', { name: 'Cliente' }).getAttribute('aria-sort')).toBe('descending');
+    });
+
+    it('sorts the stops from the phone sort bar like the headers do', () => {
+        render(<RouteStopsTable stops={[stop(1, 'Hotel'), stop(2, 'Almacén'), stop(3, 'Kiosco')]} />);
+        const bar = within(screen.getByRole('group', { name: 'Ordenar por' }));
+
+        fireEvent.click(bar.getByRole('button', { name: 'Cliente' }));
+        expect(rows()).toEqual(['2 Almacén', '1 Hotel', '3 Kiosco']);
+        expect(bar.getByRole('button', { name: 'Cliente, ascendente' }).getAttribute('aria-pressed')).toBe('true');
+
+        fireEvent.click(bar.getByRole('button', { name: 'Cliente, ascendente' }));
+        expect(rows()).toEqual(['3 Kiosco', '1 Hotel', '2 Almacén']);
+        expect(screen.getByRole('columnheader', { name: 'Cliente' }).getAttribute('aria-sort')).toBe('descending');
+    });
+
+    it('labels each stop cell for its phone card', () => {
+        render(<RouteStopsTable stops={[stop(1, 'Hotel')]} />);
+        const [, body] = screen.getAllByRole('rowgroup');
+        const cells = within(body).getAllByRole('cell');
+
+        expect(cells.map((cell) => cell.getAttribute('data-label'))).toEqual([
+            'Parada',
+            null,
+            'Dirección',
+            'Estado',
+            'Hora',
+            'Resultado',
+        ]);
+        expect(cells[1].hasAttribute('data-primary')).toBe(true);
     });
 
     it('selects the stops still to be made, one by one or all at once', () => {

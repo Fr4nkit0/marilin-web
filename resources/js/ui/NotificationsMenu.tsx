@@ -44,19 +44,19 @@ export default function NotificationsMenu({ items }: Props) {
                 aria-haspopup="true"
                 aria-expanded={open}
                 onClick={() => setOpen(!open)}
-                className="relative p-2 rounded-lg text-ink-muted hover:text-ink hover:bg-surface-1 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-600"
+                className="relative w-11 h-11 flex items-center justify-center rounded-lg text-ink-muted hover:text-ink hover:bg-surface-1 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-600"
             >
                 <Bell className="w-5 h-5" strokeWidth={2} />
                 {items.length > 0 && (
                     <span
                         data-testid="notifications-dot"
-                        className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-canvas"
+                        className="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-canvas"
                     ></span>
                 )}
             </button>
 
             {open && (
-                <div className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-canvas rounded-xl shadow-lg border border-hairline/60 py-1.5 z-50">
+                <div className="fixed inset-x-4 top-16 sm:absolute sm:inset-x-auto sm:top-auto sm:right-0 sm:mt-2 sm:w-80 bg-canvas rounded-xl shadow-lg border border-hairline/60 py-1.5 z-50">
                     <p className="px-4 py-2 text-xs font-semibold text-ink-muted">Notificaciones</p>
                     {items.length === 0 ? (
                         <p className="px-4 py-3 text-sm text-ink-muted">No hay novedades.</p>

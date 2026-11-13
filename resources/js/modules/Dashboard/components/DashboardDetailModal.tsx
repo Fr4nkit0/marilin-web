@@ -48,10 +48,11 @@ function Badge({ label, style }: { label: string; style: string }) {
     );
 }
 
+/** On a phone each row is a card (`.table-cards`): every cell a "label: value" line, the customer as its title. */
 function Table({ head, children, foot }: { head: ReactNode; children: ReactNode; foot?: ReactNode }) {
     return (
         <div className="table-scroll">
-            <table className="w-full text-left text-sm">
+            <table className="table-cards w-full text-left text-sm">
                 <thead className="border-b border-hairline">{head}</thead>
                 <tbody className="divide-y divide-hairline">{children}</tbody>
                 {foot && <tfoot className="border-t border-hairline">{foot}</tfoot>}
@@ -72,11 +73,14 @@ function EmptyRow({ colSpan }: { colSpan: number }) {
 
 function TotalRow({ label, value, colSpan }: { label: string; value: string; colSpan: number }) {
     return (
-        <tr>
-            <td colSpan={colSpan} className="px-4 py-3 text-sm font-medium text-ink-secondary">
+        <tr className="max-sm:!py-2">
+            {/* On a phone the value's own label says it, so the spanning cell would only repeat it. */}
+            <td colSpan={colSpan} className="px-4 py-3 text-sm font-medium text-ink-secondary max-sm:!hidden">
                 {label}
             </td>
-            <td className="px-4 py-3 text-right font-semibold text-ink whitespace-nowrap">{value}</td>
+            <td data-label={label} className="px-4 py-3 text-right font-semibold text-ink whitespace-nowrap">
+                {value}
+            </td>
         </tr>
     );
 }
@@ -102,17 +106,17 @@ function SalesTable({ rows }: { rows: DashboardSaleRow[] }) {
             ) : (
                 rows.map((row) => (
                     <tr key={row.id}>
-                        <td className={`${tdClass} whitespace-nowrap`}>{time(row.at)}</td>
-                        <td className={`${tdClass} font-medium text-ink`}>{row.customer ?? '—'}</td>
-                        <td className={tdClass}>{row.driver ?? '—'}</td>
-                        <td className={tdClass}>
+                        <td data-label="Hora" className={`${tdClass} whitespace-nowrap`}>{time(row.at)}</td>
+                        <td data-primary className={`${tdClass} font-medium text-ink max-sm:order-first`}>{row.customer ?? '—'}</td>
+                        <td data-label="Repartidor" className={tdClass}>{row.driver ?? '—'}</td>
+                        <td data-label="Tipo" className={tdClass}>
                             {row.credit ? (
                                 <Badge label="Cta Cte" style="bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-200/60 dark:border-amber-500/30" />
                             ) : (
                                 <Badge label="Contado" style="bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-200/60 dark:border-emerald-500/30" />
                             )}
                         </td>
-                        <td className={`${tdClass} text-right font-semibold text-ink`}>{money(row.amount)}</td>
+                        <td data-label="Monto" className={`${tdClass} text-right font-semibold text-ink`}>{money(row.amount)}</td>
                     </tr>
                 ))
             )}
@@ -149,17 +153,17 @@ function PaymentsTable({ rows }: { rows: DashboardPaymentRow[] }) {
             ) : (
                 rows.map((row) => (
                     <tr key={row.id}>
-                        <td className={`${tdClass} whitespace-nowrap`}>{time(row.at)}</td>
-                        <td className={`${tdClass} font-medium text-ink`}>{row.customer ?? '—'}</td>
-                        <td className={tdClass}>{row.driver ?? '—'}</td>
-                        <td className={tdClass}>
+                        <td data-label="Hora" className={`${tdClass} whitespace-nowrap`}>{time(row.at)}</td>
+                        <td data-primary className={`${tdClass} font-medium text-ink max-sm:order-first`}>{row.customer ?? '—'}</td>
+                        <td data-label="Repartidor" className={tdClass}>{row.driver ?? '—'}</td>
+                        <td data-label="Medio" className={tdClass}>
                             {row.method === 'CASH' ? (
                                 <Badge label="Efectivo" style="bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-200/60 dark:border-emerald-500/30" />
                             ) : (
                                 <Badge label="Transferencia" style="bg-sky-50 dark:bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-200/60 dark:border-sky-500/30" />
                             )}
                         </td>
-                        <td className={`${tdClass} text-right font-semibold text-ink`}>{money(row.amount)}</td>
+                        <td data-label="Monto" className={`${tdClass} text-right font-semibold text-ink`}>{money(row.amount)}</td>
                     </tr>
                 ))
             )}
@@ -190,10 +194,10 @@ function StopsTable({ rows }: { rows: DashboardStopRow[] }) {
 
                     return (
                         <tr key={row.id}>
-                            <td className={tdClass}>{row.driver ?? '—'}</td>
-                            <td className={`${tdClass} whitespace-nowrap`}>{row.time ?? '—'}</td>
-                            <td className={`${tdClass} font-medium text-ink`}>{row.customer ?? '—'}</td>
-                            <td className={`${tdClass} text-right`}>
+                            <td data-label="Repartidor" className={tdClass}>{row.driver ?? '—'}</td>
+                            <td data-label="Hora" className={`${tdClass} whitespace-nowrap`}>{row.time ?? '—'}</td>
+                            <td data-primary className={`${tdClass} font-medium text-ink max-sm:order-first`}>{row.customer ?? '—'}</td>
+                            <td data-label="Estado" className={`${tdClass} text-right`}>
                                 <Badge label={status.label} style={status.style} />
                             </td>
                         </tr>
@@ -229,11 +233,12 @@ function ContainersTable({ rows }: { rows: DashboardContainerRow[] }) {
 
                     return (
                         <tr key={row.id}>
-                            <td className={`${tdClass} whitespace-nowrap`}>{time(row.at)}</td>
-                            <td className={`${tdClass} font-medium text-ink`}>{row.customer ?? '—'}</td>
-                            <td className={tdClass}>{row.driver ?? '—'}</td>
-                            <td className={tdClass}>{row.container ?? '—'}</td>
+                            <td data-label="Hora" className={`${tdClass} whitespace-nowrap`}>{time(row.at)}</td>
+                            <td data-primary className={`${tdClass} font-medium text-ink max-sm:order-first`}>{row.customer ?? '—'}</td>
+                            <td data-label="Repartidor" className={tdClass}>{row.driver ?? '—'}</td>
+                            <td data-label="Envase" className={tdClass}>{row.container ?? '—'}</td>
                             <td
+                                data-label="Cantidad"
                                 className={`${tdClass} text-right font-semibold whitespace-nowrap ${
                                     isDelivered ? 'text-emerald-700 dark:text-emerald-300' : 'text-orange-700 dark:text-orange-300'
                                 }`}
@@ -262,7 +267,7 @@ export default function DashboardDetailModal({ kind, details, onClose }: Props) 
                             type="button"
                             onClick={onClose}
                             aria-label="Cerrar"
-                            className="p-1.5 rounded-lg text-ink-subtle hover:text-ink-secondary hover:bg-surface-1 transition cursor-pointer"
+                            className="inline-flex items-center justify-center min-h-11 min-w-11 sm:min-h-0 sm:min-w-0 p-1.5 rounded-lg text-ink-subtle hover:text-ink-secondary hover:bg-surface-1 transition cursor-pointer"
                         >
                             <X className="w-5 h-5" />
                         </button>

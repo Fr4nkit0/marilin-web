@@ -80,8 +80,8 @@ export default function CashCloseIndex({
             />
 
             {/* Drivers Selection Toolbar */}
-            <div className="bg-canvas border border-hairline/60 rounded-2xl p-4 mb-6 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 ">
-                <div className="flex items-center gap-3 w-full sm:w-auto">
+            <div className="bg-canvas border border-hairline/60 rounded-2xl p-4 mb-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3 w-full sm:w-auto">
                     <label htmlFor="cash-close-driver" className="text-sm font-medium text-ink-muted whitespace-nowrap">
                         Repartidor:
                     </label>
@@ -89,7 +89,7 @@ export default function CashCloseIndex({
                         id="cash-close-driver"
                         value={selectedId}
                         onChange={(e) => handleSelectRepartidor(e.target.value)}
-                        className="py-2 px-3 text-sm font-medium border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-canvas text-ink shadow-sm transition-all min-w-[200px]"
+                        className="py-2 px-3 text-sm font-medium border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-canvas text-ink shadow-sm transition-all w-full sm:w-auto sm:min-w-[200px]"
                     >
                         {repartidores.map((rep) => (
                             <option key={rep.id} value={rep.id}>
@@ -99,7 +99,7 @@ export default function CashCloseIndex({
                     </select>
                 </div>
 
-                <div className="flex items-center gap-3 w-full sm:w-auto">
+                <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3 w-full sm:w-auto">
                     <label htmlFor="cash-close-date" className="text-sm font-medium text-ink-muted whitespace-nowrap">
                         Fecha Jornada:
                     </label>
@@ -109,7 +109,7 @@ export default function CashCloseIndex({
                         value={selectedDate}
                         onChange={(e) => handleDateChange(e.target.value)}
                         style={{ colorScheme: 'light' }}
-                        className="py-2 px-3 text-sm font-medium border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-canvas text-ink shadow-sm transition-all"
+                        className="w-full sm:w-auto py-2 px-3 text-sm font-medium border border-hairline/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-canvas text-ink shadow-sm transition-all"
                     />
                 </div>
 

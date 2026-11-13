@@ -12,7 +12,8 @@ const VARIANT: Record<ButtonVariant, string> = {
 
 const SIZE: Record<ButtonSize, string> = {
     sm: 'h-8 px-3 text-xs',
-    md: 'h-10 px-4 text-sm',
+    // 44px on a phone (DESIGN.md touch targets), 40px from `sm` up.
+    md: 'h-11 sm:h-10 px-4 text-sm',
 };
 
 /** The classes of a button, also for links that look like one (`<Link className={buttonClass('primary')}>`). */
