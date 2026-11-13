@@ -15,6 +15,7 @@ import {
 import { date, money, stopStatusLabel } from '@/lib/format';
 import RequestedVisitMark from './components/RequestedVisitMark';
 import DayPicker from './components/DayPicker';
+import DriverSwitcher, { type DriverOption } from './components/DriverSwitcher';
 import LocalPagination, { pageOf } from '@/ui/LocalPagination';
 
 // A long route is read a page at a time; the header's progress and totals still count every stop.
@@ -54,9 +55,11 @@ interface Props {
         inventory: InventoryItem[];
     } | null;
     targetDate: string;
+    /** The drivers the name switches to. */
+    drivers: DriverOption[];
 }
 
-export default function RepartidorShow({ repartidor, route: deliveryRoute, targetDate }: Props) {
+export default function RepartidorShow({ repartidor, route: deliveryRoute, targetDate, drivers }: Props) {
     const totalStops = deliveryRoute?.totalStops ?? 0;
     const completedStops = deliveryRoute?.completedStops ?? 0;
     const progressPercent = deliveryRoute?.progressPercent ?? 0;
@@ -107,9 +110,7 @@ export default function RepartidorShow({ repartidor, route: deliveryRoute, targe
                         </div>
                         <div>
                             <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                                <h1 className="text-2xl font-semibold text-ink tracking-tight">
-                                    {repartidor.name}
-                                </h1>
+                                <DriverSwitcher drivers={drivers} currentId={repartidor.id} date={targetDate} />
                                 {deliveryRoute && <StatusBadge status={deliveryRoute.status} />}
                             </div>
                             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm font-medium text-ink-muted mt-2 tracking-wide">

@@ -42,3 +42,25 @@ test('the driver page shows the day asked for, and today when none is', function
     $this->actingAs($this->admin)->get(route('drivers.show', $this->driver))
         ->assertInertia(fn (Assert $page) => $page->where('targetDate', now()->toDateString()));
 });
+
+test('the driver page lists the enabled drivers by name, to switch to another one', function (): void {
+    $ana = Driver::factory()->create(['user_id' => User::factory()->create(['name' => 'Ana Torres'])->id, 'enabled' => true]);
+    Driver::factory()->create(['user_id' => User::factory()->create(['name' => 'Beto Baja'])->id, 'enabled' => false]);
+
+    $this->actingAs($this->admin)->get(route('drivers.show', $this->driver))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('drivers', [
+                ['id' => $ana->id, 'name' => 'Ana Torres'],
+                ['id' => $this->driver->id, 'name' => 'Juan Pérez'],
+            ]));
+});
+
+test('a disabled driver still appears in the switcher on their own page', function (): void {
+    $this->driver->update(['enabled' => false]);
+
+    $this->actingAs($this->admin)->get(route('drivers.show', $this->driver))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('drivers', [['id' => $this->driver->id, 'name' => 'Juan Pérez']]));
+});
